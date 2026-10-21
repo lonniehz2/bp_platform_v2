@@ -15,6 +15,7 @@ STRICT = ['--strict'] if '--strict' in sys.argv else []
 
 STEPS = [
     ('前端构建与静态校验', '_check_build.py', STRICT),
+    ('ID 字段精度（禁止 Number 转 ID）', '_check_id_number.py', []),
     ('接口路径核对（前后端一致性）', '_check_api_paths.py', STRICT),
     ('显示层一致性（字段/枚举/ID/树）', '_check_display.py', STRICT),
     ('全功能页面对照（46 项）', '_verify_all_pages.py', []),
