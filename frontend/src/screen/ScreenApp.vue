@@ -115,7 +115,9 @@ function renderCharts() {
   const occupied = valueOf('HOUSE_OCCUPIED')
   const vacant = valueOf('HOUSE_VACANT')
   const total = valueOf('HOUSE_TOTAL')
-  const other = Math.max(0, total - occupied - vacant)
+  // 与「运营驾驶舱」口径统一：第三类用「待配租」，不再是笼统的「其他」
+  const pending = valueOf('PENDING_ALLOC')
+  const other = Math.max(0, total - occupied - vacant - pending)
 
   charts.pie?.setOption({
     tooltip: { trigger: 'item', formatter: '{b}：{c} 套（{d}%）' },
@@ -128,7 +130,6 @@ function renderCharts() {
       itemWidth: 10,
       itemHeight: 10,
       textStyle: { color: '#cfe2ff', fontSize: 11 },
-      formatter: '{name}'
     },
     series: [{
       type: 'pie', radius: ['44%', '66%'], center: ['50%', '40%'],
@@ -137,7 +138,9 @@ function renderCharts() {
       data: [
         { name: '已出租', value: occupied, itemStyle: { color: '#3f8cff' } },
         { name: '空置', value: vacant, itemStyle: { color: '#ffc53d' } },
-        { name: '其他', value: other, itemStyle: { color: '#8b5cf6' } }
+        { name: '待配租', value: pending, itemStyle: { color: '#8b5cf6' } },
+        // 只有确实存在「以上三类之外」的房源时才显示，避免与驾驶舱口径不一致
+        ...(other > 0 ? [{ name: '其他', value: other, itemStyle: { color: '#64748b' } }] : [])
       ]
     }]
   })

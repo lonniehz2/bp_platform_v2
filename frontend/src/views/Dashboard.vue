@@ -266,7 +266,7 @@ function renderChart() {
       itemGap: 10,
       itemWidth: 10,
       itemHeight: 10,
-      textStyle: { color: textColor, fontSize: 11 }
+      textStyle: { color: textColor, fontSize: 11, textBorderColor: 'rgba(255,255,255,0.9)', textBorderWidth: 2 }
     },
     color: ['#1890ff', '#faad14', '#722ed1'],
     series: [{
@@ -277,13 +277,17 @@ function renderChart() {
       itemStyle: { borderColor: 'transparent', borderWidth: 2 },
       label: {
         show: true,
-        // 名称 + 百分比，两行显示，保证阅读时能对上颜色
+        // 名称 + 百分比；文字带白色描边光晕，浅色/深色底都能看清
+        // （此前按背景亮度选色，在「浏览器强制暗色」等情况下会失效）
         formatter: '{b}\n{d}%',
-        color: textColor,
+        color: '#1f1f1f',
+        textBorderColor: 'rgba(255,255,255,0.95)',
+        textBorderWidth: 3,
         fontSize: 12,
-        lineHeight: 16
+        lineHeight: 16,
+        overflow: 'none'
       },
-      labelLine: { show: true, length: 10, length2: 12, lineStyle: { color: textColor } },
+      labelLine: { show: true, length: 8, length2: 10, lineStyle: { color: '#9aa4b2' } },
       data: [
         { name: '已出租', value: occupied, itemStyle: { color: '#1890ff' } },
         { name: '空置', value: vacant, itemStyle: { color: '#faad14' } },
