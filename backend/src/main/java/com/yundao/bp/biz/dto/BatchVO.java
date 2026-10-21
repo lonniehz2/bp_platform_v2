@@ -32,10 +32,14 @@ public record BatchVO(
         if (e == null) {
             return null;
         }
+        // 注意：不能用 valueOf(null) —— 它抛的是 NullPointerException，
+        // 而 catch (IllegalArgumentException) 接不住，会让整页 500。
         BatchStatus st;
         try {
-            st = BatchStatus.valueOf(e.getBatchStatus());
-        } catch (IllegalArgumentException ex) {
+            st = e.getBatchStatus() == null
+                    ? BatchStatus.DRAFT
+                    : BatchStatus.valueOf(e.getBatchStatus());
+        } catch (RuntimeException ex) {
             st = BatchStatus.DRAFT;
         }
         return new BatchVO(e.getId(), e.getBatchNo(), e.getBatchName(), e.getOrgId(),
