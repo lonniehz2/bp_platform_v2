@@ -89,6 +89,22 @@ public class GlobalExceptionHandler {
                 .body(R.fail(ErrorCode.PARAM_INVALID, e.getMessage()));
     }
 
+    /**
+     * 路径不存在（含静态资源 404）。
+     *
+     * <p>必须单独兜住：Spring 对未匹配的请求会抛 {@code NoResourceFoundException}，
+     * 它是 {@code Exception} 的子类，若被下面的兜底处理器接住就会变成
+     * 「500 系统异常」，把「接口路径写错/不存在」伪装成服务端故障。
+     */
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<R<Void>> handleNoResource(
+            org.springframework.web.servlet.resource.NoResourceFoundException e,
+            HttpServletRequest req) {
+        log.warn("接口不存在 {} {}", req.getMethod(), req.getRequestURI());
+        return ResponseEntity.status(ErrorCode.NOT_FOUND.httpStatus())
+                .body(R.fail(ErrorCode.NOT_FOUND));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<R<Void>> handleOther(Exception e, HttpServletRequest req) {
         // 先尝试从嵌套异常中还原业务异常（如 MyBatis 包装的租户上下文缺失）

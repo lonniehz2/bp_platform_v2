@@ -31,29 +31,42 @@
 - 列表页「清空」：25 个单 toolbar 页面已补
 - 表单化：告警、申诉（JSON 文本框 → 结构化表单）
 
-**当前阻塞**
-1. **配租模块读接口全 500**：`/allocations`、`/allocations/batches`、`/allocations/batches/{id}`、`/allocations/waiting`
-   - 根因未定位，因为**系统没有日志出口**（见下）
-   - 嫌疑：`BatchVO.from` 里 `BatchStatus.valueOf(null)` 抛 NPE（`catch` 只兜 `IllegalArgumentException`）；或 `DisplayEnricher` 某 ID 映射查错表
+**当前阻塞（已更正 2026-10-21）**
+
+> ⚠️ 前一版本写的「配租模块读接口全 500」是**误报**，已撤销。
+> 真实路径是 `/api/v1/allocation/allocations`（三级），不是 `/allocations`。
+> 实测：`/allocation/allocations` → 200/total=3，`/allocation/batches` → 200/total=1，
+> `/allocation/waiting` → 200/total=4。**配租模块健康**。
+
+1. **【真缺陷】404 被包装成 500**：访问不存在的接口时，Spring 抛
+   `NoResourceFoundException`（落到静态资源处理器），被 `GlobalExceptionHandler`
+   的 `@ExceptionHandler(Exception.class)` 捕获 → 返回 `BP99999 系统异常 / 500`。
+   后果：路径写错、接口缺失这类问题全部表现为「系统异常」，排查时被严重误导
+   （本项目就这么误判了一整个模块）。
+   修法：在 `GlobalExceptionHandler` 里加
+   `@ExceptionHandler(NoResourceFoundException.class)` → `BP30001 / 404`。
 2. 押金退费页筛选未做：`/fin/deposits` 参数未确认，页面同时读 `/fin/deposits` + `/fin/refunds`
+
+**日志在哪（重要）**
+```
+/var/log/bp-platform/app.log   ← 应用日志（标准输出），已 385MB，异常全在这
+/var/log/bp-platform/err.log   ← 空
+```
+读法：`python _root_cmd.py "tail -c 2000000 /var/log/bp-platform/app.log | grep -A10 '未处理异常'"`
+（**别**用 `journalctl -u bp-platform`，那里只有系统生命周期消息）
 
 ## 3. 下一步（按顺序，第一条命令已给全）
 
-### 第 1 步：打开日志出口（这是所有排查的前提）
-```bash
-python _root_cmd.py "systemctl cat bp-platform | grep -vE '^#'"
+### 第 1 步：修「404 被包装成 500」（真缺陷，改动很小）
+`GlobalExceptionHandler` 加：
+```java
+@ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+public ResponseEntity<R<Void>> handleNoResource(NoResourceFoundException e, HttpServletRequest req) {
+    log.warn("接口不存在 {} {}", req.getMethod(), req.getRequestURI());
+    return ResponseEntity.status(404).body(R.fail(ErrorCode.NOT_FOUND));
+}
 ```
-已确认：`/opt/bp-platform/` 只有 jar，无配置文件、无 logs 目录；journald 只有 systemd 生命周期消息，**应用输出被丢弃**。
-改法二选一：
-- unit 加 `StandardOutput=append:/var/log/bp-platform.log` + `StandardError=append:...`，`daemon-reload` 后重启
-- 或 ExecStart 加 `-Dlogging.file.name=/var/log/bp-platform.log`
-
-然后复现 + 读堆栈：
-```bash
-curl -s "http://192.168.31.11:8080/api/v1/allocations/batches?pageNum=1&pageSize=5" \
-  -H "X-Tenant-Id: 350600" -H "Authorization: Bearer <token>"
-python _root_cmd.py "tail -200 /var/log/bp-platform.log"
-```
+改完 `package` → `_deploy.py --upload` → 再访问一个不存在的路径，应返回 404/BP30001 而不是 500。
 
 ### 第 2 步：给冒烟加「接口非 5xx」断言
 `_check_ui.py` 43/43 全绿却漏掉整个配租模块——它只验「页面能渲染」。

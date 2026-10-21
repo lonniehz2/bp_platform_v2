@@ -52,11 +52,15 @@ class ContractModuleTest {
     @Mock
     private BizContractMapper mapper;
 
+    /** 占用联动是后加的依赖：合同测试只关心状态机，占用用 mock 顶掉 */
+    @Mock
+    private com.yundao.bp.asset.service.OccupancyService occupancyService;
+
     private ContractService service;
 
     @BeforeEach
     void setUp() {
-        service = new ContractServiceImpl(mapper, new SnowflakeIdGenerator(1, 1));
+        service = new ContractServiceImpl(mapper, new SnowflakeIdGenerator(1, 1), occupancyService);
         TenantContext.set(TenantInfo.of("350600", 1001L));
         when(mapper.insert(any(BizContract.class))).thenReturn(1);
         when(mapper.updateById(any(BizContract.class))).thenReturn(1);
