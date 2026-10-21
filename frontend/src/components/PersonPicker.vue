@@ -44,7 +44,7 @@ import req from '@/api/request'
 
 const props = defineProps({
   modelValue: { type: [String, Number], default: '' },
-  placeholder: { type: String, default: '输入姓名/手机/证件号搜索' },
+  placeholder: { type: String, default: '输入姓名/手机/身份证号/人员ID 搜索' },
   width: { type: String, default: '240px' },
   testid: { type: String, default: 'person-picker' }
 })
@@ -60,26 +60,39 @@ function labelOf(p) {
 
 async function search(keyword) {
   const k = (keyword || '').trim()
-  // 纯数字且长度 ≥ 15：当作人员ID直接匹配，不打扰服务端模糊搜索
-  if (/^\d{15,}$/.test(k)) {
-    loading.value = true
-    try {
-      const d = await req.get('/persons', { params: { pageNum: 1, pageSize: 5, keyword: k } })
-      options.value = d.rows || []
-    } catch (e) { options.value = [] } finally { loading.value = false }
-    return
-  }
+  const type = classify(k)
   if (!k) { options.value = []; return }
   const mine = ++seq
   loading.value = true
   try {
-    const d = await req.get('/persons', { params: { pageNum: 1, pageSize: 20, keyword: k } })
+    let d
+    if (type === 'ID') {
+      // 19 位及以上：按人员ID精确取详情（列表接口不按 ID 模糊匹配）
+      d = await req.get(`/persons/${k}`).then((p) => ({ rows: p ? [p] : [] })).catch(() => ({ rows: [] }))
+    } else {
+      // 18 位身份证 / 11 位手机号 / 姓名，都走关键字（后端已支持这三类字段）
+      d = await req.get('/persons', { params: { pageNum: 1, pageSize: 20, keyword: k } })
+    }
     if (mine === seq) options.value = d.rows || []
   } catch (e) {
     if (mine === seq) options.value = []
   } finally {
     if (mine === seq) loading.value = false
   }
+}
+
+/**
+ * 按输入形态分流（避免「18 位身份证」被当成人员 ID）：
+ *   19 位及以上纯数字 → 人员 ID
+ *   18 位（17 位数字 + 数字或 X）→ 身份证号
+ *   11 位纯数字 → 手机号
+ *   其余 → 姓名/关键字
+ */
+function classify(k) {
+  if (/^\d{19,}$/.test(k)) return 'ID'
+  if (/^\d{17}[\dXx]$/.test(k)) return 'IDCARD'
+  if (/^\d{11}$/.test(k)) return 'PHONE'
+  return 'NAME'
 }
 
 // 回填：外部传入已有 ID 时，取一次详情用于显示姓名

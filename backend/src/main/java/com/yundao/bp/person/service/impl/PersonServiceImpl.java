@@ -164,7 +164,9 @@ public class PersonServiceImpl implements PersonService {
                 .orderByDesc(Person::getId);
         if (keyword != null && !keyword.isBlank()) {
             qw.and(w -> w.like(Person::getPersonName, keyword)
-                    .or().like(Person::getPersonCode, keyword));
+                    .or().like(Person::getPersonCode, keyword)
+                    .or().like(Person::getPhone, keyword)
+                    .or().like(Person::getIdCard, keyword));
         }
         // 含下级：按 org_path 前缀取整棵子树（组织是树，见 bp_iam_org 的 parent_id/org_path）
         if (orgId != null && Boolean.TRUE.equals(includeChildren)) {

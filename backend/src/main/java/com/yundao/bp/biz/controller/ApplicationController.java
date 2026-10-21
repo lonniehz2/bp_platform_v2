@@ -48,9 +48,10 @@ public class ApplicationController {
                                              @RequestParam(required = false) String securityType,
                                              @RequestParam(required = false) String status,
                                              @RequestParam(required = false) Long orgId,
+                                             @RequestParam(required = false) Long personId,
                                              @RequestParam(required = false) String keyword) {
         return R.ok(applicationService.page(pageNum, pageSize, securityType, status, orgId,
-                keyword));
+                keyword, personId));
     }
 
     /** 受理（同时进入审核中）。 */

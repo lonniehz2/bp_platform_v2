@@ -268,13 +268,15 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public PageResult<ApplicationVO> page(long pageNum, long pageSize, String securityType,
-                                          String status, Long orgId, String keyword) {
+                                          String status, Long orgId, String keyword,
+                                          Long personId) {
         LambdaQueryWrapper<BizApplication> qw = new LambdaQueryWrapper<BizApplication>()
                 .eq(securityType != null && !securityType.isBlank(),
                         BizApplication::getSecurityType, securityType)
                 .eq(status != null && !status.isBlank(),
                         BizApplication::getApplicationStatus, status)
                 .eq(orgId != null, BizApplication::getOrgId, orgId)
+                .eq(personId != null, BizApplication::getPersonId, personId)
                 .orderByDesc(BizApplication::getId);
         if (keyword != null && !keyword.isBlank()) {
             qw.and(w -> w.like(BizApplication::getApplicationNo, keyword));

@@ -19,7 +19,7 @@ public interface ApplicationService {
     ApplicationVO get(Long id);
 
     PageResult<ApplicationVO> page(long pageNum, long pageSize, String securityType,
-                                   String status, Long orgId, String keyword);
+                                   String status, Long orgId, String keyword, Long personId);
 
     /** 受理：SUBMITTED → ACCEPTED。 */
     ApplicationVO accept(Long id, Long acceptUserId);
