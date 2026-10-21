@@ -128,10 +128,19 @@
           <el-button @click="loadConclusion">查结论</el-button>
         </div>
         <el-table :data="verifies" v-loading="loading" border size="small">
-          <el-table-column prop="personId" label="人员" width="200">
-            <template #default="{ row }">{{ row.personName || row.personId }}</template>
+          <el-table-column label="核验对象" width="240">
+            <template #default="{ row }">
+              <div>{{ row.personName || row.personId }}</div>
+              <div class="muted" style="font-size:12px">
+                {{ row.phoneMask || '-' }}　{{ row.idCardMask || '-' }}
+              </div>
+            </template>
           </el-table-column>
-          <el-table-column prop="verifyType" label="核验方式" width="140" />
+          <el-table-column label="核验方式" width="130">
+            <template #default="{ row }">
+              {{ enumLabel('verifyType', row.verifyType) || row.verifyType }}
+            </template>
+          </el-table-column>
           <el-table-column label="结果" width="110">
             <template #default="{ row }">
               <el-tag size="small" :type="Number(row.verifyPass) === 1 ? 'success' : 'danger'">
@@ -142,6 +151,11 @@
           <el-table-column prop="faceScore" label="人脸分" width="100" />
           <el-table-column prop="responseCode" label="返回码" width="100" />
           <el-table-column prop="verifyTime" label="核验时间" width="170" />
+          <el-table-column label="操作" width="110" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" @click="openVerifyFor(row)">发起核签</el-button>
+            </template>
+          </el-table-column>
         </el-table>
         <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
                        :total="vTotal" :page-size="vQuery.pageSize"
@@ -163,8 +177,12 @@
           <el-col :span="12"><el-form-item label="手机号">
             <el-input v-model="pf.phone" data-testid="person-phone"
                       placeholder="编辑时留空表示不修改" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="组织ID">
-            <el-input v-model="pf.orgId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="所属组织">
+            <el-select v-model="pf.orgId" filterable clearable style="width:100%"
+                       placeholder="选择组织（可空）" data-testid="person-org">
+              <el-option v-for="o in orgOptions" :key="o.id"
+                         :label="o.orgName" :value="Number(o.id)" />
+            </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="户籍类型">
             <el-select v-model="pf.householdType" style="width:100%">
               <el-option label="城镇" value="URBAN" />
@@ -329,6 +347,14 @@ const tab = ref('person')
 const loading = ref(false)
 const saving = ref(false)
 const orgId = ref(null)
+/** 组织下拉选项（显示名称，内部传 ID） */
+const orgOptions = ref([])
+async function loadOrgOptions() {
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 500 } })
+    orgOptions.value = d.rows || d || []
+  } catch (e) { orgOptions.value = [] }
+}
 const keyword = ref('')
 
 // 人员
@@ -507,6 +533,38 @@ function openProfileFor(row) {
 }
 
 /** 编辑保障档案：回填已有值，保存时按 personId 覆盖 */
+
+/** 把后端返回的对象/JSON 转成可读的「字段：值」列表 */
+function readableResult(obj) {
+  const LABEL = {
+    incomeLevel: '收入档位', securityType: '保障类型', profileStatus: '档案状态',
+    familySize: '家庭人口', familyType: '家庭结构', monthlyIncome: '月收入',
+    perCapitaIncome: '人均月收入', assetDeclare: '资产申报', hasHouse: '名下有房',
+    hasVehicle: '名下有车', qualifyDate: '资格认定日期', qualifyResult: '判定结果',
+    failCount: '失败次数', failRate: '失败率', totalCount: '总次数',
+    verifyType: '核验方式', count: '数量', reason: '原因', passCount: '通过次数'
+  };
+  const fmt = (v) => {
+    if (v === null || v === undefined || v === '') return '—';
+    if (v === 0 || v === 1) return v === 1 ? '是' : '否';
+    if (typeof v === 'object') return Array.isArray(v) ? `${v.length} 条` : '—';
+    return String(v);
+  };
+  const rows = [];
+  const walk = (o, prefix) => {
+    Object.keys(o || {}).forEach((k) => {
+      // 内部标识类字段不展示（ID / 租户 / 时间戳）
+      if (/^(id|tenantId|personId|createTime|updateTime|isDeleted)$/.test(k)) return;
+      const v = o[k];
+      const label = (prefix ? prefix + '.' : '') + (LABEL[k] || k);
+      if (v && typeof v === 'object' && !Array.isArray(v)) walk(v, label);
+      else rows.push(`${label}：${fmt(v)}`);
+    });
+  };
+  walk(obj, '');
+  return rows.length ? rows.join('<br/>') : '无数据';
+}
+
 function openProfileEdit(row) {
   profileEditMode.value = true
   Object.assign(gf, {
@@ -626,5 +684,5 @@ function resetAllQuery() {
   reloadAll()
 }
 
-onMounted(reloadAll)
+onMounted(() => { loadOrgOptions(); reloadAll() })
 </script>

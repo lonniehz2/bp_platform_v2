@@ -32,11 +32,55 @@ public class VerifyRecordServiceImpl implements VerifyRecordService {
 
     private final PersonVerifyRecordMapper mapper;
     private final SnowflakeIdGenerator idGen;
+    /** 列表要带出人员姓名与脱敏信息，避免只显示一串 ID */
+    private final com.yundao.bp.person.mapper.PersonMapper personMapper;
 
     public VerifyRecordServiceImpl(PersonVerifyRecordMapper mapper,
-                                   SnowflakeIdGenerator idGen) {
+                                   SnowflakeIdGenerator idGen,
+                                   com.yundao.bp.person.mapper.PersonMapper personMapper) {
         this.mapper = mapper;
         this.idGen = idGen;
+        this.personMapper = personMapper;
+    }
+
+    /** 给核验流水补齐人员姓名与脱敏手机/证件号 */
+    private void fillPersonInfo(List<PersonVerifyRecord> list) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        for (PersonVerifyRecord r : list) {
+            if (r.getPersonId() != null) {
+                ids.add(r.getPersonId());
+            }
+        }
+        if (ids.isEmpty()) {
+            return;
+        }
+        java.util.Map<Long, com.yundao.bp.person.entity.Person> byId = new java.util.HashMap<>();
+        for (com.yundao.bp.person.entity.Person p : personMapper.selectBatchIds(ids)) {
+            byId.put(p.getId(), p);
+        }
+        for (PersonVerifyRecord r : list) {
+            com.yundao.bp.person.entity.Person p = byId.get(r.getPersonId());
+            if (p == null) {
+                continue;
+            }
+            r.setPersonName(p.getPersonName());
+            r.setPhoneMask(mask(p.getPhone(), 3, 4));
+            r.setIdCardMask(mask(p.getIdCard(), 6, 4));
+        }
+    }
+
+    private static String mask(String raw, int head, int tail) {
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        int len = raw.length();
+        if (len <= head + tail) {
+            return raw.charAt(0) + "****";
+        }
+        return raw.substring(0, head) + "****" + raw.substring(len - tail);
     }
 
     @Override
@@ -141,6 +185,7 @@ public class VerifyRecordServiceImpl implements VerifyRecordService {
                                 PersonVerifyRecord::getVerifyPass, 1)
                         .orderByDesc(PersonVerifyRecord::getId);
         IPage<PersonVerifyRecord> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
+        fillPersonInfo(page.getRecords());
         return PageResult.of(page.getTotal(), pageNum, pageSize, page.getRecords());
     }
 
