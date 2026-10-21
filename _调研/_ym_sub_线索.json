@@ -1,0 +1,22 @@
+﻿{
+ "target": "线索",
+ "urlBefore": "https://saas.yumeng.work/#/house/centralized",
+ "sub": [
+  {
+   "t": "租客线索",
+   "x": 165,
+   "active": true
+  },
+  {
+   "t": "业主线索",
+   "x": 249,
+   "active": false
+  },
+  {
+   "t": "合作企业",
+   "x": 333,
+   "active": false
+  }
+ ],
+ "urlAfter": "https://saas.yumeng.work/#/source/tenant"
+}

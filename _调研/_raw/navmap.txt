@@ -1,0 +1,64 @@
+﻿=== ALL <a> with text (nav+footer) ===
+'了解更多行业及客户案例>>'                                              -> /customer
+'登录'                                                         -> https://saas.yumeng.work/#/login
+'房源管理出租率统计，快速查空房'                                            -> /product/product?type=2
+'合约管理支持电子签约，定制合同'                                            -> /product/product?type=4
+'财务管理自动催缴，线上代付'                                              -> /product/product?type=3
+'线索管理轻松跟进客户线索'                                               -> /product/product?type=1
+'客户管理资料集中，个性化服务'                                             -> /product/product?type=5
+'短租管理旺季长租，淡季短租'                                              -> /product/product?type=6
+'多经管理自定义经营空间'                                                -> /product/product?type=7
+'巡房管理自动下发巡房任务'                                               -> /product/product?type=8
+'资产管理实时追踪库存'                                                 -> /product/product?type=9
+'备案管理备案房源合同，确保合规'                                            -> /product/product?type=12
+'智能设备自动抄表、自动断水电'                                             -> /product/product?type=13
+'租后服务维修保洁，线上解决'                                              -> /product/product?type=10
+'数据中心全面运营情况盈亏分析'                                             -> /product/product?type=11
+'审批管理自动审批，提高效率'                                              -> /product/product?type=14
+'营销中心多种促销手段提升出租率'                                            -> /product/product?type=15
+'寓盟管家'                                                       -> /product/product
+'推房助手'                                                       -> /product/tfzs
+'萌友租房'                                                       -> https://zufang.byteox.com/homepage
+'聚多房'                                                        -> /product/jdf
+'AIoT平台'                                                     -> http://www.xyiot.link/
+'全寓联'                                                        -> /product/yxs
+'长租公寓'                                                       -> /longRent
+'服务式公寓'                                                      -> /serviced
+'短租民宿'                                                       -> /shortRent
+'企业宿舍'                                                       -> /corporateDorm
+'企业园区'                                                       -> /businessPark
+'政府保租房'                                                      -> /affordableHousing
+'政府公租房'                                                      -> /publicHousing
+'人才公寓'                                                       -> /talentHousing
+'学生宿舍'                                                       -> /studentDorm
+'下载'                                                         -> /resourceServices/download
+'关于我们'                                                       -> /about
+'资讯'                                                         -> /resourceServices/news
+'鄂 ICP 备 19008529号-2'                                        -> https://beian.miit.gov.cn/
+
+=== percentum blocks ===
+python.exe : Traceback (most recent call last):
+所在位置 行:3 字符: 1
++ & $py "D:\Work\业务平台开发\_调研\_raw\navmap.py" 2>&1 | Out-File -Encoding u ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\Program Files\DSH Desktop\resources\office-runtime\primary-runtime\dependencies\python\Lib\site-packages\lxm
+l\cssselect.py", line 12, in <module>
+    import cssselect as external_cssselect
+ModuleNotFoundError: No module named 'cssselect'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Work\业务平台开发\_调研\_raw\navmap.py", line 23, in <module>
+    for el in doc.cssselect(".percentum"):
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\DSH Desktop\resources\office-runtime\primary-runtime\dependencies\python\Lib\site-packages\lxm
+l\html\__init__.py", line 412, in cssselect
+    from lxml.cssselect import CSSSelector
+  File "C:\Program Files\DSH Desktop\resources\office-runtime\primary-runtime\dependencies\python\Lib\site-packages\lxm
+l\cssselect.py", line 14, in <module>
+    raise ImportError(
+ImportError: cssselect does not seem to be installed. See https://pypi.org/project/cssselect/

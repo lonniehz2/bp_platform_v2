@@ -1,0 +1,3566 @@
+
+===== PAGE 1 =====
+Copyright © 杭州云门道科技有限公司
+版本 : V2.0.0
+ 
+云门道物联网平台接口文档  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+===== PAGE 2 =====
+云门道物联网平台接口文档 
+1. 基础说明
+1.1 账户号申请
+1.2 访问域名及端口
+2. 错误编码
+3. 参数及加密规则
+3.1 不加密参数
+3.2 token 参数
+3.3 参数值加密
+3.4 sign 请求参数签名生成规则
+4. 公共请求参数
+5. 根据  appKey 和 appSecret 获取访问  Token
+6. 门锁管理
+6.1 获取代理商门锁清单
+6.2 获取门锁信息
+6.3 获取开门记录信息
+6.4 权限转让
+6.5 权限归还
+6.6 开门记录回调推送
+7. 介质授权管理
+7.1 清空授权
+7.2 身份证 / 钥匙卡开门授权管理
+7.2.1 身份证 / 钥匙卡开门授权
+7.2.2 身份证 / 钥匙卡开门授权列表查询
+7.2.3 身份证 / 钥匙卡开门授权删除
+7.3 指纹授权管理
+7.3.1 指纹授权
+7.3.2 指纹授权列表
+7.3.3 删除单个指纹授权
+7.3.4 删除全部指纹授权
+7.4 密码授权管理
+7.4.1 设置期限码
+7.4.2 删除期限码
+7.4.3 设置访客码
+7.4.4 删除访客码
+7.5 APP 授权管理
+7.5.1 APP 开门授权
+7.5.2 APP 开门授权列表查询 
+7.5.3 APP 开门授权删除
+7.6 获取门锁授权列表
+7.7 通用介质授权管理
+7.7.1 通用介质授权 ( 包含人脸 )
+7.7.2 查询授权任务结果接口
+8. 人员授权管理
+8.1 人员管理
+8.1.1 人员列表
+8.1.2 人员添加
+8.1.3 人员删除
+8.2 授权管理
+8.2.1 人员授权
+8.2.2 授权列表
+8.2.3 删除授权
+8.3 介质管理
+8.3.1 介质列表
+8.3.2 人员介质添加
+8.3.3 人员介质删除
+8.3.4 channelType 字典值
+8.3.5 channelModuleType 字典值
+===== PAGE 3 =====
+名称 说明
+appKey 应用  KEY
+appSecret 应用密钥
+9. 公共服务
+9.1 实名认证接口
+9.2 组织实名管理
+9.2.1 组织实名认证接口
+9.2.2 组织实名删除接口
+9.2.3 组织实名列表接口
+9.3 通用对外计费接口
+1. 基础说明  
+1.1 账户号申请  
+ 
+1.2 访问域名及端口  
+ https://api.hzbit.cn:4443
+ 
+2. 错误编码  
+===== PAGE 4 =====
+序号 错误代码 说明
+1 99990001 授权微服务不在线 , 或者网络超时
+2 99990002 appId 和  appSecret 参数不能为空
+3 99990003 appId 或  appSecret 错误
+4 99990004 参数异常
+5 99990005 token 参数不能为空
+6 99990006 time 参数不能为空
+7 99990007 TokenInterceptor 异常
+8 99990008 token 参数错误
+9 99990009 参数解密异常
+10 99990011 无此版本接口
+11 99990012 sign 参数不能为空
+12 99990013 sign 参数错误
+13 99990015 数据库更新异常
+14 99990017 系统错误，请联系管理员
+15 7000001 系统暂无用户身份信息
+16 7000002 无此表编号
+17 7000003 无此客户号
+18 7000004 commondId 错误
+19 7000005 未实名注册
+20 7000006 非比特采集器无法补抄历史日冻结数据
+21 7000007 该表时钟不正确，需校准暂时无法补抄历史日冻结数据
+参数名 必选 类型 说明
+time 是 string 时间戳
+token 是 string 凭证
+sign 是 string 请求签名
+version 是 string 后台接口版本号： V1.0.0
+ 
+3. 参数及加密规则  
+3.1 不加密参数  
+===== PAGE 5 =====
+ 
+3.2 token 参数  
+ 见文档接口  4 ，根据  appKey 和  appSecret 来获取用户访问  token ； 
+ 注意 token 30 分钟过期，过期后需重新获取访问 
+ 
+3.3 参数值加密  
+ 参数值加密采用的是  AES 加密（ AES 加密算法见附件，暂只提供  JAVA 版本供参考） 
+ 例如： 
+  加密密钥为： pwd = token.substring(0,25);  
+  // 密钥取  token 前  25 位： 5x41nO+EIYENqlj8FmG2XGXMa  
+ 
+3.4 sign 请求参数签名生成规则  
+ 以下是生成  sign 签名举例：
+  1 ）先对原来请求参数值进行加密：  
+ 对最后的请求参数按字典排序后组织成字符串进行  MD5 加密（ MD5 加密算法见附件，暂只提供 
+JAVA 版本供参考）：
+token = 5x41nO+EIYENqlj8FmG2XGXMaJqvMHJ3ERblxrZXPLq0myRG1aVZfjyEpShj rqiy; 1
+    如对  userId 值加密： userId = 719B29DB1EF45F00D9C5CD320DAE6; 
+    userId 加密为：  AES.encryptParam (pwd, userId); 
+    结果为： FeBrmAMo+eO63Uuojon/x/1mlWlRhTVL3f+QtwKTEpo=  
+1
+2
+3
+4
+5
+加密前：
+{
+    "loginname":"18952740028",
+    "logpwd":"123456",
+    "time":1553595995,
+    "version":"1.0.0"
+}
+加密后：
+{
+    "loginname":"t4nU902RvhliiPlMMcrzWw==",
+    "logpwd":"oFbqQ8bx8KvkHCI/Q2Kaxw==",
+    "time":"1553595995",
+    "version":"1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+===== PAGE 6 =====
+参数名 类型 说明
+appKey string 应用  KEY
+appSecret string 应用密钥
+time string 用户请求时间戳
+token string 凭证
+version string 服务端接口版本号
+sign string 签名
+参数名 必选 类型 说明
+appKey 是 string 应用  KEY
+appSecret 是 string 应用密钥
+sign 是 string 请求签名
+time 是 string 时间戳
+version 是 string 后台接口版本号
+ 签名结果为 : 46812299FB1BC111AC69A27F99068BE2 
+ 
+4. 公共请求参数  
+ 
+5. 根据  appKey 和 appSecret 获取访问
+Token
+ 
+简要描述： 
+根据  appKey 和 appSecret 获取访问  Token
+请求 URL ： 
+https://IP 地址 :4443/ymd/auth-service/sys/getAccessToken
+请求方式：
+POST 
+参数： 
+ 请求示例
+String str = “loginname=t4nU902RvhliiPlMMcrzWw==” + 
+“&logpwd=oFbqQ8bx8KvkHCI/Q2Kaxw==”+”&time=1553595995”+ “&version=1.0.0”;
+String sign = MD5.GetMD5Code (str);
+1
+2
+===== PAGE 7 =====
+参数名 必选 类型 说明
+agentCode 是 string 代理商编码
+ 返回示例
+ 
+6. 门锁管理  
+6.1 获取代理商门锁清单  
+简要描述： 
+获取代理商门锁清单
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/getPtAgentLocks
+请求方式：
+POST 
+参数： 
+ 请求示例
+ 加密前：
+{
+  "appKey": "5E25135B8E7A46279CE3D1ADB373",
+  "appSecret": "YSGCGB8E7A46279CE3D1ADB373",
+  "sign ": "S89Cd87A46279CE3D1ADB373",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": null,
+    "data": {
+        "token": "..."
+    }
+}
+1
+2
+3
+4
+5
+6
+7
+8
+ 加密前：
+{
+  "agentCode": "5E25135B8E7A46279CE3D1ADB373",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+===== PAGE 8 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+参数名 必选 类型 说明
+mac 是 string 门锁 mac(mac,lockId 二选一 )
+lockId 是 string 门锁 id(mac,lockId 二选一 )
+ 返回示例
+返回参数说明： 
+ 
+6.2 获取门锁信息  
+简要描述： 
+获取门锁信息
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/getLockInfo
+请求方式：
+POST 
+参数： 
+ 请求示例
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": null,
+    "data": [{
+        "lockid": "xxxx",
+        "ischarge": "0",
+        "createtime": "2021-08-02 09:26:31",
+        "rssi": "80",
+        "address2": " 浙江省杭州市余杭区 xxx",
+        "ventor": "xxxx",
+        "onlineStatus": "0",
+        "battery": "73%",
+        "mac": "xxxxxx",
+        "hdver": "0504",
+        "lockname": "xx"
+    }]
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+===== PAGE 9 =====
+ 返回示例
+返回参数说明： 
+ 加密前：
+{
+  "mac": "5E25135B8E7A46279CE3D1ADB373",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": null,
+    "data": {
+        "ischarge":"0",
+        "createtime":"2022-10-10 17:29:57",
+        "rssi":"-75",
+        "addrcode":"310106000000",
+        "address2":"xxx",
+        "ventor":"485A4254",
+        "onlineStatus":"1",
+        "authidcardneedrealname":"0",
+        "battery":"87%",
+        "mac":"xxx",
+        "hdver":"0504",
+        "lockname":"NBIOT 锁 ",
+        "agentcode":"xxx",
+        "lockid":"xxx",
+        "locktype":"3"
+    }
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+===== PAGE 10 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+   
+data:   
+ischarge string 是否收费
+createtime string 入库时间
+rssi string 场强
+addrcode string 用户自定义地址 ID
+address2 string 用户自定义地址 ( 安装地址 )
+ventor string 厂商
+onlineStatus string 在线状态  0= 离线  1= 在线
+authidcardneedrealname string 是否需要实名校验 ( 默认 1: 强安全  0: 弱安全 )
+battery string 电量
+mac string 锁 mac
+hdver string 硬件版本
+lockname string 锁名称
+agentcode string 代理商编码
+lockid string 锁 id
+locktype string
+锁类型 :
+1:WIFI 锁
+2: 门锁
+3:NBIOT 锁
+4: 梯控
+5: 门禁
+6:Lora 网关
+7: 网关
+10: 车闸
+21: 车闸盒子
+ 
+6.3 获取开门记录信息  
+简要描述： 
+===== PAGE 11 =====
+参数名 必选 类型 说明
+lockId 是 string 锁 id
+pageSize 是 string 页大小
+pageNum 是 string 当前页码
+startTime 否 string 格式： 2018-07-17 11:41
+endTime 否 string 格式： 2018-07-17 11:41
+获取开门记录信息
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/getOpenLockRecordesByLockId
+请求方式：
+POST 
+参数： 
+ 请求示例
+ 返回示例
+返回参数说明： 
+ 加密前：
+{
+  "lockId": "5E25135B8E7A46279CE3D1ADB373",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": null,
+    "data": {
+        "count": "1",
+        "data": [{
+            "lockName": "xxx",
+            "openTime": "2018-07-17 11:41:00",
+            "type": "01",
+            "username": "xxx"
+        }]
+    }
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+===== PAGE 12 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+openTime string 开锁时间
+参数名 必选 类型 说明
+appKey 是 string 应用  KEY
+appSecret 是 string 应用密钥
+lockId 是 string  
+userName 是 string  
+targetUserName 是 string  
+lockOwnerType 是 string 值为： 1 、（管理权 + 所有权） 2 、所有权， 3 、管理权
+startDate 是 string  
+endDate 是 string  
+validPeriod 否 string 格式为：  1 年  或  1 月
+time 是 string 请求时间戳
+sign 是 string 请求签名
+token 是 string 访问  token
+version 是 string 服务端接口版本号
+ 
+6.4 权限转让  
+简要描述： 
+权限转让
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/authAssignment
+请求方式：
+POST 
+参数： 
+请求示例
+===== PAGE 13 =====
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区
+ 返回示例
+返回参数说明： 
+ 
+6.5 权限归还  
+简要描述： 
+权限归还
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/giveBackAuth
+请求方式：
+POST 
+参数： 
+加密前：
+{
+    "appKey":"12122190522161316681110",
+    "appSecret":"A3432DE3224EBDD11A4E1FD8F48C8D50",
+    "lockId":"13D4A20180511152451243166",
+    "lock0wnerType":"3",
+    "targetUserName":"13588085323",
+    "endDate":"2020-03-14 14:48",
+    "time":"1556087282",
+    "userName":"15888021268",
+    "version":"1.0.0",
+    "sign":"ED49C90702A87E87A56B690CCB516F37",
+    "startDate":"2019-03-14 14:48",
+    
+"token":"13d4a2018110517515805854BA29F1758B438C66EFF959D7BE9B72B5155608728E"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+{
+    "data": null,
+    "time": 1700101041288,
+    "message": "success",
+    "status": "1"
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 14 =====
+参数名 必选 类型 说明
+appKey 是 string 应用  KEY
+appSecret 是 string 应用密钥
+lockId 是 string 锁  ID
+userName 是 string 归还用户名
+removeAllSubAuthority 是 string 1 、归还所有权限，包含关联权限； 0 、只归还当前权限，关联权限不归还
+time 是 string 请求时间戳
+sign 是 string 请求签名
+token 是 string 访问  token
+version 是 string 服务端接口版本号
+请求示例
+ 返回示例
+返回参数说明： 
+加密前：
+{
+    "sign":"ED49C90702A87E87A56B690CCB516F37",
+    "lockId":"hzbit20171121115107367548",
+    "removeAllSubAuthority":"1",
+    "appKey":"12122190522161316681110",
+    "appSecret":"A3432DE3224EBDD11A4E1FD8F48C8D50",
+    "time":"1556087282",
+    "version":"1.0.0",
+    "sign":"ED49C90702A87E87A56B690CCB516F37",
+    
+"token":"13d4a2018110517515805854BA29F1758B438C66EFF959D7BE9B72B5155608728E"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+{
+    "data": null,
+    "time": 1700101041288,
+    "message": "success",
+    "status": "1"
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 15 =====
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区
+参数名 类型 说明
+msgType string 消息类型 :1 ：开门记录事件回调
+eventId string 事件 id
+msgData string 消息体
+   
+msgData ：  开门记录事件回调消息体
+openType string 开门类型，参考下方  开门方式字典值
+lockId string 门锁 id
+targetUserMobile string 开门用户手机号
+openTime string 开门时间
+ 
+6.6 开门记录回调推送  
+简要描述： 
+开门记录回调推送
+请求后缀:
+/callback/bite
+回调地址联系开发人员配置
+请求方式：
+POST 
+加密
+否
+参数： 
+ 请求示例
+===== PAGE 16 =====
+返回示例
+开门方式字典值
+{
+  "msgType": "1",
+  "eventId": "202209011701",
+  "msgData": {
+    "openType": 1005,
+    "lockId": "13D4AFE181121149952237877",
+    "targetUserMobile": "13512100239",
+    "openTime": "2022-09-01 15:00:01"
+  }
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+{
+  "code": "0000",
+  "msg": " 成功 ",
+  "data": null,
+  "traceId": "B98BFCB3-73DC-4325-B1D7-7ECD2BA1D006"
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 17 =====
+开门类型 描述
+1001 刷卡开门（身份证）
+1002 授权开门（ APP ）
+1003 刷卡开门（钥匙卡
+1004 授权开门（网关）
+1005 授权开门（ APP 在线）
+1006 授权开门（ APP 离线）
+1007 蓝牙钥匙（ EKEY ）
+1008 授权开门（网关在线）
+1009 微信开门
+1010 内部开门
+1011 刷卡开门（钥匙卡 -UID ）
+1012 刷卡开门（华为钱包）
+1013 机械按键开门（门禁）
+1014 外部按键开门（门禁）
+1015 机械钥匙开门
+1016 管理员密码开门
+1017 普通密码开门
+1018 随身码开门
+1022 一次性密码开门
+1023 劫持码开门 "
+1024 有效期访客码
+1025 一次性访客码
+1032 管理员指纹
+1033 期限指纹
+1034 挟持指纹
+1035 门禁二维码开门
+1049 人脸开门
+ 
+7. 介质授权管理  
+===== PAGE 18 =====
+参数名 必选 类型 说明
+lockId 是 string 锁  ID
+targetUserId 否 string 被设置用户手机号 , 为空则清空门锁下所有授权
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+7.1 清空授权  
+简要描述： 
+清空授权
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/clearLockAuth
+请求方式：
+POST 
+参数： 
+ 请求示例
+ 返回示例
+返回参数说明： 
+ 
+7.2 身份证 / 钥匙卡开门授权管理  
+ 加密前：
+{
+  "lockId": "5E25135B8E7A46279CE3D1ADB373",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": null,
+    "data": null
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 19 =====
+参数名 必选 类型 说明
+userName 是 string 授权用户名
+lockId 是 string 锁 ID
+dnCode 是 string DN 码 , 长度 32 位 , 不足后面补 0
+uid 是 string nfcid( 物理卡号 ), 长度 16 位 , 不足后面补 0
+cardType 是 string 1 、身份证  2 、 A 卡
+startDate 是 string 时间戳类型 ( 秒 ,10 位 )
+endDate 是 string 时间戳类型 ( 秒 ,10 位 )
+cardAlias 否 string 卡别名： A 卡授权必填
+cardNo 否 string 身份证卡号：身份证授权必填
+checkSelf 否 string 是否授权本人： 1 是 0 否
+idcardImg 否 string 身份证正面照片：身份证授权必填  base64
+faceImg 否 string 人脸照片：强安锁身份证授权必填  base64
+name 否 string 姓名 : 身份证授权
+sexL 否 string 性别：身份证授权
+bornL 否 string 生日 : 身份证授权
+address 否 string 身份证正面的地址：身份证授权
+activityL 否 string 身份证背面的日期：身份证授权
+police 否 string 身份证背面的签发机关：身份证授权
+idcardImg2 否 string 身份证背面照片：身份证授权
+7.2.1 身份证 / 钥匙卡开门授权  
+简要描述： 
+身份证 / 钥匙卡开门授权
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/authIdcard
+请求方式：
+POST 
+参数：   
+ 请求示例
+===== PAGE 20 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+   
+data:   
+lockId string 门锁 id
+id string 授权 id
+ 返回示例
+返回参数说明： 
+ 
+7.2.2 身份证 / 钥匙卡开门授权列表查询  
+简要描述： 
+身份证 / 钥匙卡开门授权列表查询
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/getAuthIdcardList
+加密前：
+{
+"lockId": "13D4A20180511152451243166",
+"uid": "3130303030373837",
+"endDate": "1584168480",
+"dnCode": "485a4249544943433130303030373837",
+"cardType": "2",
+"time": "1556004187",
+"userName": "15888021268",
+"version": "1.0.0",
+"startDate": "1552546080",
+"token": 
+"13d4a201811051751580585489BEAE4AD2F3280B3FC91267AD94E73A155600418F"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+{
+    "message": " 操作成功 ",
+    "status": "1",
+    "time": "1556004187",
+    "data": [{
+        "lockId": "",
+        "id": ""
+    }]
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+===== PAGE 21 =====
+参数名 必选 类型 说明
+lockId 是 string 锁 ID
+cardType 是 string 1 、身份证  2 、 A 卡
+userName 否 string 对应老接口的 userId
+请求方式：
+POST 
+参数： 
+ 请求示例
+ 返回示例
+ data 解密后明文
+ 加密前：
+{
+  "lockId": "hzbit20171115123854572144=",
+  "cardType": "1",
+  "userName": "13599933458",
+  "time": "1553595785",
+  "token": 
+"13D4A201808160950397027208F5714415CC6D061147F517B2F1A5DAE1553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+{
+"data": 
+"Aul5jkXNwZMyBBJm0NjuesyRRuqYIrLZi/TchDl/BbCIbfoSF2F6fO1KrIiRu3VP2bWn5PRvTBf0
+SMFASsYBdZ4urinD0B+u4UzVSYV86rEUnVVj9DoO+LOjhjW7YCPudmY6JgdO5389HuLG5f+nyTKHG
+3O9Cu88OQAPNQ7J9IGlkW5ywOruJi8uV9eev7e6mUzzg7qXuliI6adYzzNW74a7UgLVauAZ1/D0FS
+k7h+/fMg317LTeng469p8MYMnG42Waq9uGnq0o5qTvyQF9u/n4tN6toiCW3MtwVkrOlPSKzuk03sp
+u6KpVFQyJgoOTMF5HhpsguNGyLliDBHltt5EgUgarVi+hvKe6mXH+Iu+wjDj15A/R2eYmD+hIZAo0
+",
+"message": " 操作成功 ",
+"status": "1",
+"time": "1553595785"
+}
+ 
+1
+2
+3
+4
+5
+6
+7
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": "1667963099",
+    "data": [
+        {
+            "id": "123",
+            "uid": "123456789",
+            "validPeriodStr": "2022-11-09 09:20 至 2026-01-09 19:07",
+            "dnCode": "154878648568",
+            "endDate": "2026-01-09 19:07",
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+===== PAGE 22 =====
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区
+   
+data:   
+id string 授权 id
+uid string 卡片 nfcId
+startDate string 授权开始日期
+endDate string 授权结束日期
+validPeriodStr string 授权时间区间字符串
+dnCode string 卡片 dncode
+operaterId string 授权者账号
+operaterName string 授权者姓名
+cardAlias string 卡片别名
+mac string 门锁 mac
+ 返回参数说明 
+ 
+7.2.3 身份证 / 钥匙卡开门授权删除  
+简要描述： 
+身份证 / 钥匙卡开门授权册除
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/deleteAuthIdcard
+请求方式：
+POST 
+            "operaterId": "....",
+            "operaterName": "xx",
+            "cardAlias": "...",
+            "mac": "...",
+            "startDate": "2022-11-09 09:20"
+        }
+    ]
+}
+12
+13
+14
+15
+16
+17
+18
+19
+===== PAGE 23 =====
+参数名 必选 类型 说明
+id 是 string 授权 id
+lockId 是 string 锁 ID
+uid 是 string 对应： nfcId
+dnCode 是 string  
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+参数： 
+ 请求示例
+ 返回示例
+返回参数说明： 
+ 
+7.3 指纹授权管理  
+指纹值备注：
+ 加密前：
+{
+  "lockId": "hzbit20171115123854572144=",
+  "uid": "30CFC604001806B1",
+  "dnCode": "00015A4A01060B1000000000000377D5",
+  "time": "1553595785",
+  "token": 
+"13D4A201808160950397027208F5714415CC6D061147F517B2F1A5DAE1553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+{
+"message": " 操作成功 ",
+"status": "1"
+}
+ 
+1
+2
+3
+4
+5
+===== PAGE 24 =====
+指纹编号 (fingerId) 指纹 (fingerName)
+1 左手大拇指
+2 左手食指
+3 左手中指
+4 左手无名指
+5 左手小拇指
+6 右手大拇指
+7 右手食指
+8 右手中指
+9 右手无名指
+10 右手小拇指
+ 
+7.3.1 指纹授权  
+简要描述： 
+指纹授权
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/fingerAuth
+请求方式：
+POST 
+参数： 
+===== PAGE 25 =====
+参数名 必选 类型 说明
+lockId 是 string 锁 ID
+fingerName 是 string 指纹名称
+userId 是 string 用户手机号
+startTime 是 string 授权开始时间 (yyyy-MM-dd HH:mm:ss)
+endTime 是 string 授权结束时间 (yyyy-MM-dd HH:mm:ss)
+targetUserId 是 string 授权目标用户手机号
+targetUserName 是 string 授权目标用户姓名
+isSame 是 string 是否和管理权一致  0 否 1 是
+complementedFlg 是 string 0. 普通录入指纹  1. 公安身份证指纹模板  2. 身份证指纹补全
+fpQuality 否 string 手指指纹数据的质量值
+fpData 是 string 手指的指纹数据
+ 请求示例
+ 返回示例
+ 加密前：
+{
+    "lockId": "1EB86FDD91254D1FAF738E262406",
+    "fingerName": " 左手大拇指 ",
+    "targetUserId": "19857842680",
+    "targetUserName": "zzj",
+    "complementedFlg": "0",
+    "isSame": "0",
+    "startTime": "2022-11-08 13:51:00",
+    "endTime": "2022-11-18 13:51:00",
+    "fpQuality": "70",
+    "fpData": "...",
+    "appKey": "4576A20190326135322485538",
+    "appSecret": "AE466CE2EAD03C8E0DC72541DE8B5046",
+    "time": "1553595785",
+    "version": "1.0.0",
+    "token": "5x41nO+EIYENqlj8FmG2XGXMaJqvMHJ3ERblxrZXPLrHrYhM7+g0lzibYf72 
+lAMd"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+===== PAGE 26 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+   
+data:   
+lockId string 门锁 id
+fingerNum string 指纹模板编号
+id string 指纹授权 id
+参数名 必选 类型 说明
+lockId 是 string 锁 ID
+username 是 string 用户手机号
+返回参数说明： 
+ 
+7.3.2 指纹授权列表  
+简要描述： 
+指纹授权列表
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/getFingerPrintAuthList
+请求方式：
+POST 
+参数： 
+ 请求示例
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": "1667971232",
+    "data": {
+        "lockId": "1EB86FDD91254D1FAF738E262406",
+        "fingerNum": "0",
+        "id": "3406"
+    }
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+===== PAGE 27 =====
+ 返回示例
+ 返回参数说明 
+ 加密前：
+{
+    "lockId": "8C8B5AAF1FDC4722B4DDD52CC498",
+    "userName": "15990123470",
+    "time": "1553595785",
+    "token": 
+"36BCB20221025141801766861C7F4A7C6157DC66C306938D0E228481B1553595785",
+    "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+加密后：
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": "1553595785",
+    "data": 
+"zhSaBBAfyCnh8rIhzr1TXqzpUOsRRaHepSqbGKt0lGbhypSi+imy+8IRYtrqRvQZ45BJ9r77kiT
+DH0zVQO6qQo55oSjaSYd8L6hTqZCRLKXLCh73jmUiggH799G++/BqNN59fTq6P54dTctxVjfUlpb
+T/y8yO/WHaCL16jQwhvx="
+}
+加密前：
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": "1667972103",
+    "data": [
+        {
+            "lockId": "xxx",
+            "fingerId": "0",
+            "targetUserName": "xx",
+            "fingerName": " 左手大拇指 ",
+            "startTime": "2022-11-07 13:51",
+            "targetUserId": "xxxx",
+            "id": "3412",
+            "endTime": "2022-11-18 13:51",
+            "operatorName": "xx",
+            "mac": "xxx"
+        }
+    ]
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+===== PAGE 28 =====
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区
+   
+data:   
+lockId string 门锁 id
+fingerId string 指纹编号 , 对应 fingerName
+targetUserName string 被授权人
+fingerName string 指纹名称
+startTime string 授权开始时间
+targetUserId string 被授权人手机号
+id string 授权 id
+endTime string 授权结束时间
+operatorName string 授权人
+mac string 门锁 mac
+参数名 必选 类型 说明
+lockId 是 string 锁 ID
+fingerNum 是 string 指纹模板编号
+ 
+7.3.3 删除单个指纹授权  
+简要描述： 
+删除单个指纹授权
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/deleteFingerPrint
+请求方式：
+POST 
+参数： 
+ 请求示例
+===== PAGE 29 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+参数名 必选 类型 说明
+lockId 是 string 锁 ID
+ 返回示例
+返回参数说明： 
+ 
+7.3.4 删除全部指纹授权  
+简要描述： 
+删除全部指纹授权
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/deleteFingerPrintAll
+请求方式：
+POST 
+参数： 
+ 请求示例
+ 加密前：
+{
+    "lockId": "xxx",
+    "fingerNum": "0"
+}
+1
+2
+3
+4
+5
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": null,
+    "data": null
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 30 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+ 返回示例
+返回参数说明： 
+ 
+7.4 密码授权管理  
+7.4.1 设置期限码  
+简要描述： 
+设置期限码
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/setExpirePwd
+请求方式：
+POST 
+参数： 
+ 加密前：
+{
+  "lockId": "5E25135B8E7A46279CE3D1ADB373",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": null,
+    "data": null
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 31 =====
+参数名 必选 类型 说明
+userId 否 string 设置用户手机号
+targetUserId 是 string 被设置用户手机号
+targetUserName 是 string 被设置用户姓名
+startDate 是 string 格式： 2018-07-17 11:41:48
+endDate 是 string 格式： 2018-07-17 11:41:48
+lockId 是 string 锁  ID
+lockPwd 是 string 设置的锁密码
+pwdType 是 string 1. 期限密码
+ 请求示例
+ 返回示例
+返回参数说明： 
+ 加密前：
+{
+  "lockId": "5E25135B8E7A46279CE3D1ADB373",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+{
+    "message": " 操作成功 ",
+    "status": "1",
+    "time": "1556004187",
+    "data": {
+        "lockId": "",
+        "id": ""
+    }
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+===== PAGE 32 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+   
+data:   
+lockId string 门锁 id
+id string 授权 id
+参数名 必选 类型 说明
+id 是 string 授权 id
+targetUserId 是 string 被设置用户手机号
+lockId 是 string 锁  ID
+pwdType 是 string 1. 期限密码
+ 
+7.4.2 删除期限码  
+简要描述： 
+删除期限码
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/delExpirePwd
+请求方式：
+POST 
+参数： 
+ 请求示例
+ 返回示例
+ 加密前：
+{
+  "lockId": "5E25135B8E7A46279CE3D1ADB373",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+===== PAGE 33 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+参数名 必选 类型 说明
+userId 是 string 用户手机号
+targetUserId 是 string 被设置用户手机号
+startDate 是 string 格式： 2018-07-17 11:41:48
+endDate 是 string 格式： 2018-07-17 11:41:48
+lockId 是 string 锁  ID
+pwdType 是 string 0. 一次性密码  1. 期限密码
+remark 否 string 备注
+返回参数说明： 
+ 
+7.4.3 设置访客码  
+简要描述： 
+设置访客码
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/setVisitorPwd
+请求方式：
+POST 
+参数： 
+ 请求示例
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": null,
+    "data": null
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 34 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+   
+data:   
+lockPwd string 生成的密码
+id string 授权 id
+startTime string 授权开始时间
+endTime string 授权结束时间
+ 返回示例
+返回参数说明： 
+ 
+ 加密前：
+{
+  "lockId": "5E25135B8E7A46279CE3D1ADB373",
+  "startDate": "2018-07-17 11:41:48",
+  "endDate": "2018-07-17 11:41:48",
+  "targetUserId": "xxx",
+  "pwdType": "1",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": null,
+    "data": {
+        "lockPwd": "123554112315648",
+        "id": "1",
+        "startTime": "2018-07-17 11:41:48",
+        "endTime": "2018-07-17 11:41:48"
+    }
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+===== PAGE 35 =====
+参数名 必选 类型 说明
+id 是 string 授权 id
+userId 是 string 授权人手机号
+lockId 是 string 锁  ID
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+7.4.4 删除访客码  
+简要描述： 
+删除访客码
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/deleteLongLockPwdShare
+请求方式：
+POST 
+参数： 
+ 请求示例
+ 返回示例
+返回参数说明： 
+ 加密前：
+{
+  "lockPwdId": "23",
+  "userId": "xx",
+  "lockId": "5E25135B8E7A46279CE3D1ADB373",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": null,
+    "data": null
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 36 =====
+参数名 必选 类型 说明
+userName 是 string 授权人手机号
+targetUserName 是 string 被设置用户手机号
+name 是 string 被设置用户姓名
+startDate 是 string 格式： 2018-07-17 11:41:48
+endDate 是 string 格式： 2018-07-17 11:41:48
+lockId 是 string 锁  ID
+    
+appLockAuthWithRegister 接口选填   组织实名参数
+realName 否 string 真实姓名
+idcard 否 string 身份证号码
+ 
+7.5 APP 授权管理  
+7.5.1 APP 开门授权  
+简要描述： 
+APP 开门授权
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/appLockAuthWithRegister  未注册用户会自动
+注册
+https://XXX:4443/ymd/lockPt-service/pt/appLockAuth  未注册用户不会自动注册
+请求方式：
+POST 
+参数： 
+ 请求示例
+ 加密前：
+{
+  "lockId": "5E25135B8E7A46279CE3D1ADB373",
+  "targetUserName": "xxx",
+  "startDate": "2018-07-17 11:41:48",
+  "endDate": "2018-07-17 11:41:48",
+  "targetUserId": "xxx",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+===== PAGE 37 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+   
+data:   
+lockId string 门锁 id
+id string 授权 id
+参数名 必选 类型 说明
+lockId 是 string 锁  ID
+ 返回示例
+返回参数说明： 
+ 
+7.5.2 APP 开门授权列表查询  
+简要描述： 
+APP 开门授权列表查询 
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/queryAppLockAuth
+请求方式：
+POST 
+参数： 
+ 请求示例
+{
+    "message": " 操作成功 ",
+    "status": "1",
+    "time": "1556004187",
+    "data": [{
+        "lockId": "",
+        "id": ""
+    }]
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+===== PAGE 38 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+   
+data:   
+validPeriodStr string 授权时间区间字符串
+endDate string 授权结束日期
+operaterId string 授权人手机号
+operaterName string 授权人姓名
+targetUserId string 被授权人手机号
+id string 授权 id
+mac string 门锁 mac
+startDate string 授权开始日期
+ 返回示例
+返回参数说明： 
+ 加密前：
+{
+  "lockId": "5E25135B8E7A46279CE3D1ADB373",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": null,
+    "data": [{
+    "validPeriodStr": "2022-10-11 15:10 至 2022-11-10 15:10",
+    "endDate": "2022-11-10 15:10",
+    "operaterId": "xxx",
+    "operaterName": "xx",
+    "targetUserId": "xxx",
+    "id": "194573",
+    "mac": "xxxx",
+    "startDate": "2022-10-11 15:10"
+}]
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+===== PAGE 39 =====
+参数名 必选 类型 说明
+id 是 string 授权 id
+targetUserId 是 string 被设置用户手机号
+lockId 是 string 锁  ID
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+ 
+7.5.3 APP 开门授权删除  
+简要描述： 
+APP 开门授权删除
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/appDelLockAuth
+请求方式：
+POST 
+参数： 
+ 请求示例
+ 返回示例
+返回参数说明： 
+ 加密前：
+{
+  "lockId": "5E25135B8E7A46279CE3D1ADB373",
+  "time": "1553595785",
+  "token": 
+"A88C720220617130335854758D3E912124DDB5ABC7AE5E92BA0C9D3741553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": null,
+    "data": null
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 40 =====
+参数名 必选 类型 说明
+lockId 是 string 锁 ID
+targetUserId 否 string 被设置用户手机号
+type 否 string
+授权类型  ( 默认全部 - 不传或为空 ) app 授权： app 指纹授权 : finger
+密码（所有）：  pwd 期限码： pwdExpire 访客码： pwdVisitor 卡
+片授权（所有）： card 卡片授权  A 卡： cardA 卡片授权  B 卡（身
+份证）： cardB
+ 
+7.6 获取门锁授权列表  
+简要描述： 
+通过锁 ID 获取所有的授权列表
+请求 URL ： 
+https://XXX:4443/ymd/lockPt-service/pt/getAuthList
+请求方式：
+POST 
+参数： 
+ 请求示例
+ 返回示例
+ 加密前：
+{
+  "lockId": "hzbit20171115123854572144",
+  "time": "1553595785",
+  "token": 
+"13D4A201808160950397027208F5714415CC6D061147F517B2F1A5DAE1553595785",
+  "version": "1.0.0"
+}
+1
+2
+3
+4
+5
+6
+7
+===== PAGE 41 =====
+ data 解密后明文
+{
+"data": 
+"Aul5jkXNwZMyBBJm0NjuesyRRuqYIrLZi/TchDl/BbCIbfoSF2F6fO1KrIiRu3VP2bWn5PRvTBf0
+SMFASsYBdZ4urinD0B+u4UzVSYV86rEUnVVj9DoO+LOjhjW7YCPudmY6JgdO5389HuLG5f+nyTKHG
+3O9Cu88OQAPNQ7J9IGlkW5ywOruJi8uV9eev7e6mUzzg7qXuliI6adYzzNW74a7UgLVauAZ1/D0FS
+k7h+/fMg317LTeng469p8MYMnG42Waq9uGnq0o5qTvyQF9u/n4tN6toiCW3MtwVkrOlPSKzuk03sp
+u6KpVFQyJgoOTMF5HhpsguNGyLliDBHltt5EgUgarVi+hvKe6mXH+Iu+wjDj15A/R2eYmD+hIZAo0
+wZMyBBJm0NjuesyRRuqYIrLZi/TchDl/BbCIbfoSF2F6fO1KrIiRu3VP2bWn5PRvTBf0SMFASsYBd
+Z4urinD0B+u4UzVSYV86rEUnVVj9DoO+LOjhjW7YCPudmY6JgdO5389HuLG5f+nyTKHG3O9Cu88OQ
+APNQ7J9IGlkW5ywOruJi8uV9eev7e6mUzzg7qXuliI6adYzzNW74a7UgLVauAZ1/D0FSk7h+/fMg3
+17LTeng469p8MYMnG42Waq9uGnq0o5qTvyQF9u/n4tN6toiCW3MtwVkrOlPSKzuk03spu6KpVFQyJ
+goOTMF5HhpsguNGyLliDBHltt5EgUgarVi+hvKe6mXH+Iu+wjDj15A/R2eYmD+hIZAo0",
+"message": " 操作成功 ",
+"status": "1",
+"time": "1553595785"
+}
+ 
+1
+2
+3
+4
+5
+6
+7
+{
+    "status": "1",
+    "message": " 操作成功 ",
+    "time": "1667974657",
+    "data": {
+        "app": [
+            {
+                "lockId": "xxx",
+                "endDate": "2022-11-10 15:10",
+                "createTime": "2022-11-09 14:05:10",
+                "targetUserId": "xx",
+                "id": 194569,
+                "operator": "xxx",
+                "operatorName": "xxx",
+                "startDate": "2022-10-11 15:10"
+            }
+        ],
+        "finger": [
+            {
+                "lockId": "xx",
+                "fingerId": 1,
+                "endDate": "2022-11-10 15:10",
+                "createTime": "2022-11-10 15:10",
+                "fingerNum": 1,
+                "targetUserId": "xxx",
+                "id": 3414,
+                "fingerType": 1,
+                "operator": "xxx",
+                "operatorName": "xxx",
+                "startDate": "2022-11-10 15:10"
+            }
+        ],
+        "pwd": [
+            {
+                "lockId": "xxx",
+                "pwdType": "1",
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+===== PAGE 42 =====
+返回参数： 
+                "endDate": "2022-11-10 15:10",
+                "createTime": "2022-11-09 14:17:16",
+                "targetUserId": "xxx",
+                "id": 17544,
+                "pwd": "159357",
+                "operator": "xxxx",
+                "operatorName": "xxx",
+                "startDate": "2022-10-11 15:10"
+            }
+        ],
+        "card": [
+            {
+                "lockId": "xxx",
+                "endDate": "2026-01-09 19:07:37",
+                "dnCode": "154878648568",
+                "createTime": "2022-11-09 10:09:51",
+                "cardType": "2",
+                "cardAlias": "xxx",
+                "id": 61879,
+                "nfcId": "123456789",
+                "operator": "xxx",
+                "operatorName": "xxx",
+                "startDate": "2022-11-09 09:20:57"
+            }
+        ]
+    }
+}
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+===== PAGE 43 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+time string 时间戳
+data string 数据区
+   
+data:   
+app string app 授权列表
+finger string 指纹授权列表
+pwd string 密码授权列表
+card string 卡片授权列表
+   
+app:   
+lockId string 门锁 id
+endDate string 授权结束日期
+createTime string 授权创建时间
+targetUserId string 被授权人手机号
+id string 授权 id
+operator string 授权人
+startDate string 授权开始日期
+targetUserName string 被授权人姓名
+   
+finger:   
+fingerId string 手指编号
+fingerType string 指纹类型 :0. 管理员指纹  1. 普通指纹 2. 劫持指纹
+fingerNum string 指纹模板编号
+   
+pwd:   
+pwdType string 密码类型 :0. 管理员 1. 普通密码 ( 弱安全对应期限码 ) 10: 一次性访客码11: 期限访客码
+pwd string 密码值
+   
+===== PAGE 44 =====
+参数名 类型 说明
+card:   
+dnCode string 卡片的 dnCode
+cardType string 卡片类型 : 1 、身份证  2 、 A 卡
+cardAlias string 卡片别名
+nfcId string 卡片 nfcId
+ 
+7.7 通用介质授权管理  
+7.7.1 通用介质授权 ( 包含人脸 )  
+简要描述： 
+通用介质授权 ( 包含人脸 )
+请求 URL ： 
+https://XXX:4443/ymd/restful/channel/auth/action
+请求方式：
+POST 
+参数： 
+===== PAGE 45 =====
+参数名 必选 类型 说明
+channelAuthJson 是 list 介质授权对象
+列表对象字段：    
+lockId 是 string 锁 id 多个用英文逗号隔开
+userAccountObj 是 string 用于多人员授权：格式 :[{“uname”:” 姓名 ”,”phone”:” 账号 ”}]
+channelModuleType 是 string 介质模块类型编码  1= 密码  2= 刷卡  3= 红外  4= 指纹  5= 指静脉  6= 人脸  7= 内部  8= 手机
+channel Value 是 string
+介质值：人脸 { 照片链接 } ，指纹 { 指纹（见指纹值备
+注） } ，身份证 { 卡片 uid} ，加密卡 { 卡片 uid} ， APP{ 手机
+号 } ，身份证指纹 { 指纹数据 } ，身份证补全指纹 { 指纹数
+据 } ，个人密码 { 密码值 }
+imgBase64 否 string
+添加人脸介质授权时，如果想使用 base64 方式时，传此
+参数值。如果 channelValue 和此参数都有参数值时优先
+使用此参数值
+startDate 是 string 授权开始时间 , 格式： yyyy-MM-dd HH:mm:ss
+endDate 是 string 授权结束时间 , 格式： yyyy-MM-dd HH:mm:ss
+desc 否 string 其他描述，指纹授权时需要特殊带参（指纹值备注）
+    
+orgId 否 string 组织 iid ，个人则为空
+currAccount 是 string 操作人账号
+ 请求示例
+ 加密前：
+{
+    "channelAuthJson": "
+[{\"lockId\":\"D56FA3EC51E546D89C5CE3C5C546\",\"userAccountObj\":\"
+[{\\\"uname\\\":\\\"xxx\\\",\\\"phone\\\":\\\"15211112222\\\"}]\",\"endDate\
+":\"2024-11-14 
+00:00:00\",\"channelType\":\"601\",\"channelModuleType\":\"6\",\"channelValu
+e\":\"https://ymd-faceimage.oss-cn-
+beijing.aliyuncs.com/xxx.jpg\",\"startDate\":\"2023-11-14 
+00:00:00\",\"desc\":\"\"}]",
+    "currAccount": "15111122222",
+    "appKey": "4576A20231110141419745342",
+    "appSecret": "17E33417949930091BEFDE736B110E07",
+    "time": "1700027276",
+    "version": "1.0.0",
+    "orgId": "11100000001",
+    "token": "nD8oDgv/o0u1b40pD6/JBIbgjSakjSWPh2Omis/YA1te6dhlAQdc7zQW4L/K 
+qOP3"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+===== PAGE 46 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+data string 数据区 : 授权任务号  数据明文
+   
+参数名 必选 类型 说明
+taskNo 是 string 任务号
+pageNo 是 int 页码
+pageSize 是 int 页数
+ 返回示例
+返回参数说明： 
+ 
+7.7.2 查询授权任务结果接口  
+简要描述
+查询授权任务结果接口
+请求 URL
+https://XXX:4443/ymd/restful/syncTask/result/list
+请求方式
+POST
+参数
+返回示例
+{
+    "data": "B1149F911E32461B8D4478CD47079D4820231114181336546,",
+    "message": " 介质授权成功 ",
+    "status": "1"
+}
+1
+2
+3
+4
+5
+返回结果不加密
+{
+    "rows": [
+        {
+            "id": 1507328,
+            "authId": "1061356",// 授权 id
+            "taskNo": "BB2514A471DC47BE94101F037BB16A5620230731105852853",//
+任务号
+            "channelType": " 手机 ",// 授权类型
+            "desc2": "15188850042",// 授权对象账号
+1
+2
+3
+4
+5
+6
+7
+8
+9
+===== PAGE 47 =====
+ 
+8. 人员授权管理  
+8.1 人员管理  
+8.1.1 人员列表  
+简要描述： 
+人员列表
+请求 URL ： 
+https://XXX:4443/ymd/restful/user/personnelList
+请求方式：
+POST 
+            "desc3": "app",// 授权类型
+            "result": " 介质 :[app], 锁名称： [ 万科 290026(FF00FFE16751)] 处理结果：
+[app 授权成功 ] ； ",// 返回结果
+            "status": 1,// 结果 code 1 成功  0 失败
+            "createTime": "2023-08-01 03:11:14",// 创建时间
+            "mac": "FF00FFE16751"
+            }
+    ],
+    "pageNum": 1,
+    "pageSize": 10,
+    "pages": 7318,
+    "total": 73173,
+    "startRow": 1,
+    "endRow": 10,
+    "prePage": 0,
+    "nextPage": 2,
+    "isFirstPage": 2,
+    "isLastPage": 2,
+    "hasPreviousPage": false,
+    "hasNextPage": true,
+    "navigatePages": 8,
+    "navigatepageNums": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+    ],
+    "navigateFirstPage": 1,
+    "navigateLastPage": 8,
+    "success": true,
+    "code": "200",
+    "message": " 操作成功 ",
+    "timestamp": 1700809294847
+}
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+===== PAGE 48 =====
+参数名 必选 类型 说明
+appKey 是 string 应用  KEY
+appSecret 是 string 应用密钥
+time 是 string 时间戳
+version 是 string 后台接口版本号
+sign 是 string 请求签名
+token 是 string 访问  token
+organId 是 string 组织 id
+phone 否 string 查询手机号或者名称，可全模糊查询
+参数： 
+ 请求示例
+ 返回示例
+返回参数说明： 
+ 加密前：
+{
+    "organId": "310113001001",
+    "phone": "13599933069",
+    "sign":"50876679408238C03F930AFCF99840B2",
+    "version":"1.0.0",
+    "token":A88C734DCDDAOA2F6F06483E9B96FBEE#1692774599",
+    "appKey":“4576A20190702125922535630",
+    "appSecret":"FA76246BAA9399E33D5A8DF03249033D",
+    "time:1692774599
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+{
+    "data": [
+        {
+            "ownerId": 2000023490,// 人员主键 id ，可用于删除
+            "organId": "310113001001", 组织 id
+            "ownerName": "eah", 人员名称
+            "realName": "eah", 人员姓名             
+            "phone": "13599933069", 人员账号
+            "isPrivate": 0, 是否隐私  1= 是  0= 否
+            "ctime": "2023-11-16 13:42:23", 创建时间
+        }
+    ],
+    "time": 1700113736816,
+    "message": " 成功 ",
+    "status": "1"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+===== PAGE 49 =====
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区  数据明文
+   
+data:   
+ownerId string 人员主键 id ，可用于删除
+organId string 组织 id
+ownerName string 人员名称
+realName string 人员姓名
+phone string 人员账号
+isPrivate int 是否隐私  1= 是  0= 否
+ctime string 创建时间
+ 
+8.1.2 人员添加  
+简要描述： 
+人员添加
+请求 URL ： 
+https://XXX:4443/ymd/restful/user/add
+请求方式：
+POST 
+参数： 
+===== PAGE 50 =====
+参数名 必选 类型 说明
+appKey 是 string 应用  KEY
+appSecret 是 string 应用密钥
+time 是 string 时间戳
+version 是 string 后台接口版本号
+sign 是 string 请求签名
+token 是 string 访问  token
+organId 是 string 组织 id
+phone 是 string 查询手机号
+realName 是 string 人员姓名
+isPrivate 否 int 是否隐私  1= 是  0= 否
+ 请求示例
+ 返回示例
+返回参数说明： 
+ 加密前：
+{
+    "organId": "310113001001",
+    "realName": "eah",
+    "phone": "13599933069",
+    "isPrivate": "13599933069",
+    "sign":"50876679408238C03F930AFCF99840B2",
+    "version":"1.0.0",
+    "token":A88C734DCDDAOA2F6F06483E9B96FBEE#1692774599",
+    "appKey":“4576A20190702125922535630",
+    "appSecret":"FA76246BAA9399E33D5A8DF03249033D",
+    "time:1692774599
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+{
+    "data": null,
+    "time": 1700113736816,
+    "message": " 成功 ",
+    "status": "1"
+}
+1
+2
+3
+4
+5
+6
+7
+===== PAGE 51 =====
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区  数据明文
+参数名 必选 类型 说明
+appKey 是 string 应用  KEY
+appSecret 是 string 应用密钥
+time 是 string 时间戳
+version 是 string 后台接口版本号
+sign 是 string 请求签名
+token 是 string 访问  token
+ids 是 string 人员主键支持多个 id ，用英文逗号隔开，数据来源  8.1.1 人员列表
+ 
+8.1.3 人员删除  
+简要描述： 
+人员删除
+请求 URL ： 
+https://XXX:4443/ymd/restful/user/del
+请求方式：
+POST 
+参数： 
+ 请求示例
+ 加密前：
+{
+    "ids": "2000023489",
+    "sign":"50876679408238C03F930AFCF99840B2",
+    "version":"1.0.0",
+    "token":A88C734DCDDAOA2F6F06483E9B96FBEE#1692774599",
+    "appKey":“4576A20190702125922535630",
+    "appSecret":"FA76246BAA9399E33D5A8DF03249033D",
+    "time:1692774599
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+===== PAGE 52 =====
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区
+ 返回示例
+返回参数说明： 
+ 
+8.2 授权管理  
+8.2.1 人员授权  
+简要描述： 
+人员授权
+请求 URL ： 
+https://XXX:4443/ymd/restful/auth/action
+请求方式：
+POST 
+参数： 
+{
+    "data": null,
+    "time": 1700113736816,
+    "message": " 成功 ",
+    "status": "1"
+}
+1
+2
+3
+4
+5
+6
+7
+===== PAGE 53 =====
+参数名 必选 类型 说明
+appKey 是 string 应用  KEY
+appSecret 是 string 应用密钥
+orgId 是 string 组织 id ，个人则为 null
+lockId 是 string 锁 id 用英文逗号隔开
+userAccountObj 是 string 用于多人员授权： [{“uname”:” 姓名 ”,”phone”:” 账号 ”}]
+startDate 是 string 授权开始时间  yyyy-MM-dd HH:mm:ss
+endDate 是 string 授权结束时间  yyyy-MM-dd HH:mm:ss
+currAccount 是 string 操作人账号
+time 是 string 请求时间戳
+sign 是 string 请求签名
+token 是 string 访问  token
+version 是 string 服务端接口版本号
+ 请求示例
+ 返回示例
+返回参数说明： 
+ 加密前：
+{
+    "orgName":"4",
+    "userAccount0bj":"
+[{\"uname\":\"15925625566\",\"phone\":\"15925625566\"}]",
+    "endDate":"2023-08-08 15:23:32",
+    "sign":"50876679408238C03F930AFCF99840B2",
+    "version":"1.0.0",
+    "orgId":"404",
+    "token":A88C734DCDDAOA2F6F06483E9B96FBEE#1692774599",
+    "1ockId":“2BF663DD87714AB89A3EA191E1B2",
+    "currAccount":“13777573316",
+    "appKey":“4576A20190702125922535630",
+    "appSecret":"FA76246BAA9399E33D5A8DF03249033D",
+    "time:1692774599,
+    "startDate":"2023-08-07 15:23:32"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+{
+    "data":"A34C7E8242464F04B24F5C01849B18B220230823151048614",
+    "time": 1692774648628,
+    "message":" 授权成功 ",
+    "status":"1"
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 54 =====
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区
+参数名 必选 类型 说明
+appKey 是 string 应用  KEY
+appSecret 是 string 应用密钥
+time 是 string 请求时间戳
+sign 是 string 请求签名
+token 是 string 访问  token
+version 是 string 服务端接口版本号
+name 否 string 被授权账号
+mac 否 string 被授权设备 mac
+ 
+8.2.2 授权列表  
+简要描述： 
+授权列表
+请求 URL ： 
+https://XXX:4443/ymd/restful/auth/list
+请求方式：
+POST 
+参数： 
+请求示例
+ 加密前：
+{
+    "name": "13589654455",    
+    "mac": "FB370C802AFF",
+    "sign":"50876679408238C03F930AFCF99840B2",
+    "version":"1.0.0",
+    "token":A88C734DCDDAOA2F6F06483E9B96FBEE#1692774599",
+    "appKey":“4576A20190702125922535630",
+    "appSecret":"FA76246BAA9399E33D5A8DF03249033D",
+    "time:1692774599
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+===== PAGE 55 =====
+ 返回示例
+返回参数说明： 
+{
+    "data": [
+        {
+            "id": "9504",// 授权主键 , 可用于删除
+            "tableType": "404",// 授权 table 类型，可用于删除
+            "mac": "D9F418EBD690",// 设备 mac
+            "lockName": "xxx522",// 设备名称
+            "lockType": " 密码指纹门锁 ",// 设备类型
+            "operateUser": "25010101009",// 操作人
+            "targetName": "",// 授权对象账号
+            "targetRealName": "",// 授权对象姓名
+            "authType": " 普通指纹 ",// 授权类型
+            "createTime": "2023-07-08 15:01:51",// 创建时间
+            "startTime": "2023-07-08 15:01:00",// 授权开始时间
+            "endTime": "2023-09-01 23:00:00",// 授权结束时间                 
+            "organId": "000000001610",// 组织 id
+            "sync": "1"// 授权是否同步  1 是 0 否
+        }
+     ],
+    "time": 1700041400133,
+    "message": "success",
+    "status": "1"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+===== PAGE 56 =====
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区  数据明文
+   
+data:   
+id string 授权主键 , 可用于删除
+tableType string 授权 table 类型，可用于删除 , 字典值参考  8.3.5 channelModuleType字典值
+mac string 设备 mac
+lockName string 设备名称
+lockType string 设备类型
+operateUser string 操作人
+targetName string 授权对象账号
+targetRealName string 授权对象姓名
+authType string 授权类型
+createTime string 创建时间
+startTime string 授权开始时间
+endTime string 授权结束时间
+organId string 组织 id
+sync string 授权是否同步  1 是 0 否
+ 
+8.2.3 删除授权  
+简要描述： 
+删除授权
+请求 URL ： 
+https://XXX:4443/ymd/restful/auth/delAuthById
+请求方式：
+POST 
+参数： 
+===== PAGE 57 =====
+参数名 必选 类型 说明
+appKey 是 string 应用  KEY
+appSecret 是 string 应用密钥
+time 是 string 请求时间戳
+sign 是 string 请求签名
+token 是 string 访问  token
+version 是 string 服务端接口版本号
+ids 是 string 授权主键支持多个 id ，用英文逗号隔开，数据来源  8.2.2 授权列表
+tableType 是 string 授权类型，数据来源  8.2.2 授权列表
+operator 是 string 操作人
+请求示例
+ 返回示例
+返回参数说明： 
+加密前：
+{
+    "ids": "61790",
+    "tableType": "601",
+    "operator": "25010101009",    
+    "sign": "8B83A2B359AC387651CDEAC0D203EEEF",
+    "appKey": "MLzHOyTOmLng+W9HDkfZ1JumSu1VO+EqtgAzLKYwN3c=",
+    "appSecret": 
+"Jy0Z1wTGlON+mxjbELab8KmgIucccQJ6EyZJuek+/glgnQtktNr6feERU6ee 7kpi",
+    "time": 1700101036,
+    "version": "1.0.0",
+    "token": "HwrveFqxfa0Njk0bffgpGUFNEigkte1ZgHQnSrfvKxS9dXmxjrbwpeJ98uyp 
+SjWF"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+{
+    "data": null,
+    "time": 1700101041288,
+    "message": "success",
+    "status": "1"
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 58 =====
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区
+参数名 必选 类型 说明
+appKey 是 string 应用  KEY
+appSecret 是 string 应用密钥
+time 是 string 时间戳
+version 是 string 后台接口版本号
+sign 是 string 请求签名
+token 是 string 访问  token
+orgId 是 string 介质组织
+userAccount 否 string 介质账号
+ 
+8.3 介质管理  
+8.3.1 介质列表  
+简要描述： 
+介质列表
+请求 URL ： 
+https://XXX:4443/ymd/restful/channel/abutment/list
+请求方式：
+POST 
+参数： 
+请求示例
+===== PAGE 59 =====
+ 返回示例
+返回参数说明： 
+加密前：
+{
+    "orgId": "330303253710",
+    "userAccount": "15178997866",
+    "appKey":"12122190522161316681110",
+    "appSecret":"A3432DE3224EBDD11A4E1FD8F48C8D50",
+    "time":"1556087282",
+    "version":"1.0.0",
+    "sign":"ED49C90702A87E87A56B690CCB516F37",
+    
+"token":"13d4a2018110517515805854BA29F1758B438C66EFF959D7BE9B72B5155608728E"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+{
+    "data": [
+        {
+            "id": 1614132311825047238,// 介质主键 id ，可用于删除
+            "userAccount": "15178997866",// 介质账号
+            "channelModuleType": "1",// 见 37.1 说明
+            "channelType": "102",// 见 37.2 说明
+            "channelValue": "123456",// 介质值
+            "isReal": 1,// 是否实名  1= 是  0= 否
+            "orgId": "330303253710",// 组织 id
+            "orgName": " 新风小区 ",// 组织名称
+            "channelAlias": " 右手大拇指 ",// 介质说明
+            "createTime": "2023-10-31 16:00:13",// 创建时间
+            "channelModuleTypeShow": " 指纹 ",// 介质模块说明
+            "channelTypeShow": " 普通指纹 ",// 介质类型说明
+        }
+    ],
+    "time": 1700117259164,
+    "message": "success",
+    "status": "1"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+===== PAGE 60 =====
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区  数据明文
+   
+data:   
+id string 介质主键 id ，可用于删除
+userAccount string 介质账号
+channelModuleType string 见  3.8.5 说明
+channelType string 见  3.8.4 说明
+channelValue string 介质值
+isReal string 是否实名  1= 是  0= 否
+orgId string 组织 id
+orgName string 组织名称
+channelAlias string 介质说明
+createTime string 创建时间
+channelModuleTypeShow string 介质模块说明
+channelTypeShow string 介质类型说明
+ 
+8.3.2 人员介质添加  
+简要描述： 
+介质添加
+请求 URL ： 
+https://XXX:4443/ymd/restful/channel/abutment/add
+请求方式：
+POST 
+参数： 
+===== PAGE 61 =====
+参数名 必选 类型 说明
+appKey 是 string 应用  KEY
+appSecret 是 string 应用密钥
+time 是 string 时间戳
+version 是 string 后台接口版本号
+sign 是 string 请求签名
+token 是 string 访问  token
+orgId 是 string 组织 id
+userAccount 是 string 介质账号
+channelModuleType 是 string 介质模块见  8.3.5 说明
+channelType 是 string 介质类型见  8.3.4 说明
+channelAlias 否 string 介质别名
+channelValue  string
+介质值：
+人脸 { 照片链接 } ，
+指纹 { 指纹（见指纹值备注） } ，
+身份证 { 卡片 uid} ，
+加密卡 { 卡片 uid} ，
+APP{ 手机号 } ，
+身份证指纹 { 指纹数据 } ，
+身份证补全指纹 { 指纹数据 } ，
+个人密码 { 密码值 }
+imgBase64  string
+添加人脸介质授权时，如果想使用 base64 方式时，传此
+参数值。如果 channelValue 和此参数都有参数值时优先
+使用此参数值
+isReal  string 是否实名  1= 是  0= 否
+currAccount  string 操作用户
+desc  string 备注
+请求示例
+加密前：
+{
+    "orgId": "33018905671",
+    "currAccount": "13656663106",
+    "isReal": 1,
+    "channelType": "102",
+    "channelValue": "102654",     
+    "channelAlias": " 某某的密码授权 ",
+    "userAccount": "13656663106",
+    "channelModuleType": "1",
+    "desc": " 某某的密码授权 ",
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+===== PAGE 62 =====
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区
+ 返回示例
+返回参数说明： 
+ 
+8.3.3 人员介质删除  
+简要描述： 
+介质删除
+请求 URL ： 
+https://XXX:4443/ymd/restful/channel/abutment/del
+请求方式：
+POST 
+参数： 
+    "appKey":"12122190522161316681110",
+    "appSecret":"A3432DE3224EBDD11A4E1FD8F48C8D50",
+    "time":"1556087282",
+    "version":"1.0.0",
+    "sign":"ED49C90702A87E87A56B690CCB516F37",
+    
+"token":"13d4a2018110517515805854BA29F1758B438C66EFF959D7BE9B72B5155608728E"
+}
+12
+13
+14
+15
+16
+17
+18
+{
+    "data": null,
+    "time": 1700117259164,
+    "message": "success",
+    "status": "1"
+}
+1
+2
+3
+4
+5
+6
+7
+===== PAGE 63 =====
+参数名 必选 类型 说明
+appKey 是 string 应用  KEY
+appSecret 是 string 应用密钥
+time 是 string 时间戳
+version 是 string 后台接口版本号
+sign 是 string 请求签名
+token 是 string 访问  token
+ids 是 string 介质主键支持多个 id ，用英文逗号隔开，数据来源  8.3.1 介质列表
+参数名 类型 说明
+status string 1: 成功，其它的表示失败
+message string 消息提示
+time string 用户请求时间戳
+data string 数据区
+请求示例
+ 返回示例
+返回参数说明： 
+ 
+加密前：
+{
+    "ids": "2000023489",
+    "appKey":"12122190522161316681110",
+    "appSecret":"A3432DE3224EBDD11A4E1FD8F48C8D50",
+    "time":"1556087282",
+    "version":"1.0.0",
+    "sign":"ED49C90702A87E87A56B690CCB516F37",
+    
+"token":"13d4a2018110517515805854BA29F1758B438C66EFF959D7BE9B72B5155608728E"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+{
+    "data": null,
+    "time": 1700117259164,
+    "message": "success",
+    "status": "1"
+}
+1
+2
+3
+4
+5
+6
+7
+===== PAGE 64 =====
+值 说明
+1 密码
+2 卡片
+3 红外
+4 指纹
+5 指静脉
+6 人脸
+7 内部
+8 手机
+值 说明
+101 管理员密码
+102 我的密码
+103 随身码
+104 一次性密码
+105 劫持码
+201 身份证
+202 钥匙卡
+203 手环卡
+204 蓝牙钥匙
+205 UID 卡
+206 华为钱包
+401 身份证指纹
+402 身份证补录指纹
+403 挟制指纹
+404 普通指纹
+601 人脸
+801 app
+8.3.4 channelType 字典值  
+ 
+8.3.5 channelModuleType 字典值  
+===== PAGE 65 =====
+接口命令 ID （ commandId) 描述
+E755B3AB842F4A22331985D5D01D34E 实名认证
+参数名 必选 类型 说明
+appKey 是 string 应用 KEY
+appSecret 是 string 应用密钥
+commandId 是 string 接口命令 ID
+data 是 string 数据字符串，格式是  json 字符串
+time 是 string 时间戳
+token 是 string 凭证
+sign 是 string 请求签名
+version 是 string 后台接口版本号
+参数名 必选 类型 说明
+userName 是 string 用户名
+userImg 是 string 用户照片
+name 是 string 姓名
+idCardNo 是 string 身份证号码
+ 
+9. 公共服务  
+9.1 实名认证接口  
+简要描述： 
+实名认证接口
+接口相关命令： 
+请求方式：
+POST 
+请求地址：
+https://XXX:4443/ymd/lockPt-service/V1.0.0/public/serviceV2
+参数： 
+data 请求参数 JSON 属性说明：
+===== PAGE 66 =====
+ 返回示例
+ 返回参数说明 
+参数加密前：
+{
+    "appKey": "43246590523182429645834",
+    "appSecret": "BF2113CE966C21484543A73ACF610768",
+    "commandId": "E755B3AB842F4A22331985D5D01D34E",
+    "data": "{\"userName\": \"18757139274\",\"userImg\": \"### 照片 base64 数据太
+长，此处不做样例 \",\"name\": \" 王二小 \",\"idCardNo\": \"360722109810092852\"}",
+    "time": "1553595785",
+    "version": "1.0.0",
+    "token": "WX06MrtxANsf9PhoteMhMNUEHBILAL6reVIjX6WIUlzsuPvQqw0fQIpp4yL3 
+6pEH" 
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+{
+  "status": "1",
+  "message": " 操作成功 ",
+  "time": null,
+  "data": {
+    "FaceCheckResult":{
+        "Score":70,
+        "FaceResult":1,
+        "FaceResultText":" 系  统  判  断  为  同  一  人  ",
+        "CitizenResult":1,
+        "CitizenResultText":" 一  致 "
+    },
+    "ResponseCode":100,
+    "ResponseText":" 接  口  调  用  成  功 ",
+    "Result":1,
+    "ResultText":" 查询成功 "
+  }
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+===== PAGE 67 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+data string 加密后数据区
+   
+data:   
+ResponseCode string 接口调用返回代码， 100 表示调用成  功
+ResponseText string 接口调用返回代码的文本描述
+Result string 查询结果  1 查询成功  0 查无结果
+ResultText string 查询结果的文本描述
+FaceCheckResult string 认证结果
+   
+FaceCheckResult:   
+Score string 人照匹配分数
+FaceResult string
+0: ： null （当身份  Page 5 of 6 核验不一致时返  回）  
+1: 系统判断为  同一人  
+2: 系统判断为  不同人
+3: 不能确定是  否为同一人  
+4: 系统无法比  对  
+5: 库中无照片
+FaceResultText string 人像比对文本描述
+CitizenResult string 1: 一致  2: 不一致  3: 库中无此号
+CitizenResultText string 身份核查文本描述
+ 
+9.2 组织实名管理  
+9.2.1 组织实名认证接口  
+简要描述： 
+组织实名认证接口
+请求方式：
+POST 
+请求地址：
+https://XXX:4443/ymd/restful/orgVerify/verify
+参数： 
+===== PAGE 68 =====
+参数名 必选 类型 说明
+appKey 是 string 应用 KEY
+appSecret 是 string 应用密钥
+time 是 string 时间戳
+token 是 string 凭证
+sign 是 string 请求签名
+version 是 string 后台接口版本号
+phone 是 string 用户手机号
+organId 是 string 组织 id
+realName 是 string 真实姓名
+idCardType 是 string 证件类型 :1: 身份证
+idCard 是 string 证件号码
+idCardImg 是 string 证件照片网络地址  ( 与 base64 二选一 )
+idCardImgBase64 是 string 证件照片 base64
+faceImg 否 string 人脸照片网络地址 ( 与 base64 二选一 )
+faceImgBase64 否 string 人脸照片 base64
+ 请求示例
+ 返回示例
+参数加密前：
+{
+    "appKey": "43246590523182429645834",
+    "appSecret": "BF2113CE966C21484543A73ACF610768",
+    "time": "1553595785",
+    "version": "1.0.0",
+    "token": "WX06MrtxANsf9PhoteMhMNUEHBILAL6reVIjX6WIUlzsuPvQqw0fQIpp4yL3 
+6pEH", 
+    "organId": "00000001",
+    "realName": "A",
+    "phone": "12344556677",
+    "idCard": "330111200000000000",
+    "idCardType": "1",
+    "idCardImg": "xx",
+    "faceImg": "xx",
+    "idCardImgBase64": "xxx",
+    "faceImgBase64": "xxx"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+===== PAGE 69 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+data string 加密后数据区
+参数名 必选 类型 说明
+appKey 是 string 应用 KEY
+appSecret 是 string 应用密钥
+time 是 string 时间戳
+token 是 string 凭证
+sign 是 string 请求签名
+version 是 string 后台接口版本号
+phone 是 string 用户手机号
+organId 是 string 组织 id
+ 返回参数说明 
+ 
+9.2.2 组织实名删除接口  
+简要描述： 
+组织实名删除接口
+请求方式：
+POST 
+请求地址：
+https://XXX:4443/ymd/restful/orgVerify/del
+参数： 
+ 请求示例
+{
+  "status": "1",
+  "message": " 操作成功 ",
+  "time": null,
+  "data": null
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 70 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+data string 加密后数据区
+ 返回示例
+ 返回参数说明 
+ 
+9.2.3 组织实名列表接口  
+简要描述： 
+组织实名列表接口
+请求方式：
+POST 
+请求地址：
+https://XXX:4443/ymd/restful/orgVerify/list
+参数： 
+参数加密前：
+{
+    "appKey": "43246590523182429645834",
+    "appSecret": "BF2113CE966C21484543A73ACF610768",
+    "time": "1553595785",
+    "version": "1.0.0",
+    "token": "WX06MrtxANsf9PhoteMhMNUEHBILAL6reVIjX6WIUlzsuPvQqw0fQIpp4yL3 
+6pEH", 
+    "organId": "00000001",
+    "phone": "12344556677"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+{
+  "status": "1",
+  "message": " 操作成功 ",
+  "time": null,
+  "data": null
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 71 =====
+参数名 必选 类型 说明
+appKey 是 string 应用 KEY
+appSecret 是 string 应用密钥
+time 是 string 时间戳
+token 是 string 凭证
+sign 是 string 请求签名
+version 是 string 后台接口版本号
+phone 否 string 用户手机号
+organId 是 string 组织 id
+pageNum 否 int 当前页 , 默认 1
+pageSize 否 int 分页大小 , 默认  1000
+ 请求示例
+ 返回示例
+参数加密前：
+{
+    "appKey": "43246590523182429645834",
+    "appSecret": "BF2113CE966C21484543A73ACF610768",
+    "time": "1553595785",
+    "version": "1.0.0",
+    "token": "WX06MrtxANsf9PhoteMhMNUEHBILAL6reVIjX6WIUlzsuPvQqw0fQIpp4yL3 
+6pEH",
+    "organId": "00000001",
+    "phone": "12344556677"
+}
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+{
+    "data": {
+        "navigatepageNums": [],
+        "startRow": 1,
+        "hasNextPage": false,
+        "prePage": 0,
+        "nextPage": 0,
+        "endRow": 1,
+        "pageSize": 0,
+        "list": [
+            {
+                "faceImg": "https://xx.com/2022-03-10/16468973501-5141f7-
+a638-4a1f.jpg",
+                "idCard": "601231********5315",
+                "idCardAES": "FoCgHoBMzOVssUrC05Lj6qwh5Y1sP1ehrnsovtHwG+Q=",
+                "active": 1,
+                "verifyTime": 1700805692000,
+                "delFlag": "0",
+                "userId": "13D4A20210706160009471281",
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+===== PAGE 72 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+data string 加密后数据区
+   
+id int 组织实名 id
+faceImg string 人脸照片网络地址
+idCard string 证件号码
+realName string 真实姓名
+idCardType string 证件类型
+createTime string 创建时间
+phone string 手机号码
+organId string 组织 id
+idCardImg string 证件照片网络地址
+ 返回参数说明 
+                "idCardMD5": "e4d9475aa58f491f8b2461dbcd9236ea",
+                "organName": " 平台 ",
+                "realName": "xx",
+                "idCardType": "1",
+                "createTime": 1700805692000,
+                "phone": "13588888059",
+                "auditStatus": "1",
+                "organId": "00000001",
+                "id": 37,
+                "idCardImg": "https://xxx.com/2022-03-10/16468903501-5a81f7-
+a638-4a1f.jpg"
+            }
+        ],
+        "pageNum": 1,
+        "navigatePages": 8,
+        "navigateFirstPage": 0,
+        "total": 1,
+        "pages": 0,
+        "size": 1,
+        "isLastPage": true,
+        "hasPreviousPage": false,
+        "navigateLastPage": 0,
+        "isFirstPage": true
+    },
+    "time": 1700808441785,
+    "message": " 操作成功 ",
+    "status": 0
+}
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+===== PAGE 73 =====
+接口命令 ID （ commandId) 描述
+E755B3AB842F4A11221985D5D01D32E 人脸照片比对
+E755B3AB842F4A22331985D5D01D34E 实名认证
+参数名 必选 类型 说明
+appKey 是 string 应用 KEY
+appSecret 是 string 应用密钥
+commandId 是 string 接口命令 ID ，如  人脸照片比对：E755B3AB842F4A11221985D5D01D32E
+data 是 string 数据字符串，格式是  json 字符串
+time 是 string 时间戳
+token 是 string 凭证
+sign 是 string 请求签名
+version 是 string 后台接口版本号
+参数名 必选 类型 说明
+userName 是 string 用户名
+faceImg 是 string 人脸照片
+ 
+9.3 通用对外计费接口  
+简要描述： 
+通用对外计费接口
+接口相关命令： 
+请求方式：
+POST 
+请求地址：
+https://XXX:4443/ymd/lockPt-service/V1.0.0/public/service
+参数： 
+ 1) 、人脸照片比对请求参数示例
+data 请求参数 JSON 属性说明：
+  参数加密前：
+{
+    "appKey": "43246590523182429645834",
+1
+2
+3
+===== PAGE 74 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+data string 加密后数据区
+参数名 必选 类型 说明
+userName 是 string 用户名
+userImg 是 string 用户照片
+name 是 string 姓名
+idCardNo 是 string 身份证号码
+ 返回结果示例
+ 返回参数说明 
+ 2) 、实名认证请求参数示例
+data 请求参数 JSON 属性说明：
+    "appSecret": "BF2113CE966C21484543A73ACF610768",
+    "commandId": "E755B3AB842F4A11221985D5D01D32E",
+    "data": "{\"userName\":\"18957140028\", \"faceImg\":\"/9j/4AA\"}",
+    "time": "1553595785",
+    "version": "1.0.0",
+    "token": "WX06MrtxANsf9PhoteMhMNUEHBILAL6reVIjX6WIUlzsuPvQqw0fQIpp4yL3 
+6pEH" 
+}
+ 参数加密后：
+{
+    "appKey": "oTwwudcW8PhCRxF7G/1VetPwt5zpW36oj+pXJpaj/f4=",
+    "appSecret": 
+"El5/rOhZ7oW65JNcPQF00WwInObrg41fVtKgshDEnOuf4GyvBGstIx/wlrLH 1l/2",
+    "commandId": "7mvSzz6M8jMtb7mnTQMf4PJvTb5zWrjYfALwgkpQ8po=",
+    "data": "05TDFMIEQ8j2tuV6UY+Zc7ScnUm0S4DHo0xpCG9afkJ3P",
+    "time": "1553595785",
+    "version": "1.0.0",
+    "token": "WX06MrtxANsf9PhoteMhMNUEHBILAL6reVIjX6WIUlzsuPvQqw0fQIpp4yL3 
+6pEH"
+    "sign": "540BE47027A727BA1D94C1E98CF91F8F",
+} 
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+{
+  "status": "1",
+  "message": " 操作成功 ",
+  "time": null,
+  "data": null
+}
+1
+2
+3
+4
+5
+6
+===== PAGE 75 =====
+参数名 类型 说明
+status string 1 ：成功，其它为失败
+message string 消息提示
+data string 加密后数据区
+ 返回结果示例
+ 返回参数说明 
+ 
+  参数加密前：
+{
+    "appKey": "43246590523182429645834",
+    "appSecret": "BF2113CE966C21484543A73ACF610768",
+    "commandId": "E755B3AB842F4A22331985D5D01D34E",
+    "data": "{\"userName\": \"18757139274\",\"userImg\": \"### 照片 base64 数据太
+长，此处不做样例 \",\"name\": \" 王二小 \",\"idCardNo\": 
+\"360722109810092852\",\"time\": \"1553595785\",\"token\": 
+\"6546A201903261353224855384A293D4C1BF558113D4DB28CAD5501141553595785\",\"ve
+rsion\": \"1.0.0\"}",
+    "time": "1553595785",
+    "version": "1.0.0",
+    "token": "WX06MrtxANsf9PhoteMhMNUEHBILAL6reVIjX6WIUlzsuPvQqw0fQIpp4yL3 
+6pEH" 
+}
+ 参数加密后：
+{
+    "appKey": "oTwwudcW8PhCRxF7G/1VetPwt5zpW36oj+pXJpaj/f4=",
+    "appSecret": 
+"El5/rOhZ7oW65JNcPQF00WwInObrg41fVtKgshDEnOuf4GyvBGstIx/wlrLH 1l/2",
+    "commandId": "7mvSzz6M8jMtb7mnTQMf4PJvTb5zWrjYfALwgkpQ8po=",
+    "data": "05TDFMIEQ8j2tuV6UY+Zc7ScnUm0S4DHo0xpCG9afkJ3P",
+    "time": "1553595785",
+    "version": "1.0.0",
+    "token": "WX06MrtxANsf9PhoteMhMNUEHBILAL6reVIjX6WIUlzsuPvQqw0fQIpp4yL3 
+6pEH"
+    "sign": "540BE47027A727BA1D94C1E98CF91F8F",
+} 
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+{
+  "status": "1",
+  "message": " 操作成功 ",
+  "time": null,
+  "data": null
+}
+1
+2
+3
+4
+5
+6

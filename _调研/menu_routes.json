@@ -1,0 +1,863 @@
+﻿[
+ {
+  "group": "策略中心",
+  "route": null,
+  "children": [
+   {
+    "name": "策略信息管理",
+    "route": "/admin/policy/polinfo"
+   }
+  ]
+ },
+ {
+  "group": "会议管理",
+  "route": null,
+  "children": [
+   {
+    "name": "会议室管理",
+    "route": "/admin/meeting/metroom"
+   },
+   {
+    "name": "会议预约管理",
+    "route": "/admin/meeting/metsub"
+   }
+  ]
+ },
+ {
+  "group": "人员中心",
+  "route": null,
+  "children": [
+   {
+    "name": "业主管理",
+    "route": "/admin/owner/owner"
+   },
+   {
+    "name": "人员管理",
+    "route": "/admin/member/list"
+   },
+   {
+    "name": "人员组管理",
+    "route": "/admin/member/group"
+   },
+   {
+    "name": "服务人员管理",
+    "route": "/admin/provider/user"
+   },
+   {
+    "name": "业主审核",
+    "route": "/admin/assets/check"
+   }
+  ]
+ },
+ {
+  "group": "资产中心",
+  "route": null,
+  "children": [
+   {
+    "name": "房屋管理",
+    "route": "/admin/assets/house"
+   },
+   {
+    "name": "车库管理",
+    "route": "/admin/parking/garage"
+   },
+   {
+    "name": "车位管理",
+    "route": "/admin/assets/park/parkspace"
+   },
+   {
+    "name": "车位租赁",
+    "route": "/admin/rent/park"
+   },
+   {
+    "name": "资产管理",
+    "route": null
+   },
+   {
+    "name": "酒店房源管理",
+    "route": "/admin/hotel/house/view"
+   },
+   {
+    "name": "学校房屋管理",
+    "route": "/admin/assets/house/schoolList"
+   },
+   {
+    "name": "资产列表",
+    "route": "/admin/property/view"
+   },
+   {
+    "name": "房屋授权记录",
+    "route": "/admin/houseAuth/house"
+   },
+   {
+    "name": "车位转让记录",
+    "route": "/admin/parkAuth/parking"
+   }
+  ]
+ },
+ {
+  "group": "设备中心",
+  "route": null,
+  "children": [
+   {
+    "name": "设备管理",
+    "route": "/admin/device/deviceInfo"
+   },
+   {
+    "name": "设备组管理",
+    "route": "/admin/deviceGroup/view"
+   },
+   {
+    "name": "采集器管理",
+    "route": "/admin/collector/collector"
+   },
+   {
+    "name": "快捷远程开门",
+    "route": "/admin/device/remoteopen"
+   },
+   {
+    "name": "设备列表",
+    "route": "/admin/school/device/deviceInfo"
+   },
+   {
+    "name": "门锁列表",
+    "route": "/admin/device/lock/view"
+   },
+   {
+    "name": "换锁日志查询",
+    "route": "/admin/device/lock/changeLockLog"
+   }
+  ]
+ },
+ {
+  "group": "告警信息",
+  "route": null,
+  "children": [
+   {
+    "name": "设备告警与转发配置",
+    "route": "/admin/device/monitor"
+   },
+   {
+    "name": "报警信息",
+    "route": "/admin/alarm/alarmInfo"
+   },
+   {
+    "name": "设备告警",
+    "route": "/admin/alarm/device/view"
+   },
+   {
+    "name": "报警管理",
+    "route": "/admin/alarm/alarmInfo/manager"
+   },
+   {
+    "name": "告警处理",
+    "route": "/admin/property/warn/view"
+   },
+   {
+    "name": "一键报警",
+    "route": "/admin/alarm/one/view"
+   },
+   {
+    "name": "烟感报警",
+    "route": "/admin/alarm/smoke/view"
+   }
+  ]
+ },
+ {
+  "group": "卡片信息",
+  "route": null,
+  "children": [
+   {
+    "name": "卡片管理",
+    "route": "/admin/school/card/view"
+   },
+   {
+    "name": "钥匙卡信息",
+    "route": "/admin/device/card/view"
+   },
+   {
+    "name": "卡片授权信息",
+    "route": "/admin/device/card/authCardView"
+   },
+   {
+    "name": "制卡汇总列表",
+    "route": "/admin/school/card/cardConfig"
+   }
+  ]
+ },
+ {
+  "group": "授权中心",
+  "route": null,
+  "children": [
+   {
+    "name": "人员授权",
+    "route": "/admin/auth/member"
+   },
+   {
+    "name": "组授权管理",
+    "route": "/admin/others/groupManage"
+   },
+   {
+    "name": "二级管理员",
+    "route": "/admin/subManager/list"
+   }
+  ]
+ },
+ {
+  "group": "开门信息",
+  "route": null,
+  "children": [
+   {
+    "name": "开门记录",
+    "route": "/admin/property/lock/view"
+   },
+   {
+    "name": "人脸开门记录",
+    "route": "/admin/school/lock/faceRecord"
+   },
+   {
+    "name": "长期未开门记录",
+    "route": "/admin/property/lock/view1"
+   },
+   {
+    "name": "开门记录2",
+    "route": "/admin/record/lockOpenRecord"
+   },
+   {
+    "name": "健康码记录",
+    "route": "/admin/user/healthcode/view"
+   }
+  ]
+ },
+ {
+  "group": "入住管理",
+  "route": null,
+  "children": [
+   {
+    "name": "房间列表",
+    "route": "/admin/property/rent/view"
+   },
+   {
+    "name": "入住人列表",
+    "route": "/admin/property/renter/view"
+   },
+   {
+    "name": "入住授权",
+    "route": "/admin/property/rentHouse/view"
+   }
+  ]
+ },
+ {
+  "group": "访客信息",
+  "route": null,
+  "children": [
+   {
+    "name": "访客邀请",
+    "route": "/admin/user/visitor/manager"
+   },
+   {
+    "name": "访客管理",
+    "route": "/admin/user/visitor/register"
+   },
+   {
+    "name": "访客规则配置",
+    "route": "/admin/user/visitor/setting"
+   }
+  ]
+ },
+ {
+  "group": "房源信息",
+  "route": null,
+  "children": [
+   {
+    "name": "房源管理",
+    "route": "/admin/property/house/viewXinjiang"
+   }
+  ]
+ },
+ {
+  "group": "租赁管理",
+  "route": null,
+  "children": [
+   {
+    "name": "出租记录",
+    "route": "/admin/property/rent/view"
+   },
+   {
+    "name": "租客管理",
+    "route": "/admin/property/renter/view"
+   },
+   {
+    "name": "房屋出租",
+    "route": "/admin/property/rentHouse/view"
+   },
+   {
+    "name": "开门记录",
+    "route": "/admin/property/lock/view"
+   },
+   {
+    "name": "出租信息",
+    "route": "/admin/property/rent/viewXinjiang"
+   },
+   {
+    "name": "房屋出租",
+    "route": "/admin/property/rentHouse/viewXinjiang"
+   },
+   {
+    "name": "转租分析",
+    "route": "/admin/rent/analyse"
+   },
+   {
+    "name": "房源信息",
+    "route": "/admin/property/house/view"
+   }
+  ]
+ },
+ {
+  "group": "停车管理",
+  "route": null,
+  "children": [
+   {
+    "name": "车辆信息",
+    "route": "/admin/car/list"
+   },
+   {
+    "name": "过车记录信息",
+    "route": "/admin/record/carPass"
+   },
+   {
+    "name": "停车订单信息",
+    "route": "/admin/car/order"
+   },
+   {
+    "name": "车闸收费码管理",
+    "route": "/admin/others/qrcode"
+   },
+   {
+    "name": "临停收费策略",
+    "route": "/admin/parking/costRule"
+   },
+   {
+    "name": "车闸配置",
+    "route": "/admin/others/brake"
+   },
+   {
+    "name": "停车券定义",
+    "route": "/admin/car/coupon/define"
+   },
+   {
+    "name": "停车券订单",
+    "route": "/admin/car/coupon/order"
+   },
+   {
+    "name": "停车券查询统计",
+    "route": "/admin/car/coupon/log"
+   },
+   {
+    "name": "车牌勘误管理",
+    "route": "/admin/car/carnumCorrect"
+   },
+   {
+    "name": "车辆在场状态",
+    "route": "/admin/car/onsetRecords"
+   },
+   {
+    "name": "历史在场记录",
+    "route": "/admin/car/hisRecords"
+   },
+   {
+    "name": "异常抬杆记录",
+    "route": "/admin/car/abnormalLift"
+   },
+   {
+    "name": "计费时长",
+    "route": "/admin/car/chargingRecords"
+   },
+   {
+    "name": "自动纠正规则配置",
+    "route": "/admin/car/autoCorrectRule"
+   },
+   {
+    "name": "自动纠正规则应用列表",
+    "route": "/admin/car/ruleApplicationList"
+   }
+  ]
+ },
+ {
+  "group": "能源管理",
+  "route": null,
+  "children": [
+   {
+    "name": "水电表远程控制",
+    "route": "/admin/collector/meterReadingView"
+   },
+   {
+    "name": "水电表日冻结",
+    "route": "/admin/collector/dialy"
+   },
+   {
+    "name": "换表日志查询",
+    "route": "/admin/collector/changeMeterLog"
+   },
+   {
+    "name": "操作日志查询",
+    "route": "/admin/collector/log"
+   },
+   {
+    "name": "缴费户号管理",
+    "route": "/admin/energy/account"
+   }
+  ]
+ },
+ {
+  "group": "维保服务",
+  "route": null,
+  "children": [
+   {
+    "name": "安装订单",
+    "route": "/admin/setup/lock"
+   },
+   {
+    "name": "来自 E锁APP的报修",
+    "route": "/admin/lock/info"
+   },
+   {
+    "name": "来自 云门道小程序的报修",
+    "route": "/admin/repair/info"
+   },
+   {
+    "name": "报修列表",
+    "route": "/admin/maintain/repair"
+   },
+   {
+    "name": "超管报修列表",
+    "route": "/admin/maintain/supRepair"
+   },
+   {
+    "name": "维保人员管理",
+    "route": "/admin/maintain/person"
+   },
+   {
+    "name": "维修人员管理",
+    "route": "/admin/maintain/keep"
+   },
+   {
+    "name": "安装人员管理",
+    "route": "/admin/setup/person"
+   }
+  ]
+ },
+ {
+  "group": "智慧服务",
+  "route": null,
+  "children": [
+   {
+    "name": "公约公告通知",
+    "route": "/admin/common/announcement"
+   },
+   {
+    "name": "投诉建议",
+    "route": "/admin/suggest/info"
+   },
+   {
+    "name": "业主投票",
+    "route": "/admin/vote/topic"
+   },
+   {
+    "name": "紧急联系",
+    "route": "/admin/common/userHelp"
+   },
+   {
+    "name": "收费设置",
+    "route": "/admin/feerule/list"
+   }
+  ]
+ },
+ {
+  "group": "互动管理",
+  "route": null,
+  "children": [
+   {
+    "name": "公告通知",
+    "route": "/admin/common/announcement"
+   },
+   {
+    "name": "紧急联系人设置",
+    "route": "/admin/common/userHelp"
+   },
+   {
+    "name": "投票管理",
+    "route": "/admin/vote/topic"
+   },
+   {
+    "name": "APP反馈管理",
+    "route": "/admin/feedback/info"
+   },
+   {
+    "name": "投诉建议",
+    "route": "/admin/suggest/info"
+   }
+  ]
+ },
+ {
+  "group": "智慧安防（布控研判）",
+  "route": null,
+  "children": [
+   {
+    "name": "布控管理",
+    "route": "/admin/monitor/view"
+   },
+   {
+    "name": "研判管理",
+    "route": "/admin/analyse/view"
+   }
+  ]
+ },
+ {
+  "group": "数据统计分析",
+  "route": null,
+  "children": [
+   {
+    "name": "人员结构统计",
+    "route": "/admin/statistic/person/view"
+   },
+   {
+    "name": "门锁统计",
+    "route": "/admin/statistic/lock/view"
+   }
+  ]
+ },
+ {
+  "group": "人脸识别轨迹跟踪",
+  "route": null,
+  "children": [
+   {
+    "name": "常驻人员和访客轨迹",
+    "route": "/admin/capture/info"
+   },
+   {
+    "name": "未授权人员轨迹",
+    "route": "/admin/unusual/info"
+   }
+  ]
+ },
+ {
+  "group": "智慧巡更",
+  "route": null,
+  "children": [
+   {
+    "name": "巡更卡点配置",
+    "route": "/admin/patrol/point"
+   },
+   {
+    "name": "巡更路线规划",
+    "route": "/admin/patrol/line"
+   },
+   {
+    "name": "巡更计划制定",
+    "route": "/admin/patrol/plan"
+   },
+   {
+    "name": "巡更任务下达",
+    "route": "/admin/schedule/view?type=PATROL"
+   },
+   {
+    "name": "巡更任务检查",
+    "route": "/admin/patrol/task/view"
+   }
+  ]
+ },
+ {
+  "group": "智慧保洁",
+  "route": null,
+  "children": [
+   {
+    "name": "保洁卡点配置",
+    "route": "/admin/clean/point/view"
+   },
+   {
+    "name": "保洁线路规划",
+    "route": "/admin/clean/line/view"
+   },
+   {
+    "name": "保洁计划制定",
+    "route": "/admin/clean/plan/view"
+   },
+   {
+    "name": "保洁任务下达",
+    "route": "/admin/schedule/view?type=CLEAN"
+   },
+   {
+    "name": "保洁任务检查",
+    "route": "/admin/clean/task/view"
+   }
+  ]
+ },
+ {
+  "group": "财务管理",
+  "route": null,
+  "children": [
+   {
+    "name": "订单管理",
+    "route": "/admin/account/info/orderList"
+   },
+   {
+    "name": "租赁订单",
+    "route": "/admin/record/rentOrder"
+   },
+   {
+    "name": "自助机订单管理",
+    "route": "/admin/order/hotel/view"
+   },
+   {
+    "name": "退款管理",
+    "route": "/admin/trade/refund/tkList"
+   },
+   {
+    "name": "提现管理",
+    "route": "/admin/withdrawal/info/sh/info"
+   },
+   {
+    "name": "银行卡管理",
+    "route": "/admin/bankCard/info"
+   },
+   {
+    "name": "账户信息",
+    "route": "/admin/account/info/detail"
+   }
+  ]
+ },
+ {
+  "group": "财务管理(平台)",
+  "route": null,
+  "children": [
+   {
+    "name": "订单管理",
+    "route": "/admin/account/info/ptOrderList"
+   },
+   {
+    "name": "对账管理",
+    "route": "/admin/trade/dz/dz"
+   }
+  ]
+ },
+ {
+  "group": "设备入库",
+  "route": null,
+  "children": [
+   {
+    "name": "门禁门锁入库",
+    "route": "/admin/devicestorage/menJin"
+   },
+   {
+    "name": "梯控设备入库",
+    "route": "/admin/devicestorage/tiKong"
+   },
+   {
+    "name": "车闸设备入库",
+    "route": "/admin/devicestorage/brakes"
+   },
+   {
+    "name": "采集器入库",
+    "route": "/admin/device/import/collector"
+   },
+   {
+    "name": "车闸盒子入库",
+    "route": "/admin/device/import/brakebox"
+   },
+   {
+    "name": "水电表入库",
+    "route": "/admin/devicestorage/meter"
+   },
+   {
+    "name": "网关入库",
+    "route": "/admin/device/import/gateway"
+   }
+  ]
+ },
+ {
+  "group": "审核管理",
+  "route": null,
+  "children": [
+   {
+    "name": "工单审核",
+    "route": "/admin/auditmanage/workorder"
+   },
+   {
+    "name": "工作单审核",
+    "route": "/admin/auditmanage/worksheet"
+   }
+  ]
+ },
+ {
+  "group": "开发工具",
+  "route": null,
+  "children": [
+   {
+    "name": "流水码管理",
+    "route": "/admin/others/qrcode"
+   },
+   {
+    "name": "读卡器调试",
+    "route": "/admin/others/debug"
+   },
+   {
+    "name": "静默登录组织配置",
+    "route": "/admin/cms?key=login_whitelist&title=%E9%9D%99%E9%BB%98%E7%99%BB%E5%BD%95%E7%BB%84%E7%BB%87%E9%85%8D%E7%BD%AE"
+   },
+   {
+    "name": "app安全周期配置",
+    "route": "/admin/app/safe"
+   },
+   {
+    "name": "app版本管理",
+    "route": "/admin/app/version"
+   },
+   {
+    "name": "灰度白名单配置",
+    "route": "/admin/others/test"
+   },
+   {
+    "name": "网络环境配置",
+    "route": "/admin/others/netenvconfig"
+   },
+   {
+    "name": "开门记录时间异常日志",
+    "route": "/admin/others/logerror"
+   },
+   {
+    "name": "SDK管理",
+    "route": "/admin/app/sdk"
+   },
+   {
+    "name": "代理商管理",
+    "route": "/admin/others/appagent"
+   },
+   {
+    "name": "APP用户管理",
+    "route": "/admin/others/appuser"
+   },
+   {
+    "name": "开门记录推送配置",
+    "route": "/admin/record/openConfig"
+   },
+   {
+    "name": "特殊功能权限",
+    "route": null
+   },
+   {
+    "name": "私有化配置",
+    "route": "/admin/setting/configSetting"
+   },
+   {
+    "name": "武汉项目升级维护",
+    "route": "/admin/devTools/whDevTool/index"
+   }
+  ]
+ },
+ {
+  "group": "第三方数据导入",
+  "route": null,
+  "children": [
+   {
+    "name": "宁巢房管局导入",
+    "route": "/admin/device/lock/import"
+   }
+  ]
+ },
+ {
+  "group": "人员管理",
+  "route": null,
+  "children": [
+   {
+    "name": "人员信息",
+    "route": "/admin/member/list"
+   },
+   {
+    "name": "人员组信息",
+    "route": "/admin/member/group"
+   }
+  ]
+ },
+ {
+  "group": "日志管理",
+  "route": null,
+  "children": [
+   {
+    "name": "操作日志",
+    "route": "/admin/monitor/log"
+   },
+   {
+    "name": "访客码记录",
+    "route": "/admin/visitorAuth/visitor"
+   },
+   {
+    "name": "防疫通行日志",
+    "route": "/admin/record/pestil"
+   }
+  ]
+ },
+ {
+  "group": "身份查询",
+  "route": "/admin/others/idcard",
+  "children": []
+ },
+ {
+  "group": "系统管理",
+  "route": null,
+  "children": [
+   {
+    "name": "角色管理",
+    "route": "/admin/system/role"
+   },
+   {
+    "name": "人员类型管理",
+    "route": "/admin/system/person"
+   },
+   {
+    "name": "岗位管理",
+    "route": "/admin/system/post"
+   },
+   {
+    "name": "组织管理",
+    "route": "/admin/system/dept"
+   },
+   {
+    "name": "用户管理",
+    "route": "/admin/system/user"
+   },
+   {
+    "name": "菜单管理",
+    "route": "/admin/system/menu"
+   },
+   {
+    "name": "会话管理",
+    "route": "/admin/system/session"
+   },
+   {
+    "name": "数据字典",
+    "route": "/admin/system/dict"
+   },
+   {
+    "name": "组织实名",
+    "route": "/admin/user/realname"
+   },
+   {
+    "name": "实名认证",
+    "route": "/admin/system/verifyXy"
+   },
+   {
+    "name": "门锁资料收集",
+    "route": "/admin/rental/2/list"
+   },
+   {
+    "name": "修改强安弱安权限",
+    "route": null
+   },
+   {
+    "name": "小程序首页菜单配置",
+    "route": "/admin/app/menu/diy"
+   }
+  ]
+ }
+]

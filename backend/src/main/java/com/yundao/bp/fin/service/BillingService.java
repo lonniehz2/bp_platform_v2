@@ -1,0 +1,51 @@
+package com.yundao.bp.fin.service;
+
+import com.yundao.bp.common.api.PageResult;
+import com.yundao.bp.fin.dto.BillCreateCmd;
+import com.yundao.bp.fin.dto.BillVO;
+import com.yundao.bp.fin.dto.PaymentCreateCmd;
+import com.yundao.bp.fin.dto.PaymentVO;
+import java.math.BigDecimal;
+
+/**
+ * 账单与收款服务（BC-08 资金账务）。
+ *
+ * <p><b>核销闭环</b>：账单(应收) → 收款单(实收) → 核销明细 → 账单状态与应付金额回写。
+ */
+public interface BillingService {
+
+    // ---------- 账单 ----------
+    BillVO createBill(BillCreateCmd cmd);
+
+    BillVO getBill(Long id);
+
+    PageResult<BillVO> pageBills(long pageNum, long pageSize, Long orgId, Long contractId,
+                                 Long personId, String status, String keyword);
+
+    /** 逾期扫描：过缴费截止日仍未缴的账单置 OVERDUE 并回填逾期天数。 */
+    int scanOverdue();
+
+    /** 减免/免除账单。 */
+    BillVO waiveBill(Long id, BigDecimal waiveAmount, String reason);
+
+    /** 作废账单（已收金额必须为 0）。 */
+    BillVO cancelBill(Long id, String reason);
+
+    // ---------- 收款 ----------
+    PaymentVO createPayment(PaymentCreateCmd cmd);
+
+    PaymentVO getPayment(Long id);
+
+    PageResult<PaymentVO> pagePayments(long pageNum, long pageSize, Long orgId, Long personId,
+                                       String status, String keyword);
+
+    /** 确认收款成功（PENDING → SUCCESS）。 */
+    PaymentVO confirmPayment(Long id);
+
+    /**
+     * 核销：把收款单的钱核到指定账单上。
+     *
+     * <p>核销额不能超过「收款单可核销余额」与「账单应付金额」两者较小值。
+     */
+    BillVO allocate(Long paymentId, Long billId, BigDecimal amount);
+}

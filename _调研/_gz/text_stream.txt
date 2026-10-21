@@ -1,0 +1,276 @@
+[P] style= IMG=
+    云门道智慧公租房管理方案                实名安全智能锁助力实现“以锁管人“
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P] style= IMG=['VML:media/image1.jpeg']
+    
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P] style= IMG=['VML:media/image2.png']
+    
+[P] style= IMG=
+    杭州云门道科技有限公司
+[P] style=2 IMG=
+    目录
+[P-EMPTY] style=TOC2 IMG=
+[P] style=TOC2 IMG=
+    一、公租房存在的问题3
+[P] style=TOC2 IMG=
+    1． 转租、出借违规现象较多3
+[P] style=TOC2 IMG=
+    2． 管理成本高、管理困难3
+[P] style=TOC2 IMG=
+    3． 治安上存在安全隐患、管理失控3
+[P] style=TOC2 IMG=
+    二、 系统功能介绍4
+[P] style=TOC2 IMG=
+    三、产品性能规格12
+[P] style=TOC2 IMG=
+    1、实名认证技术12
+[P] style=TOC2 IMG=
+    2、超金融级安全加密12
+[P] style=TOC2 IMG=
+    3、多技术的组合应用13
+[P] style=TOC2 IMG=
+    4、规格参数13
+[P] style=TOC2 IMG=
+    5、 公安部检测认证14
+[P] style=TOC2 IMG=
+    四、系统报价16
+[P] style=TOC2 IMG=
+    五、补充说明事项16
+[P-EMPTY] style= IMG=
+[P] style=2 IMG=
+    一、公租房存在的问题
+[P] style= [LIST] IMG=
+    转租、出借违规现象较多
+[P] style= IMG=
+    公租房是政府投资面向符合规定条件的城镇中等偏下收入住房困难家庭、新进就业无房职工和在城镇稳定就业的外来务工人员出租的保障性住房。公租房管理相关政策明确规定，公租房承租人不得将承租的公租房转租、转借。承租人通过微信、张贴小广告、房屋租赁中介公司扥渠道传播公租房转租、转借的违法行为屡禁不止，无法通过有效手段杜绝。
+[P] style= [LIST] IMG=
+    管理成本高、管理困难
+[P] style= IMG=
+    管理部门对申请人资格重新审核签约，合约租金到期，物业需进行催缴催收，到期租客霸房等情况需要投入大量的人力工作，基层又存在管理人员不足情况，工作效率必然降低，管理上缺乏系统化管理。如出现更换承租人而原先承租人又未上交私配钥匙，居住环境安全性存在重大隐患，更换门锁必然又增加管理部门的成本。
+[P] style= [LIST] IMG=
+    治安上存在安全隐患、管理失控
+[P] style= IMG=
+    目前公租房入户门是通过机械钥匙开门的方式进行管理，用户私配钥匙，实际居住人员信息数据无法有效实时登记上报管理部门，混租混住的现场严重，导致房屋失控现象严重。
+[P] style= IMG=
+    物业管理部门人员有限，基层派出所警力不足，部分承租人法律意识薄弱主动登记申报意识差，信息漏登记严重。通过定期上门核查登记需要花费大量的人力和时间且居住人员信息存在失真的情况，在治安管理上存在重大隐患，容易引发治安恶性时间。               
+[P] style=2 [LIST] IMG=
+    系统功能介绍
+[P] style= IMG=
+    整个系统由实名安全智能锁、手机APP（小程序）和系统平台组成。
+[P] style=3 IMG=
+    1、实名认证的安全智能锁
+[P] style= IMG=
+    现实生活中自己的身份证和手机一般是不会外借的，云门道实名安全智能锁抛弃了常规的密码、指纹及门禁卡等方式，采用二代身份证刷卡开门、实名认证手机APP开门等与其实际身份相关联的开门方式，来保证开门人身份的真实性和开门记录的可溯源性，通过后台授权数据和开门记录数据的分析，很容易发现转租、转借等现象，彻底解决了出租房管理中的难点和痛点，达到了“以锁管人”的效果。
+[P] style= IMG=
+    结合手机APP或小程序以及管理后台， 实现一整套自助、高效、实名的管理系统，通过后台数据自动分析预警，提升实时监管能力。
+[P-EMPTY] style= IMG=
+[P] style= IMG=['VML:media/image3.png', 'VML:media/image4.png']
+    
+[P] style=3 IMG=
+    2、简单的全自助管理流程
+[P] style= IMG=['VML:media/image5.emf']
+    
+[P] style= IMG=
+    （1）锁体安装的时候，房号和和锁体编号对应绑定；
+[P] style= IMG=
+    （2）租户都需要在手机APP上，通过身份证和人脸比对，实现实名认证注册，完成手机唯一化绑定；
+[P] style= IMG=
+    （3）管理单位和租户在完成租房签约时就可以在平台完成门锁授权，线下用户自助入住；
+[P] style= IMG=
+    （4）租户可以通过自己的APP来授权自己同住人的开门权限，同住人在接收授权前也必须完成实名注册认证；
+[P] style= IMG=
+    （5）租户也可以通过自己的APP或自助服务机来绑定自己的身份证，或者授权他人的身份证进行开门，授权身份证时会通过会通过远程解码技术读取身份证相信信息和采集被授权人照片进行认证比对，杜绝虚假身份证和人证不符现象；
+[P] style= IMG=
+    （6）对于没有手机也没有身份证的孩子或老人，租户可以通过向管理单位实名申领专用的手环，或者钥匙卡进行开门；
+[P] style= IMG=
+    （7）租户可以通过自己的手机，或者身份证，或者授权过的手环或钥匙卡进行开门，每次开门都是实名的，并且开门记录是可溯源的；
+[P] style= IMG=
+    （8）租户房租到期没有续付租金的，开门权限会自动到期收回，管理单位就不再需要催收租金了；
+[P] style= IMG=
+    （9）整个签约、授权、开门、退租等记录全部自动上传到了管理后台，实现了由系统自动进行居住人信息的登记，保障了系统信息准确、鲜活，大大提高了公租房屋管理水平。
+[P] style= IMG=
+    让云门道实名安全智能锁承担起租户、物业和管理部门之间的沟通桥梁作用
+[P] style=3 IMG=['VML:media/image6.png']
+    3、实名认证的安全开门方式和记录溯源
+[P] style= IMG=
+    （1）每次开门是非常方便的
+[P] style= IMG=
+    （2）每次开门是实名安全的
+[P] style= IMG=
+    （3）每次出入系统都在记录
+[P] style=3 IMG=
+    4、为租客打造移动物联网的应用体验
+[P] style= IMG=
+    （1）不需要带钥匙
+[P] style= IMG=
+    （2）自己的手机和身份证都可以开门
+[P] style=3 IMG=
+    5、为管理者提高管理效率
+[P] style= IMG=
+    （1）不用催房租了（租金到期租客无法开门）
+[P] style= IMG=
+    （2）合同签订、支付、退租都可以APP和后台完成
+[P] style= IMG=
+    （3）远程便捷管理，实现人来登记、人走注销
+[P] style=3 IMG=
+    6、多种产品形态服务于门道的安全管控
+[P] style= IMG=['VML:media/image7.png']
+    
+[P] style=3 IMG=
+    7、灵活的组网方式
+[P] style= IMG=
+    （1）免网关组网方式；利用手机作为媒介，完成锁体和平台之间的数据同步，适合开门位置有运营商网络信号的场合
+[P] style= IMG=
+    （2）利用锁体可选的内置LoRa模块，完成局部区域的组网通信，适合集中式的公租房管理
+[P] style= IMG=
+    （3）利用锁体可选的内置NB-IoT模块，完成离散区域的组网通信，适合离散的公租房组网管理
+[P] style= IMG=
+    （4）利用锁体可选的内置WiFi模块，连接无线路由器组网，适合房屋内有wifi宽带的场景。
+[P] style=3 IMG=
+    8、扩展应用
+[P] style= IMG=
+    系统支持智能水、电、煤气等表接入，能够实现自助充值，管理更加简便；
+[P] style= IMG=
+    支持红外检测、烟感、sos报警按钮等接入，能够实现安全检测和报警。
+[P] style=3 [LIST] IMG=
+    功能完善的管理平台
+[P] style= IMG=
+    系统平台采用云平台SAAS模式，并具备阿里云、华为云异地容灾实时容错备份功能，确保高可用性，实现了对房子信息、人员信息、开门信息、设备信息的全动态实时管理和展现，提供管理部门所需要的管理功能和相关数据，为后续的更高层次的管理和应用提供基础。 
+[P-EMPTY] style= IMG=
+[P] style= IMG=
+    （1）系统登录
+[P] style= IMG=['VML:media/image8.png']
+    
+[P] style= IMG=
+    （2）系统首页
+[P] style= IMG=['VML:media/image9.png']
+    
+[P] style= IMG=
+    （3）房屋管理
+[P] style= IMG=['VML:media/image10.png']
+    
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P] style= [LIST] IMG=
+    出租管理
+[P] style= IMG=['VML:media/image11.png']
+    
+[P] style= IMG=
+    （5）房卡管理
+[P] style= IMG=['VML:media/image12.png']
+    
+[P] style= IMG=
+    （6）租客管理
+[P] style= IMG=['VML:media/image13.png']
+    
+[P] style= IMG=
+    （7）开门记录
+[P] style= IMG=['VML:media/image14.png']
+    
+[P] style= IMG=
+    （8）数据大屏
+[P] style= IMG=['VML:media/image15.png']
+    
+[P-EMPTY] style= IMG=
+[P] style=2 IMG=
+    三、产品性能规格
+[P] style=3 IMG=
+    1、实名认证技术
+[P-EMPTY] style= IMG=
+[P] style= IMG=['VML:media/image16.png']
+    
+[P] style=3 IMG=
+    2、超金融级安全加密
+[P] style= IMG=['VML:media/image17.png']
+    
+[P] style=3 IMG=
+    3、多技术的组合应用
+[P] style= IMG=['VML:media/image18.png']
+    
+[P] style=3 IMG=
+    4、规格参数
+[P] style= IMG=['VML:media/image19.png']
+    
+[P] style=3 [LIST] IMG=
+    公安部检测认证
+[P] style= IMG=['VML:media/image20.png']
+    
+[P] style= IMG=['VML:media/image21.png']
+    
+[P] style=2 IMG=
+    四、系统报价
+[TABLE START]
+  ROW0: 序号 | 项目名称 | 单位 | 数量 | 单价（元） | 总价（元） | 备注
+  ROW1: 1 | 实名安全智能锁 SL200-T5 | 把 | 2156 |  |  |   
+  ROW2: 2 | 自助服务机（带发卡功能，可选） | 台 | 1 |  |  | 可选，可以用带NFC手机来完成
+  ROW3: 3 | 钥匙卡（可选） | 张 |  |  |  | 可选，老人、孩子等群体使用，按需配置
+  ROW4: 4 | 手环（可选） | 个 |  |  |  | 
+  ROW5:  |  | 
+  ROW6: 1 | SaaS平台管理系统软件 | 套 | 1 |  |  | 
+  ROW7: 2 | APP及后台 | 套 | 1 |  |  | 
+  ROW8: 合计: |  | 
+[TABLE END]
+[P-EMPTY] style=2 IMG=
+[P] style=2 IMG=
+    五、补充说明事项
+[P] style= IMG=
+    关于本智能门锁的其他细节问题补充说明如下： 
+[P] style=3 [LIST] IMG=
+    关于随时配合执法人员入室检查的问题
+[P] style= IMG=
+    物业管理房可授权生成一次性访客码配合执法人员进入房间的权利，或直接启用备用钥匙。
+[P] style=3 [LIST] IMG=
+    承租人使用中出现门锁坏了需要维修员上门维修的时效
+[P] style=3 IMG=
+    如出现智能门锁打开不了大门，我们会有引导说明操作流程，如还是有问题，物业可先行启用备用钥匙帮助承租人解决开门问题，同时联系售后服务，一般维修员会在0.5-1小时之内上门维修，视情况而定，质保期内免费更换配件或新锁，人为破坏另算，上门人工费50-100/次.
+[P] style= [LIST] IMG=
+    我们提供的安全智能门锁SL200系列是通过公安部最新标准GA374-2019的检测认证，产品质量、安全、性能都是经过检验有保障。产品包含锁芯+锁体一整套产品，我们公司是专业研发生产销售售后一体化，性价比在同类门锁中优势很明显。
+[P] style= [LIST] IMG=
+    质保期内公司免费提供云平台运营服务，质保期后平台运营费的问题
+[P] style= IMG=
+    云平台服务在质保期后可按合同约定的运营费用控制在24元/把.年的平台运行维护费收取。物业公司如自己想做运维管理和平台，会出现管理成本过高，租服务器及定期各方面升级等花费大，运营稳定性不如专业人士管理效果好，所以建议运维的工作还是交给专业的人士做更适合。
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=
+[P-EMPTY] style= IMG=

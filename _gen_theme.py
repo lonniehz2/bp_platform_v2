@@ -1,0 +1,210 @@
+# -*- coding: utf-8 -*-
+"""参照 Ant Design 后台规范重做视觉：设计 token + 全局样式"""
+import io
+import os
+
+FE = r'D:\Work\业务平台开发\frontend\src'
+
+CSS = '''/**
+ * 设计规范（参照 Ant Design 后台）
+ *
+ * 参考系统 saas.yumeng.work 使用 Vue2 + Ant Design Vue，
+ * 视觉特征：主色 #1890ff、2px 小圆角、8px 网格、浅色侧边栏、
+ * 内容区灰底 #f0f2f5、卡片白底 + 1px 描边（几乎无阴影）、表格更紧凑。
+ *
+ * 本文件通过覆盖 Element Plus 的 CSS 变量实现同一套视觉语言，
+ * 不改组件用法，因此对既有 40+ 页面**全局生效**。
+ */
+
+:root {
+  /* ---- 主色（Ant Design 蓝）---- */
+  --el-color-primary: #1890ff;
+  --el-color-primary-light-3: #40a9ff;
+  --el-color-primary-light-5: #69c0ff;
+  --el-color-primary-light-7: #91d5ff;
+  --el-color-primary-light-8: #bae7ff;
+  --el-color-primary-light-9: #e6f7ff;
+  --el-color-primary-dark-2: #096dd9;
+
+  /* ---- 语义色 ---- */
+  --el-color-success: #52c41a;
+  --el-color-warning: #faad14;
+  --el-color-danger: #ff4d4f;
+  --el-color-error: #ff4d4f;
+  --el-color-info: #8c8c8c;
+
+  /* ---- 文本与描边 ---- */
+  --el-text-color-primary: rgba(0, 0, 0, 0.85);
+  --el-text-color-regular: rgba(0, 0, 0, 0.65);
+  --el-text-color-secondary: rgba(0, 0, 0, 0.45);
+  --el-border-color: #d9d9d9;
+  --el-border-color-light: #e8e8e8;
+  --el-border-color-lighter: #f0f0f0;
+
+  /* ---- 圆角（AntD 默认 2px，比 Element 的 4px 更利落）---- */
+  --el-border-radius-base: 2px;
+  --el-border-radius-small: 2px;
+
+  /* ---- 布局 ---- */
+  --bp-page-bg: #f0f2f5;
+  --bp-sider-bg: #ffffff;
+  --bp-sider-active-bg: #e6f7ff;
+  --bp-header-h: 56px;
+  --bp-gap: 16px;
+}
+
+/* ================= 页面骨架 ================= */
+.bp-page {
+  padding: var(--bp-gap);
+  background: var(--bp-page-bg);
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+/* 页头：标题 + 描述 + 右侧操作区 */
+.bp-page-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.bp-page-head h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+  line-height: 28px;
+}
+.bp-page-head .desc {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+}
+.bp-page-head .actions { margin-left: auto; display: flex; gap: 8px; }
+
+/* 卡片：白底 + 1px 描边，弱阴影（贴近 AntD Card） */
+.bp-card {
+  background: #fff;
+  border-radius: 2px;
+  border: 1px solid var(--el-border-color-light);
+  padding: 16px;
+  margin-bottom: var(--bp-gap);
+}
+.bp-card > .head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -4px 0 12px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.bp-card > .head .actions { margin-left: auto; display: flex; gap: 8px; }
+
+/* 搜索区：一行内联表单，标签在左、控件紧凑 */
+.bp-search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: center;
+}
+.bp-search .item { display: flex; align-items: center; gap: 6px; }
+.bp-search .item > label {
+  font-size: 13px;
+  color: var(--el-text-color-regular);
+  white-space: nowrap;
+}
+
+/* 统计卡：数值大、标签小，四列自适应 */
+.bp-stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-bottom: var(--bp-gap);
+}
+.bp-stat {
+  background: #fff;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 2px;
+  padding: 14px 16px;
+}
+.bp-stat .label {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+}
+.bp-stat .value {
+  margin-top: 6px;
+  font-size: 26px;
+  line-height: 32px;
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+  font-variant-numeric: tabular-nums;
+}
+.bp-stat .unit {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  margin-left: 4px;
+}
+.bp-stat.ok .value { color: #52c41a; }
+.bp-stat.warn .value { color: #faad14; }
+.bp-stat.danger .value { color: #ff4d4f; }
+
+/* ================= 兼容既有页面 ================= */
+/* 老页面用的是 .page-card，统一成新卡片风格 */
+.page-card {
+  background: #fff;
+  border-radius: 2px;
+  border: 1px solid var(--el-border-color-light);
+  padding: 16px;
+  margin-bottom: var(--bp-gap);
+}
+
+/* 工具条：与卡头对齐，间距收紧 */
+.toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.toolbar h3 { font-size: 15px; font-weight: 500; margin: 0; }
+.toolbar .spacer { flex: 1; }
+
+.muted { color: var(--el-text-color-secondary); font-size: 12px; }
+
+/* ================= 表格：更紧凑（AntD small）================= */
+.el-table {
+  font-size: 13px;
+}
+.el-table th.el-table__cell {
+  background: #fafafa !important;
+  color: var(--el-text-color-primary);
+  font-weight: 500;
+  padding: 8px 0;
+}
+.el-table td.el-table__cell { padding: 8px 0; }
+.el-table--border { border-color: var(--el-border-color-light); }
+
+/* 分页：右对齐，贴近 AntD */
+.el-pagination { justify-content: flex-end; margin-top: 12px !important; }
+
+/* 按钮：主色按钮无圆角过大问题，保持 2px */
+.el-button { border-radius: 2px; }
+
+/* 表单标签字色与其他输入保持一致 */
+.el-form-item__label { color: var(--el-text-color-regular); }
+
+/* 标签圆角收紧 */
+.el-tag { border-radius: 2px; }
+'''
+
+io.open(os.path.join(FE, 'styles', 'theme.css'), 'w', encoding='utf-8').write(CSS)
+print('  ✓ styles/theme.css（Ant Design 设计 token + 骨架样式）')
+
+# main.js 引入（放在 element-plus 之后，保证覆盖生效）
+M = os.path.join(FE, 'main.js')
+s = io.open(M, encoding='utf-8').read()
+if 'theme.css' not in s:
+    s = s.replace("import './styles/index.css'",
+                  "import './styles/index.css'\nimport './styles/theme.css'", 1)
+    io.open(M, 'w', encoding='utf-8').write(s)
+    print('  ✓ main.js 引入 theme.css')

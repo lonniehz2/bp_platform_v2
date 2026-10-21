@@ -1,0 +1,33 @@
+# ---------- 依赖 ----------
+node_modules/
+frontend/node_modules/
+_验证/node_modules/
+
+# ---------- 构建产物 ----------
+backend/target/
+frontend/dist/
+backend/src/main/resources/static/assets/
+backend/src/main/resources/static/*.html
+
+# ---------- 安装包 / 工具 ----------
+*.jar
+*.zip
+*.7z
+*.exe
+tools/
+
+# ---------- 运行与测试产物 ----------
+_验证/ui-shots/
+_验证/*.json
+_验证/*.log
+_验证/*.png
+*.log
+~$*
+
+# ---------- 系统 ----------
+Thumbs.db
+desktop.ini
+.DS_Store
+.idea/
+.vscode/
+*.iml

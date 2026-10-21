@@ -1,0 +1,72 @@
+* { box-sizing: border-box; }
+html, body, #screen { height: 100%; margin: 0; }
+body {
+  background: #050d1a;
+  color: #d6e4ff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', sans-serif;
+  overflow: hidden;
+}
+.screen-wrap {
+  width: 100vw; height: 100vh;
+  display: flex; flex-direction: column;
+  padding: 12px;
+  gap: 10px;
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgba(31,111,235,.28), transparent 70%),
+    #050d1a;
+}
+.screen-head {
+  height: 56px; display: flex; align-items: center; gap: 14px;
+  border-bottom: 1px solid rgba(64,158,255,.25);
+}
+.screen-head h1 {
+  margin: 0; font-size: 22px; letter-spacing: 3px;
+  background: linear-gradient(90deg, #6db3ff, #a8e0ff);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.screen-head .spacer { flex: 1; }
+.screen-head .clock { font-size: 13px; color: #7aa2d6; font-variant-numeric: tabular-nums; }
+.screen-body {
+  flex: 1;
+  display: grid;
+  /* 关键：显式两行，第二行 1fr 才能把剩余高度给图表区；
+     否则 .charts 的 flex:1 在 grid 中无效，高度塌陷为 0，ECharts 画不出来 */
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 10px;
+  min-height: 0;
+}
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.kpi {
+  position: relative;
+  background: linear-gradient(180deg, rgba(31,111,235,.18), rgba(31,111,235,.05));
+  border: 1px solid rgba(64,158,255,.28);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.kpi .label { font-size: 13px; color: #8fb8e8; }
+.kpi .value { font-size: 30px; font-weight: 700; margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 18px rgba(109,179,255,.45); }
+.kpi .unit { font-size: 13px; color: #8fb8e8; margin-left: 4px; }
+.kpi.warn .value { color: #ffc53d; }
+.kpi.danger .value { color: #ff7875; }
+.kpi.ok .value { color: #73d13d; }
+.charts {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 10px;
+  min-height: 0;
+  height: 100%;
+}
+.panel {
+  background: rgba(13,28,52,.72);
+  border: 1px solid rgba(64,158,255,.22);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex; flex-direction: column; min-height: 0;
+}
+.panel .title { font-size: 14px; color: #9fc6f5; margin-bottom: 6px; }
+.chart { flex: 1; min-height: 220px; width: 100%; }
+.screen-foot { height: 26px; display: flex; align-items: center; gap: 14px;
+  font-size: 12px; color: #5c86b8; border-top: 1px solid rgba(64,158,255,.15); }

@@ -1,0 +1,322 @@
+package com.yundao.bp.biz.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.yundao.bp.asset.service.OccupancyService;
+import com.yundao.bp.biz.constant.ContractStatus;
+import com.yundao.bp.biz.dto.ContractCreateCmd;
+import com.yundao.bp.biz.dto.ContractVO;
+import com.yundao.bp.biz.entity.BizContract;
+import com.yundao.bp.biz.mapper.BizContractMapper;
+import com.yundao.bp.biz.service.ContractService;
+import com.yundao.bp.common.api.PageResult;
+import com.yundao.bp.common.exception.BizException;
+import com.yundao.bp.common.id.SnowflakeIdGenerator;
+import com.yundao.bp.common.tenant.TenantContext;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * 合同服务实现。
+ *
+ * <p><b>三个自动计算</b>（不接受前端传值）：
+ * <ol>
+ *   <li>{@code leaseMonths = leaseStart ~ leaseEnd 的整月数}（向上取整）</li>
+ *   <li>{@code actualPay = monthlyRent - subsidyAmount}（不得为负）</li>
+ *   <li>{@code 押金/补贴} 为空时按 0 处理</li>
+ * </ul>
+ *
+ * <p><b>自动授权开关</b>：合同生效时 {@code auto_grant=1} 应触发授权下发
+ * （当前仅落库标记，实际调用在 grant 模块，需与合同事务解耦，见 TODO）。
+ */
+@Service
+public class ContractServiceImpl implements ContractService {
+
+    private static final Logger log = LoggerFactory.getLogger(ContractServiceImpl.class);
+
+    private final BizContractMapper mapper;
+    private final SnowflakeIdGenerator idGen;
+    /** 合同状态变化驱动房源占用；与合同变更同事务 */
+    private final OccupancyService occupancyService;
+
+    public ContractServiceImpl(BizContractMapper mapper, SnowflakeIdGenerator idGen,
+                               OccupancyService occupancyService) {
+        this.mapper = mapper;
+        this.idGen = idGen;
+        this.occupancyService = occupancyService;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ContractVO create(ContractCreateCmd cmd) {
+        String tenantId = TenantContext.tenantId();
+
+        if (!cmd.leaseEnd().isAfter(cmd.leaseStart())) {
+            throw BizException.paramInvalid("止租日必须晚于起租日");
+        }
+        BigDecimal deposit = nz(cmd.depositAmount());
+        BigDecimal subsidy = nz(cmd.subsidyAmount());
+        BigDecimal actualPay = money(cmd.monthlyRent()).subtract(subsidy)
+                .setScale(2, java.math.RoundingMode.HALF_UP);
+        if (actualPay.compareTo(BigDecimal.ZERO) < 0) {
+            throw BizException.paramInvalid("补贴不能超过月租金（实付为负）");
+        }
+        int months = monthCount(cmd.leaseStart(), cmd.leaseEnd());
+
+        long id = idGen.nextId();
+        LocalDateTime now = LocalDateTime.now();
+        BizContract e = new BizContract();
+        e.setId(id);
+        e.setTenantId(tenantId);
+        e.setContractNo("BC" + id);
+        e.setContractType(cmd.contractType());
+        e.setTemplateId(cmd.templateId());
+        e.setAllocationId(cmd.allocationId());
+        e.setOrgId(cmd.orgId());
+        e.setLesseePersonId(cmd.lesseePersonId());
+        e.setLesseeName(cmd.lesseeName());
+        e.setLesseePhone(cmd.lesseePhone());
+        e.setLesseeIdCardMask(cmd.lesseeIdCardMask());
+        e.setLessorOrgId(cmd.lessorOrgId());
+        e.setHouseId(cmd.houseId());
+        e.setSpaceId(cmd.spaceId());
+        e.setHouseAddress(cmd.houseAddress());
+        e.setHouseArea(cmd.houseArea());
+        e.setLeaseStart(cmd.leaseStart());
+        e.setLeaseEnd(cmd.leaseEnd());
+        e.setLeaseMonths(months);
+        e.setRentPrice(cmd.rentPrice() == null ? null : money(cmd.rentPrice()));
+        e.setRentUnit(blankToNull(cmd.rentUnit()) == null ? "HOUSE_MONTH" : cmd.rentUnit());
+        e.setMonthlyRent(money(cmd.monthlyRent()));
+        e.setDepositAmount(deposit);
+        e.setSubsidyAmount(subsidy);
+        e.setActualPay(actualPay);
+        e.setPayCycle(blankToNull(cmd.payCycle()) == null ? "MONTH" : cmd.payCycle());
+        e.setPayDay(cmd.payDay() == null ? 1 : cmd.payDay());
+        e.setLateFeeRate(cmd.lateFeeRate());
+        e.setSignType(blankToNull(cmd.signType()) == null ? "ELECTRONIC" : cmd.signType());
+        e.setContractStatus(ContractStatus.DRAFT.name());
+        e.setParentContractId(cmd.parentContractId());
+        e.setAutoGrant(1);
+        e.setAutoExpire(1);
+        e.setArrearsStop(1);
+        e.setRemark(cmd.remark());
+        e.setIsDeleted(0);
+        e.setCreateTime(now);
+        mapper.insert(e);
+        return ContractVO.from(e);
+    }
+
+    @Override
+    public ContractVO get(Long id) {
+        return ContractVO.from(require(id));
+    }
+
+    @Override
+    public PageResult<ContractVO> page(long pageNum, long pageSize, String contractType,
+                                       String status, Long houseId, Long lesseePersonId,
+                                       String keyword) {
+        LambdaQueryWrapper<BizContract> qw = new LambdaQueryWrapper<BizContract>()
+                .eq(contractType != null && !contractType.isBlank(),
+                        BizContract::getContractType, contractType)
+                .eq(status != null && !status.isBlank(), BizContract::getContractStatus, status)
+                .eq(houseId != null, BizContract::getHouseId, houseId)
+                .eq(lesseePersonId != null, BizContract::getLesseePersonId, lesseePersonId)
+                .orderByDesc(BizContract::getId);
+        if (keyword != null && !keyword.isBlank()) {
+            qw.and(w -> w.like(BizContract::getContractNo, keyword)
+                    .or().like(BizContract::getLesseeName, keyword));
+        }
+        IPage<BizContract> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
+        List<ContractVO> rows = page.getRecords().stream().map(ContractVO::from).toList();
+        return PageResult.of(page.getTotal(), pageNum, pageSize, rows);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ContractVO submitSign(Long id) {
+        BizContract e = require(id);
+        transition(e, ContractStatus.PENDING_SIGN);
+        mapper.updateById(e);
+        return ContractVO.from(e);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ContractVO startSigning(Long id, String signVendor) {
+        BizContract e = require(id);
+        transition(e, ContractStatus.SIGNING);
+        if (signVendor != null && !signVendor.isBlank()) {
+            e.setSignVendor(signVendor);
+        }
+        mapper.updateById(e);
+        return ContractVO.from(e);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ContractVO sign(Long id, String signFileUrl, String signFlowId) {
+        BizContract e = require(id);
+        // 纸质合同可直接从 PENDING_SIGN 生效
+        if (ContractStatus.PENDING_SIGN.name().equals(e.getContractStatus())
+                && "PAPER".equals(e.getSignType())) {
+            transition(e, ContractStatus.SIGNING);
+        }
+        transition(e, ContractStatus.EFFECTIVE);
+        e.setSignTime(LocalDateTime.now());
+        e.setEffectiveTime(LocalDateTime.now());
+        e.setSignFileUrl(signFileUrl);
+        e.setSignFlowId(signFlowId);
+        mapper.updateById(e);
+        // 合同生效即占房：写入占用流水并把房源推进到「已入住」
+        occupancyService.occupyByContract(e.getId(), e.getHouseId(), e.getSpaceId(),
+                e.getLesseePersonId(), e.getLeaseStart(), e.getLeaseEnd());
+        log.info("合同 {} 已生效，autoGrant={}（授权下发需与合同事务解耦，待接入）",
+                e.getContractNo(), e.getAutoGrant());
+        return ContractVO.from(e);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ContractVO renew(Long id, LocalDate newLeaseEnd, BigDecimal newMonthlyRent) {
+        BizContract e = require(id);
+        if (newLeaseEnd == null || e.getLeaseEnd() == null
+                || !newLeaseEnd.isAfter(e.getLeaseEnd())) {
+            throw BizException.paramInvalid("新止租日必须晚于原止租日");
+        }
+        transition(e, ContractStatus.RENEWING);
+        e.setLeaseStart(e.getLeaseEnd());
+        e.setLeaseEnd(newLeaseEnd);
+        if (newMonthlyRent != null) {
+            e.setMonthlyRent(money(newMonthlyRent));
+            e.setActualPay(money(newMonthlyRent).subtract(nz(e.getSubsidyAmount()))
+                    .setScale(2, java.math.RoundingMode.HALF_UP));
+            if (e.getActualPay().compareTo(BigDecimal.ZERO) < 0) {
+                throw BizException.paramInvalid("补贴不能超过月租金（实付为负）");
+            }
+        }
+        e.setLeaseMonths(monthCount(e.getLeaseStart(), newLeaseEnd));
+        mapper.updateById(e);
+        // 续签：同步延长占用结束日，避免合同还在履约而占用已过期
+        occupancyService.extendByContract(e.getId(), newLeaseEnd);
+        return ContractVO.from(e);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ContractVO terminate(Long id, String reason) {
+        BizContract e = require(id);
+        transition(e, ContractStatus.TERMINATED);
+        e.setTerminateTime(LocalDateTime.now());
+        e.setTerminateReason(reason);
+        mapper.updateById(e);
+        // 终止即退房：释放占用，房源回到空置
+        occupancyService.releaseByContract(e.getId(), e.getTerminateTime().toLocalDate());
+        log.info("合同 {} 已终止，autoExpire={}（撤权需与合同事务解耦，待接入）",
+                e.getContractNo(), e.getAutoExpire());
+        return ContractVO.from(e);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ContractVO cancel(Long id, String reason) {
+        BizContract e = require(id);
+        transition(e, ContractStatus.CANCELLED);
+        e.setTerminateReason(reason);
+        mapper.updateById(e);
+        // 幂等兜底：已生效再作废时也要退房
+        occupancyService.releaseByContract(e.getId(), LocalDate.now());
+        return ContractVO.from(e);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int expireDue() {
+        List<BizContract> due = mapper.selectList(new LambdaQueryWrapper<BizContract>()
+                .in(BizContract::getContractStatus,
+                        List.of(ContractStatus.EFFECTIVE.name(), ContractStatus.RENEWING.name()))
+                .lt(BizContract::getLeaseEnd, LocalDate.now()));
+        int n = 0;
+        for (BizContract e : due) {
+            e.setContractStatus(ContractStatus.EXPIRED.name());
+            e.setTerminateTime(LocalDateTime.now());
+            mapper.updateById(e);
+            // 到期即退房
+            occupancyService.releaseByContract(e.getId(), e.getLeaseEnd());
+            n++;
+        }
+        if (n > 0) {
+            log.info("合同到期扫描：{} 份合同置为 EXPIRED", n);
+        }
+        return n;
+    }
+
+    /**
+     * 租期月数：按自然月计算，不足一个月按一个月。
+     *
+     * <p>⚠️ 不能用 {@code 天数 / 30} 向上取整：1 年 = 365 天 → 365/30 = 12.17 → 会算成 13 个月。
+     * 正确做法是 {@link ChronoUnit#MONTHS} 取整月，再判断末尾是否有零头天数。
+     *
+     * <pre>
+     *   2026-01-01 ~ 2027-01-01 → 12 个月（整年无零头）
+     *   2026-01-01 ~ 2027-01-02 → 13 个月（12 个月 + 1 天零头）
+     * </pre>
+     */
+    private static int monthCount(LocalDate start, LocalDate end) {
+        if (start == null || end == null || !end.isAfter(start)) {
+            return 1;
+        }
+        long full = ChronoUnit.MONTHS.between(start, end);
+        long restDays = ChronoUnit.DAYS.between(start.plusMonths(full), end);
+        int months = (int) full + (restDays > 0 ? 1 : 0);
+        return Math.max(1, months);
+    }
+
+    private BizContract require(Long id) {
+        BizContract e = mapper.selectById(id);
+        if (e == null) {
+            throw BizException.notFound("合同");
+        }
+        return e;
+    }
+
+    private static void transition(BizContract e, ContractStatus target) {
+        ContractStatus from;
+        try {
+            from = ContractStatus.valueOf(e.getContractStatus());
+        } catch (IllegalArgumentException ex) {
+            throw BizException.stateConflict("合同状态非法: " + e.getContractStatus());
+        }
+        if (from == target) {
+            throw BizException.stateConflict("已处于 " + target.label() + " 状态");
+        }
+        if (!ContractStatus.nextOf(from).contains(target)) {
+            throw BizException.stateConflict(
+                    "状态不允许从 " + from.label() + " 变更为 " + target.label());
+        }
+        e.setContractStatus(target.name());
+        e.setUpdateTime(LocalDateTime.now());
+    }
+
+    /** 空值归零，并统一金额为 2 位小数（含税金额规范）。 */
+    /** 金额统一 2 位小数。 */
+    private static BigDecimal money(BigDecimal v) {
+        return (v == null ? BigDecimal.ZERO : v).setScale(2, java.math.RoundingMode.HALF_UP);
+    }
+
+    private static BigDecimal nz(BigDecimal v) {
+        return (v == null ? BigDecimal.ZERO : v).setScale(2, java.math.RoundingMode.HALF_UP);
+    }
+
+    private static String blankToNull(String s) {
+        return (s == null || s.isBlank()) ? null : s;
+    }
+}

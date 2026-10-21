@@ -1,0 +1,262 @@
+[
+ {
+  "group": "人员中心",
+  "name": "业主审核",
+  "route": "/admin/assets/check"
+ },
+ {
+  "group": "资产中心",
+  "name": "酒店房源管理",
+  "route": "/admin/hotel/house/view"
+ },
+ {
+  "group": "资产中心",
+  "name": "学校房屋管理",
+  "route": "/admin/assets/house/schoolList"
+ },
+ {
+  "group": "资产中心",
+  "name": "资产列表",
+  "route": "/admin/property/view"
+ },
+ {
+  "group": "设备中心",
+  "name": "采集器管理",
+  "route": "/admin/collector/collector"
+ },
+ {
+  "group": "设备中心",
+  "name": "设备列表",
+  "route": "/admin/school/device/deviceInfo"
+ },
+ {
+  "group": "设备中心",
+  "name": "门锁列表",
+  "route": "/admin/device/lock/view"
+ },
+ {
+  "group": "设备中心",
+  "name": "换锁日志查询",
+  "route": "/admin/device/lock/changeLockLog"
+ },
+ {
+  "group": "告警信息",
+  "name": "报警管理",
+  "route": "/admin/alarm/alarmInfo/manager"
+ },
+ {
+  "group": "卡片信息",
+  "name": "钥匙卡信息",
+  "route": "/admin/device/card/view"
+ },
+ {
+  "group": "开门信息",
+  "name": "人脸开门记录",
+  "route": "/admin/school/lock/faceRecord"
+ },
+ {
+  "group": "开门信息",
+  "name": "长期未开门记录",
+  "route": "/admin/property/lock/view1"
+ },
+ {
+  "group": "开门信息",
+  "name": "开门记录2",
+  "route": "/admin/record/lockOpenRecord"
+ },
+ {
+  "group": "开门信息",
+  "name": "健康码记录",
+  "route": "/admin/user/healthcode/view"
+ },
+ {
+  "group": "入住管理",
+  "name": "入住授权",
+  "route": "/admin/property/rentHouse/view"
+ },
+ {
+  "group": "房源信息",
+  "name": "房源管理",
+  "route": "/admin/property/house/viewXinjiang"
+ },
+ {
+  "group": "租赁管理",
+  "name": "出租信息",
+  "route": "/admin/property/rent/viewXinjiang"
+ },
+ {
+  "group": "租赁管理",
+  "name": "房屋出租",
+  "route": "/admin/property/rentHouse/viewXinjiang"
+ },
+ {
+  "group": "租赁管理",
+  "name": "房源信息",
+  "route": "/admin/property/house/view"
+ },
+ {
+  "group": "能源管理",
+  "name": "换表日志查询",
+  "route": "/admin/collector/changeMeterLog"
+ },
+ {
+  "group": "能源管理",
+  "name": "操作日志查询",
+  "route": "/admin/collector/log"
+ },
+ {
+  "group": "维保服务",
+  "name": "来自 E锁APP的报修",
+  "route": "/admin/lock/info"
+ },
+ {
+  "group": "维保服务",
+  "name": "来自 云门道小程序的报修",
+  "route": "/admin/repair/info"
+ },
+ {
+  "group": "智慧服务",
+  "name": "投诉建议",
+  "route": "/admin/suggest/info"
+ },
+ {
+  "group": "智慧服务",
+  "name": "业主投票",
+  "route": "/admin/vote/topic"
+ },
+ {
+  "group": "智慧服务",
+  "name": "紧急联系",
+  "route": "/admin/common/userHelp"
+ },
+ {
+  "group": "互动管理",
+  "name": "APP反馈管理",
+  "route": "/admin/feedback/info"
+ },
+ {
+  "group": "智慧安防（布控研判）",
+  "name": "布控管理",
+  "route": "/admin/monitor/view"
+ },
+ {
+  "group": "智慧安防（布控研判）",
+  "name": "研判管理",
+  "route": "/admin/analyse/view"
+ },
+ {
+  "group": "数据统计分析",
+  "name": "人员结构统计",
+  "route": "/admin/statistic/person/view"
+ },
+ {
+  "group": "数据统计分析",
+  "name": "门锁统计",
+  "route": "/admin/statistic/lock/view"
+ },
+ {
+  "group": "人脸识别轨迹跟踪",
+  "name": "常驻人员和访客轨迹",
+  "route": "/admin/capture/info"
+ },
+ {
+  "group": "人脸识别轨迹跟踪",
+  "name": "未授权人员轨迹",
+  "route": "/admin/unusual/info"
+ },
+ {
+  "group": "智慧巡更",
+  "name": "巡更路线规划",
+  "route": "/admin/patrol/line"
+ },
+ {
+  "group": "智慧巡更",
+  "name": "巡更计划制定",
+  "route": "/admin/patrol/plan"
+ },
+ {
+  "group": "智慧巡更",
+  "name": "巡更任务下达",
+  "route": "/admin/schedule/view?type=PATROL"
+ },
+ {
+  "group": "智慧巡更",
+  "name": "巡更任务检查",
+  "route": "/admin/patrol/task/view"
+ },
+ {
+  "group": "智慧保洁",
+  "name": "保洁卡点配置",
+  "route": "/admin/clean/point/view"
+ },
+ {
+  "group": "智慧保洁",
+  "name": "保洁线路规划",
+  "route": "/admin/clean/line/view"
+ },
+ {
+  "group": "智慧保洁",
+  "name": "保洁计划制定",
+  "route": "/admin/clean/plan/view"
+ },
+ {
+  "group": "智慧保洁",
+  "name": "保洁任务下达",
+  "route": "/admin/schedule/view?type=CLEAN"
+ },
+ {
+  "group": "智慧保洁",
+  "name": "保洁任务检查",
+  "route": "/admin/clean/task/view"
+ },
+ {
+  "group": "财务管理",
+  "name": "租赁订单",
+  "route": "/admin/record/rentOrder"
+ },
+ {
+  "group": "财务管理",
+  "name": "提现管理",
+  "route": "/admin/withdrawal/info/sh/info"
+ },
+ {
+  "group": "财务管理",
+  "name": "账户信息",
+  "route": "/admin/account/info/detail"
+ },
+ {
+  "group": "财务管理(平台)",
+  "name": "对账管理",
+  "route": "/admin/trade/dz/dz"
+ },
+ {
+  "group": "开发工具",
+  "name": "武汉项目升级维护",
+  "route": "/admin/devTools/whDevTool/index"
+ },
+ {
+  "group": "第三方数据导入",
+  "name": "宁巢房管局导入",
+  "route": "/admin/device/lock/import"
+ },
+ {
+  "group": "日志管理",
+  "name": "操作日志",
+  "route": "/admin/monitor/log"
+ },
+ {
+  "group": "系统管理",
+  "name": "岗位管理",
+  "route": "/admin/system/post"
+ },
+ {
+  "group": "系统管理",
+  "name": "会话管理",
+  "route": "/admin/system/session"
+ },
+ {
+  "group": "系统管理",
+  "name": "实名认证",
+  "route": "/admin/system/verifyXy"
+ }
+]

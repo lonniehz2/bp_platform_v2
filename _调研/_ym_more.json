@@ -1,0 +1,393 @@
+﻿{
+ "groupCount": 16,
+ "groups": [
+  {
+   "title": "会员个人客户企业客户客户标签黑名单",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-client.cf76f2f6.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">会员</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">个人客户</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">企业客户</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">客户标签</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">黑名单</li></ul>",
+   "leaves": [
+    {
+     "t": "会员",
+     "cls": ""
+    },
+    {
+     "t": "个人客户",
+     "cls": "subMenu"
+    },
+    {
+     "t": "企业客户",
+     "cls": "subMenu"
+    },
+    {
+     "t": "客户标签",
+     "cls": "subMenu"
+    },
+    {
+     "t": "黑名单",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "业绩房源业绩已结业绩业绩配置",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-achievement.66a37eb6.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">业绩</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">房源业绩</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">已结业绩</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">业绩配置</li></ul>",
+   "leaves": [
+    {
+     "t": "业绩",
+     "cls": ""
+    },
+    {
+     "t": "房源业绩",
+     "cls": "subMenu"
+    },
+    {
+     "t": "已结业绩",
+     "cls": "subMenu"
+    },
+    {
+     "t": "业绩配置",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "设备门锁电表水表门禁账号",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-smartDevices.90f9cfee.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">设备</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">门锁</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">电表</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">水表</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">门禁</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">账号</li></ul>",
+   "leaves": [
+    {
+     "t": "设备",
+     "cls": ""
+    },
+    {
+     "t": "门锁",
+     "cls": "subMenu"
+    },
+    {
+     "t": "电表",
+     "cls": "subMenu"
+    },
+    {
+     "t": "水表",
+     "cls": "subMenu"
+    },
+    {
+     "t": "门禁",
+     "cls": "subMenu"
+    },
+    {
+     "t": "账号",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "营销房源推广优惠券管理社区活动营销活动",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-extension.89b9fff2.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">营销</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">房源推广</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">优惠券管理</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">社区活动</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">营销活动</li></ul>",
+   "leaves": [
+    {
+     "t": "营销",
+     "cls": ""
+    },
+    {
+     "t": "房源推广",
+     "cls": "subMenu"
+    },
+    {
+     "t": "优惠券管理",
+     "cls": "subMenu"
+    },
+    {
+     "t": "社区活动",
+     "cls": "subMenu"
+    },
+    {
+     "t": "营销活动",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "报表运营统计房源统计合约统计财务统计业绩统计其他统计",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-report.d3442f82.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">报表</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">运营统计</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">房源统计</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">合约统计</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">财务统计</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">业绩统计</li><li cl",
+   "leaves": [
+    {
+     "t": "报表",
+     "cls": ""
+    },
+    {
+     "t": "运营统计",
+     "cls": "subMenu"
+    },
+    {
+     "t": "房源统计",
+     "cls": "subMenu"
+    },
+    {
+     "t": "合约统计",
+     "cls": "subMenu"
+    },
+    {
+     "t": "财务统计",
+     "cls": "subMenu"
+    },
+    {
+     "t": "业绩统计",
+     "cls": "subMenu"
+    },
+    {
+     "t": "其他统计",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "多经共享空间商城租赁空间",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-communityManagement.5e4b323f.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">多经</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">共享空间</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">商城</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">租赁空间</li></ul>",
+   "leaves": [
+    {
+     "t": "多经",
+     "cls": ""
+    },
+    {
+     "t": "共享空间",
+     "cls": "subMenu"
+    },
+    {
+     "t": "商城",
+     "cls": "subMenu"
+    },
+    {
+     "t": "租赁空间",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "审批待我审批我已审批我发起的抄送我的",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-workflow.9b8e5e22.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">审批</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">待我审批</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">我已审批</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">我发起的</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">抄送我的</li></ul>",
+   "leaves": [
+    {
+     "t": "审批",
+     "cls": ""
+    },
+    {
+     "t": "待我审批",
+     "cls": "subMenu"
+    },
+    {
+     "t": "我已审批",
+     "cls": "subMenu"
+    },
+    {
+     "t": "我发起的",
+     "cls": "subMenu"
+    },
+    {
+     "t": "抄送我的",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "车辆管理停车场车辆订单管理车位合同",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-car.f7c3773d.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">车辆管理</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">停车场</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">车辆</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">订单管理</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">车位合同</li></ul>",
+   "leaves": [
+    {
+     "t": "车辆管理",
+     "cls": ""
+    },
+    {
+     "t": "停车场",
+     "cls": "subMenu"
+    },
+    {
+     "t": "车辆",
+     "cls": "subMenu"
+    },
+    {
+     "t": "订单管理",
+     "cls": "subMenu"
+    },
+    {
+     "t": "车位合同",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "工单维修保洁配货其他工单投诉建议退转换续",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-workorder.2ac15ad3.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">工单</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">维修</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">保洁</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">配货</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">其他工单</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">投诉</li><li class=\"",
+   "leaves": [
+    {
+     "t": "工单",
+     "cls": ""
+    },
+    {
+     "t": "维修",
+     "cls": "subMenu"
+    },
+    {
+     "t": "保洁",
+     "cls": "subMenu"
+    },
+    {
+     "t": "配货",
+     "cls": "subMenu"
+    },
+    {
+     "t": "其他工单",
+     "cls": "subMenu"
+    },
+    {
+     "t": "投诉",
+     "cls": "subMenu"
+    },
+    {
+     "t": "建议",
+     "cls": "subMenu"
+    },
+    {
+     "t": "退转换续",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "巡房日常巡房安全巡检",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-inspection.3436f1b4.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">巡房</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">日常巡房</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">安全巡检</li></ul>",
+   "leaves": [
+    {
+     "t": "巡房",
+     "cls": ""
+    },
+    {
+     "t": "日常巡房",
+     "cls": "subMenu"
+    },
+    {
+     "t": "安全巡检",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "备案房源备案合同备案流水备案授权管理",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-keeprecordmanage.b1516af6.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">备案</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">房源备案</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">合同备案</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">流水备案</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">授权管理</li></ul>",
+   "leaves": [
+    {
+     "t": "备案",
+     "cls": ""
+    },
+    {
+     "t": "房源备案",
+     "cls": "subMenu"
+    },
+    {
+     "t": "合同备案",
+     "cls": "subMenu"
+    },
+    {
+     "t": "流水备案",
+     "cls": "subMenu"
+    },
+    {
+     "t": "授权管理",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "知识管理知识库",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-knowledge.d52dc03f.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">知识管理</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">知识库</li></ul>",
+   "leaves": [
+    {
+     "t": "知识管理",
+     "cls": ""
+    },
+    {
+     "t": "知识库",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "物资资产库房",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-assets.e0061bf5.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">物资</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">资产</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">库房</li></ul>",
+   "leaves": [
+    {
+     "t": "物资",
+     "cls": ""
+    },
+    {
+     "t": "资产",
+     "cls": "subMenu"
+    },
+    {
+     "t": "库房",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "数据大屏独栋数据大屏项目大屏",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-preview.91300d73.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">数据大屏</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">独栋数据大屏</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">项目大屏</li></ul>",
+   "leaves": [
+    {
+     "t": "数据大屏",
+     "cls": ""
+    },
+    {
+     "t": "独栋数据大屏",
+     "cls": "subMenu"
+    },
+    {
+     "t": "项目大屏",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "供应商供应商结账供应商管理我的结账单",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-supplier.5554a2ad.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">供应商</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">供应商结账</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">供应商管理</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">我的结账单</li></ul>",
+   "leaves": [
+    {
+     "t": "供应商",
+     "cls": ""
+    },
+    {
+     "t": "供应商结账",
+     "cls": "subMenu"
+    },
+    {
+     "t": "供应商管理",
+     "cls": "subMenu"
+    },
+    {
+     "t": "我的结账单",
+     "cls": "subMenu"
+    }
+   ]
+  },
+  {
+   "title": "日租房态订单调价管理",
+   "html": "<div class=\"mainMenu\" data-v-2ddb3bd6=\"\"><img src=\"/static/svg/menu-shortRent.ead7e63b.svg\" class=\"menu-icon\" data-v-2ddb3bd6=\"\"><span data-v-2ddb3bd6=\"\">日租</span></div><div class=\"sort_icon\" data-v-2ddb3bd6=\"\"><span role=\"img\" class=\"anticon\" data-v-2ddb3bd6=\"\"><svg width=\"1em\" height=\"1em\" fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\" class=\"\"><use xlink:href=\"#iconpaixu2\"></use></svg></span></div><ul class=\"subMenuList\" data-v-2ddb3bd6=\"\"><li class=\"subMenu\" data-v-2ddb3bd6=\"\">房态</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">订单</li><li class=\"subMenu\" data-v-2ddb3bd6=\"\">调价管理</li></ul>",
+   "leaves": [
+    {
+     "t": "日租",
+     "cls": ""
+    },
+    {
+     "t": "房态",
+     "cls": "subMenu"
+    },
+    {
+     "t": "订单",
+     "cls": "subMenu"
+    },
+    {
+     "t": "调价管理",
+     "cls": "subMenu"
+    }
+   ]
+  }
+ ]
+}

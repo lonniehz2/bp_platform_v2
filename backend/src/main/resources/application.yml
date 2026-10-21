@@ -1,0 +1,148 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  application:
+    name: bp-platform
+
+  # ============ 数据源 ============
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${BP_DB_HOST:192.168.31.153}:${BP_DB_PORT:33306}/${BP_DB_NAME:bp_platform}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
+    username: ${BP_DB_USER:root}
+    password: ${BP_DB_PWD:5677@Mysql}
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      # -1 = 启动时不强制建立连接（数据库暂不可达也能启动，便于前端联调与演示）
+      # 生产建议改为 30000（快速失败）
+      initialization-fail-timeout: ${BP_DB_INIT_FAIL_TIMEOUT:-1}
+
+  # ============ Redis ============
+  data:
+    redis:
+      host: ${BP_REDIS_HOST:192.168.31.153}
+      port: ${BP_REDIS_PORT:6379}
+      password: ${BP_REDIS_PWD:}
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 32
+          max-idle: 16
+          min-idle: 4
+
+  # ============ RabbitMQ ============
+  rabbitmq:
+    host: ${BP_MQ_HOST:192.168.31.153}
+    port: ${BP_MQ_PORT:5672}
+    username: ${BP_MQ_USER:guest}
+    password: ${BP_MQ_PWD:guest}
+    virtual-host: /
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    # 连接超时：MQ 不可用时快速失败，不阻塞启动与健康检查
+    connection-timeout: 3000
+    listener:
+      simple:
+        acknowledge-mode: manual
+        prefetch: 20
+        concurrency: 4
+        max-concurrency: 8
+
+  # ============ 上传限制 ============
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 50MB
+
+# ============ MyBatis-Plus ============
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.yundao.bp
+  configuration:
+    map-underscore-to-camel-case: true
+    # 生产环境应设为 NoLoggingImpl
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: input            # 主键由应用层生成（雪花ID），非自增
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# ============ IoT 集成（协议 v2，见 02_架构与技术方案.md 第十五章）============
+ymd:
+  iot:
+    base-url: ${YMD_BASE_URL:https://iot.365ymd.com}
+    protocol-version: v2-hmac-sha256
+    verify-response-signature: true
+    credential:
+      app-id: ${YMD_APP_ID:}
+      app-secret: ${YMD_APP_SECRET:}
+      key-version: ${YMD_KEY_VERSION:k1}
+    # 敏感字段加密密钥（Base64 的 32 字节）；不配置则不启用字段加密
+    field-crypto:
+      enabled: ${YMD_FIELD_CRYPTO:false}
+      key-base64: ${YMD_FIELD_KEY:}
+    limits:
+      global-qps: 50
+      api-qps: 20
+      burst-multiplier: 2
+      max-retry: 2
+      connect-timeout-ms: 3000
+      read-timeout-ms: 10000
+    batch:
+      max-ids: 100
+      concurrency: 4
+      timeout-ms: 30000
+    paging:
+      page-size: 100
+      max-page-size: 500
+      max-offset-pages: 1000
+    # 仅测试环境开启：打印规范串与签名，用于与 IoT 侧比对
+    debug:
+      print-canonical: ${YMD_PRINT_CANONICAL:false}
+
+# ============ 业务平台自有配置 ============
+bp:
+  tenant:
+    # 租户上下文缺失时是否抛异常（必须为 true，禁止查全租户）
+    fail-on-missing: true
+  snowflake:
+    worker-id: ${BP_WORKER_ID:1}
+    datacenter-id: ${BP_DATACENTER_ID:1}
+
+# ============ 运维 ============
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+      # 外部依赖未就绪时不拖垮健康检查（私有化现场常见 Redis/MQ 尚未开通）
+      probes:
+        enabled: true
+  health:
+    rabbit:
+      enabled: ${BP_HEALTH_RABBIT:false}
+    redis:
+      enabled: ${BP_HEALTH_REDIS:false}
+    # DB 探针：默认关闭（无库环境也能秒级返回健康状态）；生产请设 BP_HEALTH_DB=true
+    db:
+      enabled: ${BP_HEALTH_DB:false}
+
+logging:
+  level:
+    root: INFO
+    com.yundao.bp: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"

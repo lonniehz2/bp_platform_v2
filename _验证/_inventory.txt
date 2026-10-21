@@ -1,0 +1,357 @@
+接口总数 250
+
+按模块：
+  Alert 9
+  Allocation 21
+  Appeal 10
+  Application 8
+  ArrearsAction 7
+  BillGeneration 2
+  Billing 11
+  Cohabitant 6
+  Complaint 8
+  Contract 10
+  ContractChange 6
+  Credit 9
+  DepositRefund 12
+  Exchange 9
+  FeeItem 9
+  FinLedger 14
+  Grant 6
+  House 4
+  HouseCalendar 8
+  Org 5
+  Person 6
+  PublicityReview 13
+  ShortRentOrder 11
+  Space 6
+  Subsidy 11
+  Termination 12
+  Visit 6
+  WorkOrder 11
+
+全部接口：
+  GET    /api/v1/alerts                                 [Alert]
+  GET    /api/v1/alerts/stats                           [Alert]
+  GET    /api/v1/alerts/{id}                            [Alert]
+  POST   /api/v1/alerts                                 [Alert]
+  POST   /api/v1/alerts/{id}/escalate                   [Alert]
+  POST   /api/v1/alerts/{id}/handle                     [Alert]
+  POST   /api/v1/alerts/{id}/ignore                     [Alert]
+  POST   /api/v1/alerts/{id}/resolve                    [Alert]
+  POST   /api/v1/alerts/{id}/to-workorder               [Alert]
+  GET    /api/v1/allocation/allocations                 [Allocation]
+  GET    /api/v1/allocation/allocations/{id}            [Allocation]
+  GET    /api/v1/allocation/batches                     [Allocation]
+  GET    /api/v1/allocation/batches/{id}                [Allocation]
+  GET    /api/v1/allocation/batches/{id}/houses         [Allocation]
+  GET    /api/v1/allocation/lottery/{batchId}           [Allocation]
+  GET    /api/v1/allocation/waiting                     [Allocation]
+  GET    /api/v1/allocation/waiting/{id}                [Allocation]
+  POST   /api/v1/allocation/allocations                 [Allocation]
+  POST   /api/v1/allocation/allocations/release-expired [Allocation]
+  POST   /api/v1/allocation/allocations/{id}/give-up    [Allocation]
+  POST   /api/v1/allocation/allocations/{id}/sign       [Allocation]
+  POST   /api/v1/allocation/batches                     [Allocation]
+  POST   /api/v1/allocation/batches/{id}/houses         [Allocation]
+  POST   /api/v1/allocation/batches/{id}/status         [Allocation]
+  POST   /api/v1/allocation/lottery                     [Allocation]
+  POST   /api/v1/allocation/waiting                     [Allocation]
+  POST   /api/v1/allocation/waiting/recalc              [Allocation]
+  POST   /api/v1/allocation/waiting/{id}/exit           [Allocation]
+  POST   /api/v1/allocation/waiting/{id}/freeze         [Allocation]
+  POST   /api/v1/allocation/waiting/{id}/unfreeze       [Allocation]
+  GET    /api/v1/appeals                                [Appeal]
+  GET    /api/v1/appeals/by-biz                         [Appeal]
+  GET    /api/v1/appeals/{id}                           [Appeal]
+  POST   /api/v1/appeals                                [Appeal]
+  POST   /api/v1/appeals/mark-timeout                   [Appeal]
+  POST   /api/v1/appeals/{id}/accept                    [Appeal]
+  POST   /api/v1/appeals/{id}/decide                    [Appeal]
+  POST   /api/v1/appeals/{id}/investigate               [Appeal]
+  POST   /api/v1/appeals/{id}/notify                    [Appeal]
+  POST   /api/v1/appeals/{id}/withdraw                  [Appeal]
+  GET    /api/v1/applications                           [Application]
+  GET    /api/v1/applications/{id}                      [Application]
+  GET    /api/v1/applications/{id}/reviews              [Application]
+  POST   /api/v1/applications                           [Application]
+  POST   /api/v1/applications/{id}/accept               [Application]
+  POST   /api/v1/applications/{id}/cancel               [Application]
+  POST   /api/v1/applications/{id}/resubmit             [Application]
+  POST   /api/v1/applications/{id}/review               [Application]
+  GET    /api/v1/fin/arrears                            [ArrearsAction]
+  GET    /api/v1/fin/arrears/by-contract/{contractId}   [ArrearsAction]
+  GET    /api/v1/fin/arrears/scan                       [ArrearsAction]
+  GET    /api/v1/fin/arrears/{id}                       [ArrearsAction]
+  POST   /api/v1/fin/arrears                            [ArrearsAction]
+  POST   /api/v1/fin/arrears/{id}/execute               [ArrearsAction]
+  POST   /api/v1/fin/arrears/{id}/revoke                [ArrearsAction]
+  POST   /api/v1/fin/bills/generate                     [BillGeneration]
+  POST   /api/v1/fin/bills/generate-batch               [BillGeneration]
+  GET    /api/v1/fin/bills                              [Billing]
+  GET    /api/v1/fin/bills/{id}                         [Billing]
+  GET    /api/v1/fin/payments                           [Billing]
+  GET    /api/v1/fin/payments/{id}                      [Billing]
+  POST   /api/v1/fin/bills                              [Billing]
+  POST   /api/v1/fin/bills/scan-overdue                 [Billing]
+  POST   /api/v1/fin/bills/{id}/cancel                  [Billing]
+  POST   /api/v1/fin/bills/{id}/waive                   [Billing]
+  POST   /api/v1/fin/payments                           [Billing]
+  POST   /api/v1/fin/payments/{id}/confirm              [Billing]
+  POST   /api/v1/fin/payments/{paymentId}/allocate      [Billing]
+  DELETE /api/v1/contracts/{contractId}/cohabitants/{id} [Cohabitant]
+  GET    /api/v1/contracts/{contractId}/cohabitants     [Cohabitant]
+  GET    /api/v1/contracts/{contractId}/cohabitants/household-size [Cohabitant]
+  GET    /api/v1/contracts/{contractId}/cohabitants/{id} [Cohabitant]
+  POST   /api/v1/contracts/{contractId}/cohabitants     [Cohabitant]
+  POST   /api/v1/contracts/{contractId}/cohabitants/{id}/grant [Cohabitant]
+  GET    /api/v1/complaints                             [Complaint]
+  GET    /api/v1/complaints/{id}                        [Complaint]
+  POST   /api/v1/complaints                             [Complaint]
+  POST   /api/v1/complaints/{id}/close                  [Complaint]
+  POST   /api/v1/complaints/{id}/evaluate               [Complaint]
+  POST   /api/v1/complaints/{id}/handle                 [Complaint]
+  POST   /api/v1/complaints/{id}/resolve                [Complaint]
+  POST   /api/v1/complaints/{id}/to-workorder           [Complaint]
+  GET    /api/v1/contracts                              [Contract]
+  GET    /api/v1/contracts/{id}                         [Contract]
+  POST   /api/v1/contracts                              [Contract]
+  POST   /api/v1/contracts/expire-due                   [Contract]
+  POST   /api/v1/contracts/{id}/cancel                  [Contract]
+  POST   /api/v1/contracts/{id}/renew                   [Contract]
+  POST   /api/v1/contracts/{id}/sign                    [Contract]
+  POST   /api/v1/contracts/{id}/start-signing           [Contract]
+  POST   /api/v1/contracts/{id}/submit-sign             [Contract]
+  POST   /api/v1/contracts/{id}/terminate               [Contract]
+  GET    /api/v1/contract-changes                       [ContractChange]
+  GET    /api/v1/contract-changes/{id}                  [ContractChange]
+  POST   /api/v1/annual-reviews/{reviewId}/rent-change  [ContractChange]
+  POST   /api/v1/contract-changes/{id}/approve          [ContractChange]
+  POST   /api/v1/contract-changes/{id}/reject           [ContractChange]
+  POST   /api/v1/contracts/{contractId}/changes         [ContractChange]
+  GET    /api/v1/credits                                [Credit]
+  GET    /api/v1/credits/by-person/{personId}           [Credit]
+  GET    /api/v1/credits/check-ban                      [Credit]
+  GET    /api/v1/credits/{id}                           [Credit]
+  POST   /api/v1/credits                                [Credit]
+  POST   /api/v1/credits/scan-expired                   [Credit]
+  POST   /api/v1/credits/{id}/expire                    [Credit]
+  POST   /api/v1/credits/{id}/push                      [Credit]
+  POST   /api/v1/credits/{id}/revoke                    [Credit]
+  GET    /api/v1/fin/deposits                           [DepositRefund]
+  GET    /api/v1/fin/deposits/by-contract/{contractId}  [DepositRefund]
+  GET    /api/v1/fin/deposits/{id}                      [DepositRefund]
+  GET    /api/v1/fin/refunds                            [DepositRefund]
+  GET    /api/v1/fin/refunds/{id}                       [DepositRefund]
+  POST   /api/v1/fin/deposits                           [DepositRefund]
+  POST   /api/v1/fin/deposits/{id}/deduct               [DepositRefund]
+  POST   /api/v1/fin/deposits/{id}/receive              [DepositRefund]
+  POST   /api/v1/fin/refunds                            [DepositRefund]
+  POST   /api/v1/fin/refunds/{id}/approve               [DepositRefund]
+  POST   /api/v1/fin/refunds/{id}/complete              [DepositRefund]
+  POST   /api/v1/fin/refunds/{id}/reject                [DepositRefund]
+  GET    /api/v1/exchanges                              [Exchange]
+  GET    /api/v1/exchanges/count                        [Exchange]
+  GET    /api/v1/exchanges/{id}                         [Exchange]
+  POST   /api/v1/exchanges                              [Exchange]
+  POST   /api/v1/exchanges/{id}/approve                 [Exchange]
+  POST   /api/v1/exchanges/{id}/complete                [Exchange]
+  POST   /api/v1/exchanges/{id}/no-exchange             [Exchange]
+  POST   /api/v1/exchanges/{id}/reject                  [Exchange]
+  POST   /api/v1/exchanges/{id}/submit                  [Exchange]
+  GET    /api/v1/fin/billing-rules                      [FeeItem]
+  GET    /api/v1/fin/billing-rules/{id}                 [FeeItem]
+  GET    /api/v1/fin/fee-items                          [FeeItem]
+  GET    /api/v1/fin/fee-items/{id}                     [FeeItem]
+  POST   /api/v1/fin/billing-rules                      [FeeItem]
+  POST   /api/v1/fin/billing-rules/{id}/approve         [FeeItem]
+  POST   /api/v1/fin/calc-preview                       [FeeItem]
+  POST   /api/v1/fin/fee-items                          [FeeItem]
+  POST   /api/v1/fin/fee-items/{id}/status              [FeeItem]
+  GET    /api/v1/fin/cash-flows                         [FinLedger]
+  GET    /api/v1/fin/cash-flows/net                     [FinLedger]
+  GET    /api/v1/fin/cash-flows/{id}                    [FinLedger]
+  GET    /api/v1/fin/dunnings                           [FinLedger]
+  GET    /api/v1/fin/dunnings/by-bill/{billId}          [FinLedger]
+  GET    /api/v1/fin/dunnings/scan                      [FinLedger]
+  GET    /api/v1/fin/dunnings/{id}                      [FinLedger]
+  GET    /api/v1/fin/reconciles                         [FinLedger]
+  GET    /api/v1/fin/reconciles/{id}                    [FinLedger]
+  POST   /api/v1/fin/cash-flows                         [FinLedger]
+  POST   /api/v1/fin/cash-flows/{id}/verify             [FinLedger]
+  POST   /api/v1/fin/dunnings                           [FinLedger]
+  POST   /api/v1/fin/reconciles                         [FinLedger]
+  POST   /api/v1/fin/reconciles/{id}/handle             [FinLedger]
+  GET    /api/v1/grants                                 [Grant]
+  GET    /api/v1/grants/tasks/{taskId}                  [Grant]
+  GET    /api/v1/grants/tasks/{taskId}/details          [Grant]
+  GET    /api/v1/grants/{id}                            [Grant]
+  POST   /api/v1/grants                                 [Grant]
+  POST   /api/v1/grants/{id}/revoke                     [Grant]
+  GET    /api/v1/houses                                 [House]
+  GET    /api/v1/houses/{id}                            [House]
+  POST   /api/v1/houses                                 [House]
+  POST   /api/v1/houses/{id}/status                     [House]
+  GET    /api/v1/house-calendar/available               [HouseCalendar]
+  GET    /api/v1/house-calendar/{houseId}               [HouseCalendar]
+  GET    /api/v1/house-calendar/{houseId}/availability  [HouseCalendar]
+  POST   /api/v1/house-calendar/book                    [HouseCalendar]
+  POST   /api/v1/house-calendar/release                 [HouseCalendar]
+  POST   /api/v1/house-calendar/{houseId}/ensure        [HouseCalendar]
+  POST   /api/v1/house-calendar/{houseId}/price         [HouseCalendar]
+  POST   /api/v1/house-calendar/{houseId}/status        [HouseCalendar]
+  DELETE /api/v1/orgs/{id}                              [Org]
+  GET    /api/v1/orgs                                   [Org]
+  GET    /api/v1/orgs/children                          [Org]
+  GET    /api/v1/orgs/{id}                              [Org]
+  POST   /api/v1/orgs                                   [Org]
+  DELETE /api/v1/persons/{id}                           [Person]
+  GET    /api/v1/persons                                [Person]
+  GET    /api/v1/persons/by-id-card                     [Person]
+  GET    /api/v1/persons/{id}                           [Person]
+  POST   /api/v1/persons                                [Person]
+  POST   /api/v1/persons/{id}/status                    [Person]
+  GET    /api/v1/annual-reviews                         [PublicityReview]
+  GET    /api/v1/annual-reviews/{id}                    [PublicityReview]
+  GET    /api/v1/publicities                            [PublicityReview]
+  GET    /api/v1/publicities/allocation-check           [PublicityReview]
+  GET    /api/v1/publicities/{id}                       [PublicityReview]
+  POST   /api/v1/annual-reviews                         [PublicityReview]
+  POST   /api/v1/annual-reviews/batch                   [PublicityReview]
+  POST   /api/v1/annual-reviews/mark-overdue            [PublicityReview]
+  POST   /api/v1/annual-reviews/{id}/finish             [PublicityReview]
+  POST   /api/v1/annual-reviews/{id}/start              [PublicityReview]
+  POST   /api/v1/publicities                            [PublicityReview]
+  POST   /api/v1/publicities/{id}/close                 [PublicityReview]
+  POST   /api/v1/publicities/{id}/publish               [PublicityReview]
+  GET    /api/v1/short-rent-orders                      [ShortRentOrder]
+  GET    /api/v1/short-rent-orders/by-house             [ShortRentOrder]
+  GET    /api/v1/short-rent-orders/calc-nights          [ShortRentOrder]
+  GET    /api/v1/short-rent-orders/{id}                 [ShortRentOrder]
+  POST   /api/v1/short-rent-orders                      [ShortRentOrder]
+  POST   /api/v1/short-rent-orders/{id}/cancel          [ShortRentOrder]
+  POST   /api/v1/short-rent-orders/{id}/check-in        [ShortRentOrder]
+  POST   /api/v1/short-rent-orders/{id}/check-out       [ShortRentOrder]
+  POST   /api/v1/short-rent-orders/{id}/confirm         [ShortRentOrder]
+  POST   /api/v1/short-rent-orders/{id}/no-show         [ShortRentOrder]
+  POST   /api/v1/short-rent-orders/{id}/pay             [ShortRentOrder]
+  DELETE /api/v1/spaces/{id}                            [Space]
+  GET    /api/v1/spaces/children                        [Space]
+  GET    /api/v1/spaces/tree                            [Space]
+  GET    /api/v1/spaces/{id}                            [Space]
+  GET    /api/v1/spaces/{id}/subtree                    [Space]
+  POST   /api/v1/spaces                                 [Space]
+  GET    /api/v1/fin/subsidies/records                  [Subsidy]
+  GET    /api/v1/fin/subsidies/records/{id}             [Subsidy]
+  GET    /api/v1/fin/subsidies/standards                [Subsidy]
+  GET    /api/v1/fin/subsidies/standards/{id}           [Subsidy]
+  POST   /api/v1/fin/subsidies/calc                     [Subsidy]
+  POST   /api/v1/fin/subsidies/records                  [Subsidy]
+  POST   /api/v1/fin/subsidies/records/batch            [Subsidy]
+  POST   /api/v1/fin/subsidies/records/{id}/confirm     [Subsidy]
+  POST   /api/v1/fin/subsidies/records/{id}/fail        [Subsidy]
+  POST   /api/v1/fin/subsidies/standards                [Subsidy]
+  POST   /api/v1/fin/subsidies/standards/{id}/status    [Subsidy]
+  GET    /api/v1/terminations                           [Termination]
+  GET    /api/v1/terminations/{id}                      [Termination]
+  POST   /api/v1/terminations                           [Termination]
+  POST   /api/v1/terminations/{id}/approve              [Termination]
+  POST   /api/v1/terminations/{id}/cancel               [Termination]
+  POST   /api/v1/terminations/{id}/complete             [Termination]
+  POST   /api/v1/terminations/{id}/inspect              [Termination]
+  POST   /api/v1/terminations/{id}/mark-released        [Termination]
+  POST   /api/v1/terminations/{id}/register-enforce     [Termination]
+  POST   /api/v1/terminations/{id}/reject               [Termination]
+  POST   /api/v1/terminations/{id}/settle               [Termination]
+  POST   /api/v1/terminations/{id}/submit               [Termination]
+  GET    /api/v1/visits                                 [Visit]
+  GET    /api/v1/visits/{id}                            [Visit]
+  POST   /api/v1/visits                                 [Visit]
+  POST   /api/v1/visits/{id}/cancel                     [Visit]
+  POST   /api/v1/visits/{id}/report                     [Visit]
+  POST   /api/v1/visits/{id}/to-workorder               [Visit]
+  GET    /api/v1/workorders                             [WorkOrder]
+  GET    /api/v1/workorders/{id}                        [WorkOrder]
+  GET    /api/v1/workorders/{id}/logs                   [WorkOrder]
+  POST   /api/v1/workorders                             [WorkOrder]
+  POST   /api/v1/workorders/{id}/accept                 [WorkOrder]
+  POST   /api/v1/workorders/{id}/assign                 [WorkOrder]
+  POST   /api/v1/workorders/{id}/cancel                 [WorkOrder]
+  POST   /api/v1/workorders/{id}/close                  [WorkOrder]
+  POST   /api/v1/workorders/{id}/finish                 [WorkOrder]
+  POST   /api/v1/workorders/{id}/reject                 [WorkOrder]
+  POST   /api/v1/workorders/{id}/start                  [WorkOrder]
+
+孤儿表 72：
+  bp_asset_import_batch  资产导入批次（留痕与回滚）
+  bp_asset_parking  车位
+  bp_asset_space_device  空间-设备绑定关系（业务视图）
+  bp_asset_space_occupancy  空间-人员占用关系
+  bp_biz_contract_template  合同模板
+  bp_biz_priority_object  优先配租对象明细
+  bp_biz_publicity_item  公示名单明细（含异议）
+  bp_dev_access_record  开门记录（大表，按月分区）
+  bp_dev_availability_probe  核心功能可用率探针记录（一票否决考核依据）
+  bp_dev_callback_log  回调接收日志（含幂等命中统计）
+  bp_dev_change_log  换锁/换表记录（"是否换锁"数据来源）
+  bp_dev_device_alert  设备告警记录
+  bp_dev_iot_call_log  IoT 接口调用日志（排查与限流分析）
+  bp_dev_online_stat  设备在线率统计（考核数据，可导出）
+  bp_dev_reconcile_watermark  对账任务水位（断点续跑）
+  bp_flow_definition  流程定义（版本化）
+  bp_flow_instance  流程实例
+  bp_flow_log  流程流转日志
+  bp_flow_node  流程节点
+  bp_flow_task  流程任务（待办）
+  bp_gov_adapter_config  外部系统接口配置（适配器）
+  bp_gov_adapter_log  适配器调用日志
+  bp_gov_report_detail  监管报送明细
+  bp_gov_report_task  监管报送任务（房管局备案/公租房系统/公安平台）
+  bp_grant_audit_log  授权操作审计（不可修改）
+  bp_grant_iot_person_map  IoT 人员映射（本地 ↔ ownerId）
+  bp_grant_keyring  钥匙包（以人为中心的介质集合）
+  bp_grant_reconcile_diff  授权对账差异记录
+  bp_iam_account_set  账套（多财务主体隔离）
+  bp_iam_permission  权限资源（菜单/按钮/接口/字段）
+  bp_iam_role  角色
+  bp_iam_role_permission  角色-权限关系
+  bp_iam_session  登录会话（单设备登录与强制下线）
+  bp_iam_user  系统用户
+  bp_iam_user_role  用户-角色-组织关系
+  bp_msg_send_record  消息发送记录
+  bp_msg_subscription  消息订阅配置（多维订阅）
+  bp_msg_template  消息模板
+  bp_msg_todo  待办事项（站内）
+  bp_open_api  开放接口清单
+  bp_open_app  开放应用（AppKey/AppSecret 管理）
+  bp_open_call_log  开放调用日志
+  bp_open_webhook  Webhook 订阅
+  bp_open_webhook_log  Webhook 推送记录
+  bp_ops_alert_notify  告警通知记录
+  bp_ops_alert_rule  告警规则（可配置规则引擎，支撑"预设规则条件、自设阈值"）
+  bp_ops_auto_inspection  自动巡查任务与结果（7×24 无人化巡查）
+  bp_person_blacklist  黑名单/失信名单
+  bp_person_document  证件与材料
+  bp_person_family  家庭成员
+  bp_person_guarantee_profile  保障对象档案（保障房专有扩展）
+  bp_person_service_address  送达地址（支撑法律文书送达）
+  bp_person_tag  人员标签定义
+  bp_person_tag_relation  人员-标签关系
+  bp_person_verify_record  实名认证记录（合规留痕）
+  bp_rpt_export_task  导出任务（异步，支持时间跨度自定义）
+  bp_rpt_metric_daily  指标日汇总（大屏与报表数据源）
+  bp_rpt_metric_hourly  指标小时汇总
+  bp_rpt_report_def  报表定义
+  bp_rpt_screen_def  大屏定义（可配置布局与组件）
+  bp_rule_execute_log  规则执行日志（误报率与效果分析）
+  bp_rule_rule  规则（条件+阈值+动作）
+  bp_rule_ruleset  规则集（按租户+场景+领域）
+  bp_sys_audit_log  审计日志（关键动作，只追加不可修改）
+  bp_sys_config  系统参数
+  bp_sys_dict  数据字典
+  bp_sys_file  文件
+  bp_sys_job  定时任务定义
+  bp_sys_job_log  定时任务执行日志
+  bp_sys_mq_dlq  死信消息（人工处置入口）
+  bp_sys_mq_idempotent  MQ 消费幂等记录
+  bp_sys_oper_log  操作日志

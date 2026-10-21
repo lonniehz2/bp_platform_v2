@@ -1,0 +1,307 @@
+﻿<!DOCTYPE html>
+<!--
+  「寓盟管家」
+  公寓智能AI管理系统
+  === 
+  Powered By Byteox.
+  Build:  -->
+<html lang="zh">
+  <head>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit"/>
+    <meta name="force-rendering" content="webkit"/>
+    <meta name="description" content="寓盟管家公寓管理系统 集成智能水电表,公寓管理系统门锁等,辅助管控提高效率,分散式,集中式,整租,合租,托管均完美适用,让公寓管理省时省力更轻松！"/>
+    <meta name="keywords" content="寓盟saas,寓盟管家,公寓,房源,房源管理,房屋,智慧公寓,房屋租赁,管理系统,房屋管理,租房,长租,SAAS"/>
+    <meta http-equiv="pragram" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="expires" content="0">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link id="favicon" rel="shortcut icon" href="./favicon.ico">
+    <title></title>
+    <style type="text/css">
+          .dialog{
+              background-color: rgba(255,255, 255, 1);
+              width: 50%;
+              height: 100px;
+              border-radius: 5px;
+              z-index: 20;
+              text-align: center;
+              position: fixed;
+              left: 50%;
+              top: 20%;
+              transform: translate(-50%,-50%);
+          }
+          .header{
+              margin: 0 auto;
+          }
+      </style>
+  <link rel="icon" href="/favicon.ico"><script defer src="/static/js/chunk-components.5c5c174c.js"></script><script defer src="/static/js/chunk-vue.d80aa678.js"></script><script defer src="/static/js/chunk-ant-vue.a81dd479.js"></script><script defer src="/static/js/chunk-vendor.18eb9be3.js"></script><script defer src="/static/js/chunk-utils.cc25e1a0.js"></script><script defer src="/static/js/chunk-tinymce.6e01cf50.js"></script><script defer src="/static/js/index.31f3db40.js"></script><link href="/static/css/chunk-components.9ccf959b.css" rel="stylesheet"><link href="/static/css/chunk-vue.ce521597.css" rel="stylesheet"><link href="/static/css/chunk-ant-vue.2a51a991.css" rel="stylesheet"><link href="/static/css/7704.e9943d5c.css" rel="stylesheet"><link href="/static/css/index.7b84ecec.css" rel="stylesheet"></head>
+  <body onload="load()">
+    <noscript>
+      <strong>We're sorry but pms doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div id="app">
+      <style>
+        .container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          flex-direction: row;
+          height: 100vh;
+          width: 100vw;
+        }
+
+        .text {
+          margin-top: 22rem;
+          font-size: 1rem;
+          width: 100%;
+          font-weight: 200;
+          text-align: center;
+        }
+
+        .cube,
+        .cube * {
+          position: absolute;
+          width: 6rem;
+          height: 6rem;
+        }
+        .cube .sides * {
+          box-sizing: border-box;
+          border: 0.12rem solid #0b87f8;
+          border-radius: 0.25rem;
+          background: rgba(11, 135, 248, 0.1);
+        }
+
+        @keyframes rotate {
+          0% {
+            transform: rotateX(-37.5deg) rotateY(45deg);
+          }
+          50% {
+            transform: rotateX(-37.5deg) rotateY(405deg);
+          }
+          100% {
+            transform: rotateX(-37.5deg) rotateY(405deg);
+          }
+        }
+
+        .sides {
+          animation: rotate 3s ease infinite;
+          animation-delay: 0.8s;
+          transform-style: preserve-3d;
+          transform: rotateX(-37.5deg) rotateY(45deg);
+        }
+
+        .cube .sides .top {
+          animation: top-animation 3s ease infinite;
+          animation-delay: 0ms;
+          transform: rotateX(90deg) translateZ(96px);
+          animation-fill-mode: forwards;
+          transform-origin: 50% 50%;
+        }
+
+        @keyframes top-animation {
+          0% {
+            opacity: 1;
+            transform: rotateX(90deg) translateZ(100px);
+          }
+          20% {
+            opacity: 1;
+            transform: rotateX(90deg) translateZ(48px);
+          }
+          70% {
+            opacity: 1;
+            transform: rotateX(90deg) translateZ(48px);
+          }
+          90% {
+            opacity: 1;
+            transform: rotateX(90deg) translateZ(100px);
+          }
+          100% {
+            opacity: 1;
+            transform: rotateX(90deg) translateZ(100px);
+          }
+        }
+        .cube .sides .bottom {
+          animation: bottom-animation 3s ease infinite;
+          animation-delay: 0ms;
+          transform: rotateX(-90deg) translateZ(96px);
+          animation-fill-mode: forwards;
+          transform-origin: 50% 50%;
+        }
+
+        @keyframes bottom-animation {
+          0% {
+            opacity: 1;
+            transform: rotateX(-90deg) translateZ(100px);
+          }
+          20% {
+            opacity: 1;
+            transform: rotateX(-90deg) translateZ(48px);
+          }
+          70% {
+            opacity: 1;
+            transform: rotateX(-90deg) translateZ(48px);
+          }
+          90% {
+            opacity: 1;
+            transform: rotateX(-90deg) translateZ(100px);
+          }
+          100% {
+            opacity: 1;
+            transform: rotateX(-90deg) translateZ(100px);
+          }
+        }
+        .cube .sides .front {
+          animation: front-animation 3s ease infinite;
+          animation-delay: 100ms;
+          transform: rotateY(0deg) translateZ(96px);
+          animation-fill-mode: forwards;
+          transform-origin: 50% 50%;
+        }
+
+        @keyframes front-animation {
+          0% {
+            opacity: 1;
+            transform: rotateY(0deg) translateZ(96px);
+          }
+          20% {
+            opacity: 1;
+            transform: rotateY(0deg) translateZ(48px);
+          }
+          70% {
+            opacity: 1;
+            transform: rotateY(0deg) translateZ(48px);
+          }
+          90% {
+            opacity: 1;
+            transform: rotateY(0deg) translateZ(96px);
+          }
+          100% {
+            opacity: 1;
+            transform: rotateY(0deg) translateZ(96px);
+          }
+        }
+        .cube .sides .back {
+          animation: back-animation 3s ease infinite;
+          animation-delay: 100ms;
+          transform: rotateY(-180deg) translateZ(96px);
+          animation-fill-mode: forwards;
+          transform-origin: 50% 50%;
+        }
+
+        @keyframes back-animation {
+          0% {
+            opacity: 1;
+            transform: rotateY(-180deg) translateZ(96px);
+          }
+          20% {
+            opacity: 1;
+            transform: rotateY(-180deg) translateZ(48px);
+          }
+          70% {
+            opacity: 1;
+            transform: rotateY(-180deg) translateZ(48px);
+          }
+          90% {
+            opacity: 1;
+            transform: rotateY(-180deg) translateZ(96px);
+          }
+          100% {
+            opacity: 1;
+            transform: rotateY(-180deg) translateZ(96px);
+          }
+        }
+        .cube .sides .left {
+          animation: left-animation 3s ease infinite;
+          animation-delay: 100ms;
+          transform: rotateY(-90deg) translateZ(96px);
+          animation-fill-mode: forwards;
+          transform-origin: 50% 50%;
+        }
+
+        @keyframes left-animation {
+          0% {
+            opacity: 1;
+            transform: rotateY(-90deg) translateZ(96px);
+          }
+          20% {
+            opacity: 1;
+            transform: rotateY(-90deg) translateZ(48px);
+          }
+          70% {
+            opacity: 1;
+            transform: rotateY(-90deg) translateZ(48px);
+          }
+          90% {
+            opacity: 1;
+            transform: rotateY(-90deg) translateZ(96px);
+          }
+          100% {
+            opacity: 1;
+            transform: rotateY(-90deg) translateZ(96px);
+          }
+        }
+        .cube .sides .right {
+          animation: right-animation 3s ease infinite;
+          animation-delay: 100ms;
+          transform: rotateY(90deg) translateZ(96px);
+          animation-fill-mode: forwards;
+          transform-origin: 50% 50%;
+        }
+
+        @keyframes right-animation {
+          0% {
+            opacity: 1;
+            transform: rotateY(90deg) translateZ(96px);
+          }
+          20% {
+            opacity: 1;
+            transform: rotateY(90deg) translateZ(48px);
+          }
+          70% {
+            opacity: 1;
+            transform: rotateY(90deg) translateZ(48px);
+          }
+          90% {
+            opacity: 1;
+            transform: rotateY(90deg) translateZ(96px);
+          }
+          100% {
+            opacity: 1;
+            transform: rotateY(90deg) translateZ(96px);
+          }
+        }
+
+      </style>
+      <div class="container">
+        <div class="cube">
+          <div class="sides">
+            <div class="top"></div>
+            <div class="right"></div>
+            <div class="bottom"></div>
+            <div class="left"></div>
+            <div class="front"></div>
+            <div class="back"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="root-modal"></div>
+    <!-- built files will be auto injected -->
+  </body>
+</html>
+<script charset="utf-8" src="https://map.qq.com/api/gljs?v=1.exp&key=AGGBZ-S3CRZ-7YTXG-TXTYT-YEW3H-Z7BAJ"></script>
+<script type="text/javascript">
+    function load () {
+        let locationHref= window.location.href;
+        if(locationHref.indexOf('index?walletSign')>-1){
+            let locationHrefs = locationHref.split('index?walletSign');
+            window.location.href=locationHrefs[0]+'#/walletSign?id=1&&name=123';
+        }
+        var isWebKit =  navigator.userAgent.indexOf('WebKit') > -1;  // 是否是WebKit 内核
+        if(isWebKit==false){
+            window.location.href="browser_tips.html?referrer="+encodeURIComponent(window.location.href);
+        }
+    }
+</script>

@@ -1,0 +1,1268 @@
+[
+ {
+  "target": "/admin/policy/polinfo",
+  "note": "LINK_NOT_FOUND",
+  "name": "策略信息管理",
+  "group": "策略中心",
+  "route": "/admin/policy/polinfo"
+ },
+ {
+  "target": "/admin/meeting/metroom",
+  "note": "LINK_NOT_FOUND",
+  "name": "会议室管理",
+  "group": "会议管理",
+  "route": "/admin/meeting/metroom"
+ },
+ {
+  "target": "/admin/meeting/metsub",
+  "note": "LINK_NOT_FOUND",
+  "name": "会议预约管理",
+  "group": "会议管理",
+  "route": "/admin/meeting/metsub"
+ },
+ {
+  "target": "/admin/owner/owner",
+  "note": "LINK_NOT_FOUND",
+  "name": "业主管理",
+  "group": "人员中心",
+  "route": "/admin/owner/owner"
+ },
+ {
+  "target": "/admin/member/list",
+  "note": "LINK_NOT_FOUND",
+  "name": "人员管理",
+  "group": "人员中心",
+  "route": "/admin/member/list"
+ },
+ {
+  "target": "/admin/member/group",
+  "note": "LINK_NOT_FOUND",
+  "name": "人员组管理",
+  "group": "人员中心",
+  "route": "/admin/member/group"
+ },
+ {
+  "target": "/admin/provider/user",
+  "note": "LINK_NOT_FOUND",
+  "name": "服务人员管理",
+  "group": "人员中心",
+  "route": "/admin/provider/user"
+ },
+ {
+  "target": "/admin/assets/check",
+  "note": "LINK_NOT_FOUND",
+  "name": "业主审核",
+  "group": "人员中心",
+  "route": "/admin/assets/check"
+ },
+ {
+  "target": "/admin/assets/house",
+  "note": "LINK_NOT_FOUND",
+  "name": "房屋管理",
+  "group": "资产中心",
+  "route": "/admin/assets/house"
+ },
+ {
+  "target": "/admin/parking/garage",
+  "note": "LINK_NOT_FOUND",
+  "name": "车库管理",
+  "group": "资产中心",
+  "route": "/admin/parking/garage"
+ },
+ {
+  "target": "/admin/assets/park/parkspace",
+  "note": "LINK_NOT_FOUND",
+  "name": "车位管理",
+  "group": "资产中心",
+  "route": "/admin/assets/park/parkspace"
+ },
+ {
+  "target": "/admin/rent/park",
+  "note": "LINK_NOT_FOUND",
+  "name": "车位租赁",
+  "group": "资产中心",
+  "route": "/admin/rent/park"
+ },
+ {
+  "target": "/admin/hotel/house/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "酒店房源管理",
+  "group": "资产中心",
+  "route": "/admin/hotel/house/view"
+ },
+ {
+  "target": "/admin/assets/house/schoolList",
+  "note": "LINK_NOT_FOUND",
+  "name": "学校房屋管理",
+  "group": "资产中心",
+  "route": "/admin/assets/house/schoolList"
+ },
+ {
+  "target": "/admin/property/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "资产列表",
+  "group": "资产中心",
+  "route": "/admin/property/view"
+ },
+ {
+  "target": "/admin/houseAuth/house",
+  "note": "LINK_NOT_FOUND",
+  "name": "房屋授权记录",
+  "group": "资产中心",
+  "route": "/admin/houseAuth/house"
+ },
+ {
+  "target": "/admin/parkAuth/parking",
+  "note": "LINK_NOT_FOUND",
+  "name": "车位转让记录",
+  "group": "资产中心",
+  "route": "/admin/parkAuth/parking"
+ },
+ {
+  "target": "/admin/device/deviceInfo",
+  "ready": true,
+  "url": "https://wy.365ymd.com/admin/device/deviceInfo",
+  "hasTableDom": true,
+  "hasTree": false,
+  "hasCanvas": 0,
+  "hasCard": 1,
+  "hasDescriptions": false,
+  "hasTabs": true,
+  "tableRowsAll": 20,
+  "tableRowsData": 20,
+  "pagination": "共 51657 条 1 2 3 4 5 ••• 2583 20 条/页",
+  "empty": null,
+  "headers": [
+   "设备信息",
+   "在线状态",
+   "电池电量",
+   "设备类型",
+   "设备属性",
+   "安装信息",
+   "操作"
+  ],
+  "sample": [
+   "",
+   "10.2516.10 MAC: CA",
+   "在线",
+   "17%",
+   "WIFI锁",
+   "卡片,无感开门,人脸,蓝牙,指纹,密",
+   "平台 2026-10-14 16:5",
+   "详情 更多"
+  ],
+  "forms": [
+   "设备MAC",
+   "设备名称",
+   "设备类型"
+  ],
+  "buttons": [
+   "搜 索",
+   "重 置",
+   "设备入库",
+   "开门告警配置",
+   "导出"
+  ],
+  "contentText": "设备管理 门锁 门禁 梯控 网关 访客码控制器 自助机 车闸 车闸盒子 采集器 水表 电表 烟感 报警器 灯控 智能柜 设备MAC 设备名称 设备类型 搜 索 重 置 展开 设备入库 开门告警配置 导出 设备信息 在线状态 电池电量 设备类型 设备属性 安装信息 操作 10.2516.10 MAC: CA5F0B009E03 在线 17% WIFI锁 卡片,无感开门,人脸,蓝牙,指纹,密码 平台 2026-10-14 16:50:48 详情 更多 11.11216.20 MAC: F21E0C003DFD 在线 100% 蓝牙锁 卡片,无感开门,人脸,蓝牙,指纹,密码 平台 2026-10-14 13:49:36 详情 更多 蓝牙锁10.10016.90 MAC: FA530D0072F9 离线 蓝牙锁 卡片,无感开门,蓝牙,指纹,密码 平台 2026-10-13 15:38:31 详情 更多 553bfb10.10016.90 MAC: EA170D003BFB 在线 100% 蓝牙锁 卡片,无感开门,蓝牙,指纹,密码 平台 / 天津市市辖区南开区ghj 2026-10-13 15:37:38 详情 更多 55a7fc10.10016.90 MAC: FD3E0D00A7FC 在线 100% 蓝牙锁 卡片,无感开门,蓝牙,指纹,密码 平台 / 山西省阳泉市郊区ghj 2026-10-13 15:36:56 详情 更多 55ea0210.10016.90 MAC: CA740900EA02 在线 100% 蓝牙锁 卡片,蓝牙,指纹,密码 平台 / 河北省邯郸市复兴区vbj 2026-10-13 15:35:50 详情 更多 55e6fe10.10016.90 MAC: E74E0D00E9FE 在线 100% 蓝牙锁 卡片,无感开门,蓝牙,指纹,密码 平台 / 山西省长治市屯留区ghk 2026-10-13 15:34:31 详情 更多 5535f810.10016.90 MAC: E9420D0035F8 在线 100% 蓝牙锁 卡片,无感开门,蓝牙,指纹,密码 平台 / 山西省长治市潞城区ghj 2026-10-13 15:31:59 详情 更多 4G锁4.079.00 MAC: D51C053608F5 离线 GSM锁 卡片,蓝牙,指纹,密码 平台 2026-10-12 14:35:18 详情 更多 4G锁4.079.00 MAC: E66A053636F9 离线 GSM锁 卡片,蓝牙,指纹,密码 平台 2026-10-12 14:35:17 详情 更多 4G锁4.079.00 MAC: D6370536E7F6 离线 GSM锁 卡片,蓝牙,指纹,密码 平台 2026-10-12 14:35:17 详情 更多 4G锁4.079.00 MAC: D565053621F8 离线 GSM锁 卡片,蓝牙,指纹,密码 平台 2026-10-12 14:35:17 详情 更多 4G锁4.079.00 MAC: EF350536DDF9 离线 GSM锁 卡片,蓝牙,指纹,密码 平台 2026-10-12 14:35:16 详情 更多 4G锁4.079.00 MAC: D57205367AF9 离线 GSM锁 卡片,蓝牙,指纹,密码 平台 2026-10-12 14:35:16 详情 更多 4G锁4.079.00 MAC: D517053662F8 离线 GSM锁 卡片,蓝牙,指纹,密码 平台 2026-10-12 14:35:15 详情 更多 4G锁4.079.00 MAC: F673053668F7 离线 GSM锁 卡片,蓝牙,指纹,密码 平台 2026-10-12 14:35:15 详情 更多 4G锁4.079.00 MAC: D6430536F",
+  "name": "设备管理",
+  "group": "设备中心",
+  "route": "/admin/device/deviceInfo"
+ },
+ {
+  "target": "/admin/deviceGroup/view",
+  "ready": true,
+  "url": "https://wy.365ymd.com/admin/deviceGroup/view",
+  "hasTableDom": true,
+  "hasTree": false,
+  "hasCanvas": 0,
+  "hasCard": 1,
+  "hasDescriptions": false,
+  "hasTabs": true,
+  "tableRowsAll": 20,
+  "tableRowsData": 20,
+  "pagination": "共 259 条 1 2 3 4 5 ••• 13 20 条/页",
+  "empty": null,
+  "headers": [
+   "组名",
+   "描述",
+   "设备数",
+   "创建时间",
+   "操作"
+  ],
+  "sample": [
+   "高三统开卡组",
+   "高三通卡开门",
+   "77",
+   "2026-09-11 20:18:2",
+   "编 辑 删 除"
+  ],
+  "forms": [
+   "设备组名称",
+   "设备名称",
+   "设备编号"
+  ],
+  "buttons": [
+   "搜 索",
+   "重 置",
+   "新 增",
+   "导入",
+   "导出",
+   "77",
+   "编 辑",
+   "删 除",
+   "75",
+   "60",
+   "0",
+   "250",
+   "13",
+   "12",
+   "120",
+   "190",
+   "65",
+   "6",
+   "1"
+  ],
+  "contentText": "设备组管理 设备组名称 设备名称 设备编号 搜 索 重 置 新 增 导入 导出 组名 描述 设备数 创建时间 操作 高三统开卡组 高三通卡开门 77 2026-09-11 20:18:26 编 辑 删 除 高二统开卡组 高二通卡开门 75 2026-09-11 20:12:10 编 辑 删 除 高一统开卡组 高一通卡开门 60 2026-09-11 20:06:13 编 辑 删 除 测试1 p 0 2026-09-10 15:13:58 编 辑 删 除 11 11 0 2026-09-09 17:10:42 编 辑 删 除 1234 0 2026-09-03 14:29:23 编 辑 删 除 123 0 2026-09-03 14:21:51 编 辑 删 除 全部250间 250 2026-09-01 14:03:12 编 辑 删 除 仰山楼办公室（陈茜、徐江锋、杜锡金、阮吉飞） 13 2026-08-23 14:04:14 编 辑 删 除 202608仰山楼（陈茜、杜锡金、徐江峰、阮吉飞） 12 2026-08-16 20:40:47 编 辑 删 除 202608王建娣、王凤飞、何纪达办公室 13 2026-08-08 15:14:05 编 辑 删 除 永和花园B1-1-19C 秀英区 E8719851D52B 0 2026-08-06 13:32:34 编 辑 删 除 11幢+12幢 120 2026-07-20 16:17:22 编 辑 删 除 4幢+5幢16幢 190 2026-07-20 16:16:33 编 辑 删 除 8幢 65 2026-07-20 16:15:18 编 辑 删 除 大门 0 2026-07-08 12:08:08 编 辑 删 除 E715DFB8EBD5 E715DFB8EBD5 0 2026-06-02 01:44:58 编 辑 删 除 分组1 6 2026-05-26 15:31:27 编 辑 删 除 龙本坤 101 0 2026-05-20 00:11:00 编 辑 删 除 国际护肤：：广垦华府 1 2026-05-15 18:38:33 编 辑 删 除 共 259 条 1 2 3 4 5 ••• 13 20 条/页",
+  "name": "设备组管理",
+  "group": "设备中心",
+  "route": "/admin/deviceGroup/view"
+ },
+ {
+  "target": "/admin/collector/collector",
+  "ready": true,
+  "url": "https://wy.365ymd.com/admin/collector/collector",
+  "hasTableDom": false,
+  "hasTree": false,
+  "hasCanvas": 0,
+  "hasCard": 0,
+  "hasDescriptions": false,
+  "hasTabs": true,
+  "tableRowsAll": 0,
+  "tableRowsData": 0,
+  "pagination": null,
+  "empty": null,
+  "headers": [],
+  "forms": [],
+  "buttons": [],
+  "contentText": "",
+  "name": "采集器管理",
+  "group": "设备中心",
+  "route": "/admin/collector/collector"
+ },
+ {
+  "target": "/admin/device/remoteopen",
+  "ready": true,
+  "url": "https://wy.365ymd.com/admin/device/remoteopen",
+  "hasTableDom": false,
+  "hasTree": false,
+  "hasCanvas": 0,
+  "hasCard": 1,
+  "hasDescriptions": false,
+  "hasTabs": true,
+  "tableRowsAll": 0,
+  "tableRowsData": 0,
+  "pagination": null,
+  "empty": null,
+  "headers": [],
+  "forms": [],
+  "buttons": [
+   "编辑"
+  ],
+  "contentText": "远程开门 编辑 - 点击以下添加按钮可以添加设备到快捷开门列表 - 点击以下设备图标即可触发远程开门 梅联服务站288 梅联服务站198 梅联服务站298 梅联服务站208 梅联服务站308 RF433锁 人才公寓812 脑机研究院2-506 RS485门禁 东门 1号（进）刷卡机 WIFI门禁 1#2F东楼梯口刷卡机 WIFI门禁 2#2F电梯旁楼梯口刷卡机 WIFI门禁 1#1层东过道（培训室2旁）刷卡机 WIFI门禁 1#1F展厅北门刷卡机 WIFI门禁 2#1层食堂中间门刷卡机 WIFI门禁 1#2F展厅西楼梯口刷卡机 WIFI门禁 1#2F中间楼梯口刷卡机 RS485门禁 1#办公楼3（入）刷卡机 RS485门禁 1#办公楼4（入）刷卡机 RS485门禁 1#办公楼1（入）刷卡机 RS485门禁 1#办公楼2（入）刷卡机",
+  "name": "快捷远程开门",
+  "group": "设备中心",
+  "route": "/admin/device/remoteopen"
+ },
+ {
+  "target": "/admin/school/device/deviceInfo",
+  "ready": true,
+  "url": "https://wy.365ymd.com/admin/school/device/deviceInfo",
+  "hasTableDom": false,
+  "hasTree": false,
+  "hasCanvas": 0,
+  "hasCard": 0,
+  "hasDescriptions": false,
+  "hasTabs": true,
+  "tableRowsAll": 0,
+  "tableRowsData": 0,
+  "pagination": null,
+  "empty": null,
+  "headers": [],
+  "forms": [],
+  "buttons": [],
+  "contentText": "",
+  "name": "设备列表",
+  "group": "设备中心",
+  "route": "/admin/school/device/deviceInfo"
+ },
+ {
+  "target": "/admin/device/lock/view",
+  "ready": true,
+  "url": "https://wy.365ymd.com/admin/device/lock/view",
+  "hasTableDom": false,
+  "hasTree": false,
+  "hasCanvas": 0,
+  "hasCard": 0,
+  "hasDescriptions": false,
+  "hasTabs": true,
+  "tableRowsAll": 0,
+  "tableRowsData": 0,
+  "pagination": null,
+  "empty": null,
+  "headers": [],
+  "forms": [],
+  "buttons": [],
+  "contentText": "",
+  "name": "门锁列表",
+  "group": "设备中心",
+  "route": "/admin/device/lock/view"
+ },
+ {
+  "target": "/admin/device/lock/changeLockLog",
+  "ready": true,
+  "url": "https://wy.365ymd.com/admin/device/lock/changeLockLog",
+  "hasTableDom": false,
+  "hasTree": false,
+  "hasCanvas": 0,
+  "hasCard": 0,
+  "hasDescriptions": false,
+  "hasTabs": true,
+  "tableRowsAll": 0,
+  "tableRowsData": 0,
+  "pagination": null,
+  "empty": null,
+  "headers": [],
+  "forms": [],
+  "buttons": [],
+  "contentText": "",
+  "name": "换锁日志查询",
+  "group": "设备中心",
+  "route": "/admin/device/lock/changeLockLog"
+ },
+ {
+  "target": "/admin/device/monitor",
+  "note": "LINK_NOT_FOUND",
+  "name": "设备告警与转发配置",
+  "group": "告警信息",
+  "route": "/admin/device/monitor"
+ },
+ {
+  "target": "/admin/alarm/alarmInfo",
+  "note": "LINK_NOT_FOUND",
+  "name": "报警信息",
+  "group": "告警信息",
+  "route": "/admin/alarm/alarmInfo"
+ },
+ {
+  "target": "/admin/alarm/device/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "设备告警",
+  "group": "告警信息",
+  "route": "/admin/alarm/device/view"
+ },
+ {
+  "target": "/admin/alarm/alarmInfo/manager",
+  "note": "LINK_NOT_FOUND",
+  "name": "报警管理",
+  "group": "告警信息",
+  "route": "/admin/alarm/alarmInfo/manager"
+ },
+ {
+  "target": "/admin/property/warn/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "告警处理",
+  "group": "告警信息",
+  "route": "/admin/property/warn/view"
+ },
+ {
+  "target": "/admin/alarm/one/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "一键报警",
+  "group": "告警信息",
+  "route": "/admin/alarm/one/view"
+ },
+ {
+  "target": "/admin/alarm/smoke/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "烟感报警",
+  "group": "告警信息",
+  "route": "/admin/alarm/smoke/view"
+ },
+ {
+  "target": "/admin/school/card/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "卡片管理",
+  "group": "卡片信息",
+  "route": "/admin/school/card/view"
+ },
+ {
+  "target": "/admin/device/card/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "钥匙卡信息",
+  "group": "卡片信息",
+  "route": "/admin/device/card/view"
+ },
+ {
+  "target": "/admin/device/card/authCardView",
+  "note": "LINK_NOT_FOUND",
+  "name": "卡片授权信息",
+  "group": "卡片信息",
+  "route": "/admin/device/card/authCardView"
+ },
+ {
+  "target": "/admin/school/card/cardConfig",
+  "note": "LINK_NOT_FOUND",
+  "name": "制卡汇总列表",
+  "group": "卡片信息",
+  "route": "/admin/school/card/cardConfig"
+ },
+ {
+  "target": "/admin/auth/member",
+  "note": "LINK_NOT_FOUND",
+  "name": "人员授权",
+  "group": "授权中心",
+  "route": "/admin/auth/member"
+ },
+ {
+  "target": "/admin/others/groupManage",
+  "note": "LINK_NOT_FOUND",
+  "name": "组授权管理",
+  "group": "授权中心",
+  "route": "/admin/others/groupManage"
+ },
+ {
+  "target": "/admin/subManager/list",
+  "note": "LINK_NOT_FOUND",
+  "name": "二级管理员",
+  "group": "授权中心",
+  "route": "/admin/subManager/list"
+ },
+ {
+  "target": "/admin/property/lock/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "开门记录",
+  "group": "开门信息",
+  "route": "/admin/property/lock/view"
+ },
+ {
+  "target": "/admin/school/lock/faceRecord",
+  "note": "LINK_NOT_FOUND",
+  "name": "人脸开门记录",
+  "group": "开门信息",
+  "route": "/admin/school/lock/faceRecord"
+ },
+ {
+  "target": "/admin/property/lock/view1",
+  "note": "LINK_NOT_FOUND",
+  "name": "长期未开门记录",
+  "group": "开门信息",
+  "route": "/admin/property/lock/view1"
+ },
+ {
+  "target": "/admin/record/lockOpenRecord",
+  "note": "LINK_NOT_FOUND",
+  "name": "开门记录2",
+  "group": "开门信息",
+  "route": "/admin/record/lockOpenRecord"
+ },
+ {
+  "target": "/admin/user/healthcode/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "健康码记录",
+  "group": "开门信息",
+  "route": "/admin/user/healthcode/view"
+ },
+ {
+  "target": "/admin/property/rent/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "房间列表",
+  "group": "入住管理",
+  "route": "/admin/property/rent/view"
+ },
+ {
+  "target": "/admin/property/renter/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "入住人列表",
+  "group": "入住管理",
+  "route": "/admin/property/renter/view"
+ },
+ {
+  "target": "/admin/property/rentHouse/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "入住授权",
+  "group": "入住管理",
+  "route": "/admin/property/rentHouse/view"
+ },
+ {
+  "target": "/admin/user/visitor/manager",
+  "note": "LINK_NOT_FOUND",
+  "name": "访客邀请",
+  "group": "访客信息",
+  "route": "/admin/user/visitor/manager"
+ },
+ {
+  "target": "/admin/user/visitor/register",
+  "note": "LINK_NOT_FOUND",
+  "name": "访客管理",
+  "group": "访客信息",
+  "route": "/admin/user/visitor/register"
+ },
+ {
+  "target": "/admin/user/visitor/setting",
+  "note": "LINK_NOT_FOUND",
+  "name": "访客规则配置",
+  "group": "访客信息",
+  "route": "/admin/user/visitor/setting"
+ },
+ {
+  "target": "/admin/property/house/viewXinjiang",
+  "note": "LINK_NOT_FOUND",
+  "name": "房源管理",
+  "group": "房源信息",
+  "route": "/admin/property/house/viewXinjiang"
+ },
+ {
+  "target": "/admin/property/rent/viewXinjiang",
+  "note": "LINK_NOT_FOUND",
+  "name": "出租信息",
+  "group": "租赁管理",
+  "route": "/admin/property/rent/viewXinjiang"
+ },
+ {
+  "target": "/admin/property/rentHouse/viewXinjiang",
+  "note": "LINK_NOT_FOUND",
+  "name": "房屋出租",
+  "group": "租赁管理",
+  "route": "/admin/property/rentHouse/viewXinjiang"
+ },
+ {
+  "target": "/admin/rent/analyse",
+  "note": "LINK_NOT_FOUND",
+  "name": "转租分析",
+  "group": "租赁管理",
+  "route": "/admin/rent/analyse"
+ },
+ {
+  "target": "/admin/property/house/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "房源信息",
+  "group": "租赁管理",
+  "route": "/admin/property/house/view"
+ },
+ {
+  "target": "/admin/car/list",
+  "note": "LINK_NOT_FOUND",
+  "name": "车辆信息",
+  "group": "停车管理",
+  "route": "/admin/car/list"
+ },
+ {
+  "target": "/admin/record/carPass",
+  "note": "LINK_NOT_FOUND",
+  "name": "过车记录信息",
+  "group": "停车管理",
+  "route": "/admin/record/carPass"
+ },
+ {
+  "target": "/admin/car/order",
+  "note": "LINK_NOT_FOUND",
+  "name": "停车订单信息",
+  "group": "停车管理",
+  "route": "/admin/car/order"
+ },
+ {
+  "target": "/admin/others/qrcode",
+  "note": "LINK_NOT_FOUND",
+  "name": "车闸收费码管理",
+  "group": "停车管理",
+  "route": "/admin/others/qrcode"
+ },
+ {
+  "target": "/admin/parking/costRule",
+  "note": "LINK_NOT_FOUND",
+  "name": "临停收费策略",
+  "group": "停车管理",
+  "route": "/admin/parking/costRule"
+ },
+ {
+  "target": "/admin/others/brake",
+  "note": "LINK_NOT_FOUND",
+  "name": "车闸配置",
+  "group": "停车管理",
+  "route": "/admin/others/brake"
+ },
+ {
+  "target": "/admin/car/coupon/define",
+  "note": "LINK_NOT_FOUND",
+  "name": "停车券定义",
+  "group": "停车管理",
+  "route": "/admin/car/coupon/define"
+ },
+ {
+  "target": "/admin/car/coupon/order",
+  "note": "LINK_NOT_FOUND",
+  "name": "停车券订单",
+  "group": "停车管理",
+  "route": "/admin/car/coupon/order"
+ },
+ {
+  "target": "/admin/car/coupon/log",
+  "note": "LINK_NOT_FOUND",
+  "name": "停车券查询统计",
+  "group": "停车管理",
+  "route": "/admin/car/coupon/log"
+ },
+ {
+  "target": "/admin/car/carnumCorrect",
+  "note": "LINK_NOT_FOUND",
+  "name": "车牌勘误管理",
+  "group": "停车管理",
+  "route": "/admin/car/carnumCorrect"
+ },
+ {
+  "target": "/admin/car/onsetRecords",
+  "note": "LINK_NOT_FOUND",
+  "name": "车辆在场状态",
+  "group": "停车管理",
+  "route": "/admin/car/onsetRecords"
+ },
+ {
+  "target": "/admin/car/hisRecords",
+  "note": "LINK_NOT_FOUND",
+  "name": "历史在场记录",
+  "group": "停车管理",
+  "route": "/admin/car/hisRecords"
+ },
+ {
+  "target": "/admin/car/abnormalLift",
+  "note": "LINK_NOT_FOUND",
+  "name": "异常抬杆记录",
+  "group": "停车管理",
+  "route": "/admin/car/abnormalLift"
+ },
+ {
+  "target": "/admin/car/chargingRecords",
+  "note": "LINK_NOT_FOUND",
+  "name": "计费时长",
+  "group": "停车管理",
+  "route": "/admin/car/chargingRecords"
+ },
+ {
+  "target": "/admin/car/autoCorrectRule",
+  "note": "LINK_NOT_FOUND",
+  "name": "自动纠正规则配置",
+  "group": "停车管理",
+  "route": "/admin/car/autoCorrectRule"
+ },
+ {
+  "target": "/admin/car/ruleApplicationList",
+  "note": "LINK_NOT_FOUND",
+  "name": "自动纠正规则应用列表",
+  "group": "停车管理",
+  "route": "/admin/car/ruleApplicationList"
+ },
+ {
+  "target": "/admin/collector/meterReadingView",
+  "note": "LINK_NOT_FOUND",
+  "name": "水电表远程控制",
+  "group": "能源管理",
+  "route": "/admin/collector/meterReadingView"
+ },
+ {
+  "target": "/admin/collector/dialy",
+  "note": "LINK_NOT_FOUND",
+  "name": "水电表日冻结",
+  "group": "能源管理",
+  "route": "/admin/collector/dialy"
+ },
+ {
+  "target": "/admin/collector/changeMeterLog",
+  "note": "LINK_NOT_FOUND",
+  "name": "换表日志查询",
+  "group": "能源管理",
+  "route": "/admin/collector/changeMeterLog"
+ },
+ {
+  "target": "/admin/collector/log",
+  "note": "LINK_NOT_FOUND",
+  "name": "操作日志查询",
+  "group": "能源管理",
+  "route": "/admin/collector/log"
+ },
+ {
+  "target": "/admin/energy/account",
+  "note": "LINK_NOT_FOUND",
+  "name": "缴费户号管理",
+  "group": "能源管理",
+  "route": "/admin/energy/account"
+ },
+ {
+  "target": "/admin/setup/lock",
+  "note": "LINK_NOT_FOUND",
+  "name": "安装订单",
+  "group": "维保服务",
+  "route": "/admin/setup/lock"
+ },
+ {
+  "target": "/admin/lock/info",
+  "note": "LINK_NOT_FOUND",
+  "name": "来自 E锁APP的报修",
+  "group": "维保服务",
+  "route": "/admin/lock/info"
+ },
+ {
+  "target": "/admin/repair/info",
+  "note": "LINK_NOT_FOUND",
+  "name": "来自 云门道小程序的报修",
+  "group": "维保服务",
+  "route": "/admin/repair/info"
+ },
+ {
+  "target": "/admin/maintain/repair",
+  "note": "LINK_NOT_FOUND",
+  "name": "报修列表",
+  "group": "维保服务",
+  "route": "/admin/maintain/repair"
+ },
+ {
+  "target": "/admin/maintain/supRepair",
+  "note": "LINK_NOT_FOUND",
+  "name": "超管报修列表",
+  "group": "维保服务",
+  "route": "/admin/maintain/supRepair"
+ },
+ {
+  "target": "/admin/maintain/person",
+  "note": "LINK_NOT_FOUND",
+  "name": "维保人员管理",
+  "group": "维保服务",
+  "route": "/admin/maintain/person"
+ },
+ {
+  "target": "/admin/maintain/keep",
+  "note": "LINK_NOT_FOUND",
+  "name": "维修人员管理",
+  "group": "维保服务",
+  "route": "/admin/maintain/keep"
+ },
+ {
+  "target": "/admin/setup/person",
+  "note": "LINK_NOT_FOUND",
+  "name": "安装人员管理",
+  "group": "维保服务",
+  "route": "/admin/setup/person"
+ },
+ {
+  "target": "/admin/common/announcement",
+  "note": "LINK_NOT_FOUND",
+  "name": "公约公告通知",
+  "group": "智慧服务",
+  "route": "/admin/common/announcement"
+ },
+ {
+  "target": "/admin/suggest/info",
+  "note": "LINK_NOT_FOUND",
+  "name": "投诉建议",
+  "group": "智慧服务",
+  "route": "/admin/suggest/info"
+ },
+ {
+  "target": "/admin/vote/topic",
+  "note": "LINK_NOT_FOUND",
+  "name": "业主投票",
+  "group": "智慧服务",
+  "route": "/admin/vote/topic"
+ },
+ {
+  "target": "/admin/common/userHelp",
+  "note": "LINK_NOT_FOUND",
+  "name": "紧急联系",
+  "group": "智慧服务",
+  "route": "/admin/common/userHelp"
+ },
+ {
+  "target": "/admin/feerule/list",
+  "note": "LINK_NOT_FOUND",
+  "name": "收费设置",
+  "group": "智慧服务",
+  "route": "/admin/feerule/list"
+ },
+ {
+  "target": "/admin/feedback/info",
+  "note": "LINK_NOT_FOUND",
+  "name": "APP反馈管理",
+  "group": "互动管理",
+  "route": "/admin/feedback/info"
+ },
+ {
+  "target": "/admin/monitor/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "布控管理",
+  "group": "智慧安防（布控研判）",
+  "route": "/admin/monitor/view"
+ },
+ {
+  "target": "/admin/analyse/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "研判管理",
+  "group": "智慧安防（布控研判）",
+  "route": "/admin/analyse/view"
+ },
+ {
+  "target": "/admin/statistic/person/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "人员结构统计",
+  "group": "数据统计分析",
+  "route": "/admin/statistic/person/view"
+ },
+ {
+  "target": "/admin/statistic/lock/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "门锁统计",
+  "group": "数据统计分析",
+  "route": "/admin/statistic/lock/view"
+ },
+ {
+  "target": "/admin/capture/info",
+  "note": "LINK_NOT_FOUND",
+  "name": "常驻人员和访客轨迹",
+  "group": "人脸识别轨迹跟踪",
+  "route": "/admin/capture/info"
+ },
+ {
+  "target": "/admin/unusual/info",
+  "note": "LINK_NOT_FOUND",
+  "name": "未授权人员轨迹",
+  "group": "人脸识别轨迹跟踪",
+  "route": "/admin/unusual/info"
+ },
+ {
+  "target": "/admin/patrol/point",
+  "note": "LINK_NOT_FOUND",
+  "name": "巡更卡点配置",
+  "group": "智慧巡更",
+  "route": "/admin/patrol/point"
+ },
+ {
+  "target": "/admin/patrol/line",
+  "note": "LINK_NOT_FOUND",
+  "name": "巡更路线规划",
+  "group": "智慧巡更",
+  "route": "/admin/patrol/line"
+ },
+ {
+  "target": "/admin/patrol/plan",
+  "note": "LINK_NOT_FOUND",
+  "name": "巡更计划制定",
+  "group": "智慧巡更",
+  "route": "/admin/patrol/plan"
+ },
+ {
+  "target": "/admin/schedule/view?type=PATROL",
+  "note": "LINK_NOT_FOUND",
+  "name": "巡更任务下达",
+  "group": "智慧巡更",
+  "route": "/admin/schedule/view?type=PATROL"
+ },
+ {
+  "target": "/admin/patrol/task/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "巡更任务检查",
+  "group": "智慧巡更",
+  "route": "/admin/patrol/task/view"
+ },
+ {
+  "target": "/admin/clean/point/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "保洁卡点配置",
+  "group": "智慧保洁",
+  "route": "/admin/clean/point/view"
+ },
+ {
+  "target": "/admin/clean/line/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "保洁线路规划",
+  "group": "智慧保洁",
+  "route": "/admin/clean/line/view"
+ },
+ {
+  "target": "/admin/clean/plan/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "保洁计划制定",
+  "group": "智慧保洁",
+  "route": "/admin/clean/plan/view"
+ },
+ {
+  "target": "/admin/schedule/view?type=CLEAN",
+  "note": "LINK_NOT_FOUND",
+  "name": "保洁任务下达",
+  "group": "智慧保洁",
+  "route": "/admin/schedule/view?type=CLEAN"
+ },
+ {
+  "target": "/admin/clean/task/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "保洁任务检查",
+  "group": "智慧保洁",
+  "route": "/admin/clean/task/view"
+ },
+ {
+  "target": "/admin/account/info/orderList",
+  "note": "LINK_NOT_FOUND",
+  "name": "订单管理",
+  "group": "财务管理",
+  "route": "/admin/account/info/orderList"
+ },
+ {
+  "target": "/admin/record/rentOrder",
+  "note": "LINK_NOT_FOUND",
+  "name": "租赁订单",
+  "group": "财务管理",
+  "route": "/admin/record/rentOrder"
+ },
+ {
+  "target": "/admin/order/hotel/view",
+  "note": "LINK_NOT_FOUND",
+  "name": "自助机订单管理",
+  "group": "财务管理",
+  "route": "/admin/order/hotel/view"
+ },
+ {
+  "target": "/admin/trade/refund/tkList",
+  "note": "LINK_NOT_FOUND",
+  "name": "退款管理",
+  "group": "财务管理",
+  "route": "/admin/trade/refund/tkList"
+ },
+ {
+  "target": "/admin/withdrawal/info/sh/info",
+  "note": "LINK_NOT_FOUND",
+  "name": "提现管理",
+  "group": "财务管理",
+  "route": "/admin/withdrawal/info/sh/info"
+ },
+ {
+  "target": "/admin/bankCard/info",
+  "note": "LINK_NOT_FOUND",
+  "name": "银行卡管理",
+  "group": "财务管理",
+  "route": "/admin/bankCard/info"
+ },
+ {
+  "target": "/admin/account/info/detail",
+  "note": "LINK_NOT_FOUND",
+  "name": "账户信息",
+  "group": "财务管理",
+  "route": "/admin/account/info/detail"
+ },
+ {
+  "target": "/admin/account/info/ptOrderList",
+  "note": "LINK_NOT_FOUND",
+  "name": "订单管理",
+  "group": "财务管理(平台)",
+  "route": "/admin/account/info/ptOrderList"
+ },
+ {
+  "target": "/admin/trade/dz/dz",
+  "note": "LINK_NOT_FOUND",
+  "name": "对账管理",
+  "group": "财务管理(平台)",
+  "route": "/admin/trade/dz/dz"
+ },
+ {
+  "target": "/admin/devicestorage/menJin",
+  "note": "LINK_NOT_FOUND",
+  "name": "门禁门锁入库",
+  "group": "设备入库",
+  "route": "/admin/devicestorage/menJin"
+ },
+ {
+  "target": "/admin/devicestorage/tiKong",
+  "note": "LINK_NOT_FOUND",
+  "name": "梯控设备入库",
+  "group": "设备入库",
+  "route": "/admin/devicestorage/tiKong"
+ },
+ {
+  "target": "/admin/devicestorage/brakes",
+  "note": "LINK_NOT_FOUND",
+  "name": "车闸设备入库",
+  "group": "设备入库",
+  "route": "/admin/devicestorage/brakes"
+ },
+ {
+  "target": "/admin/device/import/collector",
+  "note": "LINK_NOT_FOUND",
+  "name": "采集器入库",
+  "group": "设备入库",
+  "route": "/admin/device/import/collector"
+ },
+ {
+  "target": "/admin/device/import/brakebox",
+  "note": "LINK_NOT_FOUND",
+  "name": "车闸盒子入库",
+  "group": "设备入库",
+  "route": "/admin/device/import/brakebox"
+ },
+ {
+  "target": "/admin/devicestorage/meter",
+  "note": "LINK_NOT_FOUND",
+  "name": "水电表入库",
+  "group": "设备入库",
+  "route": "/admin/devicestorage/meter"
+ },
+ {
+  "target": "/admin/device/import/gateway",
+  "note": "LINK_NOT_FOUND",
+  "name": "网关入库",
+  "group": "设备入库",
+  "route": "/admin/device/import/gateway"
+ },
+ {
+  "target": "/admin/auditmanage/workorder",
+  "note": "LINK_NOT_FOUND",
+  "name": "工单审核",
+  "group": "审核管理",
+  "route": "/admin/auditmanage/workorder"
+ },
+ {
+  "target": "/admin/auditmanage/worksheet",
+  "note": "LINK_NOT_FOUND",
+  "name": "工作单审核",
+  "group": "审核管理",
+  "route": "/admin/auditmanage/worksheet"
+ },
+ {
+  "target": "/admin/others/debug",
+  "note": "LINK_NOT_FOUND",
+  "name": "读卡器调试",
+  "group": "开发工具",
+  "route": "/admin/others/debug"
+ },
+ {
+  "target": "/admin/cms?key=login_whitelist&title=%E9%9D%99%E9%BB%98%E7%99%BB%E5%BD%95%E7%BB%84%E7%BB%87%E9%85%8D%E7%BD%AE",
+  "note": "LINK_NOT_FOUND",
+  "name": "静默登录组织配置",
+  "group": "开发工具",
+  "route": "/admin/cms?key=login_whitelist&title=%E9%9D%99%E9%BB%98%E7%99%BB%E5%BD%95%E7%BB%84%E7%BB%87%E9%85%8D%E7%BD%AE"
+ },
+ {
+  "target": "/admin/app/safe",
+  "note": "LINK_NOT_FOUND",
+  "name": "app安全周期配置",
+  "group": "开发工具",
+  "route": "/admin/app/safe"
+ },
+ {
+  "target": "/admin/app/version",
+  "note": "LINK_NOT_FOUND",
+  "name": "app版本管理",
+  "group": "开发工具",
+  "route": "/admin/app/version"
+ },
+ {
+  "target": "/admin/others/test",
+  "note": "LINK_NOT_FOUND",
+  "name": "灰度白名单配置",
+  "group": "开发工具",
+  "route": "/admin/others/test"
+ },
+ {
+  "target": "/admin/others/netenvconfig",
+  "note": "LINK_NOT_FOUND",
+  "name": "网络环境配置",
+  "group": "开发工具",
+  "route": "/admin/others/netenvconfig"
+ },
+ {
+  "target": "/admin/others/logerror",
+  "note": "LINK_NOT_FOUND",
+  "name": "开门记录时间异常日志",
+  "group": "开发工具",
+  "route": "/admin/others/logerror"
+ },
+ {
+  "target": "/admin/app/sdk",
+  "note": "LINK_NOT_FOUND",
+  "name": "SDK管理",
+  "group": "开发工具",
+  "route": "/admin/app/sdk"
+ },
+ {
+  "target": "/admin/others/appagent",
+  "note": "LINK_NOT_FOUND",
+  "name": "代理商管理",
+  "group": "开发工具",
+  "route": "/admin/others/appagent"
+ },
+ {
+  "target": "/admin/others/appuser",
+  "note": "LINK_NOT_FOUND",
+  "name": "APP用户管理",
+  "group": "开发工具",
+  "route": "/admin/others/appuser"
+ },
+ {
+  "target": "/admin/record/openConfig",
+  "note": "LINK_NOT_FOUND",
+  "name": "开门记录推送配置",
+  "group": "开发工具",
+  "route": "/admin/record/openConfig"
+ },
+ {
+  "target": "/admin/setting/configSetting",
+  "note": "LINK_NOT_FOUND",
+  "name": "私有化配置",
+  "group": "开发工具",
+  "route": "/admin/setting/configSetting"
+ },
+ {
+  "target": "/admin/devTools/whDevTool/index",
+  "note": "LINK_NOT_FOUND",
+  "name": "武汉项目升级维护",
+  "group": "开发工具",
+  "route": "/admin/devTools/whDevTool/index"
+ },
+ {
+  "target": "/admin/device/lock/import",
+  "note": "LINK_NOT_FOUND",
+  "name": "宁巢房管局导入",
+  "group": "第三方数据导入",
+  "route": "/admin/device/lock/import"
+ },
+ {
+  "target": "/admin/monitor/log",
+  "note": "LINK_NOT_FOUND",
+  "name": "操作日志",
+  "group": "日志管理",
+  "route": "/admin/monitor/log"
+ },
+ {
+  "target": "/admin/visitorAuth/visitor",
+  "note": "LINK_NOT_FOUND",
+  "name": "访客码记录",
+  "group": "日志管理",
+  "route": "/admin/visitorAuth/visitor"
+ },
+ {
+  "target": "/admin/record/pestil",
+  "note": "LINK_NOT_FOUND",
+  "name": "防疫通行日志",
+  "group": "日志管理",
+  "route": "/admin/record/pestil"
+ },
+ {
+  "target": "/admin/others/idcard",
+  "ready": true,
+  "url": "https://wy.365ymd.com/admin/others/idcard",
+  "hasTableDom": false,
+  "hasTree": false,
+  "hasCanvas": 0,
+  "hasCard": 1,
+  "hasDescriptions": false,
+  "hasTabs": true,
+  "tableRowsAll": 0,
+  "tableRowsData": 0,
+  "pagination": null,
+  "empty": "请使用搜索查询,需要输入两个条件才可以查询",
+  "headers": [],
+  "forms": [
+   "姓名",
+   "手机号",
+   "身份证后四位"
+  ],
+  "buttons": [
+   "导出入住人员信息",
+   "搜 索",
+   "重 置"
+  ],
+  "contentText": "身份证查询 导出入住人员信息 姓名 手机号 身份证后四位 搜 索 重 置 请使用搜索查询,需要输入两个条件才可以查询",
+  "name": "身份查询",
+  "group": "身份查询",
+  "route": "/admin/others/idcard"
+ },
+ {
+  "target": "/admin/system/role",
+  "note": "LINK_NOT_FOUND",
+  "name": "角色管理",
+  "group": "系统管理",
+  "route": "/admin/system/role"
+ },
+ {
+  "target": "/admin/system/person",
+  "note": "LINK_NOT_FOUND",
+  "name": "人员类型管理",
+  "group": "系统管理",
+  "route": "/admin/system/person"
+ },
+ {
+  "target": "/admin/system/post",
+  "note": "LINK_NOT_FOUND",
+  "name": "岗位管理",
+  "group": "系统管理",
+  "route": "/admin/system/post"
+ },
+ {
+  "target": "/admin/system/dept",
+  "note": "LINK_NOT_FOUND",
+  "name": "组织管理",
+  "group": "系统管理",
+  "route": "/admin/system/dept"
+ },
+ {
+  "target": "/admin/system/user",
+  "note": "LINK_NOT_FOUND",
+  "name": "用户管理",
+  "group": "系统管理",
+  "route": "/admin/system/user"
+ },
+ {
+  "target": "/admin/system/menu",
+  "note": "LINK_NOT_FOUND",
+  "name": "菜单管理",
+  "group": "系统管理",
+  "route": "/admin/system/menu"
+ },
+ {
+  "target": "/admin/system/session",
+  "note": "LINK_NOT_FOUND",
+  "name": "会话管理",
+  "group": "系统管理",
+  "route": "/admin/system/session"
+ },
+ {
+  "target": "/admin/system/dict",
+  "note": "LINK_NOT_FOUND",
+  "name": "数据字典",
+  "group": "系统管理",
+  "route": "/admin/system/dict"
+ },
+ {
+  "target": "/admin/user/realname",
+  "note": "LINK_NOT_FOUND",
+  "name": "组织实名",
+  "group": "系统管理",
+  "route": "/admin/user/realname"
+ },
+ {
+  "target": "/admin/system/verifyXy",
+  "note": "LINK_NOT_FOUND",
+  "name": "实名认证",
+  "group": "系统管理",
+  "route": "/admin/system/verifyXy"
+ },
+ {
+  "target": "/admin/rental/2/list",
+  "note": "LINK_NOT_FOUND",
+  "name": "门锁资料收集",
+  "group": "系统管理",
+  "route": "/admin/rental/2/list"
+ },
+ {
+  "target": "/admin/app/menu/diy",
+  "note": "LINK_NOT_FOUND",
+  "name": "小程序首页菜单配置",
+  "group": "系统管理",
+  "route": "/admin/app/menu/diy"
+ }
+]
