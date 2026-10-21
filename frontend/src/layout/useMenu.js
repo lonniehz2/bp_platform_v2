@@ -4,7 +4,8 @@ import { useAuthStore } from '@/store/auth'
 
 /** 一级分组顺序（两种风格共用） */
 export const GROUP_ORDER = [
-  '仪表盘', '会员', '线索', '房源', '合同', '财务', '管理后台', '更多'
+  '运营总览', '保障对象', '资格准入', '合同管理', '账务收费',
+  '授权与交房', '服务与监督', '资产台账', '系统与集成'
 ]
 
 export const GROUP_ICON = {
@@ -14,7 +15,11 @@ export const GROUP_ICON = {
   房源: 'OfficeBuilding',
   合同: 'Document',
   财务: 'Money',
-  管理后台: 'Setting',
+  合同管理: 'Document',
+  授权与交房: 'Key',
+  服务与监督: 'Service',
+  资产台账: 'OfficeBuilding',
+  系统与集成: 'Setting',
   更多: 'Grid'
 }
 
@@ -44,50 +49,51 @@ const MENU_RANK = {
  * 完全独立，两套并存以便对比两种信息架构。
  */
 export const CLASSIC_ORDER = [
-  '运营总览', '资格准入', '配租与合同', '账务收费',
-  '退出与监督', '资产与设备', '服务与协同', '组织与系统'
+  '运营总览', '保障对象', '资格准入', '合同管理', '账务收费',
+  '授权与交房', '服务与监督', '资产台账', '系统与集成'
 ]
 
 export const CLASSIC_ICON = {
   运营总览: 'DataBoard',
+  保障对象: 'UserFilled',
   资格准入: 'Tickets',
-  配租与合同: 'Document',
+  合同管理: 'Document',
   账务收费: 'Money',
-  退出与监督: 'SwitchButton',
-  资产与设备: 'OfficeBuilding',
-  服务与协同: 'Service',
-  组织与系统: 'Setting'
+  授权与交房: 'Key',
+  服务与监督: 'Service',
+  资产台账: 'OfficeBuilding',
+  系统与集成: 'Setting'
 }
 
 /** 路径 → 风格1 分组 */
 const CLASSIC_GROUP = {
   '/dashboard': '运营总览', '/reports': '运营总览', '/todos': '运营总览',
 
-  '/persons': '资格准入', '/applications': '资格准入',
-  '/waitlist': '资格准入', '/publicities': '资格准入',
-  '/annual-reviews': '资格准入',
+  '/persons': '保障对象', '/annual-reviews': '保障对象',
 
-  '/allocations': '配租与合同', '/contracts': '配租与合同',
-  '/contract-changes': '配租与合同', '/exchanges': '配租与合同',
+  '/applications': '资格准入', '/waitlist': '资格准入',
+  '/allocations': '资格准入', '/publicities': '资格准入',
+
+  '/contracts': '合同管理', '/contract-changes': '合同管理',
+  '/exchanges': '合同管理', '/terminations': '合同管理',
 
   '/fee-items': '账务收费', '/bills': '账务收费', '/deposits': '账务收费',
   '/arrears': '账务收费', '/subsidies': '账务收费', '/cashflow': '账务收费',
 
-  '/terminations': '退出与监督', '/credits': '退出与监督',
-  '/appeals': '退出与监督',
+  '/devices': '授权与交房', '/access': '授权与交房',
+  '/keyring': '授权与交房', '/grants': '授权与交房',
 
-  '/houses': '资产与设备', '/spaces': '资产与设备',
-  '/house-calendar': '资产与设备', '/short-rent': '资产与设备',
-  '/devices': '资产与设备', '/access': '资产与设备',
-  '/keyring': '资产与设备', '/grants': '资产与设备',
+  '/workorders': '服务与监督', '/complaints': '服务与监督',
+  '/appeals': '服务与监督', '/visits': '服务与监督',
+  '/credits': '服务与监督', '/alerts': '服务与监督',
+  '/messages': '服务与监督',
 
-  '/workorders': '服务与协同', '/alerts': '服务与协同',
-  '/complaints': '服务与协同', '/visits': '服务与协同',
-  '/messages': '服务与协同',
+  '/houses': '资产台账', '/spaces': '资产台账',
+  '/house-calendar': '资产台账', '/short-rent': '资产台账',
 
-  '/orgs': '组织与系统', '/rbac': '组织与系统', '/sys': '组织与系统',
-  '/ops-center': '组织与系统', '/ops-extras': '组织与系统',
-  '/open': '组织与系统', '/gov': '组织与系统'
+  '/orgs': '系统与集成', '/rbac': '系统与集成', '/sys': '系统与集成',
+  '/ops-center': '系统与集成', '/ops-extras': '系统与集成',
+  '/open': '系统与集成', '/gov': '系统与集成'
 }
 
 /**
@@ -97,6 +103,11 @@ const CLASSIC_GROUP = {
  * 始终不展开（另 3 个页面正常）。name 由路由定义决定、不受 path 参数影响。
  */
 export const TAB_MENU = {
+  persons: [
+    { tab: 'person', title: '人员档案' },
+    { tab: 'profile', title: '保障档案' },
+    { tab: 'verify', title: '实名核验' }
+  ],
   opsextras: [
     { tab: 'msg', title: '消息待办' },
     { tab: 'rule', title: '告警规则' },
@@ -124,6 +135,7 @@ export const TAB_MENU = {
 
 /** 路由 name → 基础路径（拼子菜单 URL 用） */
 const NAME_BASE = {
+  persons: '/persons',
   opsextras: '/ops-extras',
   rbac: '/rbac',
   sys: '/sys',

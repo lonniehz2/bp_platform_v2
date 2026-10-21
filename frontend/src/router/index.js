@@ -104,7 +104,7 @@ export const menuRoutes = [
     meta: { title: '授权与对账', icon: 'Link', group: '房源', perm: 'grant:manage' }
   },
   {
-    path: '/persons',
+    path: '/persons/:tab?',
     name: 'persons',
     component: () => import('@/views/Persons.vue'),
     meta: { title: '人员档案', icon: 'UserFilled', group: '会员' }

@@ -361,12 +361,23 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
 
-const tab = ref('person')
+const route = useRoute()
+const router = useRouter()
+const TABS = ['person', 'profile', 'verify']
+const tab = ref(TABS.includes(route.params.tab) ? route.params.tab : 'person')
+// 侧边栏点不同子项时切换 tab；页内切 tab 时同步地址
+watch(() => route.params.tab, (v) => {
+  if (v && TABS.includes(v) && v !== tab.value) { tab.value = v; onTab(v) }
+})
+watch(tab, (v) => {
+  if (route.params.tab !== v) router.replace('/persons/' + v)
+})
 const loading = ref(false)
 const saving = ref(false)
 const orgId = ref(null)
