@@ -10,6 +10,8 @@
         <el-option v-for="o in orgOptions" :key="o.id"
                    :label="orgOptionLabel(o)" :value="Number(o.id)" />
       </el-select>
+      <el-checkbox v-model="includeChildren" :disabled="!orgId"
+                   data-testid="person-org-children">含下级</el-checkbox>
       <el-button type="primary" @click="reloadAll">查询</el-button>
       <el-button @click="resetAllQuery">清空</el-button>
     </div>
@@ -359,6 +361,8 @@ const tab = ref('person')
 const loading = ref(false)
 const saving = ref(false)
 const orgId = ref(null)
+/** 组织筛选是否包含下级组织 */
+const includeChildren = ref(false)
 /** 组织下拉选项（显示名称，内部传 ID） */
 const orgOptions = ref([])
 function orgNameOf(id) {

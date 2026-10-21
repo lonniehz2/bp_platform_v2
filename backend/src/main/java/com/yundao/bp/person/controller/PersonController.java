@@ -46,8 +46,10 @@ public class PersonController {
                                         @RequestParam(defaultValue = "20") long pageSize,
                                         @RequestParam(required = false) String keyword,
                                         @RequestParam(required = false) Long orgId,
-                                        @RequestParam(required = false) String personStatus) {
-        return R.ok(personService.page(pageNum, pageSize, keyword, orgId, personStatus));
+                                        @RequestParam(required = false) String personStatus,
+            @RequestParam(required = false) Boolean includeChildren) {
+        return R.ok(personService.page(pageNum, pageSize, keyword, orgId, personStatus,
+                includeChildren));
     }
 
     /** 按身份证号精确查找（走哈希列）。未找到返回 null 而非 404。 */

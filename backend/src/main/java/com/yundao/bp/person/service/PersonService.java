@@ -16,7 +16,7 @@ public interface PersonService {
 
     /** 分页查询（支持姓名模糊、组织、状态过滤）。 */
     PageResult<PersonVO> page(long pageNum, long pageSize, String keyword,
-                              Long orgId, String personStatus);
+                              Long orgId, String personStatus, Boolean includeChildren);
 
     /** 按身份证号精确查找（走哈希列，不比对密文）。 */
     PersonVO findByIdCard(String idCard);

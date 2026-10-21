@@ -37,10 +37,36 @@ public class PersonServiceImpl implements PersonService {
     private static final Set<String> VALID_STATUS = Set.of("NORMAL", "BLACKLIST", "CANCELLED");
 
     private final PersonMapper personMapper;
+    private final com.yundao.bp.iam.mapper.IamOrgMapper orgMapper;
+
+    /** 取某组织及其所有下级组织的 ID（按 org_path 前缀匹配） */
+    private java.util.List<Long> orgSubtreeIds(Long orgId) {
+        // 逐层按 parent_id 展开，不依赖 org_path ——
+        // 根节点的 org_path 是空串，用 startsWith 会匹配到全部组织（曾导致「含下级」返回全量）
+        java.util.List<com.yundao.bp.iam.entity.IamOrg> all = orgMapper.selectList(null);
+        java.util.Set<Long> ids = new java.util.LinkedHashSet<>();
+        ids.add(orgId);
+        java.util.Set<Long> frontier = new java.util.HashSet<>();
+        frontier.add(orgId);
+        for (int round = 0; round < 10 && !frontier.isEmpty(); round++) {
+            java.util.Set<Long> next = new java.util.HashSet<>();
+            for (com.yundao.bp.iam.entity.IamOrg o : all) {
+                if (o.getParentId() != null && frontier.contains(o.getParentId())
+                        && ids.add(o.getId())) {
+                    next.add(o.getId());
+                }
+            }
+            frontier = next;
+        }
+        return new java.util.ArrayList<>(ids);
+    }
+
     private final SnowflakeIdGenerator idGen;
 
-    public PersonServiceImpl(PersonMapper personMapper, SnowflakeIdGenerator idGen) {
+    public PersonServiceImpl(PersonMapper personMapper,
+                             com.yundao.bp.iam.mapper.IamOrgMapper orgMapper, SnowflakeIdGenerator idGen) {
         this.personMapper = personMapper;
+        this.orgMapper = orgMapper;
         this.idGen = idGen;
     }
 
@@ -128,15 +154,25 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public PageResult<PersonVO> page(long pageNum, long pageSize, String keyword,
-                                     Long orgId, String personStatus) {
+                                     Long orgId, String personStatus,
+                                     Boolean includeChildren) {
         LambdaQueryWrapper<Person> qw = new LambdaQueryWrapper<Person>()
-                .eq(orgId != null, Person::getOrgId, orgId)
+                .eq(orgId != null && !Boolean.TRUE.equals(includeChildren),
+                        Person::getOrgId, orgId)
                 .eq(personStatus != null && !personStatus.isBlank(),
                         Person::getPersonStatus, personStatus)
                 .orderByDesc(Person::getId);
         if (keyword != null && !keyword.isBlank()) {
             qw.and(w -> w.like(Person::getPersonName, keyword)
                     .or().like(Person::getPersonCode, keyword));
+        }
+        // 含下级：按 org_path 前缀取整棵子树（组织是树，见 bp_iam_org 的 parent_id/org_path）
+        if (orgId != null && Boolean.TRUE.equals(includeChildren)) {
+            java.util.List<Long> ids = orgSubtreeIds(orgId);
+            if (ids.isEmpty()) {
+                return PageResult.of(0, pageNum, pageSize, new java.util.ArrayList<>());
+            }
+            qw.in(Person::getOrgId, ids);
         }
         IPage<Person> page = personMapper.selectPage(new Page<>(pageNum, pageSize), qw);
         List<PersonVO> rows = page.getRecords().stream().map(PersonVO::from).toList();
