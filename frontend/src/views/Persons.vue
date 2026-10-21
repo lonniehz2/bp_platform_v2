@@ -65,7 +65,9 @@
       <el-tab-pane label="保障档案" name="profile">
         <div class="toolbar">
           <el-button type="success" @click="profileVisible = true">建档</el-button>
-          <el-button @click="loadExpiring">临近到期（30 天）</el-button>
+          <el-button @click="loadExpiring">临近到期</el-button>
+          <el-input v-model.number="expiringDays" placeholder="天数" style="width:90px"
+                    data-testid="expiring-days" @keyup.enter="loadExpiring" />
           <div class="spacer" />
           <el-input v-model="profilePersonId" placeholder="人员ID 查看单人档案"
                     style="width:220px" />
@@ -335,6 +337,8 @@ const gTotal = ref(0)
 const gQuery = reactive({ pageNum: 1, pageSize: 20 })
 const profileVisible = ref(false)
 const profilePersonId = ref(null)
+/** 临近到期天数（后端参数名 withinDays） */
+const expiringDays = ref(30)
 const gf = reactive({ personId: null, securityType: 'PUBLIC', familySize: 1,
   familyType: 'SINGLE', monthlyIncome: 0, assetDeclare: 0, hasHouse: 0,
   hasVehicle: 0 })
@@ -518,10 +522,13 @@ async function doCreateProfile() {
   } finally { saving.value = false }
 }
 async function loadExpiring() {
-  const d = await req.get('/guarantee-profiles/expiring', { params: { days: 30 } })
+  // 后端参数名是 withinDays；此前传 days 会被忽略，等于永远用默认值
+  const d = await req.get('/guarantee-profiles/expiring', {
+    params: { withinDays: expiringDays.value || undefined }
+  })
   profiles.value = Array.isArray(d) ? d : (d.rows || [])
   gTotal.value = profiles.value.length
-  ElMessage.success('临近到期：' + profiles.value.length + ' 条')
+  ElMessage.success(`临近到期（${expiringDays.value} 天）：${profiles.value.length} 条`)
 }
 async function loadProfileByPerson() {
   if (!profilePersonId.value) { ElMessage.warning('请填写人员ID'); return }
