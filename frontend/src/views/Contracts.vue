@@ -106,6 +106,7 @@
               <el-option label="按套·月" value="HOUSE_MONTH" />
               <el-option label="按床位·月" value="BED_MONTH" />
               <el-option label="按套·夜" value="HOUSE_NIGHT" />
+              <el-option label="按床·夜" value="BED_NIGHT" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="押金">
             <el-input v-model.number="c.depositAmount" data-testid="c-deposit" /></el-form-item></el-col>

@@ -102,6 +102,7 @@
               <el-option label="元/套·月" value="HOUSE_MONTH" />
               <el-option label="元/床·月" value="BED_MONTH" />
               <el-option label="元/套·夜" value="HOUSE_NIGHT" />
+              <el-option label="元/床·夜" value="BED_NIGHT" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="最大入住">
             <el-input-number v-model="f.maxCapacity" :min="1" style="width:100%" />

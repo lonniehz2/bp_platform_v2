@@ -94,7 +94,9 @@ public class ContractServiceImpl implements ContractService {
         e.setLeaseEnd(cmd.leaseEnd());
         e.setLeaseMonths(months);
         e.setRentPrice(cmd.rentPrice() == null ? null : money(cmd.rentPrice()));
-        e.setRentUnit(blankToNull(cmd.rentUnit()) == null ? "HOUSE_MONTH" : cmd.rentUnit());
+        e.setRentUnit(blankToNull(cmd.rentUnit()) == null ? defaultRentUnit(cmd.contractType())
+                : cmd.rentUnit());
+        checkRentUnitForBizType(cmd.contractType(), e.getRentUnit());
         e.setMonthlyRent(money(cmd.monthlyRent()));
         e.setDepositAmount(deposit);
         e.setSubsidyAmount(subsidy);
@@ -308,6 +310,50 @@ public class ContractServiceImpl implements ContractService {
 
     /** 空值归零，并统一金额为 2 位小数（含税金额规范）。 */
     /** 金额统一 2 位小数。 */
+    /**
+     * 按业态给出默认租金单位。
+     *
+     * <p>多业态扩展的第一个落点：不同业态的计价口径不同——
+     * 宿舍按「床·月」、酒店/民宿按「套·夜」、保障房与公寓按「面积/套·月」。
+     */
+    private static String defaultRentUnit(String contractType) {
+        if (contractType == null) {
+            return "HOUSE_MONTH";
+        }
+        return switch (contractType) {
+            case "DORMITORY" -> "BED_MONTH";
+            case "SERVICE" -> "HOUSE_NIGHT";
+            default -> "HOUSE_MONTH";
+        };
+    }
+
+    /**
+     * 校验租金单位与业态是否匹配（多业态约束）。
+     *
+     * <p>规则：
+     * <ul>
+     *   <li>宿舍 DORMITORY：只能按床·月或套·月（不能按面积、不能按夜）</li>
+     *   <li>服务式公寓/日租 SERVICE：只能按套·夜</li>
+     *   <li>其余（公租/保租/人才/租赁 LEASE）：按面积·月或套·月</li>
+     * </ul>
+     */
+    private static void checkRentUnitForBizType(String contractType, String rentUnit) {
+        if (contractType == null || rentUnit == null || rentUnit.isBlank()) {
+            return;
+        }
+        java.util.Set<String> allowed = switch (contractType) {
+            // 床位类（宿舍/青旅）：可按床·月，也可按床·夜
+            case "DORMITORY" -> java.util.Set.of("BED_MONTH", "BED_NIGHT", "HOUSE_MONTH");
+            // 按夜计价（酒店公寓/民宿/日租）：套·夜或床·夜
+            case "SERVICE" -> java.util.Set.of("HOUSE_NIGHT", "BED_NIGHT");
+            default -> java.util.Set.of("AREA_MONTH", "HOUSE_MONTH");
+        };
+        if (!allowed.contains(rentUnit)) {
+            throw BizException.paramInvalid("业态 " + contractType + " 不支持租金单位 " + rentUnit
+                    + "，可选：" + String.join("/", allowed));
+        }
+    }
+
     private static BigDecimal money(BigDecimal v) {
         return (v == null ? BigDecimal.ZERO : v).setScale(2, java.math.RoundingMode.HALF_UP);
     }

@@ -81,7 +81,7 @@ public record HouseCreateCmd(
         @DecimalMin(value = "0", message = "租金标准不能为负")
         BigDecimal rentStandard,
 
-        @Pattern(regexp = "^$|AREA_MONTH|HOUSE_MONTH|BED_MONTH|HOUSE_NIGHT", message = "租金计价单位不合法")
+        @Pattern(regexp = "^$|AREA_MONTH|HOUSE_MONTH|BED_MONTH|HOUSE_NIGHT|BED_NIGHT", message = "租金计价单位不合法")
         String rentUnit,
 
         @Min(value = 1, message = "最大入住人数至少为 1")

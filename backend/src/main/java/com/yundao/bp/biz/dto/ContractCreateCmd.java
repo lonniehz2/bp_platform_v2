@@ -48,7 +48,7 @@ public record ContractCreateCmd(
         @DecimalMin(value = "0", message = "租金单价不能为负")
         BigDecimal rentPrice,
 
-        @Pattern(regexp = "^$|AREA_MONTH|HOUSE_MONTH|BED_MONTH|HOUSE_NIGHT",
+        @Pattern(regexp = "^$|AREA_MONTH|HOUSE_MONTH|BED_MONTH|HOUSE_NIGHT|BED_NIGHT",
                 message = "租金单位不合法")
         String rentUnit,
 
