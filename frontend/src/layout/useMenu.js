@@ -90,11 +90,65 @@ const CLASSIC_GROUP = {
   '/open': '组织与系统', '/gov': '组织与系统'
 }
 
+/**
+ * 多 tab 页面的子菜单：把每个 tab 暴露成侧边栏可点项。
+ *
+ * 这些不是独立路由（页面仍是 /ops-extras/:tab?），只用于菜单展示与跳转；
+ * 因此不会影响路由数量，也不会让冒烟脚本的页面枚举发生漂移。
+ */
+export const TAB_MENU = {
+  '/ops-extras': [
+    { tab: 'msg', title: '消息待办' },
+    { tab: 'rule', title: '告警规则' },
+    { tab: 'open', title: '开放平台' },
+    { tab: 'rbac', title: '权限管理' },
+    { tab: 'grant', title: '授权撤销' },
+    { tab: 'calendar', title: '日房态' }
+  ],
+  '/rbac': [
+    { tab: 'user', title: '用户管理' },
+    { tab: 'role', title: '角色管理' },
+    { tab: 'perm', title: '权限清单' }
+  ],
+  '/sys': [
+    { tab: 'audit', title: '审计日志' },
+    { tab: 'dict', title: '数据字典' },
+    { tab: 'config', title: '系统参数' }
+  ],
+  '/ops-center': [
+    { tab: 'person', title: '人员状态' },
+    { tab: 'house', title: '房源状态' },
+    { tab: 'order', title: '工单流程' }
+  ]
+}
+
 export function useMenu() {
   const auth = useAuthStore()
 
-  const menus = computed(() =>
-    menuRoutes.filter((m) => !m.meta?.perm || auth.has(m.meta.perm)))
+  /** 有子菜单的页面本身不再单独出现，避免「父项 + 子项」重复 */
+  const menus = computed(() => {
+    const base = menuRoutes.filter((m) => !m.meta?.perm || auth.has(m.meta.perm))
+    const out = []
+    for (const m of base) {
+      // 路由 path 可能带可选参数（'/rbac/:tab?'），查子菜单要用基础路径
+      const basePath = m.path.split('/:')[0]
+      const tabs = TAB_MENU[basePath]
+      if (!tabs) {
+        out.push(basePath === m.path ? m : { ...m, path: basePath })
+        continue
+      }
+      for (const t of tabs) {
+        out.push({
+          path: basePath + '/' + t.tab,
+          name: m.name + '-' + t.tab,
+          meta: { ...m.meta, title: t.title },
+          // 记下父路径，分组与排序回退到父项
+          _parent: basePath
+        })
+      }
+    }
+    return out
+  })
 
   /** 按一级分组，组内按 MENU_RANK 排序 */
   const groups = computed(() => {
@@ -102,7 +156,7 @@ export function useMenu() {
     for (const name of GROUP_ORDER) {
       const items = menus.value
         .filter((m) => (m.meta?.group || '更多') === name)
-        .sort((a, b) => (MENU_RANK[a.path] || 999) - (MENU_RANK[b.path] || 999))
+        .sort((a, b) => rankOf(a) - rankOf(b))
       if (items.length) {
         out.push({ name, icon: GROUP_ICON[name] || 'Menu', items })
       }
@@ -115,8 +169,8 @@ export function useMenu() {
     const out = []
     for (const name of CLASSIC_ORDER) {
       const items = menus.value
-        .filter((m) => CLASSIC_GROUP[m.path] === name)
-        .sort((a, b) => (MENU_RANK[a.path] || 999) - (MENU_RANK[b.path] || 999))
+        .filter((m) => (CLASSIC_GROUP[m.path] || CLASSIC_GROUP[m._parent]) === name)
+        .sort((a, b) => rankOf(a) - rankOf(b))
       if (items.length) {
         out.push({ name, icon: CLASSIC_ICON[name] || 'Menu', items })
       }
@@ -124,13 +178,32 @@ export function useMenu() {
     return out
   })
 
+  /** 排序权重：子菜单项排在父项位置后，保持原有顺序 */
+  function rankOf(m) {
+    const base = MENU_RANK[m._parent || m.path]
+    if (base === undefined) return 999
+    if (!m._parent) return base
+    const tabs = TAB_MENU[m._parent] || []
+    const idx = tabs.findIndex((t) => m.path === m._parent + '/' + t.tab)
+    return base + (idx < 0 ? 0 : idx / 100)
+  }
+
   function titleOf(path) {
-    return menuRoutes.find((m) => m.path === path)?.meta?.title || '页面'
+    const hit = menuRoutes.find((m) => m.path === path)
+    if (hit) return hit.meta?.title || '页面'
+    // 子菜单路径（/ops-extras/rule）回查 TAB_MENU
+    const cut = path.lastIndexOf('/')
+    const base = path.slice(0, cut)
+    const tab = path.slice(cut + 1)
+    const t = (TAB_MENU[base] || []).find((x) => x.tab === tab)
+    return t ? t.title : '页面'
   }
 
   function groupOf(path) {
     const hit = menuRoutes.find((m) => m.path === path)
-    return hit?.meta?.group || '仪表盘'
+    if (hit) return hit.meta?.group || '仪表盘'
+    const base = path.slice(0, path.lastIndexOf('/'))
+    return menuRoutes.find((m) => m.path === base)?.meta?.group || '仪表盘'
   }
 
   return { menus, groups, classicGroups, titleOf, groupOf }
