@@ -27,10 +27,10 @@
         </div>
         <el-table :data="persons" v-loading="loading" border size="small">
           <el-table-column prop="personName" label="姓名" width="110" />
-          <el-table-column prop="idCard" label="证件号" width="190">
+          <el-table-column prop="idCardMask" label="证件号" width="190">
             <template #default="{ row }">{{ row.idCard || row.idCardMask || '-' }}</template>
           </el-table-column>
-          <el-table-column prop="phone" label="手机号" width="140" />
+          <el-table-column prop="phoneMask" label="手机号" width="140" />
           <el-table-column label="户籍" width="90">
             <template #default="{ row }">{{ enumLabel('householdType', row.householdType) }}</template>
           </el-table-column>
@@ -153,7 +153,8 @@
             <el-input v-model="pf.idCard" :disabled="!!editTarget"
                       placeholder="18 位，校验位需正确（编辑不可改）" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="手机号">
-            <el-input v-model="pf.phone" data-testid="person-phone" /></el-form-item></el-col>
+            <el-input v-model="pf.phone" data-testid="person-phone"
+                      placeholder="编辑时留空表示不修改" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="组织ID">
             <el-input v-model="pf.orgId" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="户籍类型">
