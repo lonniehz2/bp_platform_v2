@@ -159,8 +159,13 @@ public class RbacController {
 
     @GetMapping("/roles")
     @RequirePerm("iam:role:list")
-    public R<List<IamRole>> listRoles() {
-        return R.ok(roleMapper.selectList(null));
+    public R<List<IamRole>> listRoles(@RequestParam(required = false) String keyword) {
+        LambdaQueryWrapper<IamRole> qw = new LambdaQueryWrapper<>();
+        if (keyword != null && !keyword.isBlank()) {
+            String k = keyword.trim();
+            qw.and(w -> w.like(IamRole::getRoleCode, k).or().like(IamRole::getRoleName, k));
+        }
+        return R.ok(roleMapper.selectList(qw));
     }
 
     /** 给角色分配权限。 */
@@ -213,9 +218,15 @@ public class RbacController {
     }
 
     @GetMapping("/permissions")
-    public R<List<IamPermission>> listPermissions() {
-        return R.ok(permMapper.selectList(new LambdaQueryWrapper<IamPermission>()
-                .orderByAsc(IamPermission::getSortNo)));
+    public R<List<IamPermission>> listPermissions(@RequestParam(required = false) String keyword) {
+        LambdaQueryWrapper<IamPermission> qw = new LambdaQueryWrapper<>();
+        if (keyword != null && !keyword.isBlank()) {
+            String k = keyword.trim();
+            qw.and(w -> w.like(IamPermission::getPermCode, k)
+                    .or().like(IamPermission::getPermName, k));
+        }
+        qw.orderByAsc(IamPermission::getSortNo);
+        return R.ok(permMapper.selectList(qw));
     }
 
     // ---------- 请求体 ----------

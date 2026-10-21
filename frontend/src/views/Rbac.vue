@@ -56,6 +56,10 @@
       <el-tab-pane label="角色" name="role">
         <div class="toolbar">
           <el-button type="success" @click="roleVisible = true">新增角色</el-button>
+          <el-input v-model="rkeyword" placeholder="角色编码 / 名称" clearable style="width:180px"
+                    data-testid="rbac-role-keyword" @keyup.enter="load" />
+          <el-button type="primary" @click="load">查询</el-button>
+          <el-button @click="resetRoleQuery" data-testid="rbac-role-reset">清空</el-button>
           <span class="muted">共 {{ roles.length }} 个</span>
         </div>
         <el-table :data="roles" v-loading="loading" border size="small" max-height="460">
@@ -83,6 +87,10 @@
       <el-tab-pane label="权限" name="perm">
         <div class="toolbar">
           <el-button type="success" @click="permVisible = true">新增权限</el-button>
+          <el-input v-model="pkeyword" placeholder="权限码 / 名称" clearable style="width:180px"
+                    data-testid="rbac-perm-keyword" @keyup.enter="load" />
+          <el-button type="primary" @click="load">查询</el-button>
+          <el-button @click="resetPermQuery" data-testid="rbac-perm-reset">清空</el-button>
           <span class="muted">共 {{ perms.length }} 个权限码</span>
         </div>
         <el-table :data="perms" v-loading="loading" border size="small" max-height="460">
@@ -215,6 +223,10 @@ const saving = ref(false)
 const users = ref([])
 /** 用户列表关键字筛选（后端 /rbac/users 支持 keyword） */
 const ukeyword = ref('')
+const rkeyword = ref('')
+const pkeyword = ref('')
+function resetRoleQuery() { rkeyword.value = ''; load() }
+function resetPermQuery() { pkeyword.value = ''; load() }
 function resetUserQuery() {
   ukeyword.value = ''
   load()
@@ -250,11 +262,11 @@ async function load() {
     users.value = u.rows || u || []
   } catch (e) { users.value = [] }
   try {
-    const r = await req.get('/rbac/roles')
+    const r = await req.get('/rbac/roles', { params: { keyword: rkeyword.value || undefined } })
     roles.value = Array.isArray(r) ? r : (r.rows || [])
   } catch (e) { roles.value = [] }
   try {
-    const p = await req.get('/rbac/permissions')
+    const p = await req.get('/rbac/permissions', { params: { keyword: pkeyword.value || undefined } })
     perms.value = Array.isArray(p) ? p : (p.rows || [])
   } catch (e) { perms.value = [] }
   loading.value = false
