@@ -72,11 +72,15 @@ public class RptController {
         return R.ok(reportService.getTask(id));
     }
 
-    /** 预览导出文件文本（CSV 前 N 行）。 */
+    /** 预览导出文件文本（CSV）。默认最多返回 20 万字符，可用 limit 调整。 */
     @GetMapping("/exports/{id}/content")
-    public R<String> content(@PathVariable Long id) {
+    public R<String> content(@PathVariable Long id,
+                             @RequestParam(defaultValue = "200000") int limit) {
         String s = reportService.readFile(id);
-        return R.ok(s.length() > 4000 ? s.substring(0, 4000) + "...(截断)" : s);
+        int cap = limit <= 0 ? s.length() : Math.min(limit, 5_000_000);
+        return R.ok(s.length() > cap
+                ? s.substring(0, cap) + "\n...(已截断，完整内容请查看服务器文件)"
+                : s);
     }
 
     @PostMapping("/exports/run-pending")
