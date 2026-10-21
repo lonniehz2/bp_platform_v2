@@ -83,7 +83,7 @@ def main():
         ('表单化测试告警', 'bp_ops_alert', "alert_type = 'E2E_FORM_TEST'"),
         ('表单化测试申诉', 'bp_biz_appeal', "appeal_reason like '表单化验证%'"),
         ('表单化测试投诉', 'bp_ops_complaint', "title like '表单化验证%'"),
-        ('表单化测试惩戒', 'bp_biz_credit', "violation_desc like '表单化验证%'"),
+        ('表单化测试惩戒', 'bp_biz_credit_record', "violation_desc like '表单化验证%'"),
         ('脏合同（房源不存在）', 'bp_biz_contract',
          'house_id not in (select id from bp_asset_house)'),
     ]
@@ -101,10 +101,38 @@ def main():
         c.commit()
 
     print('\n合计 %d 行%s' % (total, '（dry-run，未改动）' if DRY else ''))
+
+    # 自校验：删完再查一次，非 0 就报错。
+    # 曾因 extra 循环缺少 commit 出现「报已删除、实际回滚」，静默失败最难发现。
+    residual = 0
+    if not DRY:
+        checks = [
+            ('测试告警', 'bp_ops_alert', "alert_type = 'E2E_FORM_TEST'"),
+            ('测试申诉', 'bp_biz_appeal', "appeal_reason like '表单化验证%'"),
+            ('测试投诉', 'bp_ops_complaint', "title like '表单化验证%'"),
+            ('测试人员', 'bp_person', "person_name like 'E2E人员%'"),
+            ('测试计费项目', 'bp_fin_fee_item', "item_code like 'E2E%'"),
+        ]
+        for label, table, where in checks:
+            try:
+                cur.execute('select count(*) from %s where %s' % (table, where))
+                n = cur.fetchone()[0]
+            except Exception:
+                n = 0
+            if n:
+                print('  ⚠ 残留 %s: %d 行' % (label, n))
+                residual += n
+
     for t in ('bp_person', 'bp_biz_contract', 'bp_asset_space_occupancy', 'bp_fin_fee_item'):
         cur.execute('select count(*) from ' + t)
         print('  剩余 %-26s %d' % (t, cur.fetchone()[0]))
     c.close()
+
+    if residual:
+        print('\n✘ 清理未彻底：仍有 %d 行测试数据' % residual)
+        return 1
+    if not DRY:
+        print('✔ 自校验通过：无残留测试数据')
     return 0
 
 
