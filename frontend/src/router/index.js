@@ -270,7 +270,8 @@ const routes = [
     meta: { group: '仪表盘' }
   },
   {
-    path: '/ops-extras',
+    // 可选 tab 参数：/ops-extras/rule 直达「告警规则」，/ops-extras 落到默认 tab
+    path: '/ops-extras/:tab?',
     name: 'opsextras',
     component: () => import('@/views/OpsExtras.vue'),
     meta: { title: '扩展操作台', icon: 'SetUp', group: '管理后台' }

@@ -206,12 +206,27 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
 
-const tab = ref('msg')
+/**
+ * tab 与路由双向同步：每个 tab 都有独立 URL（/ops-extras/rule）
+ * 好处：可直接分享/收藏某个 tab，刷新后停在原 tab，也便于后续拆分子菜单。
+ */
+const TABS = ['msg', 'rule', 'open', 'rbac', 'grant', 'calendar']
+const route = useRoute()
+const router = useRouter()
+const tab = ref(TABS.includes(route.params.tab) ? route.params.tab : 'msg')
+watch(() => route.params.tab, (v) => {
+  const t = TABS.includes(v) ? v : 'msg'
+  if (t !== tab.value) tab.value = t
+})
+watch(tab, (v) => {
+  if (route.params.tab !== v) router.replace('/ops-extras/' + v)
+})
 const saving = ref(false)
 
 // 消息
