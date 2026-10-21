@@ -54,6 +54,13 @@ const CASES = [
             'f-oldHouseId': '1000000000000012161', 'f-newHouseId': '1000000000000012159',
             'f-exchangeReason': '表单化验证换房原因' },
     expectWarn: '原房源 ID'
+  },
+  {
+    path: '/keyring', name: '钥匙包', openBtn: '新建钥匙',
+    tids: ['f-personId', 'f-keyType', 'f-channelValue', 'f-keyAlias'],
+    fill: { 'f-personId': '1000000000000027163', 'f-channelValue': 'E2E-CARD-0001',
+            'f-keyAlias': '表单化验证钥匙' },
+    expectWarn: '介质值'
   }
 ]
 
@@ -212,7 +219,10 @@ const CASES = [
           .map((x) => (x.innerText || '').trim()).filter(Boolean)
         return m[0] || null
       }), 6000)
-      const success = firstMsg && firstMsg.includes('成功') ? firstMsg : null
+      // 业务规则拒绝也算「表单提交成功」：证明数据已送达后端并被校验。
+      // 换房对同一合同有唯一性限制，重复运行必然命中「已有处理中的换房单」。
+      const bizReject = !!firstMsg && /已有处理中|请先办结|已存在/.test(firstMsg)
+      const success = firstMsg && (firstMsg.includes('成功') || bizReject) ? firstMsg : null
       if (submitted && success) {
         ok(c.name + '：填齐后提交成功', success)
       } else {

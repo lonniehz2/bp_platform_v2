@@ -7,6 +7,7 @@
                 @keyup.enter="reload" />
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
+      <el-button type="success" @click="createVisible = true">新建钥匙</el-button>
 
     </div>
 
@@ -39,11 +40,42 @@
                    :total="total" :page-size="pageSize" :current-page="pageNum"
                    @current-change="(p) => { pageNum = p; load() }" />
 
-    <el-dialog v-model="createVisible" title="新建" width="560px">
-      <el-alert type="warning" :closable="false" show-icon
-                title="字段取自后端 Cmd 定义，可直接编辑；数字 ID 请填真实主键" />
-      <el-input v-model="json" type="textarea" :rows="16"
-                style="margin-top:10px;font-family:monospace" />
+    <el-dialog v-model="createVisible" title="新建钥匙" width="700px">
+      <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
+                title="字段与后端 KeyringService.KeyringCmd 一致；带 * 为必填" />
+      <el-form :model="form" label-width="120px">
+        <el-row :gutter="12">
+          <el-col :span="12"><el-form-item label="人员 ID" required>
+            <el-input v-model="form.personId" data-testid="f-personId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="钥匙类型">
+            <el-select v-model="form.keyType" style="width:100%" clearable data-testid="f-keyType">
+              <el-option label="人脸" value="FACE" />
+              <el-option label="指纹" value="FINGERPRINT" />
+              <el-option label="掌静脉" value="PALM_VEIN" />
+              <el-option label="密码" value="PASSWORD" />
+              <el-option label="卡片" value="CARD" />
+              <el-option label="身份证" value="IDCARD" />
+              <el-option label="二维码" value="QRCODE" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="钥匙别名">
+            <el-input v-model="form.keyAlias" data-testid="f-keyAlias"
+                      placeholder="便于识别的名称，如「1-502 大门」" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="介质值" required>
+            <el-input v-model="form.channelValue" data-testid="f-channelValue"
+                      placeholder="卡号/人脸 ID/密码等实际凭据" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="钥匙来源">
+            <el-input v-model="form.keySource" placeholder="如 ALLOCATION / EXTRA" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="核验方式">
+            <el-input v-model="form.verifyWay" placeholder="如 PASSWORD / CARD / FACE" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="同步范围">
+            <el-input v-model="form.syncScope" placeholder="如 HOUSE / BUILDING" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="失效时间" required>
+            <el-date-picker v-model="form.expireTime" type="datetime"
+                            value-format="YYYY-MM-DD HH:mm:ss" style="width:100%"
+                            data-testid="f-expireTime"
+                            placeholder="卡/密码等弱安全介质必填" /></el-form-item></el-col>
+        </el-row>
+      </el-form>
       <template #footer>
         <el-button @click="createVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
@@ -73,7 +105,17 @@ const keyword = ref('')
 const show = ref(false)
 const detail = ref(null)
 const createVisible = ref(false)
-const json = ref(JSON.stringify({"houseId": 1, "keyringNo": "KR001", "keyCount": 2, "holderPersonId": 1, "keyringStatus": "IN_USE"}, null, 2))
+/** 字段名严格对齐后端 KeyringService.KeyringCmd */
+const form = reactive({
+  personId: '',
+  keyType: 'CARD',
+  keyAlias: '',
+  channelValue: '',
+  keySource: '',
+  verifyWay: '',
+  syncScope: '',
+  expireTime: '2027-12-31 23:59:59'
+})
 
 async function load() {
   loading.value = true
@@ -89,13 +131,13 @@ async function load() {
 function reload() { pageNum.value = 1; load() }
 
 async function doCreate() {
-  let body
-  try { body = JSON.parse(json.value) } catch (e) {
-    ElMessage.error('JSON 格式错误'); return
-  }
+  const missing = []
+  if (!form.personId) missing.push('人员 ID')
+  if (!form.channelValue) missing.push('介质值')
+  if (missing.length) { ElMessage.warning('请填写：' + missing.join('、')); return }
   saving.value = true
   try {
-    await req.post('/keyring', body)
+    await req.post('/keyring', { ...form })
     ElMessage.success('创建成功')
     createVisible.value = false; load()
   } finally { saving.value = false }
