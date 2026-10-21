@@ -141,24 +141,27 @@ const CASES = [
             `提示=${warn || '无'}（应含「${c.expectWarn}」）`)
 
       // ④ 填齐后提交成功
+      // 用真实键盘输入：合成 input 事件在部分组件上不触发 v-model
       for (const [tid, val] of Object.entries(c.fill)) {
-        await page.evaluate((t, v) => {
-          // 必须限定在「可见弹窗」内：全文档 querySelector 可能命中隐藏的同类弹窗，
-          // 表现就是「值填上了、提交却没生效」
+        const sel = '[data-testid="' + tid + '"]'
+        const okEl = await page.evaluate((s) => {
           const ds = Array.from(document.querySelectorAll('.el-dialog')).filter((d) => d.offsetParent !== null)
-          const d = ds[ds.length - 1] || document
-          const el = d.querySelector('[data-testid="' + t + '"]')
-          if (!el) return
-          const input = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'
-            ? el : (el.querySelector('textarea') || el.querySelector('input'))
-          if (!input) return
-          const proto = input.tagName === 'TEXTAREA'
-            ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype
-          Object.getOwnPropertyDescriptor(proto, 'value').set.call(input, v)
-          input.dispatchEvent(new Event('input', { bubbles: true }))
-          input.dispatchEvent(new Event('change', { bubbles: true }))
-          input.dispatchEvent(new Event('blur', { bubbles: true }))
-        }, tid, val)
+          const scope = ds[ds.length - 1] || document
+          return !!scope.querySelector(s)
+        }, sel)
+        if (!okEl) continue
+        const h = await page.$(sel)
+        if (!h) continue
+        try {
+          await h.click({ clickCount: 3 })
+        } catch (_) {
+          await h.evaluate((el) => el.click())
+        }
+        await page.keyboard.down('Control')
+        await page.keyboard.press('KeyA')
+        await page.keyboard.up('Control')
+        await h.type(String(val), { delay: 15 })
+        await page.keyboard.press('Tab')
       }
       const submitted = await page.evaluate(() => {
         const ds = Array.from(document.querySelectorAll('.el-dialog')).filter((d) => d.offsetParent !== null)
@@ -181,15 +184,18 @@ const CASES = [
         const diag = await page.evaluate((tids) => {
           const msgs = Array.from(document.querySelectorAll('.el-message'))
             .map((x) => (x.innerText || '').trim()).filter(Boolean)
+          // 与填值保持同一作用域：可见弹窗
+          const ds = Array.from(document.querySelectorAll('.el-dialog')).filter((d) => d.offsetParent !== null)
+          const scope = ds[ds.length - 1] || document
           const vals = {}
           tids.forEach((t) => {
-            const el = document.querySelector('[data-testid="' + t + '"]')
+            const el = scope.querySelector('[data-testid="' + t + '"]')
             if (!el) { vals[t] = '(缺元素)'; return }
             const inp = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'
               ? el : (el.querySelector('textarea') || el.querySelector('input'))
             vals[t] = inp ? inp.value : '(缺控件)'
           })
-          return { msgs, vals }
+          return { msgs, vals, dialogs: ds.length }
         }, c.tids)
         bad(c.name + '：填齐后提交成功',
             `提示=${diag.msgs.join(' | ') || '无'}；字段值=${JSON.stringify(diag.vals)}`)
