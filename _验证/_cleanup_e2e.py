@@ -82,6 +82,8 @@ def main():
         # 不清理会让 _check_display.py 报「alertType 枚举无中文」「appeals 的 personId 无名称」
         ('表单化测试告警', 'bp_ops_alert', "alert_type = 'E2E_FORM_TEST'"),
         ('表单化测试申诉', 'bp_biz_appeal', "appeal_reason like '表单化验证%'"),
+        ('表单化测试投诉', 'bp_ops_complaint', "title like '表单化验证%'"),
+        ('表单化测试惩戒', 'bp_biz_credit', "violation_desc like '表单化验证%'"),
         ('脏合同（房源不存在）', 'bp_biz_contract',
          'house_id not in (select id from bp_asset_house)'),
     ]
@@ -91,6 +93,7 @@ def main():
             n = cur.fetchone()[0]
         else:
             n = cur.execute('delete from %s where %s' % (table, where))
+            c.commit()   # 必须逐条提交：本函数上方的 commit 只覆盖前面的房源/合同清理
         total += n
         print('%-22s %-24s %s %d' % (label, table, verb, n))
 

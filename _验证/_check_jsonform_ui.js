@@ -44,7 +44,7 @@ const CASES = [
   {
     path: '/credits', name: '信用惩戒', openBtn: '新建惩戒',
     tids: ['f-personId', 'f-violationType', 'f-sanctionType', 'f-banYears'],
-    fill: { 'f-personId': '1000000000000027163' },
+    fill: { 'f-personId': '1000000000000027163', 'f-violationDesc': '表单化验证违规说明' },
     expectWarn: '人员 ID'
   }
 ]
@@ -94,7 +94,11 @@ const CASES = [
     }
 
     for (const c of CASES) {
-      await page.evaluate((h) => { window.location.hash = '#' + h }, c.path)
+      // 每个用例整页重载：彻底隔离上一个用例可能残留的弹窗/遮罩，
+      // 否则「可见弹窗」判定会命中旧 DOM，表现为「点了没反应」。
+      await page.goto('about:blank')
+      await page.goto(BASE + '/#' + c.path, { waitUntil: 'domcontentloaded' })
+      await sleep(1600)
       await sleep(1300)
       await waitFor(async () => page.evaluate(() =>
         !document.querySelector('.el-loading-mask:not([style*="display: none"])')))
