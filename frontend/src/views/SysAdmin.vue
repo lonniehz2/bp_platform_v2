@@ -17,6 +17,8 @@
           </el-select>
           <el-input v-model="auditQuery.operatorName" placeholder="操作人"
                     clearable style="width:150px" @keyup.enter="loadAudit" />
+          <el-button type="primary" @click="loadAudit" data-testid="sys-audit-search">查询</el-button>
+          <el-button @click="resetAuditQuery" data-testid="sys-audit-reset">清空</el-button>
         </div>
         <el-table :data="audits" border size="small" v-loading="loading">
           <el-table-column prop="auditTime" label="时间" width="170" />
@@ -97,6 +99,12 @@ watch(tab, (v) => {
 const loading = ref(false)
 const audits = ref([])
 const auditQuery = reactive({ level: '', operatorName: '' })
+/** 清空审计筛选并重查 */
+function resetAuditQuery() {
+  auditQuery.level = ''
+  auditQuery.operatorName = ''
+  loadAudit()
+}
 const dictTypes = ref([])
 const dictType = ref('HOUSE_TYPE')
 const dicts = ref([])
