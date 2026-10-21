@@ -25,7 +25,13 @@
             变更人员状态
           </el-button>
         </div>
-        <el-table :data="persons" border size="small" max-height="380">
+                <div class="toolbar" style="margin-bottom:8px">
+          <el-input v-model="filters.person" placeholder="姓名 / 证件号 / 手机" clearable style="width:200px"
+                    data-testid="oc-person" @keyup.enter="loadAll" />
+          <el-button type="primary" @click="loadAll">查询</el-button>
+          <el-button @click="resetFilter('person')">清空</el-button>
+        </div>
+<el-table :data="persons" border size="small" max-height="380">
           <el-table-column prop="id" label="ID" width="180" />
           <el-table-column prop="personName" label="姓名" width="120" />
           <el-table-column prop="phone" label="手机" width="140" />
@@ -56,7 +62,13 @@
             变更房源状态
           </el-button>
         </div>
-        <el-table :data="houses" border size="small" max-height="380">
+                <div class="toolbar" style="margin-bottom:8px">
+          <el-input v-model="filters.house" placeholder="房源编号 / 名称" clearable style="width:200px"
+                    data-testid="oc-house" @keyup.enter="loadAll" />
+          <el-button type="primary" @click="loadAll">查询</el-button>
+          <el-button @click="resetFilter('house')">清空</el-button>
+        </div>
+<el-table :data="houses" border size="small" max-height="380">
           <el-table-column prop="houseCode" label="编号" width="160" />
           <el-table-column prop="houseName" label="名称" min-width="140" />
           <el-table-column prop="houseStatus" label="状态" width="120">
@@ -74,7 +86,13 @@
 
       <!-- 工单 -->
       <el-tab-pane label="工单流程" name="order">
-        <el-table :data="orders" border size="small" max-height="440">
+                <div class="toolbar" style="margin-bottom:8px">
+          <el-input v-model="filters.order" placeholder="工单号 / 标题" clearable style="width:200px"
+                    data-testid="oc-order" @keyup.enter="loadAll" />
+          <el-button type="primary" @click="loadAll">查询</el-button>
+          <el-button @click="resetFilter('order')">清空</el-button>
+        </div>
+<el-table :data="orders" border size="small" max-height="440">
           <el-table-column prop="workOrderNo" label="工单号" width="170" />
           <el-table-column prop="workOrderType" label="类型" width="120">
             <template #default="{ row }">{{ row.workOrderTypeLabel || enumLabel('workOrderType', row.workOrderType) }}</template>
@@ -105,7 +123,7 @@
 
 <script setup>
 import { enumLabel } from '@/constants/enums'
-import { ref, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
@@ -114,6 +132,11 @@ const TABS = ['person', 'house', 'order']
 const route = useRoute()
 const router = useRouter()
 const tab = ref(TABS.includes(route.params.tab) ? route.params.tab : 'person')
+const filters = reactive({ person: '', house: '', order: '' })
+function resetFilter(k) {
+  filters[k] = ''
+  loadAll()
+}
 watch(() => route.params.tab, (v) => {
   const t = TABS.includes(v) ? v : 'person'
   if (t !== tab.value) tab.value = t
@@ -132,15 +155,15 @@ const orders = ref([])
 
 async function loadAll() {
   try {
-    const p = await req.get('/persons', { params: { pageNum: 1, pageSize: 20 } })
+    const p = await req.get('/persons', { params: { pageNum: 1, pageSize: 20, keyword: filters.person || undefined } })
     persons.value = p.rows || []
   } catch (e) { persons.value = [] }
   try {
-    const h = await req.get('/houses', { params: { pageNum: 1, pageSize: 20 } })
+    const h = await req.get('/houses', { params: { pageNum: 1, pageSize: 20, keyword: filters.house || undefined } })
     houses.value = h.rows || []
   } catch (e) { houses.value = [] }
   try {
-    const o = await req.get('/workorders', { params: { pageNum: 1, pageSize: 20 } })
+    const o = await req.get('/workorders', { params: { pageNum: 1, pageSize: 20, keyword: filters.order || undefined } })
     orders.value = o.rows || []
   } catch (e) { orders.value = [] }
 }
