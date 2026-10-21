@@ -54,8 +54,16 @@ const options = ref([])
 const loading = ref(false)
 let seq = 0
 
+/**
+ * 下拉项与已选值的显示文本。
+ *
+ * 值始终是唯一的人员 ID（重名不影响数据正确性），但界面必须能区分同名的人：
+ * 追加脱敏手机号（没有则用证件号后 4 位 / ID 后 4 位）作为区分标识。
+ */
 function labelOf(p) {
-  return p.personName || p.id
+  const name = p.personName || p.id
+  const tail = p.phoneMask || p.idCardMask || ('ID…' + String(p.id).slice(-4))
+  return `${name}（${tail}）`
 }
 
 async function search(keyword) {
@@ -95,12 +103,19 @@ function classify(k) {
   return 'NAME'
 }
 
-// 回填：外部传入已有 ID 时，取一次详情用于显示姓名
+// 回填：外部传入已有 ID 时取一次详情用于显示
+// 注意必须走 /persons/{id}——关键字接口不按人员 ID 匹配，否则回填只会显示一串数字
 watch(() => props.modelValue, async (v) => {
   if (!v || options.value.some((o) => String(o.id) === String(v))) return
   try {
-    const d = await req.get('/persons', { params: { pageNum: 1, pageSize: 5, keyword: String(v) } })
-    const hit = (d.rows || []).find((o) => String(o.id) === String(v))
+    const key = String(v)
+    let hit = null
+    if (/^\d{15,}$/.test(key)) {
+      hit = await req.get(`/persons/${key}`).catch(() => null)
+    } else {
+      const d = await req.get('/persons', { params: { pageNum: 1, pageSize: 5, keyword: key } })
+      hit = (d.rows || []).find((o) => String(o.id) === key) || null
+    }
     if (hit) options.value = [hit, ...options.value]
   } catch (e) { /* 忽略：仅影响显示 */ }
 }, { immediate: true })
