@@ -9,7 +9,7 @@
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
       <el-input v-model="houseId" placeholder="房源ID"
-                style="width:150px" />
+                style="width:210px" />
       <el-button type="primary" @click="reload">按房源查</el-button>
     </div>
 

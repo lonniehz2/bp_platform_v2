@@ -3,9 +3,9 @@
     <div class="page-card">
       <div class="toolbar">
         <el-input v-model="query.houseId" placeholder="房源ID" clearable
-                  style="width:150px" @keyup.enter="load" />
+                  style="width:210px" @keyup.enter="load" />
         <el-input v-model="query.personId" placeholder="人员ID" clearable
-                  style="width:150px" @keyup.enter="load" />
+                  style="width:210px" @keyup.enter="load" />
         <el-checkbox v-model="query.abnormalOnly">只看异常</el-checkbox>
         <el-button type="primary" @click="load">查询</el-button>
         <el-button @click="resetQuery">清空</el-button>

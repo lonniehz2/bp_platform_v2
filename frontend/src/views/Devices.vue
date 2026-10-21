@@ -8,7 +8,7 @@
       </el-tag>
       <div class="spacer" />
       <el-input v-model="query.spaceId" placeholder="空间ID" clearable
-                style="width:150px" @keyup.enter="load" />
+                style="width:210px" @keyup.enter="load" />
       <el-select v-model="query.onlineStatus" placeholder="在线状态" clearable
                  style="width:130px" @change="load">
         <el-option label="在线" :value="1" />

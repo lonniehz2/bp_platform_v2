@@ -174,7 +174,7 @@
     <!-- 规则列表 -->
     <el-dialog v-model="ruleVisible" title="计费规则" width="720px">
       <div class="toolbar" style="margin-bottom:8px">
-        <el-input v-model="rf.feeItemId" placeholder="计费项目 ID" clearable style="width:190px"
+        <el-input v-model="rf.feeItemId" placeholder="计费项目 ID" clearable style="width:210px"
                   data-testid="rule-feeitem" @keyup.enter="loadRules" />
         <el-input v-model="rf.houseType" placeholder="房源类型，如 PUBLIC_RENTAL" clearable
                   style="width:230px" data-testid="rule-housetype" @keyup.enter="loadRules" />

@@ -11,8 +11,8 @@
       <!-- ================= 消息待办 ================= -->
       <el-tab-pane label="消息待办" name="msg">
         <div class="toolbar">
-          <el-input v-model="msg.userId" placeholder="用户ID" style="width:150px" />
-          <el-input v-model="msgKeyword" placeholder="标题关键字" clearable style="width:180px"
+          <el-input v-model="msg.userId" placeholder="用户ID" style="width:210px" />
+          <el-input v-model="msgKeyword" placeholder="标题关键字" clearable style="width:210px"
                     data-testid="oe-msg-keyword" @keyup.enter="loadTodos" />
           <el-select v-model="msgStatus" placeholder="状态" clearable style="width:120px">
             <el-option label="待处理" value="PENDING" />
@@ -170,7 +170,7 @@
       <!-- ================= 日房态 ================= -->
       <el-tab-pane label="日房态" name="calendar">
         <div class="toolbar">
-          <el-input v-model="cal.houseId" placeholder="房源ID" style="width:180px" />
+          <el-input v-model="cal.houseId" placeholder="房源ID" style="width:210px" />
           <el-date-picker v-model="cal.month" type="month" value-format="YYYY-MM"
                           placeholder="月份" style="width:140px" />
           <el-button type="primary" @click="ensureCalendar">生成当月房态</el-button>

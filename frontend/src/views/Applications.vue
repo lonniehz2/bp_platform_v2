@@ -7,7 +7,7 @@
           <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
         </el-select>
         <el-input v-model="query.personId" placeholder="申请人ID" clearable
-                  style="width:160px" @keyup.enter="load" />
+                  style="width:210px" @keyup.enter="load" />
         <el-button type="primary" @click="load">查询</el-button>
         <el-button @click="resetQuery">清空</el-button>
         <div class="spacer" />

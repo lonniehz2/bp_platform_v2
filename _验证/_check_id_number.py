@@ -36,6 +36,7 @@ ID_LIKE = re.compile(r'[A-Za-z_][\w.]*(?:\.id|\.Id|[a-z]Id|[a-z]_id)\b')
 
 def scan():
     bad = []
+    narrow = []
     for dirpath, _, files in os.walk(SRC):
         if 'node_modules' in dirpath:
             continue
@@ -44,33 +45,49 @@ def scan():
                 continue
             path = os.path.join(dirpath, fn)
             text = io.open(path, encoding='utf-8', errors='replace').read()
-            for lineno, line in enumerate(text.splitlines(), 1):
-                if 'Number(' not in line:
-                    continue
+            lines = text.splitlines()
+            for lineno, line in enumerate(lines, 1):
                 stripped = line.strip()
-                if stripped.startswith('//') or stripped.startswith('*'):
-                    continue
-                for m in re.finditer(r'Number\(([^()]*)\)', line):
-                    arg = m.group(1).strip()
-                    if not ID_LIKE.search(arg):
-                        continue
-                    if SAFE.match('Number(' + arg + ')'):
-                        continue
-                    bad.append((os.path.relpath(path, SRC), lineno, stripped))
-                    break
-    return bad
+                if 'Number(' in line and not (stripped.startswith('//') or stripped.startswith('*')):
+                    for m in re.finditer(r'Number\(([^()]*)\)', line):
+                        arg = m.group(1).strip()
+                        if not ID_LIKE.search(arg):
+                            continue
+                        if SAFE.match('Number(' + arg + ')'):
+                            continue
+                        bad.append((os.path.relpath(path, SRC), lineno, stripped))
+                        break
+                # ID 输入框过窄：19 位雪花号需要约 200px，否则后几位被藏掉
+                if re.search(r'v-model="[^"]*[Ii]d"', line):
+                    window = line + ' ' + (lines[lineno] if lineno < len(lines) else '')
+                    w = re.search(r'width:(\d+)px', window)
+                    if w and int(w.group(1)) < 200:
+                        narrow.append((os.path.relpath(path, SRC), lineno, stripped))
+    return bad, narrow
 
 
 def main():
-    bad = scan()
+    bad, narrow = scan()
     print('扫描目录：frontend/src')
-    if not bad:
-        print('✔ 未发现对 ID 字段使用 Number() 的写法')
-        return 0
-    print('✘ 发现 %d 处：ID 请用 String() 或原样传递（19 位雪花号超出 Number 精度）\n' % len(bad))
-    for f, ln, code in bad:
-        print('  %s:%d  %s' % (f, ln, code[:110]))
-    return 1
+    ok = True
+    if bad:
+        ok = False
+        print('✘ %d 处对 ID 使用了 Number()（19 位雪花号超出 Number 精度，请用 String）\n' % len(bad))
+        for f, ln, code in bad:
+            print('  %s:%d  %s' % (f, ln, code[:110]))
+    else:
+        print('✔ ID 精度：未发现 Number() 转换 ID')
+
+    if narrow:
+        ok = False
+        print('\n✘ %d 处 ID 输入框宽度 < 200px（19 位 ID 显示不全，用户会误以为位数受限）\n'
+              % len(narrow))
+        for f, ln, code in narrow:
+            print('  %s:%d  %s' % (f, ln, code[:110]))
+    else:
+        print('✔ ID 输入框：宽度均 ≥ 200px')
+
+    return 0 if ok else 1
 
 
 if __name__ == '__main__':
