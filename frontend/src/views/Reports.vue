@@ -51,7 +51,7 @@
         <el-table-column prop="taskStatus" label="状态" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="row.taskStatus === 'SUCCESS' ? 'success' : 'info'">
-              {{ row.taskStatus }}
+              {{ row.taskStatusLabel || enumLabel('taskStatus', row.taskStatus) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -76,6 +76,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { enumLabel } from '@/constants/enums'
 import { ElMessage } from 'element-plus'
 import { rptApi } from '@/api/modules'
 

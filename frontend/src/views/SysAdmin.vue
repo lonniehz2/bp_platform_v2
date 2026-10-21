@@ -29,7 +29,7 @@
             <template #default="{ row }">
               <el-tag size="small" :type="row.auditLevel === 'CRITICAL' ? 'danger'
                 : (row.auditLevel === 'IMPORTANT' ? 'warning' : 'info')">
-                {{ row.auditLevel }}
+                {{ row.auditLevelLabel || enumLabel('auditLevel', row.auditLevel) }}
               </el-tag>
             </template>
           </el-table-column>

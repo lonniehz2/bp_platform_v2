@@ -24,7 +24,7 @@
         <el-table-column prop="diffType" label="差异类型" width="150">
           <template #default="{ row }">
             <el-tag size="small" :type="row.diffType === 'IOT_EXTRA' ? 'danger' : 'warning'">
-              {{ row.diffType }}
+              {{ row.diffTypeLabel || enumLabel('diffType', row.diffType) }}
             </el-tag>
           </template>
         </el-table-column>

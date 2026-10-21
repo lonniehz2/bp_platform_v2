@@ -43,7 +43,7 @@
             <el-table-column prop="status" label="状态" width="90">
               <template #default="{ row }">
                 <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">
-                  {{ row.status }}
+                  {{ row.statusLabel || enumLabel('status', row.status) }}
                 </el-tag>
               </template>
             </el-table-column>

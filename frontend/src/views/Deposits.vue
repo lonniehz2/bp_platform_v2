@@ -32,7 +32,7 @@
           <template #default="{ row }">
             <el-tag size="small" :type="row.depositStatus === 'REFUNDED' ? 'success'
               : (row.depositStatus === 'DEDUCTED' ? 'warning' : 'info')">
-              {{ row.depositStatus }}
+              {{ row.depositStatusLabel || enumLabel('depositStatus', row.depositStatus) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -61,7 +61,7 @@
           <template #default="{ row }">
             <el-tag size="small" :type="row.refundStatus === 'SUCCESS' ? 'success'
               : (row.refundStatus === 'REJECTED' ? 'danger' : 'warning')">
-              {{ row.refundStatus }}
+              {{ row.refundStatusLabel || enumLabel('refundStatus', row.refundStatus) }}
             </el-tag>
           </template>
         </el-table-column>

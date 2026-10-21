@@ -26,7 +26,7 @@
         <el-table-column prop="priority" label="优先级" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="priorityTone(row.priority)">
-              {{ row.priority }}
+              {{ row.priorityLabel || enumLabel('priority', row.priority) }}
             </el-tag>
           </template>
         </el-table-column>

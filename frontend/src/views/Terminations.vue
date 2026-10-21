@@ -51,7 +51,7 @@
         <template #default="{ row }">
           <el-tag size="small" :type="row.terminationStatus === 'COMPLETED' ? 'success'
             : (row.terminationStatus === 'REJECTED' ? 'danger' : 'warning')">
-            {{ row.terminationStatus }}
+            {{ row.terminationStatusLabel || enumLabel('terminationStatus', row.terminationStatus) }}
           </el-tag>
         </template>
       </el-table-column>

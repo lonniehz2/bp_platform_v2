@@ -24,7 +24,7 @@
         <template #default="{ row }">
           <el-tag size="small" :type="row.reviewResult === 'EXIT' ? 'danger'
             : (row.reviewResult === 'ADJUST' ? 'warning' : 'success')">
-            {{ row.reviewResult || '待复核' }}
+            {{ row.reviewResultLabel || enumLabel('reviewResult', row.reviewResult) || '待复核' }}
           </el-tag>
         </template>
       </el-table-column>

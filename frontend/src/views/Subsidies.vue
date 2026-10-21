@@ -34,7 +34,7 @@
         <template #default="{ row }">
           <el-tag size="small" :type="row.recordStatus === 'PAID' ? 'success'
             : (row.recordStatus === 'FAILED' ? 'danger' : 'warning')">
-            {{ row.recordStatus }}
+            {{ row.recordStatusLabel || enumLabel('recordStatus', row.recordStatus) }}
           </el-tag>
         </template>
       </el-table-column>
