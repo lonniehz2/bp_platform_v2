@@ -40,6 +40,7 @@ public final class EnumLabels {
             new String[]{"RECONCILED", "已对账"},
             new String[]{"SAFETY", "安全隐患"},
             new String[]{"SUBMIT", "提交"},
+            new String[]{"OBJECTION", "提出异议"},
             new String[]{"TENANT_APP", "租客端"},
             new String[]{"VERIFIED", "已核验"},
             new String[]{"UNVERIFIED", "未核验"},

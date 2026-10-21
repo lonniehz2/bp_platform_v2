@@ -37,6 +37,7 @@ const GLOBAL = {
   RECONCILED: '已对账',
   SAFETY: '安全隐患',
   SUBMIT: '提交',
+  OBJECTION: '提出异议',
   TENANT_APP: '租客端',
   VERIFIED: '已核验',
   UNVERIFIED: '未核验',
