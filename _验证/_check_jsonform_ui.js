@@ -143,9 +143,12 @@ const CASES = [
       // ④ 填齐后提交成功
       for (const [tid, val] of Object.entries(c.fill)) {
         await page.evaluate((t, v) => {
-          const el = document.querySelector('[data-testid="' + t + '"]')
+          // 必须限定在「可见弹窗」内：全文档 querySelector 可能命中隐藏的同类弹窗，
+          // 表现就是「值填上了、提交却没生效」
+          const ds = Array.from(document.querySelectorAll('.el-dialog')).filter((d) => d.offsetParent !== null)
+          const d = ds[ds.length - 1] || document
+          const el = d.querySelector('[data-testid="' + t + '"]')
           if (!el) return
-          // 组件对不同类型渲染 input / textarea，两者都要覆盖
           const input = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'
             ? el : (el.querySelector('textarea') || el.querySelector('input'))
           if (!input) return
@@ -154,6 +157,7 @@ const CASES = [
           Object.getOwnPropertyDescriptor(proto, 'value').set.call(input, v)
           input.dispatchEvent(new Event('input', { bubbles: true }))
           input.dispatchEvent(new Event('change', { bubbles: true }))
+          input.dispatchEvent(new Event('blur', { bubbles: true }))
         }, tid, val)
       }
       const submitted = await page.evaluate(() => {
@@ -163,14 +167,33 @@ const CASES = [
         if (b) { b.click(); return true }
         return false
       })
-      const success = await waitFor(async () => page.evaluate(() => {
+      // 提交后 toast 只存活约 3 秒：必须「先到先得」地捕获，不能只等「成功」
+      const firstMsg = await waitFor(async () => page.evaluate(() => {
         const m = Array.from(document.querySelectorAll('.el-message'))
-          .map((x) => (x.innerText || '').trim())
-        return m.find((t) => t.includes('成功')) || null
-      }), 8000)
-      submitted && success
-        ? ok(c.name + '：填齐后提交成功', success)
-        : bad(c.name + '：填齐后提交成功', '提示=' + (success || '无'))
+          .map((x) => (x.innerText || '').trim()).filter(Boolean)
+        return m[0] || null
+      }), 6000)
+      const success = firstMsg && firstMsg.includes('成功') ? firstMsg : null
+      if (submitted && success) {
+        ok(c.name + '：填齐后提交成功', success)
+      } else {
+        // 失败诊断：把提交后出现的任何提示 + 各字段实际值都打出来
+        const diag = await page.evaluate((tids) => {
+          const msgs = Array.from(document.querySelectorAll('.el-message'))
+            .map((x) => (x.innerText || '').trim()).filter(Boolean)
+          const vals = {}
+          tids.forEach((t) => {
+            const el = document.querySelector('[data-testid="' + t + '"]')
+            if (!el) { vals[t] = '(缺元素)'; return }
+            const inp = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'
+              ? el : (el.querySelector('textarea') || el.querySelector('input'))
+            vals[t] = inp ? inp.value : '(缺控件)'
+          })
+          return { msgs, vals }
+        }, c.tids)
+        bad(c.name + '：填齐后提交成功',
+            `提示=${diag.msgs.join(' | ') || '无'}；字段值=${JSON.stringify(diag.vals)}`)
+      }
     }
 
     errors.length ? bad('页面无 JS 报错', errors[0].slice(0, 90)) : ok('页面无 JS 报错')
