@@ -80,7 +80,7 @@ def main():
         ('人员', 'bp_person', "person_name like 'E2E人员%' or person_name like 'DIAG%'"),
         # 表单化专项测试（_check_jsonform_ui.js）留下的数据：
         # 不清理会让 _check_display.py 报「alertType 枚举无中文」「appeals 的 personId 无名称」
-        ('表单化测试告警', 'bp_ops_alert', "alert_type = 'E2E_FORM_TEST'"),
+        ('表单化测试告警', 'bp_ops_alert', "alert_title like '表单化验证%'"),
         ('表单化测试申诉', 'bp_biz_appeal', "appeal_reason like '表单化验证%'"),
         ('表单化测试投诉', 'bp_ops_complaint', "title like '表单化验证%'"),
         ('表单化测试惩戒', 'bp_biz_credit_record', "violation_desc like '表单化验证%'"),

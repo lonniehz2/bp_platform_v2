@@ -26,13 +26,14 @@ const CASES = [
   {
     path: '/alerts', name: '告警', openBtn: '新建告警',
     tids: ['f-alertCategory', 'f-alertLevel', 'f-alertType', 'f-alertTitle'],
-    fill: { 'f-alertType': 'E2E_FORM_TEST', 'f-alertTitle': '表单化验证告警' },
+    // 用小写测试值：alertType 是自由文本，大写会被显示层检查误判为「枚举缺中文」
+    fill: { 'f-alertType': 'arrear_rate_test', 'f-alertTitle': '表单化验证告警' },
     expectWarn: '告警类型'
   },
   {
     path: '/appeals', name: '申诉', openBtn: '新建申诉',
     tids: ['f-bizType', 'f-appealType', 'f-bizId', 'f-personId', 'f-appealReason'],
-    fill: { 'f-bizId': '1', 'f-personId': '1', 'f-appealReason': '表单化验证申诉理由' },
+    fill: { 'f-bizId': '1', 'f-personId': '1000000000000027163', 'f-appealReason': '表单化验证申诉理由' },
     expectWarn: '申诉理由'
   },
   {
