@@ -55,11 +55,40 @@ public class RptController {
         return R.ok(reportService.query(cmd));
     }
 
-    /** 发起导出（生成 CSV）。 */
+    /** 发起导出：exportFormat=CSV（默认）或 EXCEL（.xls）。 */
     @PostMapping("/exports")
     public R<ExportTaskVO> export(@Valid @RequestBody ReportQueryCmd cmd,
                                   @RequestParam(required = false) Long userId) {
         return R.ok(reportService.export(cmd, userId));
+    }
+
+    /** 下载导出文件。CSV 与 Excel 分别给对应的 Content-Type。 */
+    @GetMapping("/exports/{id}/download")
+    public org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> download(
+            @PathVariable Long id) {
+        String path = reportService.getTask(id).fileUrl();
+        if (path == null || path.isBlank()) {
+            return org.springframework.http.ResponseEntity.notFound().build();
+        }
+        java.io.File f = new java.io.File(path);
+        if (!f.isFile()) {
+            return org.springframework.http.ResponseEntity.notFound().build();
+        }
+        boolean excel = f.getName().toLowerCase().endsWith(".xls");
+        String type = excel ? "application/vnd.ms-excel" : "text/csv;charset=UTF-8";
+        String encoded;
+        try {
+            encoded = java.net.URLEncoder.encode(f.getName(),
+                    java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20");
+        } catch (Exception e) {
+            encoded = f.getName();
+        }
+        return org.springframework.http.ResponseEntity.ok()
+                .header("Content-Type", type)
+                .header("Content-Disposition",
+                        "attachment; filename=\"" + f.getName() + "\"; filename*=UTF-8''" + encoded)
+                .contentLength(f.length())
+                .body(new org.springframework.core.io.FileSystemResource(f));
     }
 
     @GetMapping("/exports")

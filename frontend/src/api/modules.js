@@ -190,6 +190,8 @@ export const rptApi = {
   query: (data) => req.post('/rpt/reports/query', data),
   export: (data) => req.post('/rpt/exports', data),
   taskContent: (id) => req.get(`/rpt/exports/${id}/content`),
+  // 下载导出文件：必须以 blob 接收，否则拦截器会把二进制当 JSON 解析
+  downloadTask: (id) => req.get(`/rpt/exports/${id}/download`, { responseType: 'blob' }),
   screens: (params) => req.get('/rpt/screens', { params }),
   screenData: (code, orgId) =>
     req.get(`/rpt/screens/${code}/data`, { params: { orgId } }),

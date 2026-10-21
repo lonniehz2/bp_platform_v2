@@ -10,8 +10,12 @@
         <el-button type="primary" @click="onQuery">查询</el-button>
         <el-button @click="resetQuery">清空</el-button>
         <div class="spacer" />
+        <el-select v-model="exportFormat" style="width:120px" data-testid="export-format">
+          <el-option label="CSV" value="CSV" />
+          <el-option label="Excel" value="EXCEL" />
+        </el-select>
         <el-button type="success" :loading="exporting" @click="onExport">
-          <el-icon><Download /></el-icon>导出 CSV
+          <el-icon><Download /></el-icon>导出
         </el-button>
       </div>
 
@@ -53,9 +57,10 @@
         </el-table-column>
         <el-table-column prop="fileUrl" label="文件路径（服务器）" min-width="240"
                          show-overflow-tooltip />
-        <el-table-column label="操作" width="130">
+        <el-table-column label="操作" width="170">
           <template #default="{ row }">
-            <el-button link type="primary" @click="preview(row)">预览内容</el-button>
+            <el-button link type="primary" @click="preview(row)">预览</el-button>
+            <el-button link type="success" @click="download(row)">下载</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -81,6 +86,8 @@ const rows = ref([])
 const summary = ref('')
 const loading = ref(false)
 const exporting = ref(false)
+/** 导出格式：CSV（默认）/ EXCEL */
+const exportFormat = ref('CSV')
 
 const tasks = ref([])
 const previewVisible = ref(false)
@@ -123,11 +130,31 @@ async function onExport() {
   if (!reportCode.value) return
   exporting.value = true
   try {
-    const task = await rptApi.export({ reportCode: reportCode.value })
+    const task = await rptApi.export({
+      reportCode: reportCode.value,
+      exportFormat: exportFormat.value
+    })
     ElMessage.success(`导出完成：${task.fileName}（${task.rowCount} 行）`)
     tasks.value.unshift(task)
   } finally {
     exporting.value = false
+  }
+}
+
+/** 下载导出文件（带鉴权，必须走 axios 拿 blob 再触发保存） */
+async function download(row) {
+  try {
+    const blob = await rptApi.downloadTask(row.id)
+    const url = window.URL.createObjectURL(new Blob([blob]))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = row.fileName || 'report.csv'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+  } catch (e) {
+    ElMessage.error('下载失败，请稍后重试')
   }
 }
 

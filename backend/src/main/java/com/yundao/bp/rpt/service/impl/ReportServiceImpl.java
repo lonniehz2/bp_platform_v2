@@ -60,7 +60,7 @@ public class ReportServiceImpl implements ReportService {
     public ReportServiceImpl(RptReportDefMapper defMapper, RptExportTaskMapper taskMapper,
                              AssetHouseMapper houseMapper, BizContractMapper contractMapper,
                              FinBillMapper billMapper, SnowflakeIdGenerator idGen,
-                             @Value("${bp.rpt.export-dir:/tmp/bp-export}") String exportDir) {
+                             @Value("${bp.rpt.export-dir:/var/lib/bp-export}") String exportDir) {
         this.defMapper = defMapper;
         this.taskMapper = taskMapper;
         this.houseMapper = houseMapper;
@@ -117,17 +117,17 @@ public class ReportServiceImpl implements ReportService {
         try {
             List<Map<String, String>> cols = columnsOf(def.getReportCode());
             List<Map<String, Object>> rows = rowsOf(def.getReportCode(), cmd.orgId());
-            String csv = toCsv(cols, rows);
+            // 导出格式：CSV（默认）或 EXCEL。Excel 用免依赖的 SpreadsheetML 2003（.xls），
+            // Excel / WPS 均可直接打开，无需引入 POI 等重依赖。
+            boolean excel = "EXCEL".equalsIgnoreCase(cmd.exportFormat());
+            String content = excel ? toXls(cols, rows) : toCsv(cols, rows);
             Path dir = Path.of(exportDir);
             Files.createDirectories(dir);
-            String fileName = def.getReportCode() + "-" + now.format(TS) + ".csv";
+            String fileName = def.getReportCode() + "-" + now.format(TS) + (excel ? ".xls" : ".csv");
             Path file = dir.resolve(fileName);
-            // UTF-8 BOM，Excel 打开中文不乱码
-            byte[] bom = new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
-            byte[] body = csv.getBytes(StandardCharsets.UTF_8);
-            byte[] all = new byte[bom.length + body.length];
-            System.arraycopy(bom, 0, all, 0, bom.length);
-            System.arraycopy(body, 0, all, bom.length, body.length);
+            byte[] all = excel
+                    ? content.getBytes(StandardCharsets.UTF_8)
+                    : withBom(content);
             Files.write(file, all);
 
             t.setFileName(fileName);
@@ -303,6 +303,61 @@ public class ReportServiceImpl implements ReportService {
         c.put("key", key);
         c.put("title", title);
         cols.add(c);
+    }
+
+    /** HTML 转义（用于 Excel XML 单元格文本） */
+    private static String xmlEscape(String s) {
+        if (s == null) {
+            return "";
+        }
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                .replace("\"", "&quot;");
+    }
+
+    /**
+     * 生成 Excel 可直接打开的表格：SpreadsheetML 2003（.xls）。
+     *
+     * <p>选择该格式是为了不引入 Apache POI 之类重依赖——
+     * 本质是一段 XML，Excel / WPS / LibreOffice 都能正常打开且保留表格结构。
+     */
+    private static String toXls(List<Map<String, String>> cols, List<Map<String, Object>> rows) {
+        StringBuilder sb = new StringBuilder(1024 + rows.size() * 128);
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
+          .append("<?mso-application progid=\"Excel.Sheet\"?>\n")
+          .append("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"")
+          .append(" xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\">\n")
+          .append("<Styles><Style ss:ID=\"h\"><Font ss:Bold=\"1\"/></Style></Styles>\n")
+          .append("<Worksheet ss:Name=\"Sheet1\"><Table>\n");
+        sb.append("<Row>");
+        for (Map<String, String> c : cols) {
+            sb.append("<Cell ss:StyleID=\"h\"><Data ss:Type=\"String\">")
+              .append(xmlEscape(c.get("title"))).append("</Data></Cell>");
+        }
+        sb.append("</Row>\n");
+        for (Map<String, Object> r : rows) {
+            sb.append("<Row>");
+            for (Map<String, String> c : cols) {
+                Object v = r.get(c.get("key"));
+                String text = v == null ? "" : String.valueOf(v);
+                // 纯数字用 Number 类型，Excel 里可直接求和
+                boolean num = text.matches("-?\\d+(\\.\\d+)?") && text.length() < 16;
+                sb.append("<Cell><Data ss:Type=\"").append(num ? "Number" : "String")
+                  .append("\">").append(xmlEscape(text)).append("</Data></Cell>");
+            }
+            sb.append("</Row>\n");
+        }
+        sb.append("</Table></Worksheet></Workbook>");
+        return sb.toString();
+    }
+
+    /** CSV 加 UTF-8 BOM，Excel 打开中文不乱码 */
+    private static byte[] withBom(String content) {
+        byte[] bom = new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
+        byte[] body = content.getBytes(StandardCharsets.UTF_8);
+        byte[] all = new byte[bom.length + body.length];
+        System.arraycopy(bom, 0, all, 0, bom.length);
+        System.arraycopy(body, 0, all, bom.length, body.length);
+        return all;
     }
 
     private static String toCsv(List<Map<String, String>> cols,
