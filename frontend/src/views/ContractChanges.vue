@@ -74,7 +74,7 @@ async function load() {
   loading.value = true
   try {
     const d = await req.get('/contract-changes', {
-      params: { ...query, changeStatus: query.changeStatus || undefined }
+      params: { ...query, status: query.changeStatus || undefined }
     })
     rows.value = d.rows || d || []
     total.value = Number(d.total || rows.value.length || 0)

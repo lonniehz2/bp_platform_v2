@@ -111,7 +111,8 @@ async function load() {
   loading.value = true
   try {
     const d = await req.get('/allocation/waiting', {
-      params: { ...query, keyword: keyword.value || undefined }
+      // 轮候接口暂不支持关键字（需关联人员表），先不传，避免「输入了却不生效」
+      params: { ...query }
     })
     rows.value = d.rows || d || []
     total.value = Number(d.total || rows.value.length || 0)

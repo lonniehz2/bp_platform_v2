@@ -65,7 +65,9 @@ class PersonModuleTest {
 
     @BeforeEach
     void setUp() {
-        personService = new PersonServiceImpl(personMapper, new SnowflakeIdGenerator(1, 1));
+        personService = new PersonServiceImpl(personMapper,
+                org.mockito.Mockito.mock(com.yundao.bp.iam.mapper.IamOrgMapper.class),
+                new SnowflakeIdGenerator(1, 1));
         TenantContext.set(TenantInfo.of("350600", 1001L));
         // 默认插入成功（各用例共用；LENIENT 下不会因未用而报错）
         when(personMapper.insert(any(Person.class))).thenReturn(1);

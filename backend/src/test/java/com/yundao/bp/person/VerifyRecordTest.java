@@ -47,7 +47,8 @@ class VerifyRecordTest {
     @BeforeEach
     void setUp() {
         service = new VerifyRecordServiceImpl(mapper,
-                new SnowflakeIdGenerator(1, 1));
+                new SnowflakeIdGenerator(1, 1),
+                org.mockito.Mockito.mock(com.yundao.bp.person.mapper.PersonMapper.class));
         TenantContext.set(TenantInfo.of("350600", 1001L));
         when(mapper.insert(any(PersonVerifyRecord.class))).thenReturn(1);
     }

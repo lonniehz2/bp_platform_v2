@@ -67,7 +67,12 @@ def scan_backend():
 
 
 def scan_frontend():
-    """返回 {path: set(参数名)}；透传式调用（{ params } / { params: 变量 }）记为 '*'"""
+    """返回 {path: {'keys': set, 'literal': bool}}
+
+    keys 只收集「字面量参数对象」里的键；literal 表示该路径存在可静态分析的调用。
+    透传式（{ params } / { params: obj }）无法得知具体键，只跳过该次调用本身，
+    不能因此把整条路径的检查都跳过——同一接口往往既有透传也有字面量调用。
+    """
     out = {}
     for dirpath, _, files in os.walk(FE):
         if 'node_modules' in dirpath:
@@ -77,24 +82,21 @@ def scan_frontend():
                 continue
             src = io.open(os.path.join(dirpath, fn), encoding='utf-8', errors='replace').read()
             for m in re.finditer(r"req\.get\(\s*['\"`]([^'\"`]+)['\"`]\s*,\s*\{", src):
-                path = m.group(1)
+                path = norm_path(m.group(1))
+                slot = out.setdefault(path, {'keys': set(), 'literal': False})
                 tail = src[m.end(): m.end() + 600]
-                # 透传式：{ params } 或 { params: p } —— 具体键由调用方决定，视为已接线
                 if re.match(r'\s*params\s*[,}]', tail) or \
                    re.match(r'\s*params\s*:\s*[A-Za-z_$][\w$]*\s*[,}]', tail):
-                    out.setdefault(path, set()).add('*')
                     continue
                 pm = re.search(r'params:\s*\{([^}]*)\}', tail)
-                keys = set()
-                if pm:
-                    # 兼容 { keyword: x } 与简写 { group } 两种写法
-                    for part in pm.group(1).split(','):
-                        k = part.split(':')[0].strip()
-                        if re.fullmatch(r'[A-Za-z_$][\w$]*', k):
-                            keys.add(k)
-                out.setdefault(norm_path(path), set()).update(keys)
+                if not pm:
+                    continue
+                for part in pm.group(1).split(','):
+                    k = part.split(':')[0].strip()
+                    if re.fullmatch(r'[A-Za-z_$][\w$]*', k):
+                        slot['keys'].add(k)
+                        slot['literal'] = True
     return out
-
 
 def main():
     be = scan_backend()
@@ -104,9 +106,8 @@ def main():
     dead = []
     for full, params in be.items():
         api_path = norm_path(full.replace('/api/v1', ''))
-        used = fe.get(api_path, set())
-        if '*' in used:
-            continue          # 透传式调用：页面自行决定参数，不算缺失
+        slot = fe.get(api_path) or {}
+        used = slot.get('keys', set())
         missing = sorted(p for p in params if p not in used and p not in IGNORE)
         if not missing:
             continue
@@ -144,10 +145,11 @@ def main():
     print('=' * 78)
     suspects = []
     for full, params in be.items():
-        api_path = full.replace('/api/v1', '')
-        used = fe.get(api_path, set())
-        if not used or '*' in used:
-            continue
+        api_path = norm_path(full.replace('/api/v1', ''))
+        slot = fe.get(api_path) or {}
+        used = set(slot.get('keys', set()))
+        if not used:
+            continue      # 无可静态分析的字面量调用（全是透传）
         unknown = sorted(k for k in used if k not in params and k not in IGNORE)
         if unknown:
             suspects.append((api_path, unknown, sorted(params)))
@@ -158,6 +160,10 @@ def main():
             print('%-40s 前端多传: %s' % (path, ', '.join(unknown)))
             print('    后端只认: %s' % (', '.join(supported) or '(无)'))
     print('\n疑似拼写错误 %d 处' % len(suspects))
+    # --strict：作为回归关卡时，存在前端传了后端不认的参数即失败。
+    # 这类问题最隐蔽——筛选看着生效，其实参数被丢弃（已发生 6 次）。
+    if '--strict' in sys.argv and suspects:
+        return 1
     return 0
 
 
