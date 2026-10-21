@@ -8,7 +8,7 @@
                  style="width:220px" data-testid="person-org-filter">
         <el-option label="全部组织" :value="null" />
         <el-option v-for="o in orgOptions" :key="o.id"
-                   :label="orgOptionLabel(o)" :value="Number(o.id)" />
+                   :label="orgOptionLabel(o)" :value="o.id" />
       </el-select>
       <el-checkbox v-model="includeChildren" :disabled="!orgId"
                    data-testid="person-org-children">含下级</el-checkbox>
@@ -33,7 +33,8 @@
           <el-button type="success" @click="openPerson">新增人员</el-button>
         </div>
         <el-table :data="persons" v-loading="loading" border size="small">
-          <el-table-column prop="personName" label="姓名" width="110" />
+          <el-table-column prop="id" label="人员ID" width="190" />
+        <el-table-column prop="personName" label="姓名" width="110" />
           <el-table-column label="所属组织" min-width="160">
             <template #default="{ row }">{{ orgNameOf(row.orgId) }}</template>
           </el-table-column>
@@ -41,6 +42,13 @@
             <template #default="{ row }">{{ row.idCard || row.idCardMask || '-' }}</template>
           </el-table-column>
           <el-table-column prop="phoneMask" label="手机号" width="140" />
+        <el-table-column label="实名状态" width="110">
+          <template #default="{ row }">
+            <el-tag size="small" :type="row.verifyStatus === 'VERIFIED' ? 'success' : 'info'">
+              {{ enumLabel('verifyStatus', row.verifyStatus) }}
+            </el-tag>
+          </template>
+        </el-table-column>
           <el-table-column label="户籍" width="90">
             <template #default="{ row }">{{ enumLabel('householdType', row.householdType) }}</template>
           </el-table-column>
@@ -60,7 +68,8 @@
               <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
               <el-button link type="primary" @click="changeStatus(row)">改状态</el-button>
               <el-button link @click="openProfileFor(row)">保障档案</el-button>
-              <el-button link @click="openVerifyFor(row)">实名核验</el-button>
+              <el-button link :disabled="row.verifyStatus === 'VERIFIED'"
+                         @click="openVerifyFor(row)">实名核验</el-button>
               <el-button link type="danger" @click="removePerson(row)">删除</el-button>
             </template>
           </el-table-column>
@@ -79,8 +88,8 @@
           <el-input v-model.number="expiringDays" placeholder="天数" style="width:90px"
                     data-testid="expiring-days" @keyup.enter="loadExpiring" />
           <div class="spacer" />
-          <el-input v-model="gQuery.keyword" placeholder="姓名 / 手机 / 证件号" clearable
-                    style="width:220px" data-testid="profile-keyword"
+          <el-input v-model="gQuery.personId" placeholder="人员ID" clearable
+                    style="width:220px" data-testid="profile-personid"
                     @keyup.enter="loadProfiles" />
           <el-button @click="loadProfileByPerson">查看</el-button>
         </div>
@@ -134,8 +143,8 @@
           <el-button type="success" @click="verifyVisible = true">发起核验</el-button>
           <el-button @click="loadFailStats">失败统计</el-button>
           <div class="spacer" />
-          <el-input v-model="vQuery.keyword" placeholder="姓名 / 手机 / 证件号" clearable
-                    style="width:220px" data-testid="verify-keyword"
+          <el-input v-model="vQuery.personId" placeholder="人员ID" clearable
+                    style="width:220px" data-testid="verify-personid"
                     @keyup.enter="loadVerifies" />
           <el-button @click="loadConclusion">查结论</el-button>
         </div>
@@ -195,7 +204,7 @@
             <el-select v-model="pf.orgId" filterable clearable style="width:100%"
                        placeholder="选择组织（可空）" data-testid="person-org">
               <el-option v-for="o in orgOptions" :key="o.id"
-                         :label="o.orgName" :value="Number(o.id)" />
+                         :label="o.orgName" :value="String(o.id)" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="户籍类型">
             <el-select v-model="pf.householdType" style="width:100%">
@@ -366,7 +375,7 @@ const includeChildren = ref(false)
 /** 组织下拉选项（显示名称，内部传 ID） */
 const orgOptions = ref([])
 function orgNameOf(id) {
-  const hit = orgOptions.value.find((o) => Number(o.id) === Number(id))
+  const hit = orgOptions.value.find((o) => String(o.id) === String(id))
   return hit ? hit.orgName : (id ? id : '-')
 }
 
@@ -399,7 +408,7 @@ const pf = reactive({ personName: '', idCard: '', phone: '', orgId: null,
 // 保障档案
 const profiles = ref([])
 const gTotal = ref(0)
-const gQuery = reactive({ pageNum: 1, pageSize: 20, keyword: '' })
+const gQuery = reactive({ pageNum: 1, pageSize: 20, personId: '' })
 const profileVisible = ref(false)
 const profilePersonId = ref(null)
 /** 临近到期天数（后端参数名 withinDays） */
@@ -416,7 +425,7 @@ const currentProfile = ref(null)
 // 实名核验
 const verifies = ref([])
 const vTotal = ref(0)
-const vQuery = reactive({ pageNum: 1, pageSize: 20, keyword: '' })
+const vQuery = reactive({ pageNum: 1, pageSize: 20, personId: '' })
 const verifyVisible = ref(false)
 const verifyPersonId = ref(null)
 const vf = reactive({ personId: null, verifyType: 'FACE_COMPARE', userName: '',

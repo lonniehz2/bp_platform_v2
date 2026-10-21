@@ -284,7 +284,7 @@ public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
     @Override
     public PageResult<PersonGuaranteeProfile> page(long pageNum, long pageSize,
                                                    String securityType, String incomeLevel,
-                                                   String profileStatus, String keyword) {
+                                                   String profileStatus, String keyword, Long personId) {
         LambdaQueryWrapper<PersonGuaranteeProfile> qw =
                 new LambdaQueryWrapper<PersonGuaranteeProfile>()
                         .eq(securityType != null && !securityType.isBlank(),
@@ -293,6 +293,7 @@ public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
                                 PersonGuaranteeProfile::getIncomeLevel, incomeLevel)
                         .eq(profileStatus != null && !profileStatus.isBlank(),
                                 PersonGuaranteeProfile::getProfileStatus, profileStatus)
+                        .eq(personId != null, PersonGuaranteeProfile::getPersonId, personId)
                         .orderByDesc(PersonGuaranteeProfile::getId);
         java.util.List<Long> kwIds = personIdsByKeyword(keyword);
         if (kwIds != null) {
