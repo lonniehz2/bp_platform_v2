@@ -12,7 +12,14 @@
       <el-tab-pane label="消息待办" name="msg">
         <div class="toolbar">
           <el-input v-model="msg.userId" placeholder="用户ID" style="width:150px" />
-          <el-button @click="loadTodos">查询待办</el-button>
+          <el-input v-model="msgKeyword" placeholder="标题关键字" clearable style="width:180px"
+                    data-testid="oe-msg-keyword" @keyup.enter="loadTodos" />
+          <el-select v-model="msgStatus" placeholder="状态" clearable style="width:120px">
+            <el-option label="待处理" value="PENDING" />
+            <el-option label="已完成" value="DONE" />
+          </el-select>
+          <el-button type="primary" @click="loadTodos" data-testid="oe-msg-search">查询</el-button>
+          <el-button @click="resetMsgQuery" data-testid="oe-msg-reset">清空</el-button>
           <div class="spacer" />
           <el-button type="success" @click="openMsgSend()">发送消息</el-button>
           <el-button @click="broadcast">批量广播</el-button>
@@ -267,6 +274,8 @@ const jsonVisible = ref(false)
 const jsonTitle = ref('')
 const jsonHint = ref('')
 /** 按示例结构自动生成表单：keys 决定字段，kinds 决定控件类型 */
+const msgKeyword = ref('')
+const msgStatus = ref('')
 const jsonForm = reactive({})
 const jsonKinds = reactive({})
 const jsonKeys = ref([])
@@ -432,10 +441,22 @@ async function submitPick() {
 async function loadTodos() {
   try {
     const d = await req.get('/messages/todos', {
-      params: { pageNum: 1, pageSize: 50, userId: msg.userId || undefined }
+      params: {
+        pageNum: 1, pageSize: 50,
+        userId: msg.userId || undefined,
+        keyword: msgKeyword.value || undefined,
+        status: msgStatus.value || undefined
+      }
     })
     todos.value = d.rows || d || []
   } catch (e) { todos.value = [] }
+}
+
+/** 清空待办筛选 */
+function resetMsgQuery() {
+  msgKeyword.value = ''
+  msgStatus.value = ''
+  loadTodos()
 }
 function markRead(row) {
   return req.post(`/messages/todos/${row.id}/read`).then(() => {

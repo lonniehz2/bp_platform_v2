@@ -63,6 +63,13 @@
       </el-tab-pane>
 
       <el-tab-pane label="系统参数" name="config">
+        <div class="toolbar" style="margin-bottom:8px">
+          <el-input v-model="configGroup" placeholder="参数分组，如 SYSTEM / FINANCE"
+                    clearable style="width:260px" data-testid="sys-config-group"
+                    @keyup.enter="loadConfigs" />
+          <el-button type="primary" @click="loadConfigs" data-testid="sys-config-search">查询</el-button>
+          <el-button @click="resetConfigQuery" data-testid="sys-config-reset">清空</el-button>
+        </div>
         <el-table :data="configs" border size="small">
           <el-table-column prop="configKey" label="参数键" width="320" />
           <el-table-column prop="configValue" label="当前值" width="140" />
@@ -109,6 +116,12 @@ const dictTypes = ref([])
 const dictType = ref('HOUSE_TYPE')
 const dicts = ref([])
 const configs = ref([])
+/** 系统参数分组筛选（后端 sysApi.configs(group) 支持） */
+const configGroup = ref('')
+function resetConfigQuery() {
+  configGroup.value = ''
+  loadConfigs()
+}
 
 async function loadAudit() {
   loading.value = true
@@ -132,7 +145,7 @@ async function loadDict() {
 }
 
 async function loadConfigs() {
-  configs.value = await sysApi.configs()
+  configs.value = await sysApi.configs(configGroup.value || undefined)
 }
 
 async function load() { loadAudit(); loadDictTypes(); loadDict(); loadConfigs() }
