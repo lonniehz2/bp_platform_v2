@@ -91,13 +91,13 @@ const CLASSIC_GROUP = {
 }
 
 /**
- * 多 tab 页面的子菜单：把每个 tab 暴露成侧边栏可点项。
+ * 多 tab 页面的子菜单：**按路由 name 索引**。
  *
- * 这些不是独立路由（页面仍是 /ops-extras/:tab?），只用于菜单展示与跳转；
- * 因此不会影响路由数量，也不会让冒烟脚本的页面枚举发生漂移。
+ * 早前按 path 索引（'/ops-extras'）在带参数路由上不稳定——OpsExtras 的 6 个 tab
+ * 始终不展开（另 3 个页面正常）。name 由路由定义决定、不受 path 参数影响。
  */
 export const TAB_MENU = {
-  '/ops-extras': [
+  opsextras: [
     { tab: 'msg', title: '消息待办' },
     { tab: 'rule', title: '告警规则' },
     { tab: 'open', title: '开放平台' },
@@ -105,21 +105,29 @@ export const TAB_MENU = {
     { tab: 'grant', title: '授权撤销' },
     { tab: 'calendar', title: '日房态' }
   ],
-  '/rbac': [
+  rbac: [
     { tab: 'user', title: '用户管理' },
     { tab: 'role', title: '角色管理' },
     { tab: 'perm', title: '权限清单' }
   ],
-  '/sys': [
+  sys: [
     { tab: 'audit', title: '审计日志' },
     { tab: 'dict', title: '数据字典' },
     { tab: 'config', title: '系统参数' }
   ],
-  '/ops-center': [
+  opscenter: [
     { tab: 'person', title: '人员状态' },
     { tab: 'house', title: '房源状态' },
     { tab: 'order', title: '工单流程' }
   ]
+}
+
+/** 路由 name → 基础路径（拼子菜单 URL 用） */
+const NAME_BASE = {
+  opsextras: '/ops-extras',
+  rbac: '/rbac',
+  sys: '/sys',
+  opscenter: '/ops-center'
 }
 
 export function useMenu() {
@@ -130,9 +138,8 @@ export function useMenu() {
     const base = menuRoutes.filter((m) => !m.meta?.perm || auth.has(m.meta.perm))
     const out = []
     for (const m of base) {
-      // 路由 path 可能带可选参数（'/rbac/:tab?'），查子菜单要用基础路径
-      const basePath = m.path.split('/:')[0]
-      const tabs = TAB_MENU[basePath]
+      const basePath = NAME_BASE[m.name] || m.path.split('/:')[0]
+      const tabs = TAB_MENU[m.name]
       if (!tabs) {
         out.push(basePath === m.path ? m : { ...m, path: basePath })
         continue
