@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -157,6 +158,29 @@ public class RbacController {
         return R.ok(r);
     }
 
+    /** 更新角色基本信息与数据范围（角色配置页同一处保存）。 */
+    @PutMapping("/roles/{roleId}")
+    @RequirePerm("iam:role:list")
+    @Transactional(rollbackFor = Exception.class)
+    public R<IamRole> updateRole(@PathVariable Long roleId, @RequestBody RoleUpdateCmd cmd) {
+        IamRole r = roleMapper.selectById(roleId);
+        if (r == null) {
+            throw BizException.notFound("角色");
+        }
+        if (cmd.roleName() != null && !cmd.roleName().isBlank()) {
+            r.setRoleName(cmd.roleName().trim());
+        }
+        if (cmd.dataScope() != null && !cmd.dataScope().isBlank()) {
+            r.setDataScope(cmd.dataScope());
+        }
+        if (cmd.status() != null && !cmd.status().isBlank()) {
+            r.setStatus(cmd.status());
+        }
+        r.setUpdateTime(LocalDateTime.now());
+        roleMapper.updateById(r);
+        return R.ok(r);
+    }
+
     @GetMapping("/roles")
     @RequirePerm("iam:role:list")
     public R<List<IamRole>> listRoles(@RequestParam(required = false) String keyword) {
@@ -233,6 +257,9 @@ public class RbacController {
 
     public record UserCmd(String username, String password, String realName, Long orgId,
                           String userType) {
+    }
+
+    public record RoleUpdateCmd(String roleName, String dataScope, String status) {
     }
 
     public record RoleCmd(String roleCode, String roleName, String dataScope) {
