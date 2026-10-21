@@ -165,6 +165,19 @@ const scope = ref('all')
 const chartRef = ref()
 let chart = null
 
+/** 指标表为空时的房源状态兜底统计（否则饼图无数据、看起来像「没有文字」） */
+const houseStat = ref({ occupied: 0, vacant: 0, pending: 0 })
+async function loadHouseFallback() {
+  const one = async (status) => {
+    try {
+      const d = await req.get('/houses', { params: { pageNum: 1, pageSize: 1, houseStatus: status } })
+      return Number(d.total || 0)
+    } catch (e) { return 0 }
+  }
+  const [o, v, p] = await Promise.all([one('OCCUPIED'), one('VACANT'), one('PENDING_ALLOC')])
+  houseStat.value = { occupied: o, vacant: v, pending: p }
+}
+
 // 各统计卡数据
 const appStats = ref([])
 const appTotal = ref(0)
@@ -208,19 +221,49 @@ const metricRows = computed(() =>
 
 function renderChart() {
   if (!chart) return
+  // 指标优先，为空时用实时统计兜底
+  const occupied = Number(metrics.value.HOUSE_OCCUPIED || houseStat.value.occupied || 0)
+  const vacant = Number(metrics.value.HOUSE_VACANT || houseStat.value.vacant || 0)
+  const pending = Number(metrics.value.PENDING_ALLOC || houseStat.value.pending || 0)
   chart.setOption({
-    tooltip: { trigger: 'item' },
-    legend: { bottom: 0, textStyle: { color: 'rgba(0,0,0,0.65)', fontSize: 12 } },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}：{c} 套（{d}%）'
+    },
+    legend: {
+      bottom: 0,
+      textStyle: { color: 'rgba(0,0,0,0.65)', fontSize: 12 },
+      // 图例带数量，扇区上只放名称+百分比，避免两处都堆数字
+      formatter: (name) => {
+        const hit = [
+          { name: '已出租', v: occupied },
+          { name: '空置', v: vacant },
+          { name: '待配租', v: pending }
+        ].find((x) => x.name === name || name.startsWith(x.name))
+        return hit ? `${hit.name} ${hit.v}` : name
+      }
+    },
+    color: ['#1890ff', '#faad14', '#722ed1'],
     series: [{
-      type: 'pie', radius: ['52%', '72%'], center: ['50%', '44%'],
-      label: { formatter: '{d}%', color: 'rgba(0,0,0,0.65)' },
+      type: 'pie',
+      radius: ['46%', '68%'],
+      center: ['50%', '42%'],
+      avoidLabelOverlap: true,
+      itemStyle: { borderColor: '#fff', borderWidth: 2 },
+      label: {
+        show: true,
+        // 名称 + 百分比，两行显示，保证阅读时能对上颜色
+        formatter: '{b}\n{d}%',
+        color: 'rgba(0,0,0,0.75)',
+        fontSize: 12,
+        lineHeight: 16
+      },
+      labelLine: { show: true, length: 10, length2: 12 },
       data: [
-        { name: '已出租', value: Number(metrics.value.HOUSE_OCCUPIED || 0),
-          itemStyle: { color: '#1890ff' } },
-        { name: '空置', value: Number(metrics.value.HOUSE_VACANT || 0),
-          itemStyle: { color: '#faad14' } },
-        { name: '待配租', value: Number(metrics.value.PENDING_ALLOC || 0),
-          itemStyle: { color: '#52c41a' } }
+        { name: '已出租', value: occupied, itemStyle: { color: '#1890ff' } },
+        { name: '空置', value: vacant, itemStyle: { color: '#faad14' } },
+        // 原 #52c41a（绿）与空置橙在视觉上偏近，改为紫色拉开色相差
+        { name: '待配租', value: pending, itemStyle: { color: '#722ed1' } }
       ]
     }]
   }, true)
@@ -312,6 +355,9 @@ async function load() {
     const data = await rptApi.screenData('OVERVIEW')
     screen.value = data
     metrics.value = await rptApi.metrics()
+    // 指标表为空时（未跑聚合任务），饼图会没有任何扇区，看起来像「没有文字」。
+    // 这里按房源状态实时兜底统计，保证图表始终有数据。
+    await loadHouseFallback()
     await nextTick()
     if (!chart) {
       chart = echarts.init(chartRef.value)
