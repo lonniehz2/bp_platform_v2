@@ -46,7 +46,7 @@
       <el-form :model="form" label-width="120px">
         <el-row :gutter="12">
           <el-col :span="12"><el-form-item label="人员 ID" required>
-            <el-input v-model="form.personId" data-testid="f-personId" /></el-form-item></el-col>
+            <PersonPicker v-model="form.personId" width="240px" testid="person-picker" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="钥匙类型">
             <el-select v-model="form.keyType" style="width:100%" clearable data-testid="f-keyType">
               <el-option label="人脸" value="FACE" />
@@ -92,6 +92,7 @@
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 

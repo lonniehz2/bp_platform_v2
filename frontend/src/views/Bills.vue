@@ -70,7 +70,7 @@
     <el-dialog v-model="payVisible" title="登记收款" width="520px">
       <el-form :model="p" label-width="110px">
         <el-form-item label="组织ID"><el-input v-model="p.orgId" /></el-form-item>
-        <el-form-item label="人员ID"><el-input v-model="p.personId" /></el-form-item>
+        <el-form-item label="人员ID"><PersonPicker v-model="p.personId" width="240px" testid="person-picker" /></el-form-item>
         <el-form-item label="缴费人"><el-input v-model="p.payerName" /></el-form-item>
         <el-form-item label="收款金额"><el-input v-model.number="p.payAmount" />
         </el-form-item>
@@ -136,6 +136,7 @@
 <script setup>
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { financeApi } from '@/api/modules'
 

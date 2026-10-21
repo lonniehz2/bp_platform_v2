@@ -81,7 +81,7 @@
           <el-col :span="12"><el-form-item label="关联房源 ID">
             <el-input v-model="form.houseId" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="关联人员 ID">
-            <el-input v-model="form.personId" /></el-form-item></el-col>
+            <PersonPicker v-model="form.personId" width="240px" testid="person-picker" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
@@ -101,6 +101,7 @@ import DetailView from '@/components/DetailView.vue'
 import JsonForm from '@/components/JsonForm.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 

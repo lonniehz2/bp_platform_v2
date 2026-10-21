@@ -13,8 +13,7 @@
       <FilterBar @search="load" @reset="resetQuery">
       <el-input v-model="df.contractId" placeholder="合同 ID" clearable
                 style="width:200px" data-testid="dep-contract" @keyup.enter="load" />
-      <el-input v-model="df.personId" placeholder="人员 ID" clearable
-                style="width:200px" data-testid="dep-person" @keyup.enter="load" />
+      <PersonPicker v-model="df.personId" width="240px" testid="person-picker" />
     </FilterBar>
 
     <el-table :data="rows" v-loading="loading" border size="small">
@@ -84,7 +83,7 @@
       <el-form :model="dp" label-width="120px">
         <el-form-item label="合同ID"><el-input v-model="dp.contractId" />
         </el-form-item>
-        <el-form-item label="人员ID"><el-input v-model="dp.personId" />
+        <el-form-item label="人员ID"><PersonPicker v-model="dp.personId" width="240px" testid="person-picker" />
         </el-form-item>
         <el-form-item label="应收押金"><el-input v-model.number="dp.depositAmount" />
         </el-form-item>
@@ -160,6 +159,7 @@
 <script setup>
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { financeApi } from '@/api/modules'
 import req from '@/api/request'

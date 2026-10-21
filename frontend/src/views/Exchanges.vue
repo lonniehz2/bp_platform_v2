@@ -54,7 +54,7 @@
       <el-form :model="form" label-width="120px">
         <el-row :gutter="12">
           <el-col :span="12"><el-form-item label="人员 ID" required>
-            <el-input v-model="form.personId" data-testid="f-personId" /></el-form-item></el-col>
+            <PersonPicker v-model="form.personId" width="240px" testid="person-picker" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="换房类型" required>
             <el-select v-model="form.exchangeType" style="width:100%" data-testid="f-exchangeType">
               <el-option label="自愿换房" value="VOLUNTARY" />
@@ -103,6 +103,7 @@
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 

@@ -59,7 +59,7 @@
           <el-input v-model="form.orgId" />
         </el-form-item>
         <el-form-item label="申请人ID">
-          <el-input v-model="form.personId" />
+          <PersonPicker v-model="form.personId" width="240px" testid="person-picker" />
         </el-form-item>
         <el-form-item label="保障类型">
           <el-select v-model="form.securityType">

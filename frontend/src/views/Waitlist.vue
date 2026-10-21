@@ -53,7 +53,7 @@
     <el-dialog v-model="enqueueVisible" title="轮候入队" width="560px">
       <el-form :model="ef" label-width="130px">
         <el-form-item label="人员ID" required>
-          <el-input v-model="ef.personId" /></el-form-item>
+          <PersonPicker v-model="ef.personId" width="240px" testid="person-picker" /></el-form-item>
         <el-form-item label="申请单ID">
           <el-input v-model="ef.applicationId"
                     placeholder="已通过的申请单，可为空" /></el-form-item>
@@ -90,6 +90,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage } from 'element-plus'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'

@@ -68,7 +68,7 @@
             <el-input v-model="form.content" type="textarea" :rows="3"
                       data-testid="f-content" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="关联人员 ID">
-            <el-input v-model="form.personId" /></el-form-item></el-col>
+            <PersonPicker v-model="form.personId" width="240px" testid="person-picker" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="组织 ID">
             <el-input v-model="form.orgId" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="提交人姓名">
@@ -93,6 +93,7 @@
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 

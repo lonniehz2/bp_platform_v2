@@ -75,7 +75,7 @@
       <el-form :model="c" label-width="120px">
         <el-form-item label="合同ID"><el-input v-model="c.contractId" /></el-form-item>
         <el-form-item label="房源ID"><el-input v-model="c.houseId" /></el-form-item>
-        <el-form-item label="人员ID"><el-input v-model="c.personId" /></el-form-item>
+        <el-form-item label="人员ID"><PersonPicker v-model="c.personId" width="240px" testid="person-picker" /></el-form-item>
         <el-form-item label="退租类型">
           <el-select v-model="c.terminationType" style="width:100%">
             <el-option label="正常退租" value="NORMAL" />
@@ -180,6 +180,7 @@ import DetailView from '@/components/DetailView.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { terminationApi } from '@/api/modules'
 import req from '@/api/request'

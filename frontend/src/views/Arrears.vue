@@ -51,7 +51,7 @@
     <el-dialog v-model="dunningVisible" title="登记催缴" width="460px">
       <el-form :model="df" label-width="110px">
         <el-form-item label="账单ID"><el-input v-model="df.billId" /></el-form-item>
-        <el-form-item label="人员ID"><el-input v-model="df.personId" /></el-form-item>
+        <el-form-item label="人员ID"><PersonPicker v-model="df.personId" width="240px" testid="person-picker" /></el-form-item>
         <el-form-item label="催缴方式">
           <el-select v-model="df.dunningType" style="width:100%">
             <el-option label="短信" value="SMS" />
@@ -80,6 +80,7 @@
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage } from 'element-plus'
 import { financeApi } from '@/api/modules'
 import req from '@/api/request'

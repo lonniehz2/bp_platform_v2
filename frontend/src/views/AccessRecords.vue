@@ -4,8 +4,7 @@
       <div class="toolbar">
         <el-input v-model="query.houseId" placeholder="房源ID" clearable
                   style="width:210px" @keyup.enter="load" />
-        <el-input v-model="query.personId" placeholder="人员ID" clearable
-                  style="width:210px" @keyup.enter="load" />
+        <PersonPicker v-model="query.personId" width="240px" testid="person-picker" />
         <el-checkbox v-model="query.abnormalOnly">只看异常</el-checkbox>
         <el-button type="primary" @click="load">查询</el-button>
         <el-button @click="resetQuery">清空</el-button>
@@ -108,6 +107,7 @@
 <script setup>
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 import { devApi } from '@/api/modules'
 
 const loading = ref(false)
