@@ -40,6 +40,12 @@ const CASES = [
     tids: ['f-complaintType', 'f-source', 'f-title', 'f-content'],
     fill: { 'f-title': '表单化验证投诉标题', 'f-content': '内容' },
     expectWarn: '标题'
+  },
+  {
+    path: '/credits', name: '信用惩戒', openBtn: '新建惩戒',
+    tids: ['f-personId', 'f-violationType', 'f-sanctionType', 'f-banYears'],
+    fill: { 'f-personId': '1000000000000027163' },
+    expectWarn: '人员 ID'
   }
 ]
 

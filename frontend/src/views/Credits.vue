@@ -7,6 +7,7 @@
                 @keyup.enter="reload" />
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
+      <el-button type="success" @click="createVisible = true">新建惩戒</el-button>
       <el-button @click="scanExpired">扫描到期</el-button>
     </div>
 
@@ -45,11 +46,53 @@
                    :total="total" :page-size="pageSize" :current-page="pageNum"
                    @current-change="(p) => { pageNum = p; load() }" />
 
-    <el-dialog v-model="createVisible" title="新建" width="560px">
-      <el-alert type="warning" :closable="false" show-icon
-                title="字段取自后端 Cmd 定义，可直接编辑；数字 ID 请填真实主键" />
-      <el-input v-model="json" type="textarea" :rows="16"
-                style="margin-top:10px;font-family:monospace" />
+    <el-dialog v-model="createVisible" title="新建信用惩戒" width="720px">
+      <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
+                title="字段与后端 CreditCreateCmd 一致；带 * 为必填" />
+      <el-form :model="form" label-width="120px">
+        <el-row :gutter="12">
+          <el-col :span="12"><el-form-item label="人员 ID" required>
+            <el-input v-model="form.personId" data-testid="f-personId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="违规类型" required>
+            <el-select v-model="form.violationType" style="width:100%" data-testid="f-violationType">
+              <el-option label="虚假申报" value="FALSE_INFO" />
+              <el-option label="转租转借" value="SUBLEASE" />
+              <el-option label="擅自改造" value="STRUCTURE" />
+              <el-option label="改变用途" value="CHANGE_USE" />
+              <el-option label="长期空置" value="VACANT" />
+              <el-option label="违法违规" value="ILLEGAL" />
+              <el-option label="欠缴租金" value="ARREARS" />
+              <el-option label="其他" value="OTHER" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="惩戒措施" required>
+            <el-select v-model="form.sanctionType" style="width:100%" data-testid="f-sanctionType">
+              <el-option label="终止合同" value="TERMINATE" />
+              <el-option label="限制申请" value="BAN_APPLY" />
+              <el-option label="上报信用平台" value="CREDIT_PLATFORM" />
+              <el-option label="罚款" value="FINE" />
+              <el-option label="其他" value="OTHER" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="限制年限">
+            <el-input v-model="form.banYears" type="number" data-testid="f-banYears" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="关联业务类型">
+            <el-select v-model="form.bizType" style="width:100%" clearable>
+              <el-option label="退出" value="EXIT" />
+              <el-option label="合同" value="CONTRACT" />
+              <el-option label="申请" value="APPLICATION" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="关联业务 ID">
+            <el-input v-model="form.bizId" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="违规说明">
+            <el-input v-model="form.violationDesc" type="textarea" :rows="3"
+                      data-testid="f-violationDesc" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="决定组织 ID">
+            <el-input v-model="form.decideOrgId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="法律文书号">
+            <el-input v-model="form.legalDocNo" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="上报信用平台">
+            <el-switch v-model="form.pushToPlatform" /></el-form-item></el-col>
+        </el-row>
+      </el-form>
       <template #footer>
         <el-button @click="createVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
@@ -79,7 +122,19 @@ const keyword = ref('')
 const show = ref(false)
 const detail = ref(null)
 const createVisible = ref(false)
-const json = ref(JSON.stringify({"personId": 1, "creditType": "RENT_ARREARS", "creditLevel": "MINOR", "reason": "欠租超过 6 个月", "startDate": "2026-01-01", "endDate": "2031-01-01", "banApplyFlag": 1}, null, 2))
+/** 字段名严格对齐后端 CreditCreateCmd */
+const form = reactive({
+  personId: '',
+  bizType: '',
+  bizId: '',
+  violationType: 'ARREARS',
+  violationDesc: '',
+  sanctionType: 'BAN_APPLY',
+  banYears: 1,
+  decideOrgId: '',
+  legalDocNo: '',
+  pushToPlatform: false
+})
 
 async function load() {
   loading.value = true
@@ -95,13 +150,15 @@ async function load() {
 function reload() { pageNum.value = 1; load() }
 
 async function doCreate() {
-  let body
-  try { body = JSON.parse(json.value) } catch (e) {
-    ElMessage.error('JSON 格式错误'); return
-  }
+  // 必填项与后端 CreditCreateCmd 一致
+  const missing = []
+  if (!form.personId) missing.push('人员 ID')
+  if (!form.violationType) missing.push('违规类型')
+  if (!form.sanctionType) missing.push('惩戒措施')
+  if (missing.length) { ElMessage.warning('请填写：' + missing.join('、')); return }
   saving.value = true
   try {
-    await req.post('/credits', body)
+    await req.post('/credits', { ...form })
     ElMessage.success('创建成功')
     createVisible.value = false; load()
   } finally { saving.value = false }
