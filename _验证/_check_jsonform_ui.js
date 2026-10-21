@@ -26,12 +26,14 @@ const CASES = [
   {
     path: '/alerts', name: '告警', openBtn: '新建告警',
     tids: ['f-alertCategory', 'f-alertLevel', 'f-alertType', 'f-alertTitle'],
-    fill: { 'f-alertType': 'E2E_FORM_TEST', 'f-alertTitle': '表单化验证告警' }
+    fill: { 'f-alertType': 'E2E_FORM_TEST', 'f-alertTitle': '表单化验证告警' },
+    expectWarn: '告警类型'
   },
   {
     path: '/appeals', name: '申诉', openBtn: '新建申诉',
     tids: ['f-bizType', 'f-appealType', 'f-bizId', 'f-personId', 'f-appealReason'],
-    fill: { 'f-bizId': '1', 'f-personId': '1', 'f-appealReason': '表单化验证申诉理由' }
+    fill: { 'f-bizId': '1', 'f-personId': '1', 'f-appealReason': '表单化验证申诉理由' },
+    expectWarn: '申诉理由'
   }
 ]
 
@@ -115,6 +117,10 @@ const CASES = [
         : bad(c.name + '：必填控件齐全', '缺：' + missing.join(','))
 
       // ③ 空提交被前端拦住
+      // 先清掉历史提示，否则会读到上一个用例残留的 toast（曾经因此假通过）
+      await page.evaluate(() => {
+        document.querySelectorAll('.el-message').forEach((m) => m.remove())
+      })
       const blocked = await page.evaluate(() => {
         const ds = Array.from(document.querySelectorAll('.el-dialog')).filter((d) => d.offsetParent !== null)
         const d = ds[ds.length - 1]
@@ -127,17 +133,25 @@ const CASES = [
           .map((x) => (x.innerText || '').trim())
         return m.find((t) => t.includes('请填写')) || null
       }), 5000)
-      blocked && warn
+      // 必须命中本页面的字段名，否则说明读到的是别处残留的提示
+      const correctFields = !!warn && warn.includes(c.expectWarn)
+      blocked && correctFields
         ? ok(c.name + '：空提交被拦截', warn)
-        : bad(c.name + '：空提交被拦截', '提示=' + (warn || '无'))
+        : bad(c.name + '：空提交被拦截',
+            `提示=${warn || '无'}（应含「${c.expectWarn}」）`)
 
       // ④ 填齐后提交成功
       for (const [tid, val] of Object.entries(c.fill)) {
         await page.evaluate((t, v) => {
           const el = document.querySelector('[data-testid="' + t + '"]')
-          const input = el && (el.tagName === 'INPUT' ? el : el.querySelector('input'))
+          if (!el) return
+          // 组件对不同类型渲染 input / textarea，两者都要覆盖
+          const input = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'
+            ? el : (el.querySelector('textarea') || el.querySelector('input'))
           if (!input) return
-          input.focus(); input.value = v
+          const proto = input.tagName === 'TEXTAREA'
+            ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype
+          Object.getOwnPropertyDescriptor(proto, 'value').set.call(input, v)
           input.dispatchEvent(new Event('input', { bubbles: true }))
           input.dispatchEvent(new Event('change', { bubbles: true }))
         }, tid, val)
