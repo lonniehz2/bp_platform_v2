@@ -43,6 +43,11 @@ const CASES = [
     args: ['--no-sandbox'], defaultViewport: { width: 1500, height: 950 }
   })
   const page = await browser.newPage()
+  // 抓页面的诊断日志（临时）
+  page.on('console', (m) => {
+    const t = m.text()
+    if (t.startsWith('SUBMIT_FORM')) console.log('    [页面] ' + t)
+  })
   const errors = []
   page.on('pageerror', (e) => errors.push(e.message))
 
@@ -142,7 +147,10 @@ const CASES = [
 
       // ④ 填齐后提交成功
       // 用真实键盘输入：合成 input 事件在部分组件上不触发 v-model
-      for (const [tid, val] of Object.entries(c.fill)) {
+      const fillMap = { ...c.fill }
+      // 申诉对「同一业务单据」有唯一性校验，固定 bizId 会在第二次运行时被拒
+      if (fillMap['f-bizId']) fillMap['f-bizId'] = String(Date.now() % 1000000)
+      for (const [tid, val] of Object.entries(fillMap)) {
         const sel = '[data-testid="' + tid + '"]'
         const okEl = await page.evaluate((s) => {
           const ds = Array.from(document.querySelectorAll('.el-dialog')).filter((d) => d.offsetParent !== null)
@@ -163,6 +171,10 @@ const CASES = [
         await h.type(String(val), { delay: 15 })
         await page.keyboard.press('Tab')
       }
+      // 提交前清掉上一次「空提交」留下的 toast，否则会把旧提示当成这次的结果
+      await page.evaluate(() => {
+        document.querySelectorAll('.el-message').forEach((m) => m.remove())
+      })
       const submitted = await page.evaluate(() => {
         const ds = Array.from(document.querySelectorAll('.el-dialog')).filter((d) => d.offsetParent !== null)
         const d = ds[ds.length - 1]
