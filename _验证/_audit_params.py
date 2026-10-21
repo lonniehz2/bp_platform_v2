@@ -119,6 +119,29 @@ def main():
 
     total = sum(r[0] for r in rows)
     print('\n合计 %d 个未接参数，涉及 %d 个接口' % (total, len(rows)))
+
+    # ---------- 反向检查：前端传了后端不认识的键（疑似拼写错误） ----------
+    # 这类问题比「未接参数」更隐蔽：页面看着有筛选，实际参数被静默丢弃。
+    # 已踩过三例：days/withinDays、contractStatus/status、todoStatus/status。
+    print('\n' + '=' * 78)
+    print('疑似拼写错误（前端传了后端没有的参数）')
+    print('=' * 78)
+    suspects = []
+    for full, params in be.items():
+        api_path = full.replace('/api/v1', '')
+        used = fe.get(api_path, set())
+        if not used or '*' in used:
+            continue
+        unknown = sorted(k for k in used if k not in params and k not in IGNORE)
+        if unknown:
+            suspects.append((api_path, unknown, sorted(params)))
+    if not suspects:
+        print('✔ 未发现')
+    else:
+        for path, unknown, supported in suspects:
+            print('%-40s 前端多传: %s' % (path, ', '.join(unknown)))
+            print('    后端只认: %s' % (', '.join(supported) or '(无)'))
+    print('\n疑似拼写错误 %d 处' % len(suspects))
     return 0
 
 

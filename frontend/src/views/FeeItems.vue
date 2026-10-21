@@ -173,6 +173,14 @@
 
     <!-- 规则列表 -->
     <el-dialog v-model="ruleVisible" title="计费规则" width="720px">
+      <div class="toolbar" style="margin-bottom:8px">
+        <el-input v-model="rf.feeItemId" placeholder="计费项目 ID" clearable style="width:190px"
+                  data-testid="rule-feeitem" @keyup.enter="loadRules" />
+        <el-input v-model="rf.houseType" placeholder="房源类型，如 PUBLIC_RENTAL" clearable
+                  style="width:230px" data-testid="rule-housetype" @keyup.enter="loadRules" />
+        <el-button type="primary" @click="loadRules" data-testid="rule-search">查询</el-button>
+        <el-button @click="resetRuleQuery" data-testid="rule-reset">清空</el-button>
+      </div>
       <el-table :data="rules" border size="small" max-height="420">
         <el-table-column prop="ruleName" label="规则名称" min-width="140" />
         <el-table-column prop="feeItemId" label="项目" width="150" />
@@ -230,6 +238,13 @@ const pageSize = ref(20)
 const createVisible = ref(false)
 const ruleCreateVisible = ref(false)
 const ruleVisible = ref(false)
+/** 规则列表筛选（后端 /fin/billing-rules 支持 feeItemId / houseType） */
+const rf = reactive({ feeItemId: '', houseType: '' })
+function resetRuleQuery() {
+  rf.feeItemId = ''
+  rf.houseType = ''
+  loadRules()
+}
 const previewVisible = ref(false)
 const current = ref(null)
 
@@ -277,7 +292,13 @@ function resetQuery() {
 }
 
 async function loadRules() {
-  const d = await req.get('/fin/billing-rules', { params: { pageNum: 1, pageSize: 50 } })
+  const d = await req.get('/fin/billing-rules', {
+    params: {
+      pageNum: 1, pageSize: 50,
+      feeItemId: rf.feeItemId || undefined,
+      houseType: rf.houseType || undefined
+    }
+  })
   rules.value = d.rows || d || []
 }
 
