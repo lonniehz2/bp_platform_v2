@@ -176,13 +176,13 @@ export const menuRoutes = [
     meta: { title: '开放平台', icon: 'Connection', group: '管理后台', perm: 'open:app:list' }
   },
   {
-    path: '/rbac',
+    path: '/rbac/:tab?',
     name: 'rbac',
     component: () => import('@/views/Rbac.vue'),
     meta: { title: '用户与权限', icon: 'Lock', group: '管理后台', perm: 'sys:rbac:view' }
   },
   {
-    path: '/sys',
+    path: '/sys/:tab?',
     name: 'sys',
     component: () => import('@/views/SysAdmin.vue'),
     meta: { title: '系统支撑', icon: 'Setting', group: '管理后台', perm: 'sys:admin:view' }
@@ -242,7 +242,7 @@ export const menuRoutes = [
     meta: { title: '年审复核', icon: 'Checked', group: '线索' }
   },
   {
-    path: '/ops-center',
+    path: '/ops-center/:tab?',
     name: 'opscenter',
     component: () => import('@/views/OpsCenter.vue'),
     meta: { title: '运维操作台', icon: 'Tools', group: '管理后台', perm: 'sys:ops:view' }

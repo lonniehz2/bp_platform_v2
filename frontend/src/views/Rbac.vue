@@ -189,12 +189,23 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
 
-const tab = ref('user')
+const TABS = ['user', 'role', 'perm']
+const route = useRoute()
+const router = useRouter()
+const tab = ref(TABS.includes(route.params.tab) ? route.params.tab : 'user')
+watch(() => route.params.tab, (v) => {
+  const t = TABS.includes(v) ? v : 'user'
+  if (t !== tab.value) tab.value = t
+})
+watch(tab, (v) => {
+  if (route.params.tab !== v) router.replace('/rbac/' + v)
+})
 const loading = ref(false)
 const saving = ref(false)
 const users = ref([])

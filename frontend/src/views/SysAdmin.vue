@@ -79,10 +79,21 @@
 
 <script setup>
 import { enumLabel, dictTypeLabel } from '@/constants/enums'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { sysApi } from '@/api/modules'
 
-const tab = ref('audit')
+const TABS = ['audit', 'dict', 'config']
+const route = useRoute()
+const router = useRouter()
+const tab = ref(TABS.includes(route.params.tab) ? route.params.tab : 'audit')
+watch(() => route.params.tab, (v) => {
+  const t = TABS.includes(v) ? v : 'audit'
+  if (t !== tab.value) tab.value = t
+})
+watch(tab, (v) => {
+  if (route.params.tab !== v) router.replace('/sys/' + v)
+})
 const loading = ref(false)
 const audits = ref([])
 const auditQuery = reactive({ level: '', operatorName: '' })

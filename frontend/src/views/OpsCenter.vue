@@ -105,11 +105,22 @@
 
 <script setup>
 import { enumLabel } from '@/constants/enums'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 
-const tab = ref('person')
+const TABS = ['person', 'house', 'order']
+const route = useRoute()
+const router = useRouter()
+const tab = ref(TABS.includes(route.params.tab) ? route.params.tab : 'person')
+watch(() => route.params.tab, (v) => {
+  const t = TABS.includes(v) ? v : 'person'
+  if (t !== tab.value) tab.value = t
+})
+watch(tab, (v) => {
+  if (route.params.tab !== v) router.replace('/ops-center/' + v)
+})
 const saving = ref(false)
 const pid = ref(null)
 const hid = ref(null)
