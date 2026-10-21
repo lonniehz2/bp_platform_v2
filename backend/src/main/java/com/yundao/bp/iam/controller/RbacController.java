@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -95,8 +96,13 @@ public class RbacController {
 
     @GetMapping("/users")
     @RequirePerm("iam:user:list")
-    public R<List<IamUser>> listUsers() {
-        List<IamUser> list = userMapper.selectList(null);
+    public R<List<IamUser>> listUsers(@RequestParam(required = false) String keyword) {
+        LambdaQueryWrapper<IamUser> qw = new LambdaQueryWrapper<>();
+        if (keyword != null && !keyword.isBlank()) {
+            String k = keyword.trim();
+            qw.and(w -> w.like(IamUser::getUsername, k).or().like(IamUser::getRealName, k));
+        }
+        List<IamUser> list = userMapper.selectList(qw);
         list.forEach(u -> u.setPasswordHash(null));
         return R.ok(list);
     }

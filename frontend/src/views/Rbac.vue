@@ -16,6 +16,10 @@
       <el-tab-pane label="用户" name="user">
         <div class="toolbar">
           <el-button type="success" @click="userVisible = true">新增用户</el-button>
+          <el-input v-model="ukeyword" placeholder="账号 / 姓名" clearable style="width:180px"
+                    data-testid="rbac-user-keyword" @keyup.enter="load" />
+          <el-button type="primary" @click="load">查询</el-button>
+          <el-button @click="resetUserQuery" data-testid="rbac-user-reset">清空</el-button>
           <span class="muted">共 {{ users.length }} 个</span>
         </div>
         <el-table :data="users" v-loading="loading" border size="small" max-height="460">
@@ -209,6 +213,12 @@ watch(tab, (v) => {
 const loading = ref(false)
 const saving = ref(false)
 const users = ref([])
+/** 用户列表关键字筛选（后端 /rbac/users 支持 keyword） */
+const ukeyword = ref('')
+function resetUserQuery() {
+  ukeyword.value = ''
+  load()
+}
 const roles = ref([])
 const perms = ref([])
 
@@ -234,7 +244,9 @@ const grantKind = ref('')
 async function load() {
   loading.value = true
   try {
-    const u = await req.get('/rbac/users', { params: { pageNum: 1, pageSize: 100 } })
+    const u = await req.get('/rbac/users', {
+      params: { keyword: ukeyword.value || undefined }
+    })
     users.value = u.rows || u || []
   } catch (e) { users.value = [] }
   try {
