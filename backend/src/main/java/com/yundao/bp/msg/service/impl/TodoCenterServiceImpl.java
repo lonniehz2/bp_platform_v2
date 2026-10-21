@@ -63,7 +63,7 @@ public class TodoCenterServiceImpl implements TodoCenterService {
                     "/annual-reviews?pending=1", "资格年审复核"),
             new Def("WORKORDER", "待处理工单", "bp_ops_workorder",
                     "order_status in ('PENDING','PROCESSING')", true,
-                    "/ops-center?tab=order&pending=1", "接单、处置、回访")
+                    "/ops-center/order?pending=1", "接单、处置、回访")
     );
 
     @Override

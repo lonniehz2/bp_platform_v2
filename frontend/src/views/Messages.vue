@@ -11,6 +11,8 @@
           <el-option label="已读" value="READ" />
           <el-option label="已办" value="DONE" />
         </el-select>
+        <el-switch v-model="onlyMine" active-text="只看我的" inline-prompt
+                   data-testid="msg-only-mine" @change="load" />
         <el-button type="primary" @click="load">刷新</el-button>
       </div>
 
@@ -89,6 +91,17 @@ const rows = ref([])
 const total = ref(0)
 const unread = ref(0)
 const query = reactive({ pageNum: 1, pageSize: 20, status: '' })
+/**
+ * 只看我的：默认关闭。
+ * 待办中心的分类数字是全租户口径，若这里默认只查本人，两边数量就对不上
+ * （此前「待办消息 9 条」点进来只有 3 条，就是这个原因）。
+ */
+const onlyMine = ref(false)
+// 从待办中心「待办消息」跳转过来时带 pending=1：按待处理筛选并看全部
+if (/pending=1/.test(window.location.hash)) {
+  query.status = 'PENDING'
+  onlyMine.value = false
+}
 const form = reactive({ userId: null, title: '', content: '', priority: 'NORMAL' })
 
 function priorityTone(p) {
@@ -100,7 +113,7 @@ async function load() {
   try {
     const data = await msgApi.todos({
       pageNum: query.pageNum, pageSize: query.pageSize,
-      userId: auth.user?.userId || undefined,
+      userId: onlyMine.value ? (auth.user?.userId || undefined) : undefined,
       status: query.status || undefined
     })
     rows.value = data.rows || []

@@ -93,14 +93,14 @@
           <el-button @click="resetFilter('order')">清空</el-button>
         </div>
 <el-table :data="orders" border size="small" max-height="440">
-          <el-table-column prop="workOrderNo" label="工单号" width="170" />
-          <el-table-column prop="workOrderType" label="类型" width="120">
-            <template #default="{ row }">{{ row.workOrderTypeLabel || enumLabel('workOrderType', row.workOrderType) }}</template>
+          <el-table-column prop="workorderNo" label="工单号" width="170" />
+          <el-table-column prop="orderType" label="类型" width="120">
+            <template #default="{ row }">{{ row.workOrderTypeLabel || enumLabel('orderType', row.orderType) }}</template>
           </el-table-column>
-          <el-table-column prop="workOrderStatus" label="状态" width="120">
-            <template #default="{ row }">{{ row.workOrderStatusLabel || enumLabel('workOrderStatus', row.workOrderStatus) }}</template>
+          <el-table-column prop="orderStatus" label="状态" width="120">
+            <template #default="{ row }">{{ row.workOrderStatusLabel || enumLabel('orderStatus', row.orderStatus) }}</template>
           </el-table-column>
-          <el-table-column prop="title" label="标题" min-width="150" />
+          <el-table-column prop="orderTitle" label="标题" min-width="150" />
           <el-table-column label="流程操作" width="380" fixed="right">
             <template #default="{ row }">
               <el-button link type="primary" @click="assign(row)">派单</el-button>
