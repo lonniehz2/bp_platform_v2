@@ -6,8 +6,7 @@
                    style="width:150px" @change="load">
           <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
         </el-select>
-        <el-input v-model="query.personId" placeholder="申请人ID" clearable
-                  style="width:210px" @keyup.enter="load" />
+        <PersonPicker v-model="query.personId" width="260px" testid="app-person-picker" />
         <el-button type="primary" @click="load">查询</el-button>
         <el-button @click="resetQuery">清空</el-button>
         <div class="spacer" />
@@ -154,6 +153,7 @@
 <script setup>
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage } from 'element-plus'
 import { applicationApi } from '@/api/modules'
 import { useDict } from '@/composables/useDict'
