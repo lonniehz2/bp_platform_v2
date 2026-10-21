@@ -296,6 +296,10 @@ async function doRelease() {
   } finally { saving.value = false }
 }
 
+// 待办中心「待处理退租」跳转过来时带 pending=1
+if (/pending=1/.test(window.location.hash)) {
+  tf.status = 'APPLYING'
+}
 onMounted(load)
 </script>
 

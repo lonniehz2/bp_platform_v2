@@ -348,5 +348,9 @@ function resetQuery() {
   reload()
 }
 
+// 待办中心「待签合同」跳转过来时带 pending=1（待签约状态）
+if (/pending=1/.test(window.location.hash)) {
+  q.contractStatus = 'PENDING_SIGN'
+}
 onMounted(load)
 </script>

@@ -45,25 +45,25 @@ public class TodoCenterServiceImpl implements TodoCenterService {
     private static final List<Def> DEFS = List.of(
             new Def("TODO", "待办消息", "bp_msg_todo",
                     "todo_status = 'PENDING'", false,
-                    "/messages", "站内指派给你的任务与提醒"),
+                    "/messages?pending=1", "站内指派给你的任务与提醒"),
             new Def("APPLICATION", "待审申请", "bp_biz_application",
                     "application_status in ('SUBMITTED','ACCEPTED','REVIEWING','SUPPLEMENT')", true,
-                    "/applications", "受理、审核、补正材料"),
+                    "/applications?pending=1", "受理、审核、补正材料"),
             new Def("CONTRACT", "待签合同", "bp_biz_contract",
                     "contract_status in ('PENDING_SIGN','SIGNING')", true,
-                    "/contracts", "推进签约直至履约"),
+                    "/contracts?pending=1", "推进签约直至履约"),
             new Def("TERMINATION", "待处理退租", "bp_biz_termination",
                     "termination_status in ('APPLYING','APPROVING','APPROVED')", false,
-                    "/terminations", "审批、查验、结算、放房源"),
+                    "/terminations?pending=1", "审批、查验、结算、放房源"),
             new Def("EXCHANGE", "待审换房", "bp_biz_exchange",
                     "exchange_status in ('APPLYING','APPROVING','APPROVED')", false,
-                    "/exchanges", "换房审核与执行"),
+                    "/exchanges?pending=1", "换房审核与执行"),
             new Def("REVIEW", "待复核年审", "bp_biz_annual_review",
                     "review_status in ('PENDING','REVIEWING','OVERDUE')", false,
-                    "/annual-reviews", "资格年审复核"),
+                    "/annual-reviews?pending=1", "资格年审复核"),
             new Def("WORKORDER", "待处理工单", "bp_ops_workorder",
                     "order_status in ('PENDING','PROCESSING')", true,
-                    "/ops-center", "接单、处置、回访")
+                    "/ops-center?tab=order&pending=1", "接单、处置、回访")
     );
 
     @Override

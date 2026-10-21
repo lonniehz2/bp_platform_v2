@@ -185,6 +185,10 @@ function resetQuery() {
   reload()
 }
 
+// 待办中心「待审换房」跳转过来时带 pending=1
+if (/pending=1/.test(window.location.hash) && typeof xf !== 'undefined') {
+  xf.status = 'APPLYING'
+}
 onMounted(load)
 </script>
 

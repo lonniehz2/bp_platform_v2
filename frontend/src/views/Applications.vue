@@ -199,7 +199,8 @@ async function load() {
   try {
     const data = await applicationApi.page({
       pageNum: query.pageNum, pageSize: query.pageSize,
-      applicationStatus: query.applicationStatus || undefined,
+      // 后端参数名是 status（不是 applicationStatus），传错会被静默忽略
+      status: query.applicationStatus || undefined,
       personId: query.personId || undefined
     })
     rows.value = data.rows || []
@@ -255,5 +256,9 @@ function resetQuery() {
   load()
 }
 
+// 从待办中心「待审申请」点进来时带 pending=1，这里把状态筛选设为待审
+if (/pending=1/.test(window.location.hash)) {
+  query.applicationStatus = 'SUBMITTED'
+}
 onMounted(load)
 </script>
