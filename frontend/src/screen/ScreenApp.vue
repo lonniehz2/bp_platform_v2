@@ -34,10 +34,19 @@
           <div ref="moneyRef" class="chart" />
         </div>
       </div>
+      <!-- 值班关注：挂墙时最要紧的是「有多少事等着处理」 -->
+      <div class="kpi-row focus-row">
+        <div v-for="f in focusList" :key="f.label" class="kpi" :class="f.tone">
+          <div class="label">{{ f.label }}</div>
+          <div class="value">
+            {{ f.value }}<span class="unit">{{ f.unit }}</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="screen-foot">
-      <span>数据来源：本地业务库实时聚合</span>
+        <span>数据来源：本地业务库实时聚合</span>
       <span>生成时间：{{ generatedAt }}</span>
       <span>刷新间隔：{{ refreshSeconds }}s</span>
       <span v-if="error" style="color:#ff7875">{{ error }}</span>
@@ -49,6 +58,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import { rptApi } from '@/api/modules'
+import req from '@/api/request'
 import { metricLabel, metricUnit } from '@/constants/metrics'
 
 const clock = ref('')
@@ -60,6 +70,43 @@ const error = ref('')
 const pieRef = ref()
 const barRef = ref()
 const moneyRef = ref()
+
+/**
+ * 值班关注：挂墙场景最关心「有多少事等着处理」。
+ * 数据直接取业务列表的 total，避免依赖指标聚合任务是否跑过。
+ */
+const focus = ref({ todo: 0, unpaid: 0, effective: 0, renewing: 0 })
+/** 大屏 widgets 缺房源分类时的兜底统计 */
+const houseStat = ref({ occupied: 0, vacant: 0, pending: 0 })
+const focusList = computed(() => [
+  { label: '待办积压', value: focus.value.todo, unit: ' 项', tone: focus.value.todo > 20 ? 'warn' : '' },
+  { label: '未缴账单', value: focus.value.unpaid, unit: ' 张', tone: focus.value.unpaid > 0 ? 'warn' : '' },
+  { label: '在租合同', value: focus.value.effective, unit: ' 份', tone: 'ok' },
+  { label: '续签在办', value: focus.value.renewing, unit: ' 份', tone: '' }
+])
+
+async function loadFocus() {
+  const total = async (path, params) => {
+    try {
+      const d = await req.get(path, { params: { pageNum: 1, pageSize: 1, ...params } })
+      return Number(d.total || 0)
+    } catch (e) { return 0 }
+  }
+  const [todo, unpaid, effective, renewing, occ, vac, pend] = await Promise.all([
+    total('/messages/todos', { status: 'PENDING' }),
+    total('/fin/bills', { status: 'UNPAID' }),
+    // 注意：/contracts 的筛选参数名是 status（不是 contractStatus），传错会被忽略
+    total('/contracts', { status: 'EFFECTIVE' }),
+    total('/contracts', { status: 'RENEWING' }),
+    total('/houses', { houseStatus: 'OCCUPIED' }),
+    total('/houses', { houseStatus: 'VACANT' }),
+    total('/houses', { houseStatus: 'PENDING_ALLOC' })
+  ])
+  focus.value = { todo, unpaid, effective, renewing }
+  // 大屏 widgets 里不含 HOUSE_OCCUPIED / PENDING_ALLOC，缺失时用实时统计兜底，
+  // 否则饼图会变成「已出租 0% / 其他 61%」这种误导性结果
+  houseStat.value = { occupied: occ, vacant: vac, pending: pend }
+}
 
 let charts = {}
 let chartsRo = null
@@ -112,11 +159,12 @@ const AXIS = {
 }
 
 function renderCharts() {
-  const occupied = valueOf('HOUSE_OCCUPIED')
-  const vacant = valueOf('HOUSE_VACANT')
+  // widget 优先，缺失时用实时统计兜底（大屏 widgets 不含已出租/待配租）
+  const occupied = valueOf('HOUSE_OCCUPIED') || houseStat.value.occupied
+  const vacant = valueOf('HOUSE_VACANT') || houseStat.value.vacant
   const total = valueOf('HOUSE_TOTAL')
   // 与「运营驾驶舱」口径统一：第三类用「待配租」，不再是笼统的「其他」
-  const pending = valueOf('PENDING_ALLOC')
+  const pending = valueOf('PENDING_ALLOC') || houseStat.value.pending
   const other = Math.max(0, total - occupied - vacant - pending)
 
   charts.pie?.setOption({
@@ -147,9 +195,17 @@ function renderCharts() {
 
   charts.bar?.setOption({
     tooltip: { trigger: 'axis' },
-    grid: { left: 42, right: 14, top: 18, bottom: 26 },
+    // 左侧留 64px 并压缩数字（12万），否则 6 位数刻度会被裁掉首位
+    grid: { left: 64, right: 14, top: 18, bottom: 26 },
     xAxis: { type: 'category', data: ['今日开门', '今日异常', '不可信占比%'], ...AXIS },
-    yAxis: { type: 'value', ...AXIS },
+    yAxis: {
+      type: 'value',
+      ...AXIS,
+      axisLabel: {
+        ...AXIS.axisLabel,
+        formatter: (v) => (v >= 10000 ? Math.round(v / 1000) / 10 + '万' : v)
+      }
+    },
     series: [{
       type: 'bar', barWidth: 26,
       itemStyle: {
@@ -190,6 +246,7 @@ async function load() {
     refreshSeconds.value = data.refreshSeconds || 60
     generatedAt.value = data.generatedAt || '-'
     widgets.value = data.widgets || []
+    await loadFocus()
     await nextTick()
     if (!charts.pie) initCharts()
     renderCharts()
