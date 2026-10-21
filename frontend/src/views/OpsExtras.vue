@@ -184,11 +184,21 @@
       </el-tab-pane>
     </el-tabs>
 
-    <!-- 通用 JSON 输入弹窗（字段多变处使用，避免猜字段） -->
-    <el-dialog v-model="jsonVisible" :title="jsonTitle" width="560px">
+    <!-- 通用参数弹窗：按示例结构自动生成表单，不再让用户手写 JSON -->
+    <el-dialog v-model="jsonVisible" :title="jsonTitle" width="700px">
       <el-alert type="info" :closable="false" show-icon :title="jsonHint" />
-      <el-input v-model="jsonText" type="textarea" :rows="12"
-                style="margin-top:10px;font-family:monospace" />
+      <el-form :model="jsonForm" label-width="150px" style="margin-top:10px">
+        <el-form-item v-for="(k, i) in jsonKeys" :key="k" :label="k">
+          <el-input v-if="jsonKinds[k] === 'object'" v-model="jsonForm[k]" type="textarea"
+                    :rows="3" style="font-family:monospace"
+                    :data-testid="'f-' + k" />
+          <el-switch v-else-if="jsonKinds[k] === 'boolean'" v-model="jsonForm[k]"
+                     :data-testid="'f-' + k" />
+          <el-input v-else-if="jsonKinds[k] === 'number'" v-model.number="jsonForm[k]"
+                    type="number" :data-testid="'f-' + k" />
+          <el-input v-else v-model="jsonForm[k]" :data-testid="'f-' + k" />
+        </el-form-item>
+      </el-form>
       <template #footer>
         <el-button @click="jsonVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="submitJson">提交</el-button>
@@ -252,11 +262,14 @@ const grants = ref([])
 const calendar = ref([])
 const cal = reactive({ houseId: null, month: '' })
 
-// 通用 JSON / 选择弹窗
+// 通用参数 / 选择弹窗
 const jsonVisible = ref(false)
 const jsonTitle = ref('')
 const jsonHint = ref('')
-const jsonText = ref('{}')
+/** 按示例结构自动生成表单：keys 决定字段，kinds 决定控件类型 */
+const jsonForm = reactive({})
+const jsonKinds = reactive({})
+const jsonKeys = ref([])
 const jsonPath = ref('')
 const pickVisible = ref(false)
 const pickTitle = ref('')
@@ -350,14 +363,40 @@ function openJson(title, hint, path, sample) {
   jsonTitle.value = title
   jsonHint.value = hint
   jsonPath.value = path
-  jsonText.value = JSON.stringify(sample, null, 2)
+  // 用示例结构生成表单：对象/数组当 JSON 文本编辑，其余按类型给控件
+  jsonKeys.value = Object.keys(sample || {})
+  for (const k of jsonKeys.value) {
+    delete jsonForm[k]
+    const v = sample[k]
+    if (v !== null && typeof v === 'object') {
+      jsonKinds[k] = 'object'
+      jsonForm[k] = JSON.stringify(v)
+    } else if (typeof v === 'boolean') {
+      jsonKinds[k] = 'boolean'
+      jsonForm[k] = v
+    } else if (typeof v === 'number') {
+      jsonKinds[k] = 'number'
+      jsonForm[k] = v
+    } else {
+      jsonKinds[k] = 'string'
+      jsonForm[k] = v === null || v === undefined ? '' : String(v)
+    }
+  }
   jsonVisible.value = true
 }
 
 async function submitJson() {
-  let body
-  try { body = JSON.parse(jsonText.value) } catch (e) {
-    ElMessage.error('JSON 格式错误'); return
+  const body = {}
+  for (const k of jsonKeys.value) {
+    if (jsonKinds[k] === 'object') {
+      try {
+        body[k] = JSON.parse(jsonForm[k] || 'null')
+      } catch (e) {
+        ElMessage.error('字段 ' + k + ' 的 JSON 格式错误'); return
+      }
+    } else {
+      body[k] = jsonForm[k]
+    }
   }
   saving.value = true
   try {
