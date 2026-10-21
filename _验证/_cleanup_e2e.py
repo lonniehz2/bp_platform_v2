@@ -78,6 +78,10 @@ def main():
     extra = [
         ('计费项目', 'bp_fin_fee_item', "item_code like 'E2E%'"),
         ('人员', 'bp_person', "person_name like 'E2E人员%' or person_name like 'DIAG%'"),
+        # 表单化专项测试（_check_jsonform_ui.js）留下的数据：
+        # 不清理会让 _check_display.py 报「alertType 枚举无中文」「appeals 的 personId 无名称」
+        ('表单化测试告警', 'bp_ops_alert', "alert_type = 'E2E_FORM_TEST'"),
+        ('表单化测试申诉', 'bp_biz_appeal', "appeal_reason like '表单化验证%'"),
         ('脏合同（房源不存在）', 'bp_biz_contract',
          'house_id not in (select id from bp_asset_house)'),
     ]
