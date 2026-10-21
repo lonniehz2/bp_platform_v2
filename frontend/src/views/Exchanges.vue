@@ -7,6 +7,7 @@
                 @keyup.enter="reload" />
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
+      <el-button type="success" @click="createVisible = true">新建换房</el-button>
 
     </div>
 
@@ -47,11 +48,45 @@
                    :total="total" :page-size="pageSize" :current-page="pageNum"
                    @current-change="(p) => { pageNum = p; load() }" />
 
-    <el-dialog v-model="createVisible" title="新建" width="560px">
-      <el-alert type="warning" :closable="false" show-icon
-                title="字段取自后端 Cmd 定义，可直接编辑；数字 ID 请填真实主键" />
-      <el-input v-model="json" type="textarea" :rows="16"
-                style="margin-top:10px;font-family:monospace" />
+    <el-dialog v-model="createVisible" title="新建换房申请" width="720px">
+      <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
+                title="字段与后端 ExchangeCreateCmd 一致；带 * 为必填" />
+      <el-form :model="form" label-width="120px">
+        <el-row :gutter="12">
+          <el-col :span="12"><el-form-item label="人员 ID" required>
+            <el-input v-model="form.personId" data-testid="f-personId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="换房类型" required>
+            <el-select v-model="form.exchangeType" style="width:100%" data-testid="f-exchangeType">
+              <el-option label="自愿换房" value="VOLUNTARY" />
+              <el-option label="统筹调整" value="ADJUST" />
+              <el-option label="清退安置" value="EXPEL_RELOCATE" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="原合同 ID" required>
+            <el-input v-model="form.oldContractId" data-testid="f-oldContractId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="原房源 ID" required>
+            <el-input v-model="form.oldHouseId" data-testid="f-oldHouseId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="新房源 ID" required>
+            <el-input v-model="form.newHouseId" data-testid="f-newHouseId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="换房原因码">
+            <el-select v-model="form.exchangeReasonCode" style="width:100%" clearable>
+              <el-option label="结婚" value="MARRIAGE" />
+              <el-option label="生育" value="BIRTH" />
+              <el-option label="同住" value="COHABIT" />
+              <el-option label="就业" value="EMPLOYMENT" />
+              <el-option label="就学" value="SCHOOL" />
+              <el-option label="其他" value="OTHER" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="原家庭人口">
+            <el-input v-model="form.familySizeBefore" type="number" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="现家庭人口">
+            <el-input v-model="form.familySizeAfter" type="number" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="换房原因">
+            <el-input v-model="form.exchangeReason" type="textarea" :rows="3"
+                      data-testid="f-exchangeReason" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="强制换房">
+            <el-switch v-model="form.forceExchange" /></el-form-item></el-col>
+        </el-row>
+      </el-form>
       <template #footer>
         <el-button @click="createVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
@@ -81,7 +116,19 @@ const keyword = ref('')
 const show = ref(false)
 const detail = ref(null)
 const createVisible = ref(false)
-const json = ref(JSON.stringify({"personId": 1, "contractId": 1, "fromHouseId": 1, "toHouseId": 2, "exchangeReason": "家庭人口增加", "exchangeCount": 1}, null, 2))
+/** 字段名严格对齐后端 ExchangeCreateCmd */
+const form = reactive({
+  personId: '',
+  exchangeType: 'VOLUNTARY',
+  oldContractId: '',
+  oldHouseId: '',
+  newHouseId: '',
+  exchangeReasonCode: '',
+  exchangeReason: '',
+  familySizeBefore: null,
+  familySizeAfter: null,
+  forceExchange: false
+})
 
 async function load() {
   loading.value = true
@@ -97,13 +144,17 @@ async function load() {
 function reload() { pageNum.value = 1; load() }
 
 async function doCreate() {
-  let body
-  try { body = JSON.parse(json.value) } catch (e) {
-    ElMessage.error('JSON 格式错误'); return
-  }
+  // 必填项与后端 ExchangeCreateCmd 一致
+  const missing = []
+  if (!form.personId) missing.push('人员 ID')
+  if (!form.exchangeType) missing.push('换房类型')
+  if (!form.oldContractId) missing.push('原合同 ID')
+  if (!form.oldHouseId) missing.push('原房源 ID')
+  if (!form.newHouseId) missing.push('新房源 ID')
+  if (missing.length) { ElMessage.warning('请填写：' + missing.join('、')); return }
   saving.value = true
   try {
-    await req.post('/exchanges', body)
+    await req.post('/exchanges', { ...form })
     ElMessage.success('创建成功')
     createVisible.value = false; load()
   } finally { saving.value = false }

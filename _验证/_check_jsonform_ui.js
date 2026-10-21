@@ -46,6 +46,14 @@ const CASES = [
     tids: ['f-personId', 'f-violationType', 'f-sanctionType', 'f-banYears'],
     fill: { 'f-personId': '1000000000000027163', 'f-violationDesc': '表单化验证违规说明' },
     expectWarn: '人员 ID'
+  },
+  {
+    path: '/exchanges', name: '换房', openBtn: '新建换房',
+    tids: ['f-personId', 'f-exchangeType', 'f-oldContractId', 'f-oldHouseId', 'f-newHouseId'],
+    fill: { 'f-personId': '1000000000000027163', 'f-oldContractId': '371153288441237504',
+            'f-oldHouseId': '1000000000000012161', 'f-newHouseId': '1000000000000012159',
+            'f-exchangeReason': '表单化验证换房原因' },
+    expectWarn: '原房源 ID'
   }
 ]
 
