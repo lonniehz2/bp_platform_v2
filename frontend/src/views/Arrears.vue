@@ -8,6 +8,8 @@
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
       <el-button type="success" @click="dunningVisible = true">登记催缴</el-button>
+      <el-input v-model.number="overdueDays" placeholder="逾期天数≥" style="width:120px"
+                data-testid="arrears-days" />
       <el-button @click="scan">扫描生成催缴</el-button>
     </div>
 
@@ -89,6 +91,8 @@ const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(20)
 const keyword = ref('')
+/** 扫描阈值：逾期天数（后端 minOverdueDays，默认 3） */
+const overdueDays = ref(3)
 const show = ref(false)
 const detail = ref(null)
 const dunningVisible = ref(false)
@@ -119,8 +123,12 @@ async function doDunning() {
 }
 
 async function scan() {
-  const r = await financeApi.dunningScan()
-  ElMessage.success('扫描完成：生成 ' + (r?.count ?? '若干') + ' 条催缴')
+  // 后端 /fin/dunnings/scan 支持 minOverdueDays（默认 3）
+  const r = await financeApi.dunningScan({
+    minOverdueDays: overdueDays.value || undefined
+  })
+  ElMessage.success(`扫描完成（逾期≥${overdueDays.value} 天）：生成 ` +
+    (r?.count ?? (Array.isArray(r) ? r.length : '若干')) + ' 条催缴')
   load()
 }
 
