@@ -93,10 +93,11 @@ public ResponseEntity<R<Void>> handleNoResource(NoResourceFoundException e, Http
 
 | # | 缺陷 | 位置 |
 |---|---|---|
-| 1 | 配租模块读接口全 500 | `/allocations/*` |
-| 2 | `BatchStatus.valueOf(null)` NPE 未兜住 | `BatchVO.from` |
-| 3 | 系统无日志出口，异常不可见 | systemd unit |
-| 4 | 冒烟只验渲染，不验接口状态码 | `ui_smoke.js` |
+| 1 | ~~配租模块读接口全 500~~ **已证伪**：模块健康，是探测路径写错 | — |
+| 2 | `BatchStatus.valueOf(null)` NPE 未兜住（潜伏，遇到空状态批次会 500） | `BatchVO.from` |
+| 3 | ~~系统无日志出口~~ **已证伪**：日志在 `/var/log/bp-platform/app.log` | — |
+| 4 | ~~冒烟只验渲染~~ **已证伪**：`ui_smoke.js` 已断言 `/api/` ≥400 | — |
+| 4b | **已修**：404 被包装成 500 | `GlobalExceptionHandler` |
 | 5 | 剩余 5 个 JSON 编辑器页面 | Complaints / Credits / Exchanges / Keyring / OpsExtras / FeeItems.priceConfig |
 | 6 | 多 tab 页面无清空 | Rbac / SysAdmin / OpsCenter / OpsExtras |
 | 7 | `_check_jsonform_ui.js` 的「空提交」断言匹配过宽（只认「请填写」三字，会读到上一条残留提示） | 测试脚本 |
