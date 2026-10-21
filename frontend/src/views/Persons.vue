@@ -486,7 +486,7 @@ function openEdit(row) {
     personName: row.personName || '',
     idCard: row.idCard || '',
     phone: row.phone || '',
-    orgId: row.orgId ? Number(row.orgId) : null,
+    orgId: row.orgId ? String(row.orgId) : null,
     householdType: row.householdType || 'URBAN',
     maritalStatus: row.maritalStatus || 'SINGLE',
     education: row.education || '',
@@ -567,7 +567,7 @@ const profileEditMode = ref(false)
 
 function openProfileFor(row) {
   profileEditMode.value = false
-  gf.personId = Number(row.id)
+  gf.personId = String(row.id)
   profileVisible.value = true
 }
 
@@ -607,7 +607,7 @@ function readableResult(obj) {
 function openProfileEdit(row) {
   profileEditMode.value = true
   Object.assign(gf, {
-    personId: Number(row.personId || row.id),
+    personId: String(row.personId || row.id),
     securityType: row.securityType || 'PUBLIC',
     familySize: Number(row.familySize || 1),
     familyType: row.familyType || 'SINGLE',
@@ -683,7 +683,7 @@ async function doExit() {
 
 // ---------- 实名核验 ----------
 function openVerifyFor(row) {
-  vf.personId = Number(row.id)
+  vf.personId = String(row.id)
   vf.userName = row.personName || ''
   verifyVisible.value = true
 }

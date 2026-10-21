@@ -191,7 +191,7 @@ async function assign(row) {
   const { value } = await ElMessageBox.prompt('请输入处理人工号（用户ID）', '派单',
     { inputValue: '1' })
   await req.post(`/workorders/${row.id}/assign`, {
-    assignUserId: Number(value), assignUserName: '维修员', assignUserPhone: '',
+    assignUserId: String(value).trim(), assignUserName: '维修员', assignUserPhone: '',
     content: '派单处理'
   })
   ElMessage.success('已派单'); loadAll()

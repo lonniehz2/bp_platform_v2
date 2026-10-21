@@ -316,7 +316,7 @@ function openGrantRoles(row) {
   grantHint.value = '选中的角色会覆盖该用户当前角色集合'
   grantPlaceholder.value = '选择角色'
   grantOptions.value = roles.value.map((r) => ({
-    value: Number(r.id), label: `${r.roleName}（${r.roleCode}）`
+    value: String(r.id), label: `${r.roleName}（${r.roleCode}）`
   }))
   grantIds.value = []
   grantVisible.value = true
@@ -330,7 +330,7 @@ function openGrantPerms(row) {
   grantHint.value = '选中的权限码会覆盖该角色当前权限集合'
   grantPlaceholder.value = '选择权限'
   grantOptions.value = perms.value.map((p) => ({
-    value: Number(p.id), label: `${p.permName}（${p.permCode}）`
+    value: String(p.id), label: `${p.permName}（${p.permCode}）`
   }))
   grantIds.value = []
   grantVisible.value = true
