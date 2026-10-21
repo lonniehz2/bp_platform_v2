@@ -118,15 +118,26 @@ function renderCharts() {
   const other = Math.max(0, total - occupied - vacant)
 
   charts.pie?.setOption({
-    tooltip: { trigger: 'item' },
-    legend: { bottom: 0, textStyle: { color: '#8fb8e8', fontSize: 11 } },
+    tooltip: { trigger: 'item', formatter: '{b}：{c} 套（{d}%）' },
+    // 深色大屏：三个色块排在圆饼下方一行，字号与间距收紧避免换行
+    legend: {
+      bottom: 0,
+      left: 'center',
+      orient: 'horizontal',
+      itemGap: 12,
+      itemWidth: 10,
+      itemHeight: 10,
+      textStyle: { color: '#cfe2ff', fontSize: 11 },
+      formatter: '{name}'
+    },
     series: [{
-      type: 'pie', radius: ['48%', '70%'], center: ['50%', '44%'],
-      label: { color: '#d6e4ff', fontSize: 11, formatter: '{b}\n{c}' },
+      type: 'pie', radius: ['44%', '66%'], center: ['50%', '40%'],
+      label: { color: '#eaf2ff', fontSize: 11, formatter: '{b}\n{d}%', lineHeight: 15 },
+      labelLine: { show: true, length: 8, length2: 10, lineStyle: { color: '#8fb8e8' } },
       data: [
         { name: '已出租', value: occupied, itemStyle: { color: '#3f8cff' } },
         { name: '空置', value: vacant, itemStyle: { color: '#ffc53d' } },
-        { name: '其他', value: other, itemStyle: { color: '#4e5969' } }
+        { name: '其他', value: other, itemStyle: { color: '#8b5cf6' } }
       ]
     }]
   })

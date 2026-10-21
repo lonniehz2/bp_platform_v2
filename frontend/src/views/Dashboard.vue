@@ -167,6 +167,31 @@ let chart = null
 
 /** 指标表为空时的房源状态兜底统计（否则饼图无数据、看起来像「没有文字」） */
 const houseStat = ref({ occupied: 0, vacant: 0, pending: 0 })
+
+/** 按图表容器（逐级向上）的实际背景挑选可读的文字颜色 */
+function contrastText() {
+  try {
+    let el = chartRef.value
+    let lum = 255          // 默认视为浅色底
+    while (el) {
+      const bg = getComputedStyle(el).backgroundColor || ''
+      // rgba(...) 最后一维是 alpha：透明背景（alpha=0）不能当作黑色
+      const m = bg.match(/rgba?\(([^)]+)\)/)
+      if (m) {
+        const parts = m[1].split(/[,\s/]+/).map(Number)
+        const alpha = parts.length > 3 ? parts[3] : 1
+        if (alpha > 0.1) {
+          lum = 0.299 * parts[0] + 0.587 * parts[1] + 0.114 * parts[2]
+          break
+        }
+      }
+      el = el.parentElement
+    }
+    return lum < 128 ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.72)'
+  } catch (e) {
+    return 'rgba(0,0,0,0.72)'
+  }
+}
 async function loadHouseFallback() {
   const one = async (status) => {
     try {
@@ -225,6 +250,9 @@ function renderChart() {
   const occupied = Number(metrics.value.HOUSE_OCCUPIED || houseStat.value.occupied || 0)
   const vacant = Number(metrics.value.HOUSE_VACANT || houseStat.value.vacant || 0)
   const pending = Number(metrics.value.PENDING_ALLOC || houseStat.value.pending || 0)
+  // 文字颜色跟随容器背景亮度：深色卡片用浅色字，浅色卡片用深色字，
+  // 否则深色风格下标签几乎看不见（此前硬编码 rgba(0,0,0,0.75)）
+  const textColor = contrastText()
   chart.setOption({
     tooltip: {
       trigger: 'item',
@@ -232,16 +260,13 @@ function renderChart() {
     },
     legend: {
       bottom: 0,
-      textStyle: { color: 'rgba(0,0,0,0.65)', fontSize: 12 },
-      // 图例带数量，扇区上只放名称+百分比，避免两处都堆数字
-      formatter: (name) => {
-        const hit = [
-          { name: '已出租', v: occupied },
-          { name: '空置', v: vacant },
-          { name: '待配租', v: pending }
-        ].find((x) => x.name === name || name.startsWith(x.name))
-        return hit ? `${hit.name} ${hit.v}` : name
-      }
+      left: 'center',
+      orient: 'horizontal',
+      // 三个色块强制排成一行：缩小字号与间距，且图例不带数量（数量在 tooltip 里）
+      itemGap: 10,
+      itemWidth: 10,
+      itemHeight: 10,
+      textStyle: { color: textColor, fontSize: 11 }
     },
     color: ['#1890ff', '#faad14', '#722ed1'],
     series: [{
@@ -249,16 +274,16 @@ function renderChart() {
       radius: ['46%', '68%'],
       center: ['50%', '42%'],
       avoidLabelOverlap: true,
-      itemStyle: { borderColor: '#fff', borderWidth: 2 },
+      itemStyle: { borderColor: 'transparent', borderWidth: 2 },
       label: {
         show: true,
         // 名称 + 百分比，两行显示，保证阅读时能对上颜色
         formatter: '{b}\n{d}%',
-        color: 'rgba(0,0,0,0.75)',
+        color: textColor,
         fontSize: 12,
         lineHeight: 16
       },
-      labelLine: { show: true, length: 10, length2: 12 },
+      labelLine: { show: true, length: 10, length2: 12, lineStyle: { color: textColor } },
       data: [
         { name: '已出租', value: occupied, itemStyle: { color: '#1890ff' } },
         { name: '空置', value: vacant, itemStyle: { color: '#faad14' } },
