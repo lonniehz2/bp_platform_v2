@@ -34,6 +34,12 @@ const CASES = [
     tids: ['f-bizType', 'f-appealType', 'f-bizId', 'f-personId', 'f-appealReason'],
     fill: { 'f-bizId': '1', 'f-personId': '1', 'f-appealReason': '表单化验证申诉理由' },
     expectWarn: '申诉理由'
+  },
+  {
+    path: '/complaints', name: '投诉', openBtn: '新建投诉',
+    tids: ['f-complaintType', 'f-source', 'f-title', 'f-content'],
+    fill: { 'f-title': '表单化验证投诉标题', 'f-content': '内容' },
+    expectWarn: '标题'
   }
 ]
 

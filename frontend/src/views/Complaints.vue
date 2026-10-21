@@ -7,6 +7,7 @@
                 @keyup.enter="reload" />
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
+      <el-button type="success" @click="createVisible = true">新建投诉</el-button>
 
     </div>
 
@@ -40,11 +41,42 @@
                    :total="total" :page-size="pageSize" :current-page="pageNum"
                    @current-change="(p) => { pageNum = p; load() }" />
 
-    <el-dialog v-model="createVisible" title="新建" width="560px">
-      <el-alert type="warning" :closable="false" show-icon
-                title="字段取自后端 Cmd 定义，可直接编辑；数字 ID 请填真实主键" />
-      <el-input v-model="json" type="textarea" :rows="16"
-                style="margin-top:10px;font-family:monospace" />
+    <el-dialog v-model="createVisible" title="新建诉求" width="700px">
+      <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
+                title="字段与后端 ComplaintCreateCmd 一致；带 * 为必填" />
+      <el-form :model="form" label-width="110px">
+        <el-row :gutter="12">
+          <el-col :span="12"><el-form-item label="诉求类型" required>
+            <el-select v-model="form.complaintType" style="width:100%" data-testid="f-complaintType">
+              <el-option label="投诉" value="COMPLAINT" />
+              <el-option label="建议" value="SUGGEST" />
+              <el-option label="咨询" value="CONSULT" />
+              <el-option label="表扬" value="PRAISE" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="来源">
+            <el-select v-model="form.source" style="width:100%" clearable data-testid="f-source">
+              <el-option label="小程序" value="MINIAPP" />
+              <el-option label="APP" value="APP" />
+              <el-option label="电话" value="PHONE" />
+              <el-option label="来访" value="WALKIN" />
+              <el-option label="其他" value="OTHER" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="标题" required>
+            <el-input v-model="form.title" data-testid="f-title"
+                      placeholder="一句话概括，≤255 字符" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="内容">
+            <el-input v-model="form.content" type="textarea" :rows="3"
+                      data-testid="f-content" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="关联人员 ID">
+            <el-input v-model="form.personId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="组织 ID">
+            <el-input v-model="form.orgId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="提交人姓名">
+            <el-input v-model="form.submitterName" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="联系电话">
+            <el-input v-model="form.submitterPhone" /></el-form-item></el-col>
+        </el-row>
+      </el-form>
       <template #footer>
         <el-button @click="createVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
@@ -74,7 +106,17 @@ const keyword = ref('')
 const show = ref(false)
 const detail = ref(null)
 const createVisible = ref(false)
-const json = ref(JSON.stringify({"complainantPersonId": 1, "complaintType": "SERVICE", "complaintContent": "报修长时间未处理", "orgId": 1}, null, 2))
+/** 字段名严格对齐后端 ComplaintCreateCmd */
+const form = reactive({
+  complaintType: 'COMPLAINT',
+  source: 'PHONE',
+  title: '',
+  content: '',
+  personId: '',
+  submitterName: '',
+  submitterPhone: '',
+  orgId: ''
+})
 
 async function load() {
   loading.value = true
@@ -90,13 +132,14 @@ async function load() {
 function reload() { pageNum.value = 1; load() }
 
 async function doCreate() {
-  let body
-  try { body = JSON.parse(json.value) } catch (e) {
-    ElMessage.error('JSON 格式错误'); return
-  }
+  // 必填项与后端 ComplaintCreateCmd 一致
+  const missing = []
+  if (!form.complaintType) missing.push('诉求类型')
+  if (!form.title) missing.push('标题')
+  if (missing.length) { ElMessage.warning('请填写：' + missing.join('、')); return }
   saving.value = true
   try {
-    await req.post('/complaints', body)
+    await req.post('/complaints', { ...form })
     ElMessage.success('创建成功')
     createVisible.value = false; load()
   } finally { saving.value = false }
