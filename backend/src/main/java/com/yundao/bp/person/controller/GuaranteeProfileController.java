@@ -88,9 +88,10 @@ public class GuaranteeProfileController {
             @RequestParam(defaultValue = "20") long pageSize,
             @RequestParam(required = false) String securityType,
             @RequestParam(required = false) String incomeLevel,
-            @RequestParam(required = false) String profileStatus) {
+            @RequestParam(required = false) String profileStatus,
+            @RequestParam(required = false) String keyword) {
         return R.ok(service.page(pageNum, pageSize, securityType, incomeLevel,
-                profileStatus));
+                profileStatus, keyword));
     }
 
     public record IncomeCmd(BigDecimal lowLine, BigDecimal lowIncomeLine,

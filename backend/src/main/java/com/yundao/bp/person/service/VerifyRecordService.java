@@ -29,7 +29,7 @@ public interface VerifyRecordService {
     PersonVerifyRecord get(Long id);
 
     PageResult<PersonVerifyRecord> page(long pageNum, long pageSize, Long personId,
-                                        String verifyType, Boolean passOnly);
+                                        String verifyType, Boolean passOnly, String keyword);
 
     /** ⭐ 某人的认证结论（用于申请校验时快速判断）。 */
     Map<String, Object> conclusion(Long personId);

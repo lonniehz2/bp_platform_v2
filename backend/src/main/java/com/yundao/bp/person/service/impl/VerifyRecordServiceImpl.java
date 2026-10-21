@@ -43,6 +43,27 @@ public class VerifyRecordServiceImpl implements VerifyRecordService {
         this.personMapper = personMapper;
     }
 
+
+    /** 关键字 → 人员 ID 集合（姓名/手机/证件号模糊）；无匹配返回空集合 */
+    private java.util.List<Long> personIdsByKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+        String k = keyword.trim();
+        java.util.List<com.yundao.bp.person.entity.Person> list =
+                personMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query
+                        .LambdaQueryWrapper<com.yundao.bp.person.entity.Person>()
+                        .and(w -> w.like(com.yundao.bp.person.entity.Person::getPersonName, k)
+                                .or().like(com.yundao.bp.person.entity.Person::getPhone, k)
+                                .or().like(com.yundao.bp.person.entity.Person::getIdCard, k))
+                        .last("limit 500"));
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        for (com.yundao.bp.person.entity.Person p : list) {
+            ids.add(p.getId());
+        }
+        return ids;
+    }
+
     /** 给核验流水补齐人员姓名与脱敏手机/证件号 */
     private void fillPersonInfo(List<PersonVerifyRecord> list) {
         if (list == null || list.isEmpty()) {
@@ -175,7 +196,8 @@ public class VerifyRecordServiceImpl implements VerifyRecordService {
 
     @Override
     public PageResult<PersonVerifyRecord> page(long pageNum, long pageSize, Long personId,
-                                               String verifyType, Boolean passOnly) {
+                                               String verifyType, Boolean passOnly,
+                                               String keyword) {
         LambdaQueryWrapper<PersonVerifyRecord> qw =
                 new LambdaQueryWrapper<PersonVerifyRecord>()
                         .eq(personId != null, PersonVerifyRecord::getPersonId, personId)
@@ -184,6 +206,13 @@ public class VerifyRecordServiceImpl implements VerifyRecordService {
                         .eq(Boolean.TRUE.equals(passOnly),
                                 PersonVerifyRecord::getVerifyPass, 1)
                         .orderByDesc(PersonVerifyRecord::getId);
+        java.util.List<Long> kwIds = personIdsByKeyword(keyword);
+        if (kwIds != null) {
+            if (kwIds.isEmpty()) {
+                return PageResult.of(0, pageNum, pageSize, new java.util.ArrayList<>());
+            }
+            qw.in(PersonVerifyRecord::getPersonId, kwIds);
+        }
         IPage<PersonVerifyRecord> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
         fillPersonInfo(page.getRecords());
         return PageResult.of(page.getTotal(), pageNum, pageSize, page.getRecords());

@@ -36,7 +36,7 @@ public interface GuaranteeProfileService {
 
     PageResult<PersonGuaranteeProfile> page(long pageNum, long pageSize,
                                             String securityType, String incomeLevel,
-                                            String profileStatus);
+                                            String profileStatus, String keyword);
 
     /** 建档入参。 */
     record ProfileCmd(Long personId, String securityType, Integer familySize,

@@ -27,6 +27,9 @@
         </div>
         <el-table :data="persons" v-loading="loading" border size="small">
           <el-table-column prop="personName" label="姓名" width="110" />
+          <el-table-column label="所属组织" min-width="160">
+            <template #default="{ row }">{{ orgNameOf(row.orgId) }}</template>
+          </el-table-column>
           <el-table-column prop="idCardMask" label="证件号" width="190">
             <template #default="{ row }">{{ row.idCard || row.idCardMask || '-' }}</template>
           </el-table-column>
@@ -69,8 +72,9 @@
           <el-input v-model.number="expiringDays" placeholder="天数" style="width:90px"
                     data-testid="expiring-days" @keyup.enter="loadExpiring" />
           <div class="spacer" />
-          <el-input v-model="profilePersonId" placeholder="人员ID 查看单人档案"
-                    style="width:220px" />
+          <el-input v-model="gQuery.keyword" placeholder="姓名 / 手机 / 证件号" clearable
+                    style="width:220px" data-testid="profile-keyword"
+                    @keyup.enter="loadProfiles" />
           <el-button @click="loadProfileByPerson">查看</el-button>
         </div>
         <el-table :data="profiles" v-loading="loading" border size="small">
@@ -123,8 +127,9 @@
           <el-button type="success" @click="verifyVisible = true">发起核验</el-button>
           <el-button @click="loadFailStats">失败统计</el-button>
           <div class="spacer" />
-          <el-input v-model="verifyPersonId" placeholder="人员ID 查看结论"
-                    style="width:200px" />
+          <el-input v-model="vQuery.keyword" placeholder="姓名 / 手机 / 证件号" clearable
+                    style="width:220px" data-testid="verify-keyword"
+                    @keyup.enter="loadVerifies" />
           <el-button @click="loadConclusion">查结论</el-button>
         </div>
         <el-table :data="verifies" v-loading="loading" border size="small">
@@ -153,7 +158,9 @@
           <el-table-column prop="verifyTime" label="核验时间" width="170" />
           <el-table-column label="操作" width="110" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openVerifyFor(row)">发起核签</el-button>
+              <el-button v-if="Number(row.verifyPass) !== 1" link type="primary"
+                         @click="openVerifyFor(row)">实名核验</el-button>
+              <span v-else class="muted">已通过</span>
             </template>
           </el-table-column>
         </el-table>
@@ -349,6 +356,10 @@ const saving = ref(false)
 const orgId = ref(null)
 /** 组织下拉选项（显示名称，内部传 ID） */
 const orgOptions = ref([])
+function orgNameOf(id) {
+  const hit = orgOptions.value.find((o) => Number(o.id) === Number(id))
+  return hit ? hit.orgName : (id ? id : '-')
+}
 async function loadOrgOptions() {
   try {
     const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 500 } })
@@ -369,7 +380,7 @@ const pf = reactive({ personName: '', idCard: '', phone: '', orgId: null,
 // 保障档案
 const profiles = ref([])
 const gTotal = ref(0)
-const gQuery = reactive({ pageNum: 1, pageSize: 20 })
+const gQuery = reactive({ pageNum: 1, pageSize: 20, keyword: '' })
 const profileVisible = ref(false)
 const profilePersonId = ref(null)
 /** 临近到期天数（后端参数名 withinDays） */
@@ -386,7 +397,7 @@ const currentProfile = ref(null)
 // 实名核验
 const verifies = ref([])
 const vTotal = ref(0)
-const vQuery = reactive({ pageNum: 1, pageSize: 20 })
+const vQuery = reactive({ pageNum: 1, pageSize: 20, keyword: '' })
 const verifyVisible = ref(false)
 const verifyPersonId = ref(null)
 const vf = reactive({ personId: null, verifyType: 'FACE_COMPARE', userName: '',

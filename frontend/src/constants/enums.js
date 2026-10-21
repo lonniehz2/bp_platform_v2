@@ -317,6 +317,15 @@ const GLOBAL = {
 
 /** 同名不同义的覆盖（按字段名） */
 const TYPE_OVERRIDE = {
+  // 实名核验方式（后端 verifyType 是英文编码）
+  verifyType: {
+    FACE_COMPARE: '人脸比对',
+    IDCARD_FACE: '身份证+人脸',
+    IDCARD_TWO_FACTOR: '身份证二要素',
+    IDCARD_THREE_FACTOR: '身份证三要素',
+    OCR_IDCARD: 'OCR 识别',
+    MANUAL: '人工核验'
+  },
   currentNode: { ACCEPT: '受理', FORM: '形式审核', JOINT: '联合审核',
                   FINAL: '终审', DONE: '已完成' },
   visitStatus: { VISIT: '来访', PENDING: '待处理', DONE: '已完成' },

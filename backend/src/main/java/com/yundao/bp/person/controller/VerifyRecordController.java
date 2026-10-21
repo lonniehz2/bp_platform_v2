@@ -51,8 +51,9 @@ public class VerifyRecordController {
             @RequestParam(defaultValue = "20") long pageSize,
             @RequestParam(required = false) Long personId,
             @RequestParam(required = false) String verifyType,
-            @RequestParam(required = false) Boolean passOnly) {
-        return R.ok(service.page(pageNum, pageSize, personId, verifyType, passOnly));
+            @RequestParam(required = false) Boolean passOnly,
+            @RequestParam(required = false) String keyword) {
+        return R.ok(service.page(pageNum, pageSize, personId, verifyType, passOnly, keyword));
     }
 
     /** ⭐ 认证结论（申请校验时用）。 */

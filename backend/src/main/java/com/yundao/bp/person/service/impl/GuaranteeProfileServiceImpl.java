@@ -48,6 +48,27 @@ public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
         this.personMapper = personMapper;
     }
 
+
+    /** 关键字 → 人员 ID 集合（姓名/手机/证件号模糊）；无匹配返回空集合 */
+    private java.util.List<Long> personIdsByKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+        String k = keyword.trim();
+        java.util.List<com.yundao.bp.person.entity.Person> list =
+                personMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query
+                        .LambdaQueryWrapper<com.yundao.bp.person.entity.Person>()
+                        .and(w -> w.like(com.yundao.bp.person.entity.Person::getPersonName, k)
+                                .or().like(com.yundao.bp.person.entity.Person::getPhone, k)
+                                .or().like(com.yundao.bp.person.entity.Person::getIdCard, k))
+                        .last("limit 500"));
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        for (com.yundao.bp.person.entity.Person p : list) {
+            ids.add(p.getId());
+        }
+        return ids;
+    }
+
     /** 给档案列表补齐人员姓名与脱敏信息（办理人员需要一眼看出是谁） */
     private void fillPersonInfo(List<PersonGuaranteeProfile> list) {
         if (list == null || list.isEmpty()) {
@@ -263,7 +284,7 @@ public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
     @Override
     public PageResult<PersonGuaranteeProfile> page(long pageNum, long pageSize,
                                                    String securityType, String incomeLevel,
-                                                   String profileStatus) {
+                                                   String profileStatus, String keyword) {
         LambdaQueryWrapper<PersonGuaranteeProfile> qw =
                 new LambdaQueryWrapper<PersonGuaranteeProfile>()
                         .eq(securityType != null && !securityType.isBlank(),
@@ -273,6 +294,13 @@ public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
                         .eq(profileStatus != null && !profileStatus.isBlank(),
                                 PersonGuaranteeProfile::getProfileStatus, profileStatus)
                         .orderByDesc(PersonGuaranteeProfile::getId);
+        java.util.List<Long> kwIds = personIdsByKeyword(keyword);
+        if (kwIds != null) {
+            if (kwIds.isEmpty()) {
+                return PageResult.of(0, pageNum, pageSize, new ArrayList<>());
+            }
+            qw.in(PersonGuaranteeProfile::getPersonId, kwIds);
+        }
         IPage<PersonGuaranteeProfile> page = mapper.selectPage(
                 new Page<>(pageNum, pageSize), qw);
         fillPersonInfo(page.getRecords());
