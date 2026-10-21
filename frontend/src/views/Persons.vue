@@ -4,7 +4,12 @@
       <h3 style="margin:0">保障对象</h3>
       <el-tag size="small" type="info">建档 → 实名核验 → 保障档案 → 资格判定</el-tag>
       <div class="spacer" />
-      <el-input v-model="orgId" placeholder="组织ID（可空）" clearable style="width:170px" />
+      <el-select v-model="orgId" filterable clearable placeholder="全部组织"
+                 style="width:220px" data-testid="person-org-filter">
+        <el-option label="全部组织" :value="null" />
+        <el-option v-for="o in orgOptions" :key="o.id"
+                   :label="orgOptionLabel(o)" :value="Number(o.id)" />
+      </el-select>
       <el-button type="primary" @click="reloadAll">查询</el-button>
       <el-button @click="resetAllQuery">清空</el-button>
     </div>
@@ -359,6 +364,16 @@ const orgOptions = ref([])
 function orgNameOf(id) {
   const hit = orgOptions.value.find((o) => Number(o.id) === Number(id))
   return hit ? hit.orgName : (id ? id : '-')
+}
+
+/**
+ * 组织下拉的显示文本：有上级的组织加层级缩进，便于在树形结构里辨认。
+ * 后端 bp_iam_org 有 parent_id / org_path / org_level，是真正的树。
+ */
+function orgOptionLabel(o) {
+  const level = Number(o.orgLevel || 1)
+  const indent = '　'.repeat(Math.max(0, Math.min(level - 1, 4)))
+  return indent + (o.orgName || o.orgCode || o.id)
 }
 async function loadOrgOptions() {
   try {
