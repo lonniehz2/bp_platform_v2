@@ -23,16 +23,16 @@
       <el-table-column prop="personId" label="人员" width="120">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column prop="creditType" label="类型" width="140">
-        <template #default="{ row }">{{ row.creditTypeLabel || enumLabel('creditType', row.creditType) }}</template>
+      <el-table-column prop="violationType" label="类型" width="140">
+        <template #default="{ row }">{{ row.violationTypeLabel || enumLabel('creditType', row.violationType) }}</template>
       </el-table-column>
-      <el-table-column prop="creditLevel" label="级别" width="100">
-        <template #default="{ row }">{{ row.creditLevelLabel || enumLabel('creditLevel', row.creditLevel) }}</template>
+      <el-table-column prop="sanctionType" label="级别" width="100">
+        <template #default="{ row }">{{ row.sanctionTypeLabel || enumLabel('creditLevel', row.sanctionType) }}</template>
       </el-table-column>
-      <el-table-column prop="creditStatus" label="状态" width="110">
-        <template #default="{ row }">{{ row.creditStatusLabel || enumLabel('creditStatus', row.creditStatus) }}</template>
+      <el-table-column prop="status" label="状态" width="110">
+        <template #default="{ row }">{{ row.statusLabel || enumLabel('creditStatus', row.status) }}</template>
       </el-table-column>
-      <el-table-column prop="endDate" label="截止" width="110" />
+      <el-table-column prop="banEndDate" label="惩戒截止" width="110" />
       <el-table-column label="操作" width="250" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="actReason(row, '/api/v1/credits/{id}/revoke', '撤销')">撤销</el-button>

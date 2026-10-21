@@ -20,11 +20,11 @@
       <el-table-column type="expand">
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
-      <el-table-column prop="personId" label="人员" width="200">
-        <template #default="{ row }">{{ row.personName || row.personId }}</template>
+      <el-table-column prop="personIdName" label="轮候人" width="200">
+        <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
       <el-table-column prop="priorityScore" label="优先分" width="100" />
-      <el-table-column prop="waitDays" label="轮候天数" width="110" />
+      <el-table-column prop="liveWaitDays" label="已轮候天数" width="110" />
       <el-table-column prop="totalScore" label="总分" width="100">
         <template #default="{ row }">
           <strong>{{ row.totalScore }}</strong>

@@ -20,13 +20,12 @@
           <DetailView :row="row" />
         </template>
       </el-table-column>
-      <el-table-column prop="keyringNo" label="编号" width="140" />
-      <el-table-column prop="houseId" label="房源" width="120">
-        <template #default="{ row }">{{ row.houseIdName || row.houseId }}</template>
+      <el-table-column prop="keyAlias" label="钥匙别名" width="140" />
+      <el-table-column prop="personIdName" label="持有人" width="120">
+        <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column prop="keyCount" label="钥匙数" width="100" />
-      <el-table-column prop="keyringStatus" label="状态" width="110">
-        <template #default="{ row }">{{ row.keyringStatusLabel || enumLabel('keyringStatus', row.keyringStatus) }}</template>
+      <el-table-column prop="keyStatus" label="状态" width="110">
+        <template #default="{ row }">{{ row.keyStatusLabel || enumLabel('keyStatus', row.keyStatus) }}</template>
       </el-table-column>
       <el-table-column label="操作" width="190" fixed="right">
         <template #default="{ row }">

@@ -25,8 +25,8 @@
       <el-table-column prop="personId" label="人员" width="110">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column prop="subsidyMode" label="方式" width="110">
-        <template #default="{ row }">{{ row.subsidyModeLabel || enumLabel('subsidyMode', row.subsidyMode) }}</template>
+      <el-table-column prop="payMode" label="发放方式" width="110">
+        <template #default="{ row }">{{ row.payModeLabel || enumLabel('payMode', row.payMode) }}</template>
       </el-table-column>
       <el-table-column prop="subsidyPeriod" label="周期" width="100" />
       <el-table-column prop="subsidyAmount" label="金额" width="100" />

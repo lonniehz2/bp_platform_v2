@@ -19,8 +19,10 @@
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
       <el-table-column prop="visitNo" label="来访号" width="170" />
-      <el-table-column prop="visitorName" label="来访人" width="120" />
-      <el-table-column prop="personId" label="被访人" width="120">
+      <el-table-column prop="visitUserName" label="走访人" width="120">
+            <template #default="{ row }">{{ row.visitUserName || row.visitUserId || "-" }}</template>
+          </el-table-column>
+      <el-table-column prop="personIdName" label="被访人" width="120">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
       <el-table-column prop="visitStatus" label="状态" width="110">

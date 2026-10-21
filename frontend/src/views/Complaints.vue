@@ -24,10 +24,10 @@
       <el-table-column prop="complaintType" label="类型" width="130">
         <template #default="{ row }">{{ row.complaintTypeLabel || enumLabel('complaintType', row.complaintType) }}</template>
       </el-table-column>
-      <el-table-column prop="complaintStatus" label="状态" width="110">
-        <template #default="{ row }">{{ row.complaintStatusLabel || enumLabel('complaintStatus', row.complaintStatus) }}</template>
+      <el-table-column prop="handleStatus" label="状态" width="110">
+        <template #default="{ row }">{{ row.handleStatusLabel || enumLabel('complaintStatus', row.handleStatus) }}</template>
       </el-table-column>
-      <el-table-column prop="complainantPersonId" label="投诉人" width="120">
+      <el-table-column prop="submitterName" label="投诉人" width="120">
         <template #default="{ row }">{{ row.complainantPersonIdName || row.complainantPersonId }}</template>
       </el-table-column>
       <el-table-column label="操作" width="170" fixed="right">
