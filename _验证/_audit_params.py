@@ -29,6 +29,13 @@ DETAIL = '--detail' in sys.argv
 IGNORE = {'pageNum', 'pageSize', 'ids', 'id'}
 
 
+def norm_path(p):
+    """把路径参数归一化：前端 ${code} 与后端 {code} 视作同一接口"""
+    p = re.sub(r'\$\{[^}]+\}', '{p}', p)
+    p = re.sub(r'\{[^}]+\}', '{p}', p)
+    return p
+
+
 def scan_backend():
     """返回 {完整路径: set(参数名)}"""
     out = {}
@@ -85,7 +92,7 @@ def scan_frontend():
                         k = part.split(':')[0].strip()
                         if re.fullmatch(r'[A-Za-z_$][\w$]*', k):
                             keys.add(k)
-                out.setdefault(path, set()).update(keys)
+                out.setdefault(norm_path(path), set()).update(keys)
     return out
 
 
@@ -94,31 +101,40 @@ def main():
     fe = scan_frontend()
 
     rows = []
+    dead = []
     for full, params in be.items():
-        api_path = full.replace('/api/v1', '')
+        api_path = norm_path(full.replace('/api/v1', ''))
         used = fe.get(api_path, set())
         if '*' in used:
             continue          # 透传式调用：页面自行决定参数，不算缺失
         missing = sorted(p for p in params if p not in used and p not in IGNORE)
-        if missing:
-            rows.append((len(missing), api_path, sorted(params), used, missing))
+        if not missing:
+            continue
+        rec = (len(missing), api_path, sorted(params), used, missing)
+        # 前端从未调用过该接口 → 属于死接口/待开发，不是「漏接参数」
+        (rows if used else dead).append(rec)
 
     rows.sort(reverse=True)
+    dead.sort(reverse=True)
     print('后端 GET 接口 %d 个，前端有参数调用 %d 处' % (len(be), len(fe)))
-    print('存在「后端支持但前端未传」参数的接口：%d 个\n' % len(rows))
 
+    print('\n【可接】前端已调用、但漏传参数的接口：%d 个' % len(rows))
     if DETAIL:
         for n, path, supported, used, missing in rows:
-            print('%-42s 缺 %d：%s' % (path, n, ', '.join(missing)))
-            print('    后端支持: %s' % ', '.join(supported))
-            print('    前端已传: %s' % (', '.join(sorted(used)) or '(无)'))
+            print('%-40s 缺 %d：%s' % (path, n, ', '.join(missing)))
+            print('    后端支持: %s ｜ 前端已传: %s'
+                  % (', '.join(supported), ', '.join(sorted(used)) or '(无)'))
     else:
-        print('%-42s %s' % ('接口', '未接参数'))
-        for n, path, supported, used, missing in rows[:40]:
-            print('%-42s %s' % (path, ', '.join(missing)[:70]))
+        print('%-40s %s' % ('接口', '未接参数'))
+        for n, path, supported, used, missing in rows:
+            print('%-40s %s' % (path, ', '.join(missing)[:60]))
+
+    print('\n【死接口】前端从未调用的接口：%d 个（不是漏接，先确认是否需要）' % len(dead))
+    for n, path, supported, used, missing in dead:
+        print('%-40s 支持参数: %s' % (path, ', '.join(supported)[:56]))
 
     total = sum(r[0] for r in rows)
-    print('\n合计 %d 个未接参数，涉及 %d 个接口' % (total, len(rows)))
+    print('\n合计：可接 %d 个参数 / %d 个接口；死接口 %d 个' % (total, len(rows), len(dead)))
 
     # ---------- 反向检查：前端传了后端不认识的键（疑似拼写错误） ----------
     # 这类问题比「未接参数」更隐蔽：页面看着有筛选，实际参数被静默丢弃。
