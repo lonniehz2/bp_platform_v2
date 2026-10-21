@@ -119,8 +119,21 @@
               <el-option label="减免 EXEMPT" value="EXEMPT" />
             </el-select></el-form-item></el-col>
           <el-col :span="24"><el-form-item label="价格配置" required>
-            <el-input v-model="r.priceConfig" type="textarea" :rows="3"
-                      placeholder='JSON，如 {"price":150.00} 或阶梯 {"tiers":[{"max":50,"price":1.2}]}' />
+            <div style="width:100%">
+              <div v-for="(row, i) in kvRows" :key="i"
+                   style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
+                <el-input v-model="row.k" placeholder="键，如 price / tiers"
+                          style="width:200px" :data-testid="'kv-k-' + i" />
+                <el-input v-model="row.v" placeholder="值：数字，或 JSON（对象/数组）"
+                          style="flex:1" :data-testid="'kv-v-' + i" />
+                <el-button link type="danger" @click="kvRows.splice(i, 1)">删除</el-button>
+              </div>
+              <el-button size="small" @click="kvRows.push({ k: '', v: '' })"
+                         data-testid="kv-add">新增一项</el-button>
+              <div style="font-size:12px;color:#8c8c8c;margin-top:6px">
+                提交时自动组装为 JSON（数字自动识别，其余按字符串/JSON 解析）
+              </div>
+            </div>
           </el-form-item></el-col>
           <el-col :span="12"><el-form-item label="生效日期">
             <el-date-picker v-model="r.effectiveStart" type="date"
@@ -282,7 +295,24 @@ async function doCreate() {
 }
 
 function openRule() { ruleCreateVisible.value = true }
+
+/** 价格配置键值行 → JSON 字符串（数字优先，其次 JSON，最后字符串） */
+const kvRows = ref([{ k: 'price', v: '150.00' }])
+function kvToJson() {
+  const obj = {}
+  for (const row of kvRows.value) {
+    const k = (row.k || '').trim()
+    if (!k) continue
+    const raw = String(row.v ?? '').trim()
+    if (raw === '') { obj[k] = null; continue }
+    if (/^-?\d+(\.\d+)?$/.test(raw)) { obj[k] = Number(raw); continue }
+    try { obj[k] = JSON.parse(raw) } catch (e) { obj[k] = raw }
+  }
+  return JSON.stringify(obj)
+}
+
 async function doCreateRule() {
+  r.priceConfig = kvToJson()
   if (!r.ruleCode || !r.ruleName || !r.feeItemId || !r.priceConfig) {
     ElMessage.warning('规则编码、名称、计费项目、价格配置为必填'); return
   }
