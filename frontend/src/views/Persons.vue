@@ -74,8 +74,13 @@
           <el-button @click="loadProfileByPerson">查看</el-button>
         </div>
         <el-table :data="profiles" v-loading="loading" border size="small">
-          <el-table-column prop="personId" label="人员" width="200">
-            <template #default="{ row }">{{ row.personName || row.personId }}</template>
+          <el-table-column label="保障对象" width="230">
+            <template #default="{ row }">
+              <div>{{ row.personName || row.personId }}</div>
+              <div class="muted" style="font-size:12px">
+                {{ row.phoneMask || '-' }}　{{ row.idCardMask || '-' }}
+              </div>
+            </template>
           </el-table-column>
           <el-table-column label="保障类型" width="110">
             <template #default="{ row }">
@@ -88,7 +93,10 @@
           </el-table-column>
           <el-table-column label="收入档位" width="130">
             <template #default="{ row }">
-              <el-tag size="small">{{ row.incomeLevelLabel || enumLabel('incomeLevel', row.incomeLevel) }}</el-tag>
+              <el-tag v-if="row.incomeLevelLabel || row.incomeLevel" size="small">
+                {{ row.incomeLevelLabel || enumLabel('incomeLevel', row.incomeLevel) }}
+              </el-tag>
+              <span v-else class="muted">未评定</span>
             </template>
           </el-table-column>
           <el-table-column label="状态" width="100">

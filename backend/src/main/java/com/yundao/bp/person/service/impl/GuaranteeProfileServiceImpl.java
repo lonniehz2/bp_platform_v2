@@ -37,11 +37,56 @@ public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
 
     private final PersonGuaranteeProfileMapper mapper;
     private final SnowflakeIdGenerator idGen;
+    /** 列表要带出人员姓名/脱敏手机号与证件号，避免只显示一串 ID */
+    private final com.yundao.bp.person.mapper.PersonMapper personMapper;
 
     public GuaranteeProfileServiceImpl(PersonGuaranteeProfileMapper mapper,
-                                       SnowflakeIdGenerator idGen) {
+                                       SnowflakeIdGenerator idGen,
+                                       com.yundao.bp.person.mapper.PersonMapper personMapper) {
         this.mapper = mapper;
         this.idGen = idGen;
+        this.personMapper = personMapper;
+    }
+
+    /** 给档案列表补齐人员姓名与脱敏信息（办理人员需要一眼看出是谁） */
+    private void fillPersonInfo(List<PersonGuaranteeProfile> list) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        List<Long> ids = new ArrayList<>();
+        for (PersonGuaranteeProfile p : list) {
+            if (p.getPersonId() != null) {
+                ids.add(p.getPersonId());
+            }
+        }
+        if (ids.isEmpty()) {
+            return;
+        }
+        Map<Long, com.yundao.bp.person.entity.Person> byId = new LinkedHashMap<>();
+        for (com.yundao.bp.person.entity.Person p : personMapper.selectBatchIds(ids)) {
+            byId.put(p.getId(), p);
+        }
+        for (PersonGuaranteeProfile p : list) {
+            com.yundao.bp.person.entity.Person person = byId.get(p.getPersonId());
+            if (person == null) {
+                continue;
+            }
+            p.setPersonName(person.getPersonName());
+            p.setPhoneMask(mask(person.getPhone(), 3, 4));
+            p.setIdCardMask(mask(person.getIdCard(), 6, 4));
+        }
+    }
+
+    /** 脱敏：保留前 head 位与后 tail 位，中间用 * 替换 */
+    private static String mask(String raw, int head, int tail) {
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        int len = raw.length();
+        if (len <= head + tail) {
+            return raw.charAt(0) + "****";
+        }
+        return raw.substring(0, head) + "****" + raw.substring(len - tail);
     }
 
     @Override
@@ -230,6 +275,7 @@ public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
                         .orderByDesc(PersonGuaranteeProfile::getId);
         IPage<PersonGuaranteeProfile> page = mapper.selectPage(
                 new Page<>(pageNum, pageSize), qw);
+        fillPersonInfo(page.getRecords());
         return PageResult.of(page.getTotal(), pageNum, pageSize, page.getRecords());
     }
 }

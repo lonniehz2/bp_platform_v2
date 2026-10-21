@@ -1,6 +1,7 @@
 package com.yundao.bp.person.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableLogic;
@@ -57,4 +58,12 @@ public class PersonGuaranteeProfile {
 
     @TableLogic
     private Integer isDeleted;
+
+    // ---------- 非持久化字段：列表展示用（办理人员要能看出「这是谁」） ----------
+    @TableField(exist = false)
+    private String personName;
+    @TableField(exist = false)
+    private String phoneMask;
+    @TableField(exist = false)
+    private String idCardMask;
 }
