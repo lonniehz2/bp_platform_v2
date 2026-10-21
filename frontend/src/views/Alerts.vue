@@ -48,8 +48,42 @@
     <el-dialog v-model="createVisible" title="新建告警" width="700px">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
                 title="字段与后端 AlertCreateCmd 一致；带 * 为必填" />
-      <JsonForm :model="form" :schema="SCHEMA"
-                @update:model="(m) => Object.assign(form, m)" />
+      <el-form :model="form" label-width="110px">
+        <el-row :gutter="12">
+          <el-col :span="12"><el-form-item label="告警类别" required>
+            <el-select v-model="form.alertCategory" style="width:100%" data-testid="f-alertCategory">
+              <el-option label="安全隐患" value="SAFETY" />
+              <el-option label="设备异常" value="DEVICE" />
+              <el-option label="业务风险" value="BUSINESS" />
+              <el-option label="违规行为" value="VIOLATION" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="告警级别" required>
+            <el-select v-model="form.alertLevel" style="width:100%" data-testid="f-alertLevel">
+              <el-option label="紧急" value="URGENT" />
+              <el-option label="重要" value="IMPORTANT" />
+              <el-option label="普通" value="NORMAL" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="告警类型" required>
+            <el-input v-model="form.alertType" data-testid="f-alertType"
+                      placeholder="如 ARREAR_RATE / DEVICE_OFFLINE" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="组织 ID">
+            <el-input v-model="form.orgId" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="告警标题" required>
+            <el-input v-model="form.alertTitle" data-testid="f-alertTitle"
+                      placeholder="一句话说明问题，≤255 字符" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="告警内容">
+            <el-input v-model="form.alertContent" type="textarea" :rows="3"
+                      data-testid="f-alertContent" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="实际值">
+            <el-input v-model="form.alertValue" placeholder="如 15%" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="阈值">
+            <el-input v-model="form.thresholdValue" placeholder="如 10%" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="关联房源 ID">
+            <el-input v-model="form.houseId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="关联人员 ID">
+            <el-input v-model="form.personId" /></el-form-item></el-col>
+        </el-row>
+      </el-form>
       <template #footer>
         <el-button @click="createVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>

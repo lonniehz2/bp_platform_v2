@@ -195,10 +195,23 @@ const CASES = [
               ? el : (el.querySelector('textarea') || el.querySelector('input'))
             vals[t] = inp ? inp.value : '(缺控件)'
           })
-          return { msgs, vals, dialogs: ds.length }
+          return { msgs, vals, dialogs: ds.length,
+                   matches: tids.reduce((acc, t) => { acc[t] = document.querySelectorAll('[data-testid="' + t + '"]').length; return acc }, {}),
+                   // 直接读 Vue 组件的 setupState.form：判断「DOM 有值但 model 空」是否成立
+                   vueForm: (() => {
+                     const el = scope.querySelector('[data-testid="' + tids[0] + '"]')
+                     let comp = el && el.__vueParentComponent
+                     for (let i = 0; comp && i < 12; i++, comp = comp.parent) {
+                       const st = comp.setupState
+                       if (st && st.form) {
+                         try { return JSON.parse(JSON.stringify(st.form)) } catch (e) { return '(不可序列化)' }
+                       }
+                     }
+                     return '(未找到 setupState.form)'
+                   })() }
         }, c.tids)
         bad(c.name + '：填齐后提交成功',
-            `提示=${diag.msgs.join(' | ') || '无'}；字段值=${JSON.stringify(diag.vals)}`)
+            `提示=${diag.msgs.join(' | ') || '无'}；字段值=${JSON.stringify(diag.vals)}；Vue表单=${JSON.stringify(diag.vueForm)}`)
       }
     }
 
