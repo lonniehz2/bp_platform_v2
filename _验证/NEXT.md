@@ -68,9 +68,10 @@ public ResponseEntity<R<Void>> handleNoResource(NoResourceFoundException e, Http
 ```
 改完 `package` → `_deploy.py --upload` → 再访问一个不存在的路径，应返回 404/BP30001 而不是 500。
 
-### 第 2 步：给冒烟加「接口非 5xx」断言
-`_check_ui.py` 43/43 全绿却漏掉整个配租模块——它只验「页面能渲染」。
-在 `ui_smoke.js` 里拦截 response，凡 `status >= 500` 记为失败。改完重跑，可能还有别的「假通过」页面。
+### 第 2 步：~~给冒烟加 5xx 断言~~ —— 已确认无需改动（2026-10-21）
+`ui_smoke.js` 第 49-53 行已经在监听 `page.on('response')`，凡 `/api/` 且 `status >= 400`
+计入 `apiFails`，第 135 行作为该页失败原因。实测 `_check_ui.py` → **43/43，0 接口失败**。
+之前「冒烟只验渲染」的判断是错的（和「配租模块全 500」同源，都是误判）。
 
 ### 第 3 步：多 tab 页面拆成独立路由（方案已定）
 | 原页面 | 拆成 |
