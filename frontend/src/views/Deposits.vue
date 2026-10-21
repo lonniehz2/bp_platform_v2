@@ -10,7 +10,14 @@
         <el-button type="success" @click="depVisible = true">押金建档</el-button>
       </div>
 
-      <el-table :data="rows" v-loading="loading" border size="small">
+      <FilterBar @search="load" @reset="resetQuery">
+      <el-input v-model="df.contractId" placeholder="合同 ID" clearable
+                style="width:200px" data-testid="dep-contract" @keyup.enter="load" />
+      <el-input v-model="df.personId" placeholder="人员 ID" clearable
+                style="width:200px" data-testid="dep-person" @keyup.enter="load" />
+    </FilterBar>
+
+    <el-table :data="rows" v-loading="loading" border size="small">
         <el-table-column prop="contractId" label="合同" width="130">
           <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
         </el-table-column>
@@ -156,6 +163,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { financeApi } from '@/api/modules'
 import req from '@/api/request'
+import FilterBar from '@/components/FilterBar.vue'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -175,14 +183,29 @@ const refVisible = ref(false)
 const rf = reactive({ refundAmount: null, refundType: 'DEPOSIT',
   refundChannel: 'ORIGINAL', refundReason: '' })
 
+/** 筛选条件（后端 /fin/deposits、/fin/refunds 均支持 contractId/personId） */
+const df = reactive({ contractId: '', personId: '' })
+
 async function load() {
   loading.value = true
   try {
-    const d = await financeApi.deposits({ pageNum: 1, pageSize: 50 })
+    const params = {
+      pageNum: 1, pageSize: 50,
+      contractId: df.contractId || undefined,
+      personId: df.personId || undefined
+    }
+    const d = await financeApi.deposits(params)
     rows.value = d.rows || []
-    const r = await req.get('/fin/refunds', { params: { pageNum: 1, pageSize: 50 } })
+    const r = await req.get('/fin/refunds', { params })
     refunds.value = r.rows || r || []
   } catch (e) { /* 拦截器已提示 */ } finally { loading.value = false }
+}
+
+/** 清空筛选 */
+function resetQuery() {
+  df.contractId = ''
+  df.personId = ''
+  load()
 }
 
 async function doDeposit() {
