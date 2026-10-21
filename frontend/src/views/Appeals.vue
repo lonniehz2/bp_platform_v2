@@ -48,7 +48,8 @@
     <el-dialog v-model="createVisible" title="新建申诉" width="700px">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
                 title="字段与后端 AppealCreateCmd 一致；带 * 为必填" />
-      <JsonForm :model="form" :schema="SCHEMA" />
+      <JsonForm :model="form" :schema="SCHEMA"
+                @update:model="(m) => Object.assign(form, m)" />
       <template #footer>
         <el-button @click="createVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>

@@ -3,22 +3,27 @@
     <el-row :gutter="12">
       <el-col v-for="f in schema" :key="f.key" :span="f.span || 12">
         <el-form-item :label="f.label" :required="!!f.required">
-          <el-select v-if="f.type === 'select'" v-model="model[f.key]"
+          <el-select v-if="f.type === 'select'" :model-value="model[f.key]"
                      :placeholder="f.placeholder || '请选择'" clearable
-                     style="width:100%" :data-testid="'f-' + f.key">
+                     style="width:100%" :data-testid="'f-' + f.key"
+                     @update:model-value="(v) => setField(f.key, v)">
             <el-option v-for="o in f.options || []" :key="o.value"
                        :label="o.label" :value="o.value" />
           </el-select>
 
-          <el-input v-else-if="f.type === 'textarea'" v-model="model[f.key]"
+          <el-input v-else-if="f.type === 'textarea'" :model-value="model[f.key]"
                     type="textarea" :rows="f.rows || 3"
-                    :placeholder="f.placeholder || ''" :data-testid="'f-' + f.key" />
+                    :placeholder="f.placeholder || ''" :data-testid="'f-' + f.key"
+                    @update:model-value="(v) => setField(f.key, v)" />
 
-          <el-switch v-else-if="f.type === 'switch'" v-model="model[f.key]"
-                     :data-testid="'f-' + f.key" />
+          <el-switch v-else-if="f.type === 'switch'" :model-value="model[f.key]"
+                     :data-testid="'f-' + f.key"
+                     @update:model-value="(v) => setField(f.key, v)" />
 
-          <el-input v-else v-model="model[f.key]" :type="f.type === 'number' ? 'number' : 'text'"
-                    :placeholder="f.placeholder || ''" :data-testid="'f-' + f.key" />
+          <el-input v-else :model-value="model[f.key]"
+                    :type="f.type === 'number' ? 'number' : 'text'"
+                    :placeholder="f.placeholder || ''" :data-testid="'f-' + f.key"
+                    @update:model-value="(v) => setField(f.key, v)" />
         </el-form-item>
       </el-col>
     </el-row>
@@ -29,18 +34,30 @@
 /**
  * 表单向导：用 schema 描述字段，替代原来的「JSON 文本框」。
  *
- * 为什么做这个组件：此前 8 个页面让用户直接粘 JSON 提交，示例里还缺必填字段，
- * 照抄必然 400。改成受控表单后，必填项、枚举值都从 schema 来，手滑也提交不了脏数据。
+ * ⚠️ 关键设计（踩过坑）：**不要**在组件内直接写 `model[f.key]`。
+ * `model` 是 prop，Vue 的 props 是只读代理，对它的属性赋值会被静默丢弃——
+ * 表现为「输入框里有值、提交时却报请填写」。必须通过 emit 让父组件更新。
+ *
+ * 用法：
+ *   <JsonForm :model="form" :schema="SCHEMA"
+ *             @update:model="(m) => Object.assign(form, m)" />
  *
  * 约定：
- *  - schema 的 key 必须与后端 Cmd 的字段名完全一致（不要猜，去读 DTO）
+ *  - schema 的 key 必须与后端 Cmd 字段名完全一致（不要猜，去读 DTO）
  *  - 枚举字段用 type:'select' + options，label 用中文
  *  - 长文本用 type:'textarea'，整行展示用 span:24
  */
-defineProps({
+const props = defineProps({
   schema: { type: Array, required: true },
   model: { type: Object, required: true }
 })
+
+const emit = defineEmits(['update:model'])
+
+/** 每次变更回传一个完整新对象，父组件用 Object.assign 合并即可 */
+function setField(key, value) {
+  emit('update:model', { ...props.model, [key]: value })
+}
 </script>
 
 <style scoped>
