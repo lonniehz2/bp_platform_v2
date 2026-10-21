@@ -29,6 +29,10 @@ const EXPECT = {
   const page = await browser.newPage()
   const errs = []
   page.on('pageerror', (e) => errs.push(e.message))
+  page.on('console', (m) => {
+    const t = m.text()
+    if (t.startsWith('MENU_DIAG')) console.log('  [页面] ' + t.slice(0, 600))
+  })
   // 固定用「风格1（宽侧栏）」：图标栏风格只显示当前分组，看不到全部子菜单
   await page.evaluateOnNewDocument(() => {
     try { localStorage.setItem('bp.ui.style', 'classic') } catch (e) {}
