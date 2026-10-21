@@ -69,6 +69,7 @@ const EXPECT = {
   let pass = 0
   let total = 0
   console.log('侧边栏菜单项数：', menuTexts.length)
+  console.log('全部菜单项：\n  ' + menuTexts.join('\n  '))
 
   for (const [label, expectPath] of Object.entries(EXPECT)) {
     total++
