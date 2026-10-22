@@ -13,6 +13,7 @@
         <el-button @click="resetQuery">清空</el-button>
         <div class="spacer" />
         <el-button type="success" @click="genVisible = true">批量出账</el-button>
+        <el-button type="warning" plain @click="openShared" data-testid="shared-bill">公摊分摊</el-button>
         <el-button @click="openPay">登记收款</el-button>
         <el-button @click="scanOverdue">扫描逾期</el-button>
       </div>
@@ -64,6 +65,52 @@
       <template #footer>
         <el-button @click="genVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="doGenerate">开始出账</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 公摊费用分摊（物业） -->
+    <el-dialog v-model="sharedVisible" title="公摊费用分摊出账" width="560px">
+      <el-alert type="info" :closable="false" show-icon
+                title="把公共区域总费用按面积或户数分摊到该范围内的在租房源，为每套生成一张账单"
+                style="margin-bottom:12px" />
+      <el-form :model="sf" label-width="110px">
+        <el-form-item label="组织" required>
+          <el-select v-model="sf.orgId" filterable style="width:100%" placeholder="选择组织/小区">
+            <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName" :value="String(o.id)" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="收费项目" required>
+          <el-select v-model="sf.feeItemId" filterable style="width:100%">
+            <el-option v-for="f in feeItems" :key="f.id"
+                       :label="f.feeItemName || f.feeItemCode || f.id" :value="String(f.id)" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="总金额" required>
+          <el-input v-model="sf.totalAmount" type="number" placeholder="如 1200" />
+        </el-form-item>
+        <el-form-item label="分摊方式">
+          <el-radio-group v-model="sf.allocateBy">
+            <el-radio-button value="AREA">按建筑面积</el-radio-button>
+            <el-radio-button value="HOUSE">按户数均摊</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-row :gutter="12">
+          <el-col :span="12"><el-form-item label="费用起始" required>
+            <el-date-picker v-model="sf.periodStart" type="date" value-format="YYYY-MM-DD"
+                            style="width:100%" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="费用截止" required>
+            <el-date-picker v-model="sf.periodEnd" type="date" value-format="YYYY-MM-DD"
+                            style="width:100%" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="账期" required>
+            <el-input v-model="sf.billPeriod" placeholder="202610" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="到期日">
+            <el-date-picker v-model="sf.dueDate" type="date" value-format="YYYY-MM-DD"
+                            style="width:100%" /></el-form-item></el-col>
+        </el-row>
+      </el-form>
+      <template #footer>
+        <el-button @click="sharedVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="doShared">开始分摊</el-button>
       </template>
     </el-dialog>
 
@@ -165,6 +212,47 @@ const current = ref(null)
 
 const genVisible = ref(false)
 const g = reactive({ orgId: 1, billPeriod: '', dryRun: true })
+
+/** 公摊分摊（物业管理） */
+const sharedVisible = ref(false)
+const orgOptions = ref([])
+const feeItems = ref([])
+const sf = reactive({ orgId: '', feeItemId: '', totalAmount: 0, allocateBy: 'AREA',
+  periodStart: '', periodEnd: '', billPeriod: '', dueDate: '' })
+
+async function openShared() {
+  sharedVisible.value = true
+  try {
+    const org = await financeApi.orgs({ pageNum: 1, pageSize: 100 })
+    orgOptions.value = (org && org.rows) || []
+  } catch (e) { /* 组织加载失败不阻断 */ }
+  try {
+    const fi = await financeApi.feeItems({ pageNum: 1, pageSize: 100 })
+    feeItems.value = (fi && fi.rows) || []
+  } catch (e) { /* 收费项目加载失败不阻断 */ }
+}
+
+async function doShared() {
+  if (!sf.orgId || !sf.feeItemId || !sf.totalAmount) {
+    ElMessage.warning('请填写组织、收费项目与总金额'); return
+  }
+  if (!sf.periodStart || !sf.periodEnd || !sf.billPeriod) {
+    ElMessage.warning('请填写费用起止与账期'); return
+  }
+  saving.value = true
+  try {
+    const r = await financeApi.generateShared({
+      orgId: sf.orgId, feeItemId: sf.feeItemId, totalAmount: Number(sf.totalAmount),
+      allocateBy: sf.allocateBy, periodStart: sf.periodStart, periodEnd: sf.periodEnd,
+      billPeriod: sf.billPeriod, dueDate: sf.dueDate || undefined
+    })
+    ElMessage.success(`已生成 ${r?.created || 0} 张分摊账单（跳过 ${r?.skipped || 0} 户无在租合同）`)
+    sharedVisible.value = false
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '分摊失败')
+  } finally { saving.value = false }
+}
 
 const payVisible = ref(false)
 const p = reactive({ orgId: 1, personId: null, payerName: '', payAmount: null,

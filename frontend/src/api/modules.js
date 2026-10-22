@@ -122,9 +122,12 @@ export const contractApi = {
 /** 账务（全部在 /fin 下面） */
 export const financeApi = {
   bills: (params) => req.get('/fin/bills', { params }),
+  orgs: (params) => req.get('/orgs', { params }),
+  feeItems: (params) => req.get('/fin/fee-items', { params }),
   bill: (id) => req.get(`/fin/bills/${id}`),
   generate: (data) => req.post('/fin/bills/generate', data),
   generateBatch: (data) => req.post('/fin/bills/generate-batch', data),
+  generateShared: (data) => req.post('/fin/bills/generate-shared', data),
   scanOverdue: () => req.post('/fin/bills/scan-overdue'),
   waive: (id, data) => req.post(`/fin/bills/${id}/waive`, data),
   payments: (params) => req.get('/fin/payments', { params }),

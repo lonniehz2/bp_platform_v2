@@ -6,6 +6,7 @@ import com.yundao.bp.fin.dto.BillCreateCmd;
 import com.yundao.bp.fin.dto.BillVO;
 import com.yundao.bp.fin.dto.PaymentCreateCmd;
 import com.yundao.bp.fin.dto.PaymentVO;
+import com.yundao.bp.iam.security.RequirePerm;
 import com.yundao.bp.fin.service.BillingService;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
@@ -32,8 +33,20 @@ public class BillingController {
 
     // ---------- 账单 ----------
 
-    @com.yundao.bp.iam.security.RequirePerm("fin:bill:create")
+    /**
+     * 公摊费用分摊出账（物业管理场景）。
+     *
+     * <p>把公共区域总费用按建筑面积或户数分摊到在租房源，为每套生成一张账单。
+     */
+    @PostMapping("/bills/generate-shared")
+    @RequirePerm("fin:bill:create")
+    public R<java.util.Map<String, Object>> generateShared(
+            @Valid @RequestBody com.yundao.bp.fin.dto.SharedBillCmd cmd) {
+        return R.ok(billingService.generateSharedBills(cmd));
+    }
+
     @PostMapping("/bills")
+    @RequirePerm("fin:bill:create")
     public R<BillVO> createBill(@Valid @RequestBody BillCreateCmd cmd) {
         return R.ok(billingService.createBill(cmd));
     }

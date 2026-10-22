@@ -48,4 +48,8 @@ public interface BillingService {
      * <p>核销额不能超过「收款单可核销余额」与「账单应付金额」两者较小值。
      */
     BillVO allocate(Long paymentId, Long billId, BigDecimal amount);
+
+    /** 公摊费用分摊出账。 */
+    java.util.Map<String, Object> generateSharedBills(
+            com.yundao.bp.fin.dto.SharedBillCmd cmd);
 }
