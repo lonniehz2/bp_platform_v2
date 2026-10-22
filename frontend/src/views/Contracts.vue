@@ -33,19 +33,15 @@
               {{ row.contractTypeLabel || enumLabel('contractType', row.contractType) }}
             </template>
           </el-table-column>
-          <el-table-column label="到期" width="80">
-            <template #default="{ row }">
-              <el-tag v-if="row.expiringSoon" size="small" type="warning">
-                {{ row.daysToExpire }} 天
-              </el-tag>
-              <span v-else class="muted">—</span>
-            </template>
-          </el-table-column>
-        <el-table-column label="状态" width="110">
+        <!-- 「到期」不再是独立列：租期已含起止日期，剩余天数并入状态列展示 -->
+        <el-table-column label="状态" width="140">
           <template #default="{ row }">
             <el-tag size="small" :type="row.expiringSoon ? 'warning' : 'info'">
               {{ row.contractStatusLabel || row.contractStatus }}
             </el-tag>
+            <span v-if="row.expiringSoon" class="muted" style="margin-left:4px;font-size:12px">
+              剩 {{ row.daysToExpire }} 天
+            </span>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="190">
