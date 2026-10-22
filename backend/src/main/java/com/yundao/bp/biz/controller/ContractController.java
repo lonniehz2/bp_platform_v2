@@ -7,6 +7,7 @@ import com.yundao.bp.common.api.PageResult;
 import com.yundao.bp.common.api.R;
 import com.yundao.bp.iam.security.RequirePerm;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -128,6 +129,31 @@ public class ContractController {
             java.time.LocalDate leaseEnd,
             Integer payDay,
             String payCycle,
+            String remark) {
+    }
+
+    /**
+     * 快捷签约：存量人员 + 空置房源直接生成合同草稿。
+     *
+     * <p>用于「公司已结束的存量人员/房源」这类不走线上申请的签约场景。
+     * 服务端会自动补一张线下受理申请单（applyChannel=OFFLINE），保证合同可追溯。
+     */
+    @PostMapping("/quick-sign")
+    @RequirePerm("biz:contract:create")
+    @Transactional(rollbackFor = Exception.class)
+    public R<ContractVO> quickSign(@Valid @RequestBody QuickSignCmd cmd) {
+        return R.ok(contractService.quickSign(cmd));
+    }
+
+    /** 快捷签约入参（只暴露业务必需项，其余由服务端按房源与人员补齐）。 */
+    public record QuickSignCmd(
+            @NotNull(message = "承租人不能为空") Long personId,
+            @NotNull(message = "房源不能为空") Long houseId,
+            @NotNull(message = "起租日不能为空") LocalDate leaseStart,
+            @NotNull(message = "止租日不能为空") LocalDate leaseEnd,
+            @NotNull(message = "月租不能为空") BigDecimal monthlyRent,
+            BigDecimal depositAmount,
+            String securityType,
             String remark) {
     }
 }

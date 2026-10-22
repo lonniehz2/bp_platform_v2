@@ -47,6 +47,19 @@ public class ContractServiceImpl implements ContractService {
     /** 合同状态变化驱动房源占用；与合同变更同事务 */
     private final OccupancyService occupancyService;
 
+
+    /** 房源查询（快捷签约需要房源组织与地址） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.asset.mapper.AssetHouseMapper quickSignHouseMapper;
+
+    /** 申请服务（快捷签约自动补线下受理申请单） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.biz.service.ApplicationService quickSignApplicationService;
+
+    /** 事务管理器：用于申请单补录的独立事务（失败不影响合同） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.transaction.PlatformTransactionManager quickSignTxManager;
+
     public ContractServiceImpl(BizContractMapper mapper, SnowflakeIdGenerator idGen,
                                OccupancyService occupancyService) {
         this.mapper = mapper;
@@ -409,5 +422,83 @@ public class ContractServiceImpl implements ContractService {
         }
         mapper.updateById(e);
         return ContractVO.from(e);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
+    public ContractVO quickSign(com.yundao.bp.biz.controller.ContractController.QuickSignCmd cmd) {
+        com.yundao.bp.asset.entity.AssetHouse house =
+                quickSignHouseMapper == null ? null : quickSignHouseMapper.selectById(cmd.houseId());
+        if (house == null) {
+            throw com.yundao.bp.common.exception.BizException.notFound("房源");
+        }
+        Long orgId = house.getOrgId();
+        if (orgId == null) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid("房源缺少所属组织，无法签约");
+        }
+        String securityType = (cmd.securityType() == null || cmd.securityType().isBlank())
+                ? "PUBLIC" : cmd.securityType();
+
+        // 1) 自动补一张线下受理申请单。
+        //    申请单创建走独立事务（REQUIRES_NEW）：即便补录失败也不会把合同事务标记为回滚。
+        final Long fOrgId = orgId;
+        final String fSecurityType = securityType;
+        if (quickSignApplicationService != null && quickSignTxManager != null) {
+            try {
+                org.springframework.transaction.support.TransactionTemplate tt =
+                        new org.springframework.transaction.support.TransactionTemplate(
+                                quickSignTxManager);
+                tt.setPropagationBehavior(
+                        org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+                tt.execute(status -> {
+                    com.yundao.bp.biz.dto.ApplicationCreateCmd app =
+                            new com.yundao.bp.biz.dto.ApplicationCreateCmd(
+                                    fOrgId, cmd.personId(), fSecurityType, "HOUSE", "OFFLINE",
+                                    1, null, null, null,
+                                    null, null, null, null, null,
+                                    null, null, null, null, null,
+                                    cmd.remark());
+                    quickSignApplicationService.create(app);
+                    return null;
+                });
+                log.info("快捷签约：已为人员 {} 自动补线下受理申请单", cmd.personId());
+            } catch (Exception ex) {
+                log.warn("快捷签约自动补申请单失败（合同仍创建）：{}", ex.getMessage());
+            }
+        }
+
+        // 2) 创建合同草稿（金额口径：actualPay 由服务端计算）
+        java.math.BigDecimal rent = cmd.monthlyRent();
+        String contractType = "AFFORDABLE".equals(securityType) ? "AFFORDABLE"
+                : ("TALENT".equals(securityType) ? "TALENT" : "PUBLIC_RENTAL");
+        com.yundao.bp.biz.dto.ContractCreateCmd create =
+                new com.yundao.bp.biz.dto.ContractCreateCmd(
+                        contractType,           // contractType
+                        orgId,                  // orgId
+                        orgId,                  // lessorOrgId
+                        cmd.personId(),         // lesseePersonId
+                        null,                   // lesseeName（服务端按人员补齐）
+                        null,                   // lesseePhone
+                        null,                   // lesseeIdCardMask
+                        cmd.houseId(),          // houseId
+                        house.getSpaceId(),     // spaceId
+                        house.getHouseName(),   // houseAddress（房源名称作地址展示）
+                        house.getArea(),        // houseArea
+                        cmd.leaseStart(),       // leaseStart
+                        cmd.leaseEnd(),         // leaseEnd
+                        rent,                   // rentPrice
+                        "HOUSE_MONTH",          // rentUnit
+                        rent,                   // monthlyRent
+                        cmd.depositAmount(),    // depositAmount
+                        null,                   // subsidyAmount
+                        "MONTH",                // payCycle
+                        5,                      // payDay
+                        null,                   // signType
+                        null,                   // templateId
+                        null,                   // allocationId
+                        null,                   // parentContractId
+                        null,                   // lateFeeRate
+                        cmd.remark());          // remark
+        return create(create);
     }
 }

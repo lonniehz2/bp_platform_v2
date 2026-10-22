@@ -44,4 +44,7 @@ public interface ContractService {
             com.yundao.bp.biz.controller.ContractController.ContractUpdateCmd cmd);
 
     int expireDue();
+
+    /** 快捷签约（存量人员/房源直接签约，自动补线下受理申请单）。 */
+    ContractVO quickSign(com.yundao.bp.biz.controller.ContractController.QuickSignCmd cmd);
 }
