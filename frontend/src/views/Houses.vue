@@ -21,7 +21,16 @@
     <el-table :data="rows" v-loading="loading" border size="small">
       <el-table-column prop="houseCode" label="编号" width="150" />
       <el-table-column prop="houseName" label="名称" min-width="140" />
-      <el-table-column label="类型" width="130">
+      <el-table-column label="所属空间" width="170" show-overflow-tooltip>
+            <template #default="{ row }">
+              <span v-if="row.spaceName">
+                <el-tag v-if="row.spaceType === 'BED'" size="small" type="warning">床位</el-tag>
+                {{ row.spaceName }}
+              </span>
+              <span v-else class="muted">—</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="类型" width="130">
         <template #default="{ row }">{{ row.houseTypeLabel || enumLabel('houseType', row.houseType) }}</template>
       </el-table-column>
       <el-table-column label="状态" width="110">

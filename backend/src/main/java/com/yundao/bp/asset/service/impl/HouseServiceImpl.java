@@ -137,8 +137,42 @@ public class HouseServiceImpl implements HouseService {
                     .or().like(AssetHouse::getHouseName, keyword));
         }
         IPage<AssetHouse> page = houseMapper.selectPage(new Page<>(pageNum, pageSize), qw);
-        List<HouseVO> rows = page.getRecords().stream().map(this::toVO).toList();
+        // 用可变列表：fillSpaceInfo 会回填所属空间（房间/床位）信息
+        List<HouseVO> rows = new java.util.ArrayList<>(
+                page.getRecords().stream().map(this::toVO).toList());
+        fillSpaceInfo(page.getRecords(), rows);
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);
+    }
+
+    /**
+     * 批量补房源所属空间（房间/床位）。
+     *
+     * <p>宿舍（床位 BED）与合租场景下，房源挂在 BED 节点，列表需要显示
+     * 「该床位属于哪个房间」，否则运营无法定位。批量查询避免 N+1。
+     */
+    private void fillSpaceInfo(List<AssetHouse> entities, List<HouseVO> rows) {
+        if (spaceMapper == null || entities == null || entities.isEmpty()) {
+            return;
+        }
+        java.util.Set<Long> ids = entities.stream()
+                .map(AssetHouse::getSpaceId).filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+        if (ids.isEmpty()) {
+            return;
+        }
+        java.util.Map<Long, AssetSpace> byId = new java.util.HashMap<>();
+        for (AssetSpace sp : spaceMapper.selectBatchIds(ids)) {
+            byId.put(sp.getId(), sp);
+        }
+        for (int i = 0; i < entities.size(); i++) {
+            AssetSpace sp = byId.get(entities.get(i).getSpaceId());
+            if (sp == null) {
+                continue;
+            }
+            HouseVO old = rows.get(i);
+            rows.set(i, HouseVO.from(entities.get(i), old.houseStatusLabel(), old.vacantDays(),
+                    sp.getSpaceName(), sp.getSpaceType()));
+        }
     }
 
     @Override
