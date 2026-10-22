@@ -23,7 +23,7 @@
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
       <el-table-column prop="houseId" label="房源" width="120">
-        <template #default="{ row }">{{ row.houseIdName || row.houseId }}</template>
+        <template #default="{ row }">{{ houseLabel || row.houseIdName || row.houseId }}</template>
       </el-table-column>
       <el-table-column prop="date" label="日期" width="120" />
       <el-table-column prop="dayStatus" label="日状态" width="110">
@@ -134,6 +134,7 @@ import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { calendarApi } from '@/api/modules'
+import req from '@/api/request'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -156,6 +157,34 @@ const model = reactive({})
 const REQUIRED = []
 let submitFn = null
 const houseId = ref(null)
+const houseLabel = ref('')
+
+/**
+ * 进入页面时自动定位房源并加载当月日历：
+ * 优先用路由 query 的 houseId，其次取第一个酒店/民宿房源（日房态主要服务短租场景）。
+ */
+async function autoLoadMonth() {
+  if (!houseId.value) {
+    const q = new URLSearchParams(window.location.hash.split('?')[1] || '')
+    if (q.get('houseId')) {
+      houseId.value = q.get('houseId')
+    }
+  }
+  if (!houseId.value) {
+    try {
+      const d = await req.get('/houses', { params: { pageNum: 1, pageSize: 1, houseType: 'HOTEL' } })
+      const list = (d && d.rows) || []
+      if (list.length) {
+        houseId.value = String(list[0].id)
+        houseLabel.value = list[0].houseName || String(list[0].id)
+      }
+    } catch (e) { /* 忽略 */ }
+  }
+  if (houseId.value) {
+    await load()
+  }
+}
+onMounted(autoLoadMonth)
 
 async function load() {
   if (!houseId.value) {
@@ -281,23 +310,6 @@ async function doRelease() {
     reload()
   } finally { saving.value = false }
 }
-
-
-/** 未指定房源时，自动加载第一个酒店/民宿房源的当月日历，避免页面空白 */
-async function autoLoadMonth() {
-  if (houseId.value) { reload(); return }
-  try {
-    const d = await req.get('/houses', { params: { pageNum: 1, pageSize: 1, houseType: 'HOTEL' } })
-    const rows = (d && d.rows) || []
-    if (rows.length) {
-      houseId.value = String(rows[0].id)
-      ElMessage.info('已自动加载：' + (rows[0].houseName || rows[0].id))
-      reload()
-    }
-  } catch (e) { /* 忽略 */ }
-}
-
-onMounted(() => { load(); autoLoadMonth() })
 </script>
 
 <style scoped>
