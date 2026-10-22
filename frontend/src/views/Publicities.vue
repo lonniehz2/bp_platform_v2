@@ -29,6 +29,12 @@
             <el-table-column prop="phoneMask" label="手机（脱敏）" width="140" />
             <el-table-column prop="houseName" label="中签房源" min-width="170" />
             <el-table-column prop="selectSeq" label="选房序号" width="100" />
+            <el-table-column label="操作" width="110" fixed="right">
+              <template #default="{ row: w }">
+                <el-button link type="primary" @click="goSignFromWinner(w)"
+                           data-testid="winner-sign">去签约</el-button>
+              </template>
+            </el-table-column>
             <el-table-column prop="resultTypeLabel" label="结果" width="90">
               <template #default="{ row: w }">
                 <el-tag size="small" :type="w.resultType === 'WIN' ? 'success' : 'info'">
@@ -69,6 +75,8 @@
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { publicityApi } from '@/api/modules'
 
 const loading = ref(false)
@@ -121,6 +129,16 @@ async function loadBatches() {
     batchOptions.value = (d && d.rows) || []
   } catch (e) { batchOptions.value = [] }
 }
+
+
+/** 从名单一键签约：带人中转合同页的快捷签约 */
+function goSignFromWinner(w) {
+  if (!w.personId) { ElMessage.warning('该记录缺少中签人信息'); return }
+  router.push({ path: '/contracts',
+    query: { personId: String(w.personId), houseId: w.houseId ? String(w.houseId) : '' } })
+}
+
+const router = useRouter()
 
 onMounted(load)
 </script>

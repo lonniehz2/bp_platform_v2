@@ -13,6 +13,7 @@ package com.yundao.bp.biz.dto;
  */
 public record PublicityWinnerVO(
         Long personId,
+        Long houseId,
         String personName,
         String idCardMask,
         String phoneMask,

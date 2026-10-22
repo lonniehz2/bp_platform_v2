@@ -248,6 +248,7 @@ public class PublicityServiceImpl implements PublicityService {
                     : ("WAIT".equals(type) || "BACKUP".equals(type) ? "候补" : "未中签");
             out.add(new com.yundao.bp.biz.dto.PublicityWinnerVO(
                     r.getPersonId(),
+                    r.getHouseId(),
                     person == null ? null : person.getRealName(),
                     person == null ? null : person.getIdCardMask(),
                     maskPhone(person == null ? null : person.getPhone()),

@@ -340,6 +340,7 @@
 <script setup>
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { contractApi } from '@/api/modules'
 import CohabitantPanel from '@/components/CohabitantPanel.vue'
@@ -536,6 +537,7 @@ async function saveContractEdit() {
 const quickSignVisible = ref(false)
 const vacantHouses = ref([])
 const houseLoading = ref(false)
+const route = useRoute()
 const qf = reactive({ personId: '', houseId: '', leaseStart: '', leaseEnd: '',
   monthlyRent: 0, depositAmount: 0, securityType: 'PUBLIC', remark: '存量直接签约' })
 
@@ -570,5 +572,22 @@ async function doQuickSign() {
   } finally { saving.value = false }
 }
 
-onMounted(load)
+
+/** 从公示中签名单跳转进来：预填并打开快捷签约 */
+function prefillQuickSign(query) {
+  if (!query || !query.personId) return
+  openQuickSign()
+  qf.personId = String(query.personId)
+  if (query.houseId) {
+    qf.houseId = String(query.houseId)
+    req.get(`/houses/${query.houseId}`).then((h) => {
+      if (h) vacantHouses.value = [{ ...h }]
+    }).catch(() => {})
+  }
+}
+
+onMounted(() => {
+  load()
+  prefillQuickSign(route.query)
+})
 </script>
