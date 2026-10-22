@@ -32,6 +32,47 @@ public class HouseServiceImpl implements HouseService {
     private final AssetSpaceMapper spaceMapper;
     private final SnowflakeIdGenerator idGen;
 
+
+    /** 数据范围（ALL/ORG_SUB/ORG/SELF） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.datascope.DataScopeService dataScopeService;
+
+    /**
+     * 把当前用户的数据范围追加到查询条件上。
+     *
+     * @param qw       查询条件
+     * @param orgCol   组织列（orgId）
+     * @param personCol 人员列（SELF 范围用）
+     */
+    private <T> void applyDataScope(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<T> qw,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> orgCol,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> personCol) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf()) {
+            if (scope.personId() == null) {
+                qw.eq(orgCol, -1L);      // 未绑定人员：不返回任何数据
+            } else {
+                qw.eq(personCol, scope.personId());
+            }
+            return;
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty()) {
+            qw.in(orgCol, scope.orgIds());
+            return;
+        }
+        if (scope.orgId() != null) {
+            qw.eq(orgCol, scope.orgId());
+        }
+    }
+
     public HouseServiceImpl(AssetHouseMapper houseMapper, AssetSpaceMapper spaceMapper,
                             SnowflakeIdGenerator idGen) {
         this.houseMapper = houseMapper;
@@ -132,6 +173,7 @@ public class HouseServiceImpl implements HouseService {
                 .eq(houseType != null && !houseType.isBlank(),
                         AssetHouse::getHouseType, houseType)
                 .orderByDesc(AssetHouse::getId);
+        applyDataScope(qw, AssetHouse::getOrgId, AssetHouse::getOwnerPersonId);
         if (keyword != null && !keyword.isBlank()) {
             qw.and(w -> w.like(AssetHouse::getHouseCode, keyword)
                     .or().like(AssetHouse::getHouseName, keyword));
