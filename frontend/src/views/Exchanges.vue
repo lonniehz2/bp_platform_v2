@@ -24,11 +24,11 @@
       <el-table-column prop="personId" label="人员" width="110">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column prop="fromHouseId" label="原房源" width="120">
-        <template #default="{ row }">{{ row.fromHouseIdName || row.fromHouseId }}</template>
+      <el-table-column prop="oldHouseId" label="原房源" width="120">
+        <template #default="{ row }">{{ row.oldHouseIdName || row.oldHouseId }}</template>
       </el-table-column>
-      <el-table-column prop="toHouseId" label="新源房" width="120">
-        <template #default="{ row }">{{ row.toHouseIdName || row.toHouseId }}</template>
+      <el-table-column prop="newHouseId" label="新入住" width="120">
+        <template #default="{ row }">{{ row.newHouseIdName || row.newHouseId }}</template>
       </el-table-column>
       <el-table-column prop="exchangeStatus" label="状态" width="110">
         <template #default="{ row }">{{ row.exchangeStatusLabel || enumLabel('exchangeStatus', row.exchangeStatus) }}</template>

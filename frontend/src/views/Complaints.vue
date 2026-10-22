@@ -28,7 +28,7 @@
         <template #default="{ row }">{{ row.handleStatusLabel || enumLabel('complaintStatus', row.handleStatus) }}</template>
       </el-table-column>
       <el-table-column prop="submitterName" label="投诉人" width="120">
-        <template #default="{ row }">{{ row.complainantPersonIdName || row.complainantPersonId }}</template>
+        <template #default="{ row }">{{ row.submitterName || row.personIdName || "-" }}</template>
       </el-table-column>
       <el-table-column label="操作" width="170" fixed="right">
         <template #default="{ row }">

@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
  */
 public record ChangeVO(
         Long id,
+        String changeNo,
         Long contractId,
         Long newContractId,
         String changeType,
@@ -39,7 +40,10 @@ public record ChangeVO(
         } catch (IllegalArgumentException ex) {
             st = ApproveStatus.PENDING;
         }
-        return new ChangeVO(e.getId(), e.getContractId(), e.getNewContractId(),
+        return new ChangeVO(
+                e.getId(),
+                // 变更号：表里没有独立编号列，用 CC+主键 派生，保证列表可读且唯一
+                "CC" + e.getId(), e.getContractId(), e.getNewContractId(),
                 e.getChangeType(), ct.label(), e.getChangeReason(), e.getBeforeJson(),
                 e.getAfterJson(), e.getApproveStatus(), st.label(), e.getEffectiveDate(),
                 e.getCreateTime());

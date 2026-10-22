@@ -28,7 +28,7 @@
         <template #default="{ row }">{{ row.appealStatusLabel || enumLabel('appealStatus', row.appealStatus) }}</template>
       </el-table-column>
       <el-table-column prop="personIdName" label="申请人" width="120">
-        <template #default="{ row }">{{ row.applicantPersonIdName || row.applicantPersonId }}</template>
+        <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
       <el-table-column label="操作" width="250" fixed="right">
         <template #default="{ row }">

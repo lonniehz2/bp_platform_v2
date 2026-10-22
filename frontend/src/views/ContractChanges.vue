@@ -28,17 +28,17 @@
       <el-table-column prop="effectiveDate" label="生效日" width="120" />
       <el-table-column label="状态" width="110">
         <template #default="{ row }">
-          <el-tag size="small" :type="row.changeStatus === 'APPROVED' ? 'success'
-            : (row.changeStatus === 'REJECTED' ? 'danger' : 'warning')">
-            {{ row.changeStatusLabel || enumLabel('changeStatus', row.changeStatus) }}
+          <el-tag size="small" :type="row.approveStatus === 'APPROVED' ? 'success'
+            : (row.approveStatus === 'REJECTED' ? 'danger' : 'warning')">
+            {{ row.approveStatusLabel || enumLabel('changeStatus', row.approveStatus) }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
-          <el-button link type="success" :disabled="row.changeStatus === 'APPROVED'"
+          <el-button link type="success" :disabled="row.approveStatus === 'APPROVED'"
                      @click="approve(row)">批准</el-button>
-          <el-button link type="danger" :disabled="row.changeStatus === 'REJECTED'"
+          <el-button link type="danger" :disabled="row.approveStatus === 'REJECTED'"
                      @click="reject(row)">驳回</el-button>
           <el-button link @click="detail = row; show = true">详情</el-button>
         </template>
