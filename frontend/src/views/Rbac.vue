@@ -233,10 +233,19 @@
             控制该角色能看到哪些菜单与页面；勾选后对应菜单才会出现
           </div>
           <el-scrollbar max-height="330px">
-            <div class="perm-group">
-              <div class="perm-group-body">
+            <div v-for="mg in pageMenuGroups" :key="mg.group" class="perm-group">
+              <div class="perm-group-head">
                 <el-checkbox
-                  v-for="p in pagePerms" :key="p.id"
+                  :model-value="mg.items.every((p) => checkedPerms.includes(String(p.id)))"
+                  :indeterminate="!mg.items.every((p) => checkedPerms.includes(String(p.id)))
+                    && mg.items.some((p) => checkedPerms.includes(String(p.id)))"
+                  @change="(v) => toggleGroup(mg, v)">
+                  {{ mg.group }}（{{ mg.items.length }}）
+                </el-checkbox>
+              </div>
+              <div class="perm-actions">
+                <el-checkbox
+                  v-for="p in mg.items" :key="p.id"
                   :model-value="checkedPerms.includes(String(p.id))"
                   :label="p.permName"
                   :title="p.routePath || p.permCode"
@@ -461,6 +470,45 @@ const checkedPerms = ref([])
 const pagePerms = computed(() =>
   perms.value.filter((p) => String(p.permCode || '').startsWith('page:'))
     .sort((a, b) => String(a.permName).localeCompare(String(b.permName), 'zh')))
+
+/** 页面权限按左侧菜单分组呈现（分组顺序与侧边栏一致） */
+const pageMenuGroups = computed(() => {
+  const order = ['运营总览', '保障对象', '资格准入', '合同管理', '账务收费',
+    '授权与交房', '服务与监督', '资产台账', '系统与集成', '其他']
+  const map = new Map()
+  for (const p of pagePerms.value) {
+    const g = menuGroupOf(p.routePath)
+    if (!map.has(g)) map.set(g, [])
+    map.get(g).push(p)
+  }
+  return order.filter((g) => map.has(g)).map((g) => ({ group: g, key: g, items: map.get(g) }))
+})
+
+/** 路由 → 菜单分组（与 useMenu 的 CLASSIC_GROUP 对齐） */
+function menuGroupOf(path) {
+  const p = String(path || '')
+  const G = {
+    '/dashboard': '运营总览', '/reports': '运营总览', '/todos': '运营总览',
+    '/persons': '保障对象', '/annual-reviews': '保障对象',
+    '/applications': '资格准入', '/waitlist': '资格准入',
+    '/allocations': '资格准入', '/publicities': '资格准入',
+    '/contracts': '合同管理', '/contract-changes': '合同管理',
+    '/exchanges': '合同管理', '/terminations': '合同管理',
+    '/fee-items': '账务收费', '/bills': '账务收费', '/deposits': '账务收费',
+    '/arrears': '账务收费', '/subsidies': '账务收费', '/cashflow': '账务收费',
+    '/devices': '授权与交房', '/access': '授权与交房',
+    '/keyring': '授权与交房', '/grants': '授权与交房',
+    '/workorders': '服务与监督', '/complaints': '服务与监督',
+    '/appeals': '服务与监督', '/visits': '服务与监督',
+    '/credits': '服务与监督', '/alerts': '服务与监督', '/messages': '服务与监督',
+    '/houses': '资产台账', '/spaces': '资产台账',
+    '/house-calendar': '资产台账', '/short-rent': '资产台账',
+    '/orgs': '系统与集成', '/rbac': '系统与集成', '/sys': '系统与集成',
+    '/ops-center': '系统与集成', '/ops-extras': '系统与集成',
+    '/open': '系统与集成', '/gov': '系统与集成'
+  }
+  return G[p] || '其他'
+}
 
 /** 功能权限（按钮/接口级），按模块→资源→操作分组 */
 const permGroups = computed(() => {
