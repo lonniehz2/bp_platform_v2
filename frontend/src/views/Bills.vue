@@ -14,6 +14,7 @@
         <div class="spacer" />
         <el-button type="success" @click="genVisible = true">批量出账</el-button>
         <el-button type="warning" plain @click="openShared" data-testid="shared-bill">公摊分摊</el-button>
+        <el-button type="primary" plain @click="openMeter" data-testid="meter-reading">抄表录入</el-button>
         <el-button @click="openPay">登记收款</el-button>
         <el-button @click="scanOverdue">扫描逾期</el-button>
       </div>
@@ -114,6 +115,63 @@
       </template>
     </el-dialog>
 
+    <!-- 抄表录入（水电燃气按实际用量出账） -->
+    <el-dialog v-model="meterVisible" title="抄表录入" width="860px">
+      <el-alert type="info" :closable="false" show-icon
+                title="录入本次读数后自动带出上次读数、用量与金额；确认无误再点「出账生成账单」"
+                style="margin-bottom:12px" />
+      <el-form :model="mf" label-width="96px" inline>
+        <el-form-item label="房源">
+          <el-select v-model="mf.houseId" filterable remote :remote-method="searchMeterHouse"
+                     :loading="houseLoading" style="width:240px" placeholder="输入房号搜索">
+            <el-option v-for="h in meterHouses" :key="h.id" :label="h.houseName" :value="String(h.id)" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="收费项目">
+          <el-select v-model="mf.feeItemId" filterable style="width:200px">
+            <el-option v-for="f in meterItems" :key="f.id"
+                       :label="`${f.itemName}（${f.unitPrice}/${f.unit || '单位'}）`"
+                       :value="String(f.id)" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="本次读数">
+          <el-input v-model="mf.reading" type="number" style="width:140px" />
+        </el-form-item>
+        <el-form-item label="抄表日">
+          <el-date-picker v-model="mf.readDate" type="date" value-format="YYYY-MM-DD"
+                          style="width:150px" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" :loading="saving" @click="doMeterRecord">录入读数</el-button>
+        </el-form-item>
+      </el-form>
+
+      <el-table :data="readings" size="small" border max-height="320" style="margin-top:8px">
+        <el-table-column prop="readDate" label="抄表日" width="110" />
+        <el-table-column prop="prevReading" label="上次读数" width="100" />
+        <el-table-column prop="reading" label="本次读数" width="100" />
+        <el-table-column prop="usageAmount" label="用量" width="90" />
+        <el-table-column prop="unitPrice" label="单价" width="80" />
+        <el-table-column prop="amount" label="金额" width="100" />
+        <el-table-column prop="billStatus" label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag size="small" :type="row.billStatus === 'BILLED' ? 'success' : 'warning'">
+              {{ row.billStatus === 'BILLED' ? '已出账' : '待出账' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="90">
+          <template #default="{ row }">
+            <el-button link type="primary" :disabled="row.billStatus === 'BILLED'"
+                       @click="doMeterBill(row)">出账</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <template #footer>
+        <el-button @click="meterVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 登记收款 PaymentCreateCmd -->
     <el-dialog v-model="payVisible" title="登记收款" width="520px">
       <el-form :model="p" label-width="110px">
@@ -201,10 +259,76 @@ import DetailView from '@/components/DetailView.vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { financeApi } from '@/api/modules'
+import req from '@/api/request'
 
 const statuses = ['UNPAID', 'PARTIAL', 'PAID', 'OVERDUE', 'WAIVED', 'CANCELLED']
 const loading = ref(false)
 const saving = ref(false)
+
+/** 抄表录入（METER 类收费） */
+const meterVisible = ref(false)
+const meterItems = ref([])
+const meterHouses = ref([])
+const houseLoading = ref(false)
+const readings = ref([])
+const mf = reactive({ houseId: '', feeItemId: '', reading: 0, readDate: '' })
+
+async function openMeter() {
+  meterVisible.value = true
+  mf.readDate = new Date().toISOString().slice(0, 10)
+  if (!meterItems.value.length) {
+    try {
+      const fi = await financeApi.feeItems({ pageNum: 1, pageSize: 100 })
+      meterItems.value = ((fi && fi.rows) || []).filter((x) => x.calcMode === 'METER')
+    } catch (e) { /* 忽略 */ }
+  }
+  await searchMeterHouse('')
+  await loadReadings()
+}
+
+async function searchMeterHouse(kw) {
+  houseLoading.value = true
+  try {
+    const d = await financeApi.houses({ pageNum: 1, pageSize: 20, keyword: kw || undefined })
+    meterHouses.value = (d && d.rows) || []
+  } finally { houseLoading.value = false }
+}
+
+async function loadReadings() {
+  try {
+    const d = await financeApi.meterList({ pageNum: 1, pageSize: 50, houseId: mf.houseId || undefined })
+    readings.value = (d && d.rows) || []
+  } catch (e) { readings.value = [] }
+}
+
+async function doMeterRecord() {
+  if (!mf.houseId || !mf.feeItemId || mf.reading === '' || mf.reading === null) {
+    ElMessage.warning('请选择房源、收费项目并填写读数'); return
+  }
+  saving.value = true
+  try {
+    const r = await financeApi.meterRecord({
+      houseId: mf.houseId, feeItemId: mf.feeItemId,
+      reading: Number(mf.reading), readDate: mf.readDate || undefined
+    })
+    ElMessage.success(`已录入：用量 ${r?.usageAmount ?? '-'}，金额 ${r?.amount ?? '-'}`)
+    await loadReadings()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '录入失败')
+  } finally { saving.value = false }
+}
+
+async function doMeterBill(row) {
+  saving.value = true
+  try {
+    const b = await req.post(`/fin/meter-readings/${row.id}/bill`, {})
+    ElMessage.success(`已出账：${b?.billNo || ''}，应收 ${b?.payableAmount ?? ''}`)
+    await loadReadings()
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '出账失败')
+  } finally { saving.value = false }
+}
 const rows = ref([])
 const total = ref(0)
 const q = reactive({ pageNum: 1, pageSize: 20, billStatus: '', billPeriod: '' })
