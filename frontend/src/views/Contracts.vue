@@ -343,6 +343,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { contractApi } from '@/api/modules'
 import CohabitantPanel from '@/components/CohabitantPanel.vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 
 const statuses = ['DRAFT', 'PENDING_SIGN', 'EFFECTIVE', 'CHANGING', 'TERMINATED', 'EXPIRED']
 const loading = ref(false)
