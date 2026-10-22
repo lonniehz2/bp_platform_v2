@@ -168,6 +168,7 @@ async function load() {
 function reload() { query.pageNum = 1; load() }
 
 /** 巡检计划（物业管理）：列表 / 新建 / 执行到期 */
+const saving = ref(false)
 const plansVisible = ref(false)
 const planFormVisible = ref(false)
 const plans = ref([])
