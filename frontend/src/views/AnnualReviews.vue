@@ -31,8 +31,9 @@
       <el-table-column prop="reviewStatus" label="状态" width="110">
         <template #default="{ row }">{{ row.reviewStatusLabel || enumLabel('reviewStatus', row.reviewStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="150" fixed="right">
+      <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
+          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
           <el-button link type="primary" @click="openReview(row)">复核</el-button>
         </template>
       </el-table-column>
@@ -75,11 +76,25 @@
       </template>
     </el-dialog>
   </div>
+
+    <!-- 通用详情 -->
+    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+      <DetailView :row="dvRow" />
+    </el-dialog>
 </template>
 
 <script setup>
+/** 通用详情弹窗（复用 DetailView） */
+const dvVisible = ref(false)
+const dvRow = ref({})
+function openDetail(row) {
+  dvRow.value = row
+  dvVisible.value = true
+}
+
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import DetailView from '@/components/DetailView.vue'
 import { ElMessage } from 'element-plus'
 import { annualReviewApi } from '@/api/modules'
 

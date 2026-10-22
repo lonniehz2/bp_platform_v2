@@ -58,11 +58,25 @@
                    :current-page="query.pageNum"
                    @current-change="(p) => { query.pageNum = p; load() }" />
   </div>
+
+    <!-- 通用详情 -->
+    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+      <DetailView :row="dvRow" />
+    </el-dialog>
 </template>
 
 <script setup>
+/** 通用详情弹窗（复用 DetailView） */
+const dvVisible = ref(false)
+const dvRow = ref({})
+function openDetail(row) {
+  dvRow.value = row
+  dvVisible.value = true
+}
+
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import DetailView from '@/components/DetailView.vue'
 import { devApi } from '@/api/modules'
 
 const loading = ref(false)

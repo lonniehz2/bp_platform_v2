@@ -39,6 +39,7 @@
           </el-table-column>
           <el-table-column label="操作" width="170">
             <template #default="{ row }">
+              <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
               <el-button link type="primary" @click="markRead(row)">标记已读</el-button>
               <el-button link type="success" @click="markDone(row)">办结</el-button>
             </template>
@@ -220,10 +221,24 @@
       </template>
     </el-dialog>
   </div>
+
+    <!-- 通用详情 -->
+    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+      <DetailView :row="dvRow" />
+    </el-dialog>
 </template>
 
 <script setup>
+/** 通用详情弹窗（复用 DetailView） */
+const dvVisible = ref(false)
+const dvRow = ref({})
+function openDetail(row) {
+  dvRow.value = row
+  dvVisible.value = true
+}
+
 import { ref, reactive, onMounted, watch } from 'vue'
+import DetailView from '@/components/DetailView.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'

@@ -40,6 +40,7 @@
         <el-table-column prop="applyTime" label="申请时间" width="170" />
         <el-table-column label="操作" width="230" fixed="right">
           <template #default="{ row }">
+            <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
             <el-button link type="primary" @click="openReview(row)">审核</el-button>
             <el-button link @click="openRecords(row)">轨迹</el-button>
           </template>
@@ -148,11 +149,25 @@
       <el-empty v-if="!records.length" description="暂无审核记录" />
     </el-drawer>
   </div>
+
+    <!-- 通用详情 -->
+    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+      <DetailView :row="dvRow" />
+    </el-dialog>
 </template>
 
 <script setup>
+/** 通用详情弹窗（复用 DetailView） */
+const dvVisible = ref(false)
+const dvRow = ref({})
+function openDetail(row) {
+  dvRow.value = row
+  dvVisible.value = true
+}
+
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import DetailView from '@/components/DetailView.vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage } from 'element-plus'
 import { applicationApi } from '@/api/modules'
