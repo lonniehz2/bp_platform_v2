@@ -28,11 +28,6 @@
           <el-table-column prop="orgId" label="组织" width="180">
             <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
 
-<style scoped>
-.perm-group { border: 1px solid #ebeef5; border-radius: 4px; margin-bottom: 8px; }
-.perm-group-head { background: #fafafa; padding: 6px 10px; border-bottom: 1px solid #ebeef5; }
-.perm-group-body { padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
-</style>
 
           </el-table-column>
           <el-table-column label="类型" width="110">
@@ -128,8 +123,12 @@
                     placeholder="PBKDF2 加密存储" /></el-form-item>
         <el-form-item label="姓名" required>
           <el-input v-model="uf.realName" /></el-form-item>
-        <el-form-item label="组织ID">
-          <el-input v-model="uf.orgId" /></el-form-item>
+        <el-form-item label="所属组织" required>
+          <el-select v-model="uf.orgId" filterable clearable style="width:100%"
+                     placeholder="选择组织（决定数据归属）" data-testid="user-org">
+            <el-option v-for="o in orgOptions" :key="o.id"
+                       :label="o.orgName" :value="String(o.id)" />
+          </el-select></el-form-item>
         <el-form-item label="用户类型">
           <el-select v-model="uf.userType" style="width:100%">
             <el-option label="工作人员 STAFF" value="STAFF" />
@@ -190,7 +189,6 @@
       </template>
     </el-dialog>
 
-
     <!-- 角色配置：基本信息 + 数据范围 + 权限，一页完成 -->
     <el-dialog v-model="roleCfgVisible" :title="`配置角色：${roleCfg.roleName || ''}`" width="760px">
       <el-form :model="roleCfg" label-width="90px">
@@ -234,12 +232,25 @@
             </el-checkbox>
           </div>
           <div class="perm-group-body">
-            <el-checkbox
-              v-for="p in g.items" :key="p.id"
-              :model-value="checkedPerms.includes(String(p.id))"
-              :label="`${p.permName}`"
-              :title="p.permCode"
-              @change="(v) => togglePerm(p, v)" />
+            <div v-for="res in g.resources" :key="res.key" class="perm-res">
+              <div class="perm-res-head">
+                <el-checkbox
+                  :model-value="res.items.every((p) => checkedPerms.includes(String(p.id)))"
+                  :indeterminate="!res.items.every((p) => checkedPerms.includes(String(p.id)))
+                    && res.items.some((p) => checkedPerms.includes(String(p.id)))"
+                  @change="(v) => toggleGroup(res, v)">
+                  {{ res.label }}
+                </el-checkbox>
+              </div>
+              <div class="perm-actions">
+                <el-checkbox
+                  v-for="p in res.items" :key="p.id"
+                  :model-value="checkedPerms.includes(String(p.id))"
+                  :label="p.permName"
+                  :title="p.permCode"
+                  @change="(v) => togglePerm(p, v)" />
+              </div>
+            </div>
           </div>
         </div>
       </el-scrollbar>
@@ -340,7 +351,7 @@ async function load() {
 }
 
 async function doCreateUser() {
-  if (!uf.username || !uf.password || !uf.realName) {
+  if (!uf.username || !uf.password || !uf.realName || !uf.orgId) {
     ElMessage.warning('账号、密码、姓名为必填'); return
   }
   saving.value = true
@@ -397,6 +408,16 @@ const MODULE_LABEL = {
   asset: '资产房源', ops: '运维工单', msg: '消息待办', sys: '系统配置',
   rpt: '报表统计', open: '开放平台', gov: '监管报送', alloc: '配租轮候'
 }
+
+/** 组织下拉选项（新增用户时必填，决定数据归属） */
+const orgOptions = ref([])
+async function loadOrgOptions() {
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 500 } })
+    orgOptions.value = d.rows || d || []
+  } catch (e) { orgOptions.value = [] }
+}
+
 const roleCfgVisible = ref(false)
 const roleCfg = reactive({ id: '', roleCode: '', roleName: '', dataScope: 'ALL', status: 'ENABLED' })
 const checkedPerms = ref([])
@@ -409,8 +430,33 @@ const permGroups = computed(() => {
     if (!map.has(key)) map.set(key, [])
     map.get(key).push(p)
   }
+  const RES_LABEL = {
+    user: '用户', role: '角色', perm: '权限', contract: '合同', person: '人员',
+    house: '房源', bill: '账单', feeItem: '计费项', deposit: '押金', arrear: '催缴',
+    report: '报表', screen: '大屏', audit: '审计', dict: '字典', config: '参数',
+    app: '应用', log: '日志', keyring: '钥匙', grant: '授权', visit: '走访',
+    complaint: '投诉', appeal: '申诉', credit: '信用', alert: '告警', workorder: '工单'
+  }
+  const ACTION_LABEL = {
+    list: '查看', query: '查询', detail: '详情', create: '新增', update: '修改',
+    delete: '删除', assign: '授权', audit: '审核', approve: '审批', export: '导出',
+    publish: '发布', disable: '停用', manage: '管理', revoke: '撤销', print: '打印'
+  }
   return Array.from(map.entries())
-    .map(([key, items]) => ({ key, label: MODULE_LABEL[key] || key, items }))
+    .map(([key, items]) => {
+      // 模块内再按资源分组：permCode 形如 iam:user:list
+      const byRes = new Map()
+      for (const p of items) {
+        const parts = String(p.permCode || '').split(':')
+        const res = parts[1] || 'other'
+        if (!byRes.has(res)) byRes.set(res, [])
+        byRes.get(res).push({ ...p, actionLabel: ACTION_LABEL[parts[2]] || parts[2] || '' })
+      }
+      const resources = Array.from(byRes.entries())
+        .map(([rk, list]) => ({ key: rk, label: RES_LABEL[rk] || rk, items: list }))
+        .sort((a, b) => a.key.localeCompare(b.key))
+      return { key, label: MODULE_LABEL[key] || key, items, resources }
+    })
     .sort((a, b) => a.key.localeCompare(b.key))
 })
 
@@ -498,5 +544,15 @@ async function doGrant() {
   } finally { saving.value = false }
 }
 
-onMounted(load)
+onMounted(() => { loadOrgOptions(); load() })
 </script>
+
+<style scoped>
+.perm-group { border: 1px solid #ebeef5; border-radius: 4px; margin-bottom: 8px; }
+.perm-group-head { background: #fafafa; padding: 6px 10px; border-bottom: 1px solid #ebeef5; }
+.perm-group-body { padding: 6px 12px 10px; }
+/* 二级：资源；三级：操作，逐级缩进，便于看清层级 */
+.perm-res { margin-top: 6px; }
+.perm-res-head { padding-left: 20px; }
+.perm-actions { padding-left: 46px; display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 2px; }
+</style>
