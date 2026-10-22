@@ -44,6 +44,45 @@ public class DepositRefundServiceImpl implements DepositRefundService {
     private final FinRefundMapper refundMapper;
     private final SnowflakeIdGenerator idGen;
 
+
+    /** 数据范围（ALL/ORG_SUB/ORG/SELF） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.datascope.DataScopeService dataScopeService;
+
+    /** 按数据范围追加条件（full=true 时组织也过滤）。 */
+    private <T> void applyDataScope(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<T> qw,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> orgCol,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> personCol,
+            boolean full) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf()) {
+            if (scope.personId() == null) {
+                qw.eq(personCol, -1L);
+            } else {
+                qw.eq(personCol, scope.personId());
+            }
+            return;
+        }
+        if (!full) {
+            return;     // 无组织列时，ORG/ORG_SUB 不额外限制
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty()) {
+            qw.in(orgCol, scope.orgIds());
+            return;
+        }
+        if (scope.orgId() != null) {
+            qw.eq(orgCol, scope.orgId());
+        }
+    }
+
     public DepositRefundServiceImpl(FinDepositMapper depositMapper, FinRefundMapper refundMapper,
                                     SnowflakeIdGenerator idGen) {
         this.depositMapper = depositMapper;
@@ -123,6 +162,7 @@ public class DepositRefundServiceImpl implements DepositRefundService {
                 .eq(personId != null, FinDeposit::getPersonId, personId)
                 .eq(status != null && !status.isBlank(), FinDeposit::getDepositStatus, status)
                 .orderByDesc(FinDeposit::getId);
+        applyDataScope(qw, FinDeposit::getPersonId, FinDeposit::getPersonId, false);
         IPage<FinDeposit> page = depositMapper.selectPage(new Page<>(pageNum, pageSize), qw);
         List<DepositVO> rows = page.getRecords().stream().map(DepositVO::from).toList();
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);

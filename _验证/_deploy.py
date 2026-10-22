@@ -25,8 +25,13 @@ def upload(client, local):
     size = os.path.getsize(local)
     print('上传 %s (%.1f MB) -> %s' % (local, size / 1048576, JAR_REMOTE))
     sftp.put(local, JAR_REMOTE)
-    print('  远程大小 %.1f MB' % (sftp.stat(JAR_REMOTE).st_size / 1048576))
+    remote = sftp.stat(JAR_REMOTE).st_size
+    print('  远程大小 %.1f MB' % (remote / 1048576))
     sftp.close()
+    # 上传完整性校验：jar 被截断会导致 "Invalid or corrupt jarfile" 且服务起不来
+    if remote != size:
+        raise RuntimeError('上传不完整：本地 %d 字节，远程 %d 字节（差 %d）；请重试上传'
+                           % (size, remote, size - remote))
 
 
 class Shell:
