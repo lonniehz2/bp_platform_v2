@@ -39,6 +39,17 @@
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
             <el-button link type="primary" @click="openAddHouses(row)" data-testid="batch-add-house">加房源</el-button>
+            <el-button v-if="row.batchStatus === 'DRAFT'" link type="success"
+                       @click="doTransition(row, 'PUBLISHED')"
+                       data-testid="batch-publish">发布</el-button>
+            <el-button v-if="row.batchStatus === 'PUBLISHED'" link type="primary"
+                       @click="doTransition(row, 'SIGNUP')"
+                       data-testid="batch-signup">开始报名</el-button>
+            <el-button v-if="row.batchStatus === 'SIGNUP'" link type="warning"
+                       @click="doTransition(row, 'LOTTERY')"
+                       data-testid="batch-to-lottery">结束报名</el-button>
+            <el-button v-if="['DRAFT','PUBLISHED','SIGNUP'].includes(row.batchStatus)"
+                       link type="danger" @click="doTransition(row, 'CANCELLED')">取消</el-button>
             <el-button link type="primary" @click="runLottery(row)">摇号</el-button>
             <el-button link @click="viewResults(row)">结果</el-button>
           </template>
@@ -293,6 +304,28 @@ async function doAddHouses() {
     addHouseVisible.value = false
     load()
   } finally { saving.value = false }
+}
+
+
+/** 批次状态流转：发布 → 报名 → 摇号 */
+const TRANSITION_TIP = {
+  PUBLISHED: '发布后批次对外可见，可开始报名',
+  SIGNUP: '开始报名后，符合条件的申请人进入本批次',
+  LOTTERY: '结束报名并转入摇号，之后不可再报名',
+  CANCELLED: '取消后批次作废，已入池房源释放'
+}
+async function doTransition(row, target) {
+  try {
+    await ElMessageBox.confirm(TRANSITION_TIP[target] || '确认变更状态？', '状态变更',
+      { type: 'warning', confirmButtonText: '确认', cancelButtonText: '取消' })
+  } catch (e) { return }
+  try {
+    await req.post(`/allocation/batches/${row.id}/status`, { batchStatus: target })
+    ElMessage.success('状态已更新')
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '状态变更失败')
+  }
 }
 
 onMounted(load)
