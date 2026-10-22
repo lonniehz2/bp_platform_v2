@@ -140,21 +140,37 @@ def main():
             print('  申请失败(%s)：%s' % (p.get('realName'), msg((st, r))))
     print('申请：新增 %d，共 %d' % (made, len(by_person)))
 
-    # ---------- 4) 审核通过（触发自动入轮候）----------
+    # ---------- 4) 受理 → 四阶段审核（触发自动入轮候）----------
+    STAGES = ('ACCEPT', 'FORM', 'JOINT', 'FINAL')
     passed = 0
     for p in persons[:4]:
         a = by_person.get(p['id'])
         if not a:
             continue
-        if a.get('applicationStatus') == 'APPROVED':
+        aid = a['id']
+        st, r = call('/applications/%s' % aid, token=tok)
+        cur = (d((st, r)) or {}).get('applicationStatus')
+
+        if cur == 'SUBMITTED':
+            st, r = call('/applications/%s/accept' % aid, 'POST', {}, tok)
+            if not ok((st, r)):
+                print('  受理失败(%s)：%s' % (p.get('realName'), msg((st, r))))
+                continue
+            cur = (d((st, r)) or {}).get('applicationStatus')
+
+        for stage in STAGES:
+            if cur == 'APPROVED':
+                break
+            st, r = call('/applications/%s/review' % aid, 'POST',
+                         {'stage': stage, 'result': 'PASS',
+                          'opinion': '一期示范-%s 通过' % stage}, tok)
+            if not ok((st, r)):
+                print('  审核%s失败(%s)：%s' % (stage, p.get('realName'), msg((st, r))))
+                break
+            cur = (d((st, r)) or {}).get('applicationStatus')
+
+        if cur == 'APPROVED':
             passed += 1
-            continue
-        st, r = call('/applications/%s/review' % a['id'], 'POST',
-                     {'stage': 'ACCEPT', 'result': 'PASS', 'opinion': '一期示范-受理通过'}, tok)
-        if ok((st, r)):
-            passed += 1
-        else:
-            print('  审核失败(%s)：%s' % (p.get('realName'), msg((st, r))))
     print('审核通过：%d' % passed)
 
     waiting = rows_of(call('/allocation/waiting?pageNum=1&pageSize=200&securityType=PUBLIC',
@@ -195,49 +211,116 @@ def main():
     results = d(call('/allocation/lottery/%s' % bid, token=tok)) or []
     print('  中签记录：%d' % len(results))
 
-    # ---------- 7) 公示 ----------
-    pubs = rows_of(call('/publicities?pageNum=1&pageSize=100', token=tok))
-    pub = next((x for x in pubs if x.get('title') == TAG + '配租结果公示'), None)
-    if not pub:
-        today = date.today()
-        st, r = call('/publicities', 'POST',
-                     {'publicityType': 'ALLOCATION', 'orgId': org_id, 'batchId': bid,
-                      'title': TAG + '配租结果公示', 'content': '本期配租结果公示，为期 7 天。',
-                      'startDate': str(today), 'endDate': str(today + timedelta(days=7))}, tok)
-        pub = d((st, r))
+    # ---------- 7) 公示（始终关联当前批次）----------
+    today = date.today()
+    st, r = call('/publicities', 'POST',
+                 {'publicityType': 'ALLOCATION', 'orgId': org_id, 'batchId': bid,
+                  'title': '%s配租结果公示-%s' % (TAG, batch.get('batchNo') or bid),
+                  'content': '本期配租结果公示，为期 7 天，中签名单见公示明细。',
+                  'startDate': str(today),
+                  'endDate': str(today + timedelta(days=7))}, tok)
+    pub = d((st, r))
     if pub:
+        st2, r2 = call('/publicities/%s/publish' % pub['id'], 'POST', {}, tok)
         winners = d(call('/publicities/%s/winners' % pub['id'], token=tok)) or []
-        print('公示：%s，中签名单 %d 条' % (pub.get('title'), len(winners)))
+        print('公示：%s，中签名单 %d 条（发布：%s）'
+              % (pub.get('title'), len(winners), msg((st2, r2))))
+    else:
+        print('公示创建失败：%s' % msg((st, r)))
 
-    # ---------- 8) 合同（快捷签约）----------
+    # ---------- 8) 合同：快捷签约 + 签约流程 ----------
     contracts = rows_of(call('/contracts?pageNum=1&pageSize=200', token=tok))
     existing = {c.get('lesseePersonId') for c in contracts}
-    signed = 0
+    signed, activated = 0, 0
     for idx, p in enumerate(persons[:3]):
-        if p['id'] in existing:
-            signed += 1
-            continue
         hs = vacant[idx] if idx < len(vacant) else None
         if not hs:
             break
-        st, r = call('/contracts/quick-sign', 'POST',
-                     {'personId': p['id'], 'houseId': hs,
-                      'leaseStart': str(date.today()),
-                      'leaseEnd': str(date.today() + timedelta(days=365)),
-                      'monthlyRent': 900 + idx * 100, 'depositAmount': 1000,
-                      'securityType': 'PUBLIC', 'remark': TAG + '直接签约'}, tok)
-        if ok((st, r)):
+        c = next((x for x in contracts if x.get('lesseePersonId') == p['id']), None)
+        if not c:
+            st, r = call('/contracts/quick-sign', 'POST',
+                         {'personId': p['id'], 'houseId': hs,
+                          'leaseStart': str(date.today()),
+                          'leaseEnd': str(date.today() + timedelta(days=365)),
+                          'monthlyRent': 900 + idx * 100, 'depositAmount': 1000,
+                          'securityType': 'PUBLIC', 'remark': TAG + '直接签约'}, tok)
+            if not ok((st, r)):
+                print('  合同失败(%s)：%s' % (p.get('realName'), msg((st, r))))
+                continue
+            c = d((st, r))
             signed += 1
-        else:
-            print('  合同失败(%s)：%s' % (p.get('realName'), msg((st, r))))
-    print('合同：%d 份（快捷签约）' % signed)
 
-    # ---------- 9) 收费 ----------
-    bills = rows_of(call('/fin/bills?pageNum=1&pageSize=1', token=tok))
-    st, r = call('/fin/bills/generate-batch', 'POST',
-                 {'orgId': org_id, 'billPeriod': date.today().strftime('%Y%m'),
-                  'overwrite': False}, tok)
-    print('批量出账：%s' % msg((st, r)))
+        # 推进到履约中：提交待签 → 开始签约 → 签约（已生效则跳过）
+        cid = c['id']
+        st_cur, r_cur = call('/contracts/%s' % cid, token=tok)
+        if (d((st_cur, r_cur)) or {}).get('contractStatus') == 'EFFECTIVE':
+            activated += 1
+            continue
+        for path, body in (('/contracts/%s/submit-sign' % cid, {}),
+                           ('/contracts/%s/start-signing' % cid, {}),
+                           ('/contracts/%s/sign' % cid,
+                            {'signType': 'ELECTRONIC', 'reason': TAG + '演示签约'})):
+            st, r = call(path, 'POST', body, tok)
+            if not ok((st, r)):
+                print('  签约推进失败(%s %s)：%s' % (p.get('realName'), path.split('/')[-1],
+                                                msg((st, r))))
+                break
+        st, r = call('/contracts/%s' % cid, token=tok)
+        status = (d((st, r)) or {}).get('contractStatus')
+        if status == 'EFFECTIVE':
+            activated += 1
+    print('合同：新建 %d 份，已签约生效 %d 份' % (signed, activated))
+
+    # ---------- 9) 收费：批量出账 ----------
+    st, r = call('/fin/fee-items?pageNum=1&pageSize=20', token=tok)
+    fee_items = rows_of((st, r))
+    rent_item = next((x for x in fee_items
+                      if (x.get('feeItemName') or '').find('租金') >= 0), None) \
+        or (fee_items[0] if fee_items else None)
+    if rent_item:
+        today = date.today()
+        st, r = call('/fin/bills/generate-batch', 'POST',
+                     {'items': [{'feeItemId': rent_item['id']}],
+                      'periodStart': str(today.replace(day=1)),
+                      'periodEnd': str(today),
+                      'billPeriod': today.strftime('%Y%m'),
+                      'dueDate': str(today + timedelta(days=15)),
+                      'orgId': org_id,
+                      'contractIds': []}, tok)
+        print('批量出账：%s' % msg((st, r)))
+        gen = d((st, r)) or {}
+        if isinstance(gen, dict):
+            print('  生成账单：%s 张' % (gen.get('generated') or gen.get('count') or 0))
+    else:
+        print('批量出账：跳过（无收费项目）')
+
+    bills = rows_of(call('/fin/bills?pageNum=1&pageSize=5&orgId=%s' % org_id, token=tok))
+    print('账单核对：%s' % ('%d 条' % len(bills) if bills else '未生成'))
+
+    # ---------- 10) 押金 + 收款 ----------
+    eff_contracts = [c for c in rows_of(call('/contracts?pageNum=1&pageSize=200'
+                                            '&orgId=%s' % org_id, token=tok))
+                     if c.get('contractStatus') == 'EFFECTIVE'][:3]
+    deposits, payments = 0, 0
+    for c in eff_contracts:
+        st, r = call('/fin/deposits', 'POST',
+                     {'contractId': c['id'], 'personId': c.get('lesseePersonId'),
+                      'depositAmount': c.get('depositAmount') or 1000,
+                      'paidAmount': c.get('depositAmount') or 1000,
+                      'capAmount': c.get('depositAmount') or 1000,
+                      'isExempt': 0}, tok)
+        if ok((st, r)):
+            deposits += 1
+
+        st, r = call('/fin/payments', 'POST',
+                     {'orgId': org_id, 'personId': c.get('lesseePersonId'),
+                      'payerName': c.get('lesseeName') or TAG,
+                      'payAmount': (c.get('monthlyRent') or 1000),
+                      'payChannel': 'BANK', 'tradeNo': 'P1-' + str(c['id'])[-8:],
+                      'remark': TAG + '演示收款'}, tok)
+        if ok((st, r)):
+            payments += 1
+    print('押金：%d 笔，收款：%d 笔' % (deposits, payments))
 
     print('\n一期示范数据就绪。')
     return 0
