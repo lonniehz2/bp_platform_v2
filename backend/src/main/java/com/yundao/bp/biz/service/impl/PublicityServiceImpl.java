@@ -53,6 +53,19 @@ public class PublicityServiceImpl implements PublicityService {
     private final BizPublicityMapper mapper;
     private final SnowflakeIdGenerator idGen;
 
+
+    /** 人员（中签人姓名/脱敏证件） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.person.mapper.PersonMapper winnerPersonMapper;
+
+    /** 摇号结果 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.biz.mapper.BizLotteryResultMapper winnerLotteryMapper;
+
+    /** 房源（中签房号） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.asset.mapper.AssetHouseMapper winnerHouseMapper;
+
     public PublicityServiceImpl(BizPublicityMapper mapper, SnowflakeIdGenerator idGen) {
         this.mapper = mapper;
         this.idGen = idGen;
@@ -88,6 +101,7 @@ public class PublicityServiceImpl implements PublicityService {
         e.setPublicityNo("PB" + id);
         e.setPublicityType(tp.name());
         e.setOrgId(cmd.orgId());
+        e.setBatchId(cmd.batchId());   // 关联批次，用于公示中签名单
         e.setTitle(cmd.title());
         e.setContent(cmd.content());
         e.setStartDate(cmd.startDate());
@@ -183,5 +197,74 @@ public class PublicityServiceImpl implements PublicityService {
                     "公示状态不允许从 " + from.label() + " 变更为 " + target.label());
         }
         e.setPublicityStatus(target.name());
+    }
+
+    @Override
+    public java.util.List<com.yundao.bp.biz.dto.PublicityWinnerVO> winners(Long publicityId) {
+        com.yundao.bp.biz.entity.BizPublicity p = mapper.selectById(publicityId);
+        if (p == null || p.getBatchId() == null) {
+            return java.util.List.of();
+        }
+        java.util.List<com.yundao.bp.biz.entity.BizLotteryResult> results =
+                winnerLotteryMapper.selectList(
+                        new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                                <com.yundao.bp.biz.entity.BizLotteryResult>()
+                                .eq(com.yundao.bp.biz.entity.BizLotteryResult::getBatchId,
+                                        p.getBatchId())
+                                .orderByAsc(com.yundao.bp.biz.entity.BizLotteryResult::getLotterySeq));
+        if (results.isEmpty()) {
+            return java.util.List.of();
+        }
+        java.util.Set<Long> personIds = new java.util.HashSet<>();
+        java.util.Set<Long> houseIds = new java.util.HashSet<>();
+        for (com.yundao.bp.biz.entity.BizLotteryResult r : results) {
+            if (r.getPersonId() != null) {
+                personIds.add(r.getPersonId());
+            }
+            if (r.getHouseId() != null) {
+                houseIds.add(r.getHouseId());
+            }
+        }
+        java.util.Map<Long, com.yundao.bp.person.entity.Person> persons = new java.util.HashMap<>();
+        if (!personIds.isEmpty()) {
+            for (com.yundao.bp.person.entity.Person person
+                    : winnerPersonMapper.selectBatchIds(personIds)) {
+                persons.put(person.getId(), person);
+            }
+        }
+        java.util.Map<Long, com.yundao.bp.asset.entity.AssetHouse> houses = new java.util.HashMap<>();
+        if (!houseIds.isEmpty()) {
+            for (com.yundao.bp.asset.entity.AssetHouse house
+                    : winnerHouseMapper.selectBatchIds(houseIds)) {
+                houses.put(house.getId(), house);
+            }
+        }
+        java.util.List<com.yundao.bp.biz.dto.PublicityWinnerVO> out = new java.util.ArrayList<>();
+        for (com.yundao.bp.biz.entity.BizLotteryResult r : results) {
+            com.yundao.bp.person.entity.Person person = persons.get(r.getPersonId());
+            com.yundao.bp.asset.entity.AssetHouse house = houses.get(r.getHouseId());
+            String type = r.getResultType();
+            String typeLabel = "WIN".equals(type) ? "中签"
+                    : ("WAIT".equals(type) || "BACKUP".equals(type) ? "候补" : "未中签");
+            out.add(new com.yundao.bp.biz.dto.PublicityWinnerVO(
+                    r.getPersonId(),
+                    person == null ? null : person.getRealName(),
+                    person == null ? null : person.getIdCardMask(),
+                    maskPhone(person == null ? null : person.getPhone()),
+                    house == null ? null : house.getHouseName(),
+                    r.getLotterySeq(),
+                    r.getSelectSeq(),
+                    type,
+                    typeLabel));
+        }
+        return out;
+    }
+
+    /** 手机号脱敏：139****0000 */
+    private String maskPhone(String phone) {
+        if (phone == null || phone.length() < 7) {
+            return phone;
+        }
+        return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 4);
     }
 }

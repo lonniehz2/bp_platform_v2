@@ -18,6 +18,9 @@ public record PublicityCreateCmd(
 
         Long orgId,
 
+        /** 关联配租批次（可选，用于公示中签名单） */
+        Long batchId,
+
         @NotBlank(message = "标题不能为空")
         String title,
 

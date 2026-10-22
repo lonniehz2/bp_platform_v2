@@ -37,4 +37,7 @@ public interface PublicityService {
      * <p>供签约前置校验调用：返回 true 表示存在已结束的配租公示。
      */
     boolean hasCompletedAllocationPublicity(Long orgId, LocalDate referenceDate);
+
+    /** 公示中签名单。 */
+    java.util.List<com.yundao.bp.biz.dto.PublicityWinnerVO> winners(Long publicityId);
 }

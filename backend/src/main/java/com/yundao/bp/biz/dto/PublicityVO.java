@@ -16,6 +16,7 @@ public record PublicityVO(
         String publicityType,
         String publicityTypeLabel,
         Long orgId,
+        Long batchId,
         String title,
         String content,
         LocalDate startDate,
@@ -57,7 +58,8 @@ public record PublicityVO(
                 && e.getEndDate() != null
                 && !today.isBefore(e.getStartDate()) && !today.isAfter(e.getEndDate());
         return new PublicityVO(e.getId(), e.getPublicityNo(), e.getPublicityType(), tp.label(),
-                e.getOrgId(), e.getTitle(), e.getContent(), e.getStartDate(), e.getEndDate(),
+                e.getOrgId(), e.getBatchId(), e.getTitle(), e.getContent(),
+                e.getStartDate(), e.getEndDate(),
                 days, e.getAttachmentUrl(), e.getPublicityStatus(), st.label(), met, ongoing,
                 e.getCreateTime());
     }

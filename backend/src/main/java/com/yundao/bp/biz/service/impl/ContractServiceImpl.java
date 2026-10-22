@@ -60,6 +60,11 @@ public class ContractServiceImpl implements ContractService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private org.springframework.transaction.PlatformTransactionManager quickSignTxManager;
 
+
+    /** 人员查询（快捷签约补全承租人姓名与脱敏证件） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.person.mapper.PersonMapper quickSignPersonMapper;
+
     public ContractServiceImpl(BizContractMapper mapper, SnowflakeIdGenerator idGen,
                                OccupancyService occupancyService) {
         this.mapper = mapper;
@@ -467,7 +472,21 @@ public class ContractServiceImpl implements ContractService {
             }
         }
 
-        // 2) 创建合同草稿（金额口径：actualPay 由服务端计算）
+        // 2) 查人员补齐承租人信息（合同文本需要姓名与脱敏证件）
+        String lesseeName = null;
+        String lesseePhone = null;
+        String lesseeIdCardMask = null;
+        if (quickSignPersonMapper != null) {
+            com.yundao.bp.person.entity.Person person =
+                    quickSignPersonMapper.selectById(cmd.personId());
+            if (person != null) {
+                lesseeName = person.getRealName();
+                lesseePhone = person.getPhone();
+                lesseeIdCardMask = person.getIdCardMask();
+            }
+        }
+
+        // 3) 创建合同草稿（金额口径：actualPay 由服务端计算）
         java.math.BigDecimal rent = cmd.monthlyRent();
         String contractType = "AFFORDABLE".equals(securityType) ? "AFFORDABLE"
                 : ("TALENT".equals(securityType) ? "TALENT" : "PUBLIC_RENTAL");
@@ -477,9 +496,9 @@ public class ContractServiceImpl implements ContractService {
                         orgId,                  // orgId
                         orgId,                  // lessorOrgId
                         cmd.personId(),         // lesseePersonId
-                        null,                   // lesseeName（服务端按人员补齐）
-                        null,                   // lesseePhone
-                        null,                   // lesseeIdCardMask
+                        lesseeName,             // lesseeName（按人员补齐）
+                        lesseePhone,            // lesseePhone
+                        lesseeIdCardMask,       // lesseeIdCardMask（脱敏）
                         cmd.houseId(),          // houseId
                         house.getSpaceId(),     // spaceId
                         house.getHouseName(),   // houseAddress（房源名称作地址展示）

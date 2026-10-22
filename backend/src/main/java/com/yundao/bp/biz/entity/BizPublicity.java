@@ -26,6 +26,9 @@ public class BizPublicity {
     private String publicityType;
     private Long orgId;
 
+    /** 关联配租批次（公示中签名单用，可为空） */
+    private Long batchId;
+
     private String title;
     private String content;
     private LocalDate startDate;

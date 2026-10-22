@@ -9,6 +9,7 @@ import com.yundao.bp.biz.service.AnnualReviewService;
 import com.yundao.bp.biz.service.PublicityService;
 import com.yundao.bp.common.api.PageResult;
 import com.yundao.bp.common.api.R;
+import com.yundao.bp.iam.security.RequirePerm;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -58,6 +59,15 @@ public class PublicityReviewController {
             @RequestParam(required = false) Long orgId,
             @RequestParam(required = false) String status) {
         return R.ok(publicityService.page(pageNum, pageSize, type, orgId, status));
+    }
+
+
+    /** 公示中签名单（身份证脱敏）。 */
+    @GetMapping("/publicities/{id}/winners")
+    @RequirePerm("biz:publicity:view")
+    public R<java.util.List<com.yundao.bp.biz.dto.PublicityWinnerVO>> winners(
+            @PathVariable Long id) {
+        return R.ok(publicityService.winners(id));
     }
 
     @PostMapping("/publicities/{id}/publish")
