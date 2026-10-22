@@ -20,10 +20,9 @@
         <el-table-column prop="contractNo" label="合同号" width="165" show-overflow-tooltip />
         <el-table-column prop="lesseeName" label="承租人" width="100" />
         <el-table-column prop="houseAddress" label="房屋" min-width="170" />
-        <el-table-column label="租期" width="200">
+        <el-table-column label="租期" width="190">
           <template #default="{ row }">
-            {{ row.leaseStart }} ~ {{ row.leaseEnd }}
-            <span class="muted" style="font-size:12px">({{ row.leaseMonths }} 个月)</span>
+            <span style="white-space:nowrap">{{ row.leaseStart }} ~ {{ row.leaseEnd }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="monthlyRent" label="月租" width="95" />
