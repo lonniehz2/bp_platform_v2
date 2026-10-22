@@ -1,6 +1,7 @@
 package com.yundao.bp.iam.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
@@ -43,4 +44,8 @@ public class IamUser {
     private LocalDateTime createTime;
     private String updateBy;
     private LocalDateTime updateTime;
+
+    /** 非持久化：该用户的角色名（列表展示用，多个以顿号分隔） */
+    @TableField(exist = false)
+    private String roleNames;
 }

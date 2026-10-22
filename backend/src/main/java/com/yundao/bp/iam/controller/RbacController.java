@@ -18,6 +18,11 @@ import com.yundao.bp.iam.mapper.IamUserRoleMapper;
 import com.yundao.bp.iam.security.PasswordHasher;
 import com.yundao.bp.iam.security.RequirePerm;
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -122,7 +127,61 @@ public class RbacController {
         }
         List<IamUser> list = userMapper.selectList(qw);
         list.forEach(u -> u.setPasswordHash(null));
+        fillRoleNames(list);
         return R.ok(list);
+    }
+
+
+    /** 批量补用户角色名（一次查关联表 + 角色表，避免逐条查询） */
+    private void fillRoleNames(List<IamUser> users) {
+        if (users == null || users.isEmpty()) {
+            return;
+        }
+        List<Long> ids = new ArrayList<>();
+        for (IamUser u : users) {
+            ids.add(u.getId());
+        }
+        List<IamUserRole> links = userRoleMapper.selectList(
+                new LambdaQueryWrapper<IamUserRole>()
+                        .in(IamUserRole::getUserId, ids));
+        if (links.isEmpty()) {
+            return;
+        }
+        Set<Long> roleIds = new HashSet<>();
+        for (IamUserRole l : links) {
+            roleIds.add(l.getRoleId());
+        }
+        Map<Long, String> nameById = new HashMap<>();
+        for (IamRole r : roleMapper.selectBatchIds(roleIds)) {
+            nameById.put(r.getId(), r.getRoleName());
+        }
+        Map<Long, List<String>> byUser = new HashMap<>();
+        for (IamUserRole l : links) {
+            String nm = nameById.get(l.getRoleId());
+            if (nm != null) {
+                byUser.computeIfAbsent(l.getUserId(), k -> new ArrayList<>()).add(nm);
+            }
+        }
+        for (IamUser u : users) {
+            List<String> names = byUser.get(u.getId());
+            u.setRoleNames(names == null ? "" : String.join("、", names));
+        }
+    }
+
+    /** 某用户的角色列表（用户页回显用）。 */
+    @GetMapping("/users/{userId}/roles")
+    @RequirePerm("iam:user:list")
+    public R<List<IamRole>> userRoles(@PathVariable Long userId) {
+        List<IamUserRole> links = userRoleMapper.selectList(
+                new LambdaQueryWrapper<IamUserRole>().eq(IamUserRole::getUserId, userId));
+        if (links.isEmpty()) {
+            return R.ok(List.of());
+        }
+        List<Long> ids = new ArrayList<>();
+        for (IamUserRole l : links) {
+            ids.add(l.getRoleId());
+        }
+        return R.ok(roleMapper.selectBatchIds(ids));
     }
 
     /** 给用户分配角色。 */
