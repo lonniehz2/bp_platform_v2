@@ -3,6 +3,7 @@
     <div class="page-card">
       <div class="toolbar">
         <h3 style="margin:0">配租批次</h3>
+        <el-button type="success" @click="openBatchCreate" data-testid="batch-create">新建批次</el-button>
         <div class="spacer" />
         <el-input v-model="seed" placeholder="摇号种子（可复现）" style="width:200px" />
         <el-button type="primary" @click="load">刷新</el-button>
@@ -37,6 +38,7 @@
         <el-table-column label="操作" width="240" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
+            <el-button link type="primary" @click="openAddHouses(row)" data-testid="batch-add-house">加房源</el-button>
             <el-button link type="primary" @click="runLottery(row)">摇号</el-button>
             <el-button link @click="viewResults(row)">结果</el-button>
           </template>
@@ -87,6 +89,69 @@
     <!-- 通用详情 -->
     <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
       <DetailView :row="dvRow" />
+    </el-dialog>
+
+    <!-- 新建批次 -->
+    <el-dialog v-model="batchCreateVisible" title="新建配租批次" width="620px">
+      <el-form :model="bf" label-width="110px">
+        <el-form-item label="批次名称" required>
+          <el-input v-model="bf.batchName" placeholder="如：2026 年第一批公租房配租" />
+        </el-form-item>
+        <el-form-item label="项目组织" required>
+          <el-select v-model="bf.orgId" filterable style="width:100%"
+                     placeholder="选择所属小区/项目">
+            <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName" :value="String(o.id)" />
+          </el-select>
+        </el-form-item>
+        <el-row :gutter="12">
+          <el-col :span="12"><el-form-item label="保障类型" required>
+            <el-select v-model="bf.securityType" style="width:100%">
+              <el-option label="公租房" value="PUBLIC" />
+              <el-option label="经适房" value="AFFORDABLE" />
+              <el-option label="人才房" value="TALENT" />
+              <el-option label="廉租房" value="LOW_RENT" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="批次类型" required>
+            <el-select v-model="bf.batchType" style="width:100%">
+              <el-option label="摇号配租" value="LOTTERY" />
+              <el-option label="选房配租" value="SELECT" />
+              <el-option label="直接配租" value="DIRECT" />
+              <el-option label="补充配租" value="SUPPLEMENT" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="报名开始">
+            <el-date-picker v-model="bf.signupStart" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss"
+                            style="width:100%" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="报名结束">
+            <el-date-picker v-model="bf.signupEnd" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss"
+                            style="width:100%" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="摇号时间">
+            <el-date-picker v-model="bf.lotteryTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss"
+                            style="width:100%" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="房源 ID">
+            <el-input v-model="bf.houseIdsText" type="textarea" :rows="2"
+                      placeholder="可空；创建后也能用行内「加房源」补充，多个用逗号分隔" />
+          </el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="公证信息">
+            <el-input v-model="bf.notaryInfo" placeholder="可空，如公证处与公证号" /></el-form-item></el-col>
+        </el-row>
+      </el-form>
+      <template #footer>
+        <el-button @click="batchCreateVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreateBatch">创建</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 批次加房源 -->
+    <el-dialog v-model="addHouseVisible" :title="`向批次「${addHouseBatch?.batchName || ''}」加入房源`"
+               width="560px">
+      <el-alert type="info" :closable="false" show-icon
+                title="输入房源 ID，多个用英文逗号分隔；房源需为「空置可租」状态" />
+      <el-input v-model="houseIdsText" type="textarea" :rows="4" style="margin-top:10px"
+                placeholder="1000000000000012161,1000000000000012159" />
+      <template #footer>
+        <el-button @click="addHouseVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="doAddHouses">加入</el-button>
+      </template>
     </el-dialog>
 </template>
 
@@ -163,6 +228,71 @@ async function sign(row) {
   } catch (e) {
     // 拦截器已提示（常见：公示未结束）
   }
+}
+
+
+/** 新建批次 / 批次加房源（此前只能看列表，无法从界面建批次） */
+const batchCreateVisible = ref(false)
+const addHouseVisible = ref(false)
+const addHouseBatch = ref(null)
+const houseIdsText = ref('')
+const bf = reactive({ batchName: '', orgId: '', securityType: 'PUBLIC',
+  batchType: 'LOTTERY', signupStart: '', signupEnd: '', lotteryTime: '',
+  houseIdsText: '', notaryInfo: '' })
+const orgOptions = ref([])
+
+async function openBatchCreate() {
+  Object.assign(bf, { batchName: '', orgId: '', securityType: 'PUBLIC', batchType: 'LOTTERY',
+    signupStart: '', signupEnd: '', lotteryTime: '', houseIdsText: '', notaryInfo: '' })
+  batchCreateVisible.value = true
+  if (!orgOptions.value.length) {
+    try {
+      const list = await req.get('/orgs')
+      const rows = (list && list.rows) || (Array.isArray(list) ? list : [])
+      orgOptions.value = rows.map((o) => ({ id: o.id, orgName: o.orgName }))
+    } catch (e) { /* 组织加载失败不阻断 */ }
+  }
+}
+
+async function doCreateBatch() {
+  if (!bf.batchName) { ElMessage.warning('请填写批次名称'); return }
+  if (!bf.orgId) { ElMessage.warning('请选择项目组织'); return }
+  const ids = (bf.houseIdsText || '').split(/[,，\s]+/).map((x) => x.trim()).filter(Boolean)
+  saving.value = true
+  try {
+    await req.post('/allocation/batches', {
+      batchName: bf.batchName,
+      orgId: bf.orgId,
+      securityType: bf.securityType,
+      batchType: bf.batchType,
+      signupStart: bf.signupStart || null,
+      signupEnd: bf.signupEnd || null,
+      lotteryTime: bf.lotteryTime || null,
+      houseIds: ids.length ? ids : null,
+      notaryInfo: bf.notaryInfo || null
+    })
+    ElMessage.success('批次已创建')
+    batchCreateVisible.value = false
+    load()
+  } finally { saving.value = false }
+}
+
+function openAddHouses(row) {
+  addHouseBatch.value = row
+  houseIdsText.value = ''
+  addHouseVisible.value = true
+}
+
+async function doAddHouses() {
+  const ids = houseIdsText.value.split(/[,，\s]+/).map((x) => x.trim()).filter(Boolean)
+  if (!ids.length) { ElMessage.warning('请填写房源 ID'); return }
+  saving.value = true
+  try {
+    await req.post(`/allocation/batches/${addHouseBatch.value.id}/houses`, { houseIds: ids })
+    ElMessage.success(`已加入 ${ids.length} 个房源`)
+    addHouseVisible.value = false
+    load()
+  } finally { saving.value = false }
 }
 
 onMounted(load)

@@ -57,6 +57,10 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final BizReviewRecordMapper reviewMapper;
     private final SnowflakeIdGenerator idGen;
 
+    /** 轮候服务（可选注入）：终审通过后自动入队 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.biz.service.AllocationService allocationService;
+
     /** 信用惩戒服务（可选注入，避免影响既有构造器与单测） */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private CreditService creditService;
@@ -398,6 +402,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             case PASS -> {
                 if (stage.isLast()) {
                     transition(e, ApplicationStatus.APPROVED);
+        autoEnqueue(e);
                     e.setCurrentNode("DONE");
                 } else {
                     // 非终审通过：停留 REVIEWING，推进到下一阶段
@@ -475,5 +480,27 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     private static String blankToNull(String s) {
         return (s == null || s.isBlank()) ? null : s;
+    }
+
+    /**
+     * 终审通过后自动进入轮候库。
+     *
+     * <p>业务上「审核通过」的下一步就是排队等房，此前需要人工到轮候页入队，
+     * 效率低且容易漏单。这里复用 AllocationService.enterQueue 在审批事务内完成入队；
+     * 入队失败只记警告，不影响审批本身。
+     */
+    private void autoEnqueue(BizApplication app) {
+        if (allocationService == null || app == null) {
+            return;
+        }
+        try {
+            com.yundao.bp.biz.dto.WaitingEnterCmd cmd = new com.yundao.bp.biz.dto.WaitingEnterCmd(
+                    app.getPersonId(), app.getId(), app.getSecurityType(), app.getOrgId(),
+                    java.math.BigDecimal.ZERO, null);
+            allocationService.enterQueue(cmd);
+            log.info("申请 {} 审核通过，已自动进入轮候", app.getId());
+        } catch (Exception ex) {
+            log.warn("申请 {} 自动入轮候失败（不影响审批）：{}", app.getId(), ex.getMessage());
+        }
     }
 }
