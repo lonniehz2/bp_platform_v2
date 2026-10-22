@@ -11,6 +11,8 @@
       <el-input v-model="houseId" placeholder="房源ID"
                 style="width:210px" />
       <el-button type="primary" @click="reload">按房源查</el-button>
+      <el-button type="success" @click="openBook" data-testid="cal-book">预订</el-button>
+      <el-button type="warning" plain @click="openRelease" data-testid="cal-release">释放</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon
@@ -23,17 +25,18 @@
       <el-table-column prop="houseId" label="房源" width="120">
         <template #default="{ row }">{{ row.houseIdName || row.houseId }}</template>
       </el-table-column>
-      <el-table-column prop="calendarDate" label="日期" width="120" />
+      <el-table-column prop="date" label="日期" width="120" />
       <el-table-column prop="dayStatus" label="日状态" width="110">
         <template #default="{ row }">{{ row.dayStatusLabel || enumLabel('dayStatus', row.dayStatus) }}</template>
       </el-table-column>
-      <el-table-column prop="orderId" label="占用订单" width="150">
+      <el-table-column prop="bookingId" label="占用订单" width="150">
         <template #default="{ row }">{{ row.orderIdName || row.orderId }}</template>
       </el-table-column>
       <el-table-column label="操作" :width="ROWACTIONS ? 210 : 110" fixed="right">
         <template #default="{ row }">
 
-          <el-button link @click="openDetail(row)">详情</el-button>
+          <el-button link type="success" @click="bookForHouse(row)">预订</el-button>
+            <el-button link @click="openDetail(row)">详情</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -74,6 +77,55 @@
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
+
+    <!-- 预订 -->
+    <el-dialog v-model="bookVisible" title="预订房源（按日）" width="560px">
+      <el-form :model="bf" label-width="100px">
+        <el-form-item label="房源 ID" required>
+          <el-input v-model="bf.houseId" placeholder="可从列表行点「预订」自动带入" />
+        </el-form-item>
+        <el-row :gutter="12">
+          <el-col :span="12"><el-form-item label="入住日" required>
+            <el-date-picker v-model="bf.checkIn" type="date" value-format="YYYY-MM-DD"
+                            style="width:100%" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="退房日" required>
+            <el-date-picker v-model="bf.checkOut" type="date" value-format="YYYY-MM-DD"
+                            style="width:100%" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="占用类型">
+            <el-select v-model="bf.targetStatus" style="width:100%">
+              <el-option label="预订（BOOKED）" value="BOOKED" />
+              <el-option label="直接入住（OCCUPIED）" value="OCCUPIED" />
+            </el-select></el-form-item></el-col>
+          <el-col :span="24"><el-form-item label="备注">
+            <el-input v-model="bf.remark" type="textarea" :rows="2" /></el-form-item></el-col>
+        </el-row>
+      </el-form>
+      <el-alert type="info" :closable="false"
+                title="区间左闭右开：11-01 入住、11-03 退房，占用 11-01 与 11-02 两晚" />
+      <template #footer>
+        <el-button @click="bookVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="doBook">确认预订</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 释放 -->
+    <el-dialog v-model="releaseVisible" title="释放房态" width="520px">
+      <el-form :model="rf" label-width="100px">
+        <el-form-item label="房源 ID" required><el-input v-model="rf.houseId" /></el-form-item>
+        <el-row :gutter="12">
+          <el-col :span="12"><el-form-item label="起始日" required>
+            <el-date-picker v-model="rf.checkIn" type="date" value-format="YYYY-MM-DD"
+                            style="width:100%" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="结束日" required>
+            <el-date-picker v-model="rf.checkOut" type="date" value-format="YYYY-MM-DD"
+                            style="width:100%" /></el-form-item></el-col>
+        </el-row>
+      </el-form>
+      <template #footer>
+        <el-button @click="releaseVisible = false">取消</el-button>
+        <el-button type="warning" :loading="saving" @click="doRelease">释放</el-button>
+      </template>
+    </el-dialog>
 </template>
 
 <script setup>
@@ -90,6 +142,7 @@ const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(20)
 const keyword = ref('')
+const month = ref(new Date().toISOString().slice(0, 7))
 const detailVisible = ref(false)
 const detail = ref(null)
 
@@ -111,12 +164,15 @@ async function load() {
   }
   loading.value = true
   try {
-    const data = await calendarApi.byHouse({
-      pageNum: pageNum.value, pageSize: pageSize.value,
-      keyword: keyword.value || undefined, houseId: houseId.value || undefined
+    // 月格子可能尚未生成：先 ensure（幂等），再取月历
+    await calendarApi.ensure(houseId.value, month.value)
+    const data = await calendarApi.byHouse(houseId.value, { month: month.value })
+    const cells = Array.isArray(data) ? data : (data.rows || [])
+    rows.value = cells.filter((c) => {
+      if (!keyword.value) return true
+      return String(c.date || '').includes(keyword.value)
     })
-    rows.value = data.rows || data || []
-    total.value = Number(data.total || rows.value.length || 0)
+    total.value = rows.value.length
   } catch (e) { rows.value = []; total.value = 0 } finally { loading.value = false }
 }
 
@@ -170,7 +226,78 @@ function resetQuery() {
   reload()
 }
 
-onMounted(load)
+
+/** 日房态：预订 / 释放（酒店民宿场景） */
+const bookVisible = ref(false)
+const releaseVisible = ref(false)
+const bf = reactive({ houseId: '', checkIn: '', checkOut: '', targetStatus: 'BOOKED', remark: '' })
+const rf = reactive({ houseId: '', checkIn: '', checkOut: '' })
+
+function openBook() {
+  Object.assign(bf, { houseId: '', checkIn: '', checkOut: '', targetStatus: 'BOOKED', remark: '' })
+  bookVisible.value = true
+}
+
+function bookForHouse(row) {
+  openBook()
+  bf.houseId = String(row.houseId || '')
+  bf.checkIn = row.calendarDate || ''
+}
+
+function openRelease() {
+  Object.assign(rf, { houseId: '', checkIn: '', checkOut: '' })
+  releaseVisible.value = true
+}
+
+async function doBook() {
+  if (!bf.houseId || !bf.checkIn || !bf.checkOut) {
+    ElMessage.warning('请填写房源与起止日期'); return
+  }
+  saving.value = true
+  try {
+    const n = await req.post('/house-calendar/book', {
+      houseId: bf.houseId, checkIn: bf.checkIn, checkOut: bf.checkOut,
+      sourceType: 'MANUAL', targetStatus: bf.targetStatus, remark: bf.remark
+    })
+    ElMessage.success(`已锁定 ${n} 天`)
+    bookVisible.value = false
+    reload()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '预订失败（可能该区间已被占用）')
+  } finally { saving.value = false }
+}
+
+async function doRelease() {
+  if (!rf.houseId || !rf.checkIn || !rf.checkOut) {
+    ElMessage.warning('请填写房源与起止日期'); return
+  }
+  saving.value = true
+  try {
+    const n = await req.post('/house-calendar/release', {
+      houseId: rf.houseId, checkIn: rf.checkIn, checkOut: rf.checkOut
+    })
+    ElMessage.success(`已释放 ${n} 天`)
+    releaseVisible.value = false
+    reload()
+  } finally { saving.value = false }
+}
+
+
+/** 未指定房源时，自动加载第一个酒店/民宿房源的当月日历，避免页面空白 */
+async function autoLoadMonth() {
+  if (houseId.value) { reload(); return }
+  try {
+    const d = await req.get('/houses', { params: { pageNum: 1, pageSize: 1, houseType: 'HOTEL' } })
+    const rows = (d && d.rows) || []
+    if (rows.length) {
+      houseId.value = String(rows[0].id)
+      ElMessage.info('已自动加载：' + (rows[0].houseName || rows[0].id))
+      reload()
+    }
+  } catch (e) { /* 忽略 */ }
+}
+
+onMounted(() => { load(); autoLoadMonth() })
 </script>
 
 <style scoped>

@@ -316,6 +316,8 @@ export const calendarApi = {
   // 后端根路径 /house-calendar，房源维度是 /{houseId}（不是 /house/{houseId}）
   byHouse: (houseId, params) =>
     req.get(`/house-calendar/${houseId}`, { params }),
+  ensure: (houseId, month) =>
+    req.post(`/house-calendar/${houseId}/ensure?month=${month}`),
   available: (params) => req.get('/house-calendar/available', { params }),
   book: (data) => req.post('/house-calendar/book', data),
   release: (data) => req.post('/house-calendar/release', data)
