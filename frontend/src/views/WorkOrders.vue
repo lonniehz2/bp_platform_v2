@@ -27,7 +27,11 @@
       </div>
       <el-table :data="plans" size="small" border max-height="360">
         <el-table-column prop="planName" label="计划名称" min-width="160" />
-        <el-table-column prop="inspectType" label="巡检类型" width="110" />
+        <el-table-column prop="inspectType" label="巡检类型" width="110">
+          <template #default="{ row }">
+            {{ { SAFETY: '安全', EQUIPMENT: '设备', CLEANING: '保洁', GREEN: '绿化' }[row.inspectType] || row.inspectType }}
+          </template>
+        </el-table-column>
         <el-table-column prop="frequency" label="周期" width="90">
           <template #default="{ row }">
             {{ { DAY: '每日', WEEK: '每周', MONTH: '每月' }[row.frequency] || row.frequency }}
