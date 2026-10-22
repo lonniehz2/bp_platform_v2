@@ -16,21 +16,24 @@
         <el-button @click="expireDue">到期批量处理</el-button>
       </div>
 
-      <el-table :data="rows" v-loading="loading" border size="small">
-        <el-table-column prop="contractNo" label="合同号" width="170" />
+      <el-table :data="rows" v-loading="loading" border size="small" max-height="560">
+        <el-table-column prop="contractNo" label="合同号" width="165" show-overflow-tooltip />
         <el-table-column prop="lesseeName" label="承租人" width="100" />
         <el-table-column prop="houseAddress" label="房屋" min-width="170" />
-        <el-table-column prop="leaseStart" label="起租" width="105" />
-        <el-table-column prop="leaseEnd" label="止租" width="105" />
+        <el-table-column label="租期" width="200">
+          <template #default="{ row }">
+            {{ row.leaseStart }} ~ {{ row.leaseEnd }}
+            <span class="muted" style="font-size:12px">({{ row.leaseMonths }} 个月)</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="monthlyRent" label="月租" width="95" />
-          <el-table-column prop="depositAmount" label="押金" width="95" />
-          <el-table-column label="合同类型" width="120">
+          <el-table-column prop="depositAmount" label="押金" width="90" />
+          <el-table-column label="类型" width="100">
             <template #default="{ row }">
               {{ row.contractTypeLabel || enumLabel('contractType', row.contractType) }}
             </template>
           </el-table-column>
-          <el-table-column prop="signTime" label="签约时间" width="165" />
-          <el-table-column label="到期" width="100">
+          <el-table-column label="到期" width="80">
             <template #default="{ row }">
               <el-tag v-if="row.expiringSoon" size="small" type="warning">
                 {{ row.daysToExpire }} 天
@@ -38,28 +41,43 @@
               <span v-else class="muted">—</span>
             </template>
           </el-table-column>
-        <el-table-column prop="contractStatusLabel" label="状态" width="105">
+        <el-table-column label="状态" width="110">
           <template #default="{ row }">
             <el-tag size="small" :type="row.expiringSoon ? 'warning' : 'info'">
               {{ row.contractStatusLabel || row.contractStatus }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="380" fixed="right">
+        <el-table-column label="操作" width="190">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openCohabitant(row)">同住人</el-button>
-            <el-button v-if="row.contractStatus === 'DRAFT'" link type="primary"
-                       @click="doSubmitSign(row)">提交待签</el-button>
-            <el-button v-if="row.contractStatus === 'PENDING_SIGN'" link type="primary"
-                       @click="doStartSigning(row)">开始签约</el-button>
-            <el-button v-if="row.contractStatus === 'SIGNING'" link type="primary"
-                       @click="openSign(row)">签约</el-button>
-            <el-button v-if="row.contractStatus === 'EFFECTIVE' || row.contractStatus === 'RENEWING'"
-                       link @click="openRenew(row)">续签</el-button>
-            <el-button v-if="row.contractStatus === 'EFFECTIVE' || row.contractStatus === 'RENEWING'"
-                       link type="warning" @click="openTerminate(row)">终止</el-button>
-            <el-button v-if="!['TERMINATED', 'EXPIRED', 'CANCELLED'].includes(row.contractStatus)"
-                       link type="danger" @click="cancel(row)">取消</el-button>
+            <el-button link type="primary" @click="openContractDetail(row)"
+                       data-testid="contract-detail">详情</el-button>
+            <el-button link type="warning" :disabled="row.contractStatus !== 'DRAFT'"
+                       @click="openContractEdit(row)"
+                       data-testid="contract-edit">编辑</el-button>
+            <el-dropdown trigger="click" style="margin-left:8px">
+              <el-button link type="primary">更多 ▾</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="openCohabitant(row)">同住人</el-dropdown-item>
+                  <el-dropdown-item v-if="row.contractStatus === 'DRAFT'"
+                                    @click="doSubmitSign(row)">提交待签</el-dropdown-item>
+                  <el-dropdown-item v-if="row.contractStatus === 'PENDING_SIGN'"
+                                    @click="doStartSigning(row)">开始签约</el-dropdown-item>
+                  <el-dropdown-item v-if="row.contractStatus === 'SIGNING'"
+                                    @click="openSign(row)">签约</el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="row.contractStatus === 'EFFECTIVE' || row.contractStatus === 'RENEWING'"
+                    @click="openRenew(row)">续签</el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="row.contractStatus === 'EFFECTIVE' || row.contractStatus === 'RENEWING'"
+                    divided @click="openTerminate(row)">终止</el-dropdown-item>
+                  <el-dropdown-item
+                    v-if="!['TERMINATED', 'EXPIRED', 'CANCELLED'].includes(row.contractStatus)"
+                    divided @click="cancel(row)">取消合同</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
