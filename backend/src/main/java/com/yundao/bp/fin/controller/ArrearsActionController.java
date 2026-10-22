@@ -32,22 +32,26 @@ public class ArrearsActionController {
     }
 
     /** 欠费扫描（只给建议，不落库）。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:view")
     @GetMapping("/scan")
     public R<List<ArrearsActionService.ArrearsSuggestion>> scan(
             @RequestParam(defaultValue = "1") int minOverdueDays) {
         return R.ok(service.scanArrears(minOverdueDays));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:create")
     @PostMapping
     public R<ArrearsActionVO> create(@Valid @RequestBody ArrearsActionCreateCmd cmd) {
         return R.ok(service.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:view")
     @GetMapping("/{id}")
     public R<ArrearsActionVO> get(@PathVariable Long id) {
         return R.ok(service.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:view")
     @GetMapping
     public R<PageResult<ArrearsActionVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                                @RequestParam(defaultValue = "20") long pageSize,
@@ -58,18 +62,21 @@ public class ArrearsActionController {
         return R.ok(service.page(pageNum, pageSize, contractId, personId, actionType, status));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:view")
     @GetMapping("/by-contract/{contractId}")
     public R<List<ArrearsActionVO>> byContract(@PathVariable Long contractId) {
         return R.ok(service.listByContract(contractId));
     }
 
     /** 执行处置。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:view")
     @PostMapping("/{id}/execute")
     public R<ArrearsActionVO> execute(@PathVariable Long id) {
         return R.ok(service.execute(id));
     }
 
     /** 撤销处置（已缴清）。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:view")
     @PostMapping("/{id}/revoke")
     public R<ArrearsActionVO> revoke(@PathVariable Long id,
                                      @RequestBody(required = false) ReasonCmd cmd) {
