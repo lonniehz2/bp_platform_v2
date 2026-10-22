@@ -79,15 +79,8 @@ public class MetricServiceImpl implements MetricService {
                     TenantContext.tenantId(), orgId));
             case "PAYMENT_TOTAL_AMOUNT" -> money(paymentMapper.sumSuccessPayAmount(
                     TenantContext.tenantId(), orgId));
-            case "ACCESS_TODAY_COUNT" -> count(accessMapper.selectCount(
-                    new LambdaQueryWrapper<DevAccessRecord>()
-                            .eq(orgId != null, DevAccessRecord::getOrgId, orgId)
-                            .ge(DevAccessRecord::getOpenTime, LocalDate.now().atStartOfDay())));
-            case "ACCESS_ABNORMAL_COUNT" -> count(accessMapper.selectCount(
-                    new LambdaQueryWrapper<DevAccessRecord>()
-                            .eq(orgId != null, DevAccessRecord::getOrgId, orgId)
-                            .eq(DevAccessRecord::getIsAbnormal, 1)
-                            .ge(DevAccessRecord::getOpenTime, LocalDate.now().atStartOfDay())));
+            case "ACCESS_TODAY_COUNT" -> accessTodayPair(orgId)[0];
+            case "ACCESS_ABNORMAL_COUNT" -> accessTodayPair(orgId)[1];
             default -> 0.0;
         };
     }
@@ -95,8 +88,15 @@ public class MetricServiceImpl implements MetricService {
     @Override
     public Map<String, Object> currentAll(Long orgId) {
         Map<String, Object> m = new LinkedHashMap<>();
-        for (String code : List.of("HOUSE_TOTAL", "HOUSE_OCCUPIED", "HOUSE_VACANT",
-                "OCCUPANCY_RATE", "BILL_UNPAID_COUNT", "BILL_UNPAID_AMOUNT",
+        // 房源总量/已租/空置各查一次，占用率复用前两者的结果（避免重复查询）
+        for (String code : List.of("HOUSE_TOTAL", "HOUSE_OCCUPIED", "HOUSE_VACANT")) {
+            m.put(code, current(code, orgId));
+        }
+        double total = ((Number) m.get("HOUSE_TOTAL")).doubleValue();
+        double occupied = ((Number) m.get("HOUSE_OCCUPIED")).doubleValue();
+        m.put("OCCUPANCY_RATE",
+                total == 0 ? 0.0 : Math.round(occupied * 10000.0 / total) / 100.0);
+        for (String code : List.of("BILL_UNPAID_COUNT", "BILL_UNPAID_AMOUNT",
                 "PAYMENT_TOTAL_AMOUNT", "ACCESS_TODAY_COUNT", "ACCESS_ABNORMAL_COUNT")) {
             m.put(code, current(code, orgId));
         }
@@ -174,5 +174,36 @@ public class MetricServiceImpl implements MetricService {
     private static double money(BigDecimal v) {
         return (v == null ? BigDecimal.ZERO : v)
                 .setScale(2, RoundingMode.HALF_UP).doubleValue();
+    }
+
+    /** 今日门禁统计缓存（60 秒），避免大屏轮询反复全表统计 */
+    private static final long ACCESS_CACHE_MS = 60_000L;
+    private volatile double[] accessCache = new double[] {0, 0};
+    private volatile long accessCacheAt = 0L;
+    private volatile Long accessCacheOrg;
+    private volatile boolean accessCacheInit = false;
+
+    /** 今日通行（总数, 异常数），带 60 秒缓存与单次查询。 */
+    private double[] accessTodayPair(Long orgId) {
+        long now = System.currentTimeMillis();
+        if (accessCacheInit && java.util.Objects.equals(accessCacheOrg, orgId)
+                && now - accessCacheAt < ACCESS_CACHE_MS) {
+            return accessCache;
+        }
+        java.util.Map<String, Object> row = accessMapper.countTodayPair(
+                TenantContext.tenantId(), orgId, LocalDate.now().atStartOfDay());
+        double total = 0;
+        double abnormal = 0;
+        if (row != null) {
+            Object t = row.get("total");
+            Object a = row.get("abnormal");
+            total = t == null ? 0 : ((Number) t).doubleValue();
+            abnormal = a == null ? 0 : ((Number) a).doubleValue();
+        }
+        accessCache = new double[] {total, abnormal};
+        accessCacheAt = now;
+        accessCacheOrg = orgId;
+        accessCacheInit = true;
+        return accessCache;
     }
 }
