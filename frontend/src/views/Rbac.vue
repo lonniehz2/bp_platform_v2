@@ -129,11 +129,12 @@
             <el-option v-for="o in orgOptions" :key="o.id"
                        :label="o.orgName" :value="String(o.id)" />
           </el-select></el-form-item>
-        <el-form-item label="用户类型">
-          <el-select v-model="uf.userType" style="width:100%">
-            <el-option label="工作人员 STAFF" value="STAFF" />
-            <el-option label="系统 SYSTEM" value="SYSTEM" />
-            <el-option label="租户 TENANT" value="TENANT" />
+        <el-form-item label="角色" required>
+          <el-select v-model="uf.roleIds" multiple filterable style="width:100%"
+                     placeholder="选择角色（决定该账号能看到什么、能做什么）"
+                     data-testid="user-roles">
+            <el-option v-for="r in roles" :key="r.id"
+                       :label="`${r.roleName}（${r.roleCode}）`" :value="String(r.id)" />
           </el-select></el-form-item>
       </el-form>
       <template #footer>
@@ -317,8 +318,7 @@ const roleVisible = ref(false)
 const permVisible = ref(false)
 const grantVisible = ref(false)
 
-const uf = reactive({ username: '', password: '', realName: '', orgId: null,
-  userType: 'STAFF' })
+const uf = reactive({ username: '', password: '', realName: '', orgId: '', roleIds: [] })
 const rf = reactive({ roleCode: '', roleName: '', dataScope: 'ALL' })
 const pf = reactive({ permCode: '', permName: '', permType: 'API',
   routePath: '', sortNo: 99 })
@@ -352,11 +352,14 @@ async function load() {
 
 async function doCreateUser() {
   if (!uf.username || !uf.password || !uf.realName || !uf.orgId) {
-    ElMessage.warning('账号、密码、姓名为必填'); return
+    ElMessage.warning('账号、密码、姓名、所属组织为必填'); return
+  }
+  if (!(uf.roleIds && uf.roleIds.length)) {
+    ElMessage.warning('请至少选择一个角色（角色决定该账号的权限）'); return
   }
   saving.value = true
   try {
-    await req.post('/rbac/users', { ...uf })
+    await req.post('/rbac/users', { ...uf, roleIds: uf.roleIds || [] })
     ElMessage.success('用户已创建')
     userVisible.value = false; load()
   } finally { saving.value = false }

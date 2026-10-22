@@ -82,7 +82,7 @@ public class RbacController {
         u.setPasswordHash(hasher.hash(cmd.password() == null ? "123456" : cmd.password()));
         u.setRealName(cmd.realName());
         u.setOrgId(cmd.orgId());
-        u.setUserType(cmd.userType() == null ? "STAFF" : cmd.userType());
+        u.setUserType("STAFF");  // 历史字段，系统概念上不再使用用户类型
         u.setIsAdmin(0);
         u.setSingleDevice(0);
         u.setLoginCount(0);
@@ -91,6 +91,23 @@ public class RbacController {
         u.setCreateTime(LocalDateTime.now());
         u.setUpdateTime(LocalDateTime.now());
         userMapper.insert(u);
+        // 直接按所选角色绑定（系统不再有「用户类型」概念）；
+        // 未选角色时兜底绑定 STAFF 默认角色，保证新账号不是空权限
+        java.util.List<Long> roleIds = cmd.roleIds();
+        if (roleIds == null || roleIds.isEmpty()) {
+            IamRole def = roleMapper.selectOne(new LambdaQueryWrapper<IamRole>()
+                    .eq(IamRole::getRoleCode, "STAFF").last("limit 1"));
+            roleIds = def == null ? java.util.List.of() : java.util.List.of(def.getId());
+        }
+        for (Long rid : roleIds) {
+            IamUserRole link = new IamUserRole();
+            link.setId(idGen.nextId());
+            link.setTenantId(TenantContext.tenantId());
+            link.setUserId(id);
+            link.setRoleId(rid);
+            link.setCreateTime(LocalDateTime.now());
+            userRoleMapper.insert(link);
+        }
         u.setPasswordHash(null);
         return R.ok(u);
     }
@@ -273,7 +290,7 @@ public class RbacController {
     // ---------- 请求体 ----------
 
     public record UserCmd(String username, String password, String realName, Long orgId,
-                          String userType) {
+                          java.util.List<Long> roleIds) {
     }
 
     public record RoleUpdateCmd(String roleName, String dataScope, String status) {
