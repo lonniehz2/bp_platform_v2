@@ -123,12 +123,14 @@ public class HouseServiceImpl implements HouseService {
 
     @Override
     public PageResult<HouseVO> page(long pageNum, long pageSize, Long orgId,
-                                    Long spaceId, String houseStatus, String keyword) {
+                                    Long spaceId, String houseStatus, String houseType, String keyword) {
         LambdaQueryWrapper<AssetHouse> qw = new LambdaQueryWrapper<AssetHouse>()
                 .eq(orgId != null, AssetHouse::getOrgId, orgId)
                 .eq(spaceId != null, AssetHouse::getSpaceId, spaceId)
                 .eq(houseStatus != null && !houseStatus.isBlank(),
                         AssetHouse::getHouseStatus, houseStatus)
+                .eq(houseType != null && !houseType.isBlank(),
+                        AssetHouse::getHouseType, houseType)
                 .orderByDesc(AssetHouse::getId);
         if (keyword != null && !keyword.isBlank()) {
             qw.and(w -> w.like(AssetHouse::getHouseCode, keyword)

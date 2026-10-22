@@ -9,6 +9,10 @@
                  style="width:140px" @change="reload">
         <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
       </el-select>
+        <el-select v-model="houseTypeFilter" placeholder="业态" clearable
+                   style="width:150px" @change="reload" data-testid="house-type-filter">
+          <el-option v-for="t in houseTypes" :key="t.value" :label="t.label" :value="t.value" />
+        </el-select>
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
       <el-button type="success" @click="openCreate">新增房源</el-button>
@@ -138,6 +142,17 @@ const pageNum = ref(1)
 const pageSize = ref(20)
 const keyword = ref('')
 const houseStatus = ref('')
+const houseTypeFilter = ref('')
+/** 多业态房源类型（宿舍/公寓/酒店民宿 与保障房并行） */
+const houseTypes = [
+  { value: 'PUBLIC_RENTAL', label: '公租房' },
+  { value: 'AFFORDABLE_RENTAL', label: '经适房' },
+  { value: 'TALENT', label: '人才房' },
+  { value: 'APARTMENT', label: '公寓' },
+  { value: 'DORMITORY', label: '宿舍' },
+  { value: 'RENTAL', label: '租赁住房' },
+  { value: 'HOTEL', label: '酒店/民宿' }
+]
 const show = ref(false)
 const detail = ref(null)
 const createVisible = ref(false)
@@ -158,7 +173,8 @@ async function load() {
     const d = await houseApi.page({
       pageNum: pageNum.value, pageSize: pageSize.value,
       keyword: keyword.value || undefined,
-      houseStatus: houseStatus.value || undefined
+      houseStatus: houseStatus.value || undefined,
+      houseType: houseTypeFilter.value || undefined
     })
     rows.value = d.rows || []
     total.value = Number(d.total || 0)
@@ -189,6 +205,7 @@ async function changeStatus(row) {
 
 function resetQuery() {
   houseStatus.value = ''
+  houseTypeFilter.value = ''
   keyword.value = ''
   pageNum.value = 1
   reload()

@@ -20,7 +20,7 @@ public interface HouseService {
     HouseVO get(Long id);
 
     PageResult<HouseVO> page(long pageNum, long pageSize, Long orgId,
-                             Long spaceId, String houseStatus, String keyword);
+                             Long spaceId, String houseStatus, String houseType, String keyword);
 
     HouseVO changeStatus(Long id, String targetStatus);
 }
