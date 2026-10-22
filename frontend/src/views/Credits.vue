@@ -35,6 +35,7 @@
       <el-table-column prop="banEndDate" label="惩戒截止" width="110" />
       <el-table-column label="操作" width="250" fixed="right">
         <template #default="{ row }">
+          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
           <el-button link type="primary" @click="actReason(row, '/api/v1/credits/{id}/revoke', '撤销')">撤销</el-button>
           <el-button link type="primary" @click="actReason(row, '/api/v1/credits/{id}/expire', '失效')">标记失效</el-button>
           <el-button link @click="actPlain(row, '/api/v1/credits/{id}/push', '推送')">推送</el-button>
@@ -103,9 +104,22 @@
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
+
+    <!-- 通用详情 -->
+    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+      <DetailView :row="dvRow" />
+    </el-dialog>
 </template>
 
 <script setup>
+/** 通用详情弹窗（复用 DetailView，字段与中文名来自后端字段字典） */
+const dvVisible = ref(false)
+const dvRow = ref({})
+function openDetail(row) {
+  dvRow.value = row
+  dvVisible.value = true
+}
+
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'

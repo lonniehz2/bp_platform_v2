@@ -32,6 +32,7 @@
       </el-table-column>
       <el-table-column label="操作" width="250" fixed="right">
         <template #default="{ row }">
+          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
           <el-button link type="primary" @click="actReason(row, '/api/v1/appeals/{id}/accept', '受理')">受理</el-button>
           <el-button link type="primary" @click="actReason(row, '/api/v1/appeals/{id}/investigate', '调查')">调查</el-button>
           <el-button link type="primary" @click="actReason(row, '/api/v1/appeals/{id}/decide', '决定')">决定</el-button>
@@ -60,9 +61,22 @@
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
+
+    <!-- 通用详情 -->
+    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+      <DetailView :row="dvRow" />
+    </el-dialog>
 </template>
 
 <script setup>
+/** 通用详情弹窗（复用 DetailView，字段与中文名来自后端字段字典） */
+const dvVisible = ref(false)
+const dvRow = ref({})
+function openDetail(row) {
+  dvRow.value = row
+  dvVisible.value = true
+}
+
 import DetailView from '@/components/DetailView.vue'
 import JsonForm from '@/components/JsonForm.vue'
 import { enumLabel } from '@/constants/enums'
