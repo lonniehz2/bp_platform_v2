@@ -13,12 +13,45 @@
       <el-button type="primary" @click="reload">按房源查</el-button>
       <el-button type="success" @click="openBook" data-testid="cal-book">预订</el-button>
       <el-button type="warning" plain @click="openRelease" data-testid="cal-release">释放</el-button>
+      <el-radio-group v-model="viewMode" size="small" data-testid="cal-view-mode">
+        <el-radio-button value="grid">月历</el-radio-button>
+        <el-radio-button value="table">明细</el-radio-button>
+      </el-radio-group>
     </div>
 
     <el-alert type="info" :closable="false" show-icon
-              :title="'日房态用于短租与预订占用；改价只影响指定日期'" style="margin-bottom:12px" />
+              :title="'日房态用于短租与预订占用；改价只影响指定日期；点月历格子可直接操作'"
+              style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <!-- 月历宫格：酒店/民宿前台视角 -->
+    <div v-if="viewMode === 'grid'" class="cal-grid" v-loading="loading">
+      <div class="cal-head">
+        <span v-for="w in WEEK" :key="w">{{ w }}</span>
+      </div>
+      <div class="cal-body">
+        <div v-for="(d, i) in gridCells" :key="i" class="cal-cell"
+             :class="[d.dayStatus ? 'st-' + d.dayStatus.toLowerCase() : 'st-empty', { pad: !d.date }]">
+          <template v-if="d.date">
+            <div class="cal-day">{{ Number(String(d.date).slice(8, 10)) }}</div>
+            <div class="cal-tag">{{ d.dayStatusLabel || enumLabel('dayStatus', d.dayStatus) }}</div>
+            <div v-if="d.price" class="cal-price">¥{{ d.price }}</div>
+            <el-dropdown trigger="click" @command="(c) => onDayCommand(c, d)">
+              <span class="cal-more">⋯</span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="book">预订这一天</el-dropdown-item>
+                  <el-dropdown-item command="close">标记停用</el-dropdown-item>
+                  <el-dropdown-item command="open">恢复可售</el-dropdown-item>
+                  <el-dropdown-item command="price" divided>设置价格</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <el-table v-else :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
@@ -34,14 +67,13 @@
       </el-table-column>
       <el-table-column label="操作" :width="ROWACTIONS ? 210 : 110" fixed="right">
         <template #default="{ row }">
-
           <el-button link type="success" @click="bookForHouse(row)">预订</el-button>
-            <el-button link @click="openDetail(row)">详情</el-button>
+          <el-button link @click="openDetail(row)">详情</el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
+    <el-pagination v-if="viewMode === 'table'" style="margin-top:12px" layout="total, prev, pager, next"
                    :total="total" :page-size="pageSize" :current-page="pageNum"
                    @current-change="(p) => { pageNum = p; load() }" />
 
@@ -131,7 +163,7 @@
 <script setup>
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { calendarApi } from '@/api/modules'
 import req from '@/api/request'
@@ -296,6 +328,7 @@ async function doBook() {
   } finally { saving.value = false }
 }
 
+/** 释放某区间（把占用/停用恢复为可售） */
 async function doRelease() {
   if (!rf.houseId || !rf.checkIn || !rf.checkOut) {
     ElMessage.warning('请填写房源与起止日期'); return
@@ -308,9 +341,88 @@ async function doRelease() {
     ElMessage.success(`已释放 ${n} 天`)
     releaseVisible.value = false
     reload()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '释放失败')
   } finally { saving.value = false }
 }
+
+/** 视图模式：月历（酒店前台视角）/ 明细（逐日表格） */
+const viewMode = ref('grid')
+const WEEK = ['一', '二', '三', '四', '五', '六', '日']
+
+/** 月历格子：按当月 1 日星期补空格，保持 7 列对齐 */
+const gridCells = computed(() => {
+  const cells = rows.value || []
+  if (!cells.length) return []
+  const first = String(cells[0].date || '')
+  const d = new Date(first + 'T00:00:00')
+  const lead = (d.getDay() + 6) % 7   // 周一为一周开始
+  const pad = Array.from({ length: lead }, () => ({ date: null }))
+  return [...pad, ...cells]
+})
+
+/** 格子操作：预订 / 停用 / 恢复 / 改价 */
+async function onDayCommand(cmd, cell) {
+  const date = String(cell.date)
+  try {
+    if (cmd === 'book') {
+      openBook()
+      bf.houseId = String(houseId.value)
+      bf.checkIn = date
+      bf.checkOut = nextDay(date)
+      return
+    }
+    if (cmd === 'close' || cmd === 'open') {
+      const dayStatus = cmd === 'close' ? 'CLOSED' : 'FREE'
+      await req.post(`/house-calendar/${houseId.value}/status`, {
+        start: date, end: nextDay(date), dayStatus,
+        remark: cmd === 'close' ? '手工停用' : '恢复可售'
+      })
+      ElMessage.success(cmd === 'close' ? '已标记停用' : '已恢复可售')
+      load()
+      return
+    }
+    if (cmd === 'price') {
+      const { value } = await ElMessageBox.prompt(`${date} 单价（元）`, '设置单日价格', {
+        inputValue: String(cell.price || ''),
+        inputPattern: /^\d+(\.\d{1,2})?$/,
+        inputErrorMessage: '请输入数字，最多两位小数'
+      })
+      await req.post(`/house-calendar/${houseId.value}/price`, {
+        start: date, end: nextDay(date), price: Number(value)
+      })
+      ElMessage.success('价格已更新')
+      load()
+    }
+  } catch (e) {
+    if (e !== 'cancel') ElMessage.error(e?.response?.data?.message || '操作失败')
+  }
+}
+
+function nextDay(date) {
+  const d = new Date(date + 'T00:00:00')
+  d.setDate(d.getDate() + 1)
+  return d.toISOString().slice(0, 10)
+}
 </script>
+
+<style scoped>
+.cal-grid { border: 1px solid var(--el-border-color-light); border-radius: 6px; overflow: hidden; }
+.cal-head { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--el-fill-color-light); }
+.cal-head span { padding: 8px; text-align: center; font-size: 13px; color: var(--el-text-color-secondary); }
+.cal-body { display: grid; grid-template-columns: repeat(7, 1fr); }
+.cal-cell { min-height: 92px; padding: 6px 8px; border-top: 1px solid var(--el-border-color-lighter);
+            border-right: 1px solid var(--el-border-color-lighter); position: relative; }
+.cal-cell.pad { background: var(--el-fill-color-lighter); }
+.cal-day { font-size: 14px; font-weight: 600; }
+.cal-tag { font-size: 12px; margin-top: 4px; }
+.cal-price { font-size: 12px; color: var(--el-color-danger); margin-top: 2px; }
+.cal-more { position: absolute; right: 6px; top: 4px; cursor: pointer; color: var(--el-text-color-placeholder); }
+.st-free { background: #f6ffed; }
+.st-booked { background: #fff7e6; }
+.st-occupied { background: #fff1f0; }
+.st-closed { background: #f5f5f5; color: var(--el-text-color-placeholder); }
+</style>
 
 <style scoped>
 .raw { max-height: 420px; overflow: auto; background: #f5f7fa; padding: 10px;
