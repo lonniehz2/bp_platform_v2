@@ -21,6 +21,9 @@ public class FinDeposit {
     private Long id;
 
     private String tenantId;
+    /** 所属组织（数据范围过滤用） */
+    private Long orgId;
+
     private Long contractId;
     private Long personId;
 

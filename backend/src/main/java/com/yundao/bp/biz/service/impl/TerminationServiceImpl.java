@@ -98,6 +98,11 @@ public class TerminationServiceImpl implements TerminationService {
         }
     }
 
+
+    /** 合同（取组织用于数据范围过滤） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.biz.mapper.BizContractMapper contractOrgIdMapper;
+
     public TerminationServiceImpl(BizTerminationMapper mapper, SnowflakeIdGenerator idGen) {
         this.mapper = mapper;
         this.idGen = idGen;
@@ -130,6 +135,13 @@ public class TerminationServiceImpl implements TerminationService {
         e.setTenantId(tenantId);
         e.setTerminationNo("BT" + id);
         e.setContractId(cmd.contractId());
+        // 组织取自合同，供数据范围（ORG/ORG_SUB）过滤
+        if (contractOrgIdMapper != null) {
+            com.yundao.bp.biz.entity.BizContract c = contractOrgIdMapper.selectById(cmd.contractId());
+            if (c != null) {
+                e.setOrgId(c.getOrgId());
+            }
+        }
         e.setHouseId(cmd.houseId());
         e.setPersonId(cmd.personId());
         e.setTerminationType(type.name());
@@ -194,7 +206,7 @@ public class TerminationServiceImpl implements TerminationService {
                 .eq(contractId != null, BizTermination::getContractId, contractId)
                 .eq(houseId != null, BizTermination::getHouseId, houseId)
                 .orderByDesc(BizTermination::getId);
-        applyDataScope(qw, BizTermination::getPersonId, BizTermination::getPersonId, false);
+        applyDataScope(qw, BizTermination::getOrgId, BizTermination::getPersonId, true);
         if (keyword != null && !keyword.isBlank()) {
             qw.like(BizTermination::getTerminationNo, keyword);
         }

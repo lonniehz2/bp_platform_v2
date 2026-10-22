@@ -23,6 +23,9 @@ public class BizTermination {
     private String tenantId;
     private String terminationNo;
 
+    /** 所属组织（数据范围过滤用） */
+    private Long orgId;
+
     private Long contractId;
     private Long houseId;
     private Long personId;

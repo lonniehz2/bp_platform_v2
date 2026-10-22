@@ -83,6 +83,11 @@ public class DepositRefundServiceImpl implements DepositRefundService {
         }
     }
 
+
+    /** 合同（取组织用于数据范围过滤） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.biz.mapper.BizContractMapper contractOrgIdMapper;
+
     public DepositRefundServiceImpl(FinDepositMapper depositMapper, FinRefundMapper refundMapper,
                                     SnowflakeIdGenerator idGen) {
         this.depositMapper = depositMapper;
@@ -116,6 +121,13 @@ public class DepositRefundServiceImpl implements DepositRefundService {
         e.setId(id);
         e.setTenantId(tenantId);
         e.setContractId(cmd.contractId());
+        // 组织取自合同，供数据范围（ORG/ORG_SUB）过滤
+        if (contractOrgIdMapper != null) {
+            com.yundao.bp.biz.entity.BizContract c = contractOrgIdMapper.selectById(cmd.contractId());
+            if (c != null) {
+                e.setOrgId(c.getOrgId());
+            }
+        }
         e.setPersonId(cmd.personId());
         e.setDepositAmount(due);
         e.setPaidAmount(paid);
@@ -162,7 +174,7 @@ public class DepositRefundServiceImpl implements DepositRefundService {
                 .eq(personId != null, FinDeposit::getPersonId, personId)
                 .eq(status != null && !status.isBlank(), FinDeposit::getDepositStatus, status)
                 .orderByDesc(FinDeposit::getId);
-        applyDataScope(qw, FinDeposit::getPersonId, FinDeposit::getPersonId, false);
+        applyDataScope(qw, FinDeposit::getOrgId, FinDeposit::getPersonId, true);
         IPage<FinDeposit> page = depositMapper.selectPage(new Page<>(pageNum, pageSize), qw);
         List<DepositVO> rows = page.getRecords().stream().map(DepositVO::from).toList();
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);
