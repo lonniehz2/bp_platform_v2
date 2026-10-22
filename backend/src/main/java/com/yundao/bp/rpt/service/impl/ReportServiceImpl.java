@@ -57,6 +57,40 @@ public class ReportServiceImpl implements ReportService {
     private final SnowflakeIdGenerator idGen;
     private final String exportDir;
 
+
+    /** 数据范围（报表查询/导出按此限定组织） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.datascope.DataScopeService dataScopeService;
+
+    /**
+     * 计算报表实际使用的组织范围。
+     *
+     * <p>报表是组织级聚合数据，越权导出等于批量泄露，因此在这里统一收口：
+     * 非 ALL 角色不能跨组织取数，SELF 角色直接拒绝。
+     */
+    private Long resolveReportOrg(Long requested) {
+        if (dataScopeService == null) {
+            return requested;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return requested;
+        }
+        if (scope.isSelf()) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid(
+                    "当前角色数据范围为「仅本人」，无报表查看/导出权限，请联系管理员");
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty()) {
+            if (requested == null || scope.orgIds().contains(requested)) {
+                return requested == null ? scope.orgId() : requested;
+            }
+            return scope.orgId();
+        }
+        // ORG：强制本组织
+        return scope.orgId() == null ? requested : scope.orgId();
+    }
+
     public ReportServiceImpl(RptReportDefMapper defMapper, RptExportTaskMapper taskMapper,
                              AssetHouseMapper houseMapper, BizContractMapper contractMapper,
                              FinBillMapper billMapper, SnowflakeIdGenerator idGen,
@@ -83,7 +117,8 @@ public class ReportServiceImpl implements ReportService {
     public ReportResultVO query(ReportQueryCmd cmd) {
         RptReportDef def = findDef(cmd.reportCode());
         List<Map<String, String>> columns = columnsOf(def.getReportCode());
-        List<Map<String, Object>> rows = rowsOf(def.getReportCode(), cmd.orgId());
+        List<Map<String, Object>> rows = rowsOf(def.getReportCode(),
+                resolveReportOrg(cmd.orgId()));
         int pn = cmd.pageNum() == null || cmd.pageNum() <= 0 ? 1 : cmd.pageNum();
         int ps = cmd.pageSize() == null || cmd.pageSize() <= 0 ? 20 : cmd.pageSize();
         int from = Math.min((pn - 1) * ps, rows.size());
@@ -116,7 +151,8 @@ public class ReportServiceImpl implements ReportService {
         // 同步执行（数据量不大；大数据量可改为异步队列，接口已预留 runPendingTasks）
         try {
             List<Map<String, String>> cols = columnsOf(def.getReportCode());
-            List<Map<String, Object>> rows = rowsOf(def.getReportCode(), cmd.orgId());
+            List<Map<String, Object>> rows = rowsOf(def.getReportCode(),
+                resolveReportOrg(cmd.orgId()));
             // 导出格式：CSV（默认）或 EXCEL。Excel 用免依赖的 SpreadsheetML 2003（.xls），
             // Excel / WPS 均可直接打开，无需引入 POI 等重依赖。
             boolean excel = "EXCEL".equalsIgnoreCase(cmd.exportFormat());
