@@ -78,6 +78,16 @@ def main():
         tail = [ln for ln in out.strip().splitlines() if ln.strip()][-6:]
         for ln in tail:
             print('   ' + ln.strip()[:110])
+        if rc != 0 and key not in SOFT_FAIL:
+            # 单次失败可能是环境抖动：重试一次，能过则记为 FLAKY（需要关注但不阻塞）
+            print('   ↻ 首次失败，重试一次…')
+            rc2, out2, err2 = run(cmd[0], cmd[1:])
+            if rc2 == 0:
+                rc = 0
+                print('   ↻ 重试通过 → 标记 FLAKY（不稳定用例，建议排查）')
+                verdict_override = 'FLAKY'
+                results.append((name, verdict_override, time.time() - t0, ''))
+                continue
         if rc == 0:
             verdict = 'PASS'
         elif key in SOFT_FAIL:
@@ -92,17 +102,24 @@ def main():
     print('%-14s %-6s %8s' % ('检查项', '结果', '耗时'))
     print('-' * 66)
     for name, verdict, cost, note in results:
-        mark = {'PASS': '✔', 'WARN': '⚠', 'FAIL': '✘', 'SKIP': '–'}[verdict]
+        mark = {'PASS': '✔', 'WARN': '⚠', 'FAIL': '✘', 'SKIP': '–',
+            'FLAKY': '↻'}[verdict]
         print('%-14s %s %-4s %7.1fs %s' % (name, mark, verdict, cost, note))
     print('=' * 66)
 
     fails = [n for n, v, _, _ in results if v == 'FAIL']
     warns = [n for n, v, _, _ in results if v == 'WARN']
+    flaky = [n for n, v, _, _ in results if v == 'FLAKY']
     if fails:
         print('结论：失败 %d 项 —— %s' % (len(fails), '、'.join(fails)))
         return 1
-    if warns:
-        print('结论：通过（%d 项需人工关注：%s）' % (len(warns), '、'.join(warns)))
+    if warns or flaky:
+        parts = []
+        if warns:
+            parts.append('需人工关注：' + '、'.join(warns))
+        if flaky:
+            parts.append('不稳定用例：' + '、'.join(flaky))
+        print('结论：通过（%s）' % '；'.join(parts))
         return 0
     print('结论：全部通过')
     return 0

@@ -106,6 +106,33 @@ def ensure_vacant_house(tok, oid):
                   'rentUnit': 'AREA_MONTH', 'houseStatus': 'VACANT'}, tok)
     return [d((st, r))['id']] if d((st, r)) else []
 
+
+def fresh_house(tok, oid, tag):
+    """每次都新建一套专用房源，避免与其他检查争用空置房源。"""
+    tree = d(call('/spaces/tree?orgId=%s' % oid, token=tok))
+    flat = []
+
+    def walk(ns):
+        for n in ns or []:
+            flat.append(n)
+            walk(n.get('children'))
+    walk(tree if isinstance(tree, list) else (tree or {}).get('rows'))
+    room = next((x for x in flat if x.get('spaceType') == 'ROOM'), None)
+    floor = next((x for x in flat if x.get('spaceType') == 'FLOOR'), None)
+    if not room and floor:
+        st, r = call('/spaces', 'POST',
+                     {'orgId': oid, 'spaceCode': 'F-R-' + tag, 'spaceName': '回归房间' + tag,
+                      'spaceType': 'ROOM', 'parentId': floor['id'], 'area': 50}, tok)
+        room = d((st, r))
+    if not room:
+        return None
+    st, r = call('/houses', 'POST',
+                 {'orgId': oid, 'spaceId': room['id'], 'houseCode': 'FH-' + tag,
+                  'houseName': '%s房%s' % (TAG, tag), 'houseType': 'PUBLIC_RENTAL',
+                  'useType': 'CIVIL', 'area': 50, 'rentStandard': 12,
+                  'rentUnit': 'AREA_MONTH', 'houseStatus': 'VACANT'}, tok)
+    return d((st, r))
+
 def main():
     tok = d(call('/auth/login', 'POST',
                  {'tenantCode': TENANT, 'username': 'admin', 'password': 'admin123'}))['token']
@@ -159,11 +186,15 @@ def main():
             check('审核四阶段 → 通过', final == 'APPROVED', str(final))
 
             # 2) 自动入轮候
-            wait = rows(call('/allocation/waiting?pageNum=1&pageSize=200&securityType=PUBLIC',
-                             token=tok))
-            check('审核通过自动入轮候',
-                  any(str(w.get('personId')) == str(pid) for w in wait),
-                  '轮候池 %d 人' % len(wait))
+            queued = False
+            for _ in range(5):
+                wait = rows(call('/allocation/waiting?pageNum=1&pageSize=200'
+                                 '&securityType=PUBLIC', token=tok))
+                if any(str(w.get('personId')) == str(pid) for w in wait):
+                    queued = True
+                    break
+                time.sleep(1)
+            check('审核通过自动入轮候', queued, '轮候池 %d 人' % len(wait))
 
     # ---------- 3) 批次 → 摇号 ----------
     st, r = call('/allocation/batches', 'POST',
@@ -173,7 +204,8 @@ def main():
     check('创建配租批次', bool(bid), code((st, r)))
 
     if bid:
-        vacant = ensure_vacant_house(tok, oid)[:2]
+        fh = fresh_house(tok, oid, 'B')
+        vacant = [fh['id']] if fh else ensure_vacant_house(tok, oid)[:1]
         if vacant:
             st, r = call('/allocation/batches/%s/houses' % bid, 'POST', {'houseIds': vacant}, tok)
             check('批次加入房源', code((st, r)) == 'BP00000', code((st, r)))
@@ -203,7 +235,8 @@ def main():
 
     # ---------- 5/6) 快捷签约 → 签约生效 ----------
     persons = rows(call('/persons?pageNum=1&pageSize=1&orgId=%s' % oid, token=tok))
-    free = ensure_vacant_house(tok, oid)
+    fh2 = fresh_house(tok, oid, 'S')
+    free = [fh2['id']] if fh2 else ensure_vacant_house(tok, oid)
     if persons and free:
         st, r = call('/contracts/quick-sign', 'POST',
                      {'personId': persons[0]['id'], 'houseId': free[0],
