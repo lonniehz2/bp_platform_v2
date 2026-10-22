@@ -226,7 +226,34 @@ public class ContractServiceImpl implements ContractService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ContractVO sign(Long id, String signFileUrl, String signFlowId) {
+        BizContract pre = require(id);
+        // 单机部署下按房源串行化签约，避免并发检查与写入之间的竞态
+        Object lock = SIGN_LOCKS.computeIfAbsent(
+                String.valueOf(pre.getHouseId()), k -> new Object());
+        synchronized (lock) {
+            return doSign(id, signFileUrl, signFlowId);
+        }
+    }
+
+    /** 签约分片锁：key = houseId。 */
+    private static final java.util.concurrent.ConcurrentHashMap<String, Object> SIGN_LOCKS
+            = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private ContractVO doSign(Long id, String signFileUrl, String signFlowId) {
         BizContract e = require(id);
+        // 防一房多签：同一房源已有生效合同时拒绝（并发场景由 DB 唯一性 + 本检查共同兜底）
+        if (e.getHouseId() != null) {
+            Long occupied = mapper.selectCount(new LambdaQueryWrapper<BizContract>()
+                    .eq(BizContract::getHouseId, e.getHouseId())
+                    .in(BizContract::getContractStatus,
+                            List.of(ContractStatus.EFFECTIVE.name(),
+                                    ContractStatus.RENEWING.name()))
+                    .ne(BizContract::getId, e.getId()));
+            if (occupied != null && occupied > 0) {
+                throw com.yundao.bp.common.exception.BizException.paramInvalid(
+                        "该房屋已有生效合同，不能重复签约（一房多签）");
+            }
+        }
         // 纸质合同可直接从 PENDING_SIGN 生效
         if (ContractStatus.PENDING_SIGN.name().equals(e.getContractStatus())
                 && "PAPER".equals(e.getSignType())) {
