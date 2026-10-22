@@ -328,6 +328,18 @@ public class BillingServiceImpl implements BillingService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public BillVO allocate(Long paymentId, Long billId, BigDecimal amount) {
+        // 同一账单串行核销，避免并发重复核销/超收
+        Object lock = ALLOC_LOCKS.computeIfAbsent(String.valueOf(billId), k -> new Object());
+        synchronized (lock) {
+            return doAllocate(paymentId, billId, amount);
+        }
+    }
+
+    /** 核销分片锁：key = billId。 */
+    private static final java.util.concurrent.ConcurrentHashMap<String, Object> ALLOC_LOCKS
+            = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private BillVO doAllocate(Long paymentId, Long billId, BigDecimal amount) {
         FinPayment pay = requirePayment(paymentId);
         FinBill bill = requireBill(billId);
 

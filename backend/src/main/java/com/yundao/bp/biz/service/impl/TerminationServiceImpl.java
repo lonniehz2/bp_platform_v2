@@ -103,14 +103,32 @@ public class TerminationServiceImpl implements TerminationService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.biz.mapper.BizContractMapper contractOrgIdMapper;
 
+    /** 事务管理器：退租申请需在锁内完成事务 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.transaction.PlatformTransactionManager txManager;
+
     public TerminationServiceImpl(BizTerminationMapper mapper, SnowflakeIdGenerator idGen) {
         this.mapper = mapper;
         this.idGen = idGen;
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public TerminationVO apply(TerminationCreateCmd cmd) {
+        // 同一合同串行申请；事务在锁内完成，避免锁释放后事务才提交造成重复单
+        Object lock = TERM_LOCKS.computeIfAbsent(
+                String.valueOf(cmd.contractId()), k -> new Object());
+        synchronized (lock) {
+            org.springframework.transaction.support.TransactionTemplate tt =
+                    new org.springframework.transaction.support.TransactionTemplate(txManager);
+            return tt.execute(status -> doApply(cmd));
+        }
+    }
+
+    /** 退租申请分片锁：key = contractId。 */
+    private static final java.util.concurrent.ConcurrentHashMap<String, Object> TERM_LOCKS
+            = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private TerminationVO doApply(TerminationCreateCmd cmd) {
         String tenantId = TenantContext.tenantId();
         TerminationType type;
         try {
@@ -129,6 +147,16 @@ public class TerminationServiceImpl implements TerminationService {
         long id = idGen.nextId();
         LocalDateTime now = LocalDateTime.now();
         LocalDate today = LocalDate.now();
+
+        // 已有未结束的退租单时拒绝重复申请
+        Long active = mapper.selectCount(
+                new LambdaQueryWrapper<BizTermination>()
+                        .eq(BizTermination::getContractId, cmd.contractId())
+                        .notIn(BizTermination::getTerminationStatus,
+                                java.util.List.of("CANCELLED", "REJECTED", "COMPLETED")));
+        if (active != null && active > 0) {
+            throw BizException.stateConflict("该合同已有进行中的退租单，不能重复申请");
+        }
 
         BizTermination e = new BizTermination();
         e.setId(id);

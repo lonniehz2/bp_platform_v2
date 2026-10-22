@@ -106,6 +106,11 @@ public class ContractServiceImpl implements ContractService {
         }
     }
 
+
+    /** 事务管理器：签约需在锁内完成事务，保证并发下读到已提交状态 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.transaction.PlatformTransactionManager txManager;
+
     public ContractServiceImpl(BizContractMapper mapper, SnowflakeIdGenerator idGen,
                                OccupancyService occupancyService) {
         this.mapper = mapper;
@@ -224,14 +229,17 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public ContractVO sign(Long id, String signFileUrl, String signFlowId) {
         BizContract pre = require(id);
         // 单机部署下按房源串行化签约，避免并发检查与写入之间的竞态
         Object lock = SIGN_LOCKS.computeIfAbsent(
                 String.valueOf(pre.getHouseId()), k -> new Object());
         synchronized (lock) {
-            return doSign(id, signFileUrl, signFlowId);
+            // 事务必须在锁内完成：否则锁先释放、事务后提交，另一线程仍会读到旧状态
+            org.springframework.transaction.support.TransactionTemplate tt =
+                    new org.springframework.transaction.support.TransactionTemplate(
+                            txManager);
+            return tt.execute(status -> doSign(id, signFileUrl, signFlowId));
         }
     }
 
