@@ -213,6 +213,23 @@ public class RbacController {
         return R.ok(n);
     }
 
+    /** 该角色已授予的权限列表（角色配置页回显用）。 */
+    @GetMapping("/roles/{roleId}/permissions")
+    @RequirePerm("iam:role:list")
+    public R<java.util.List<IamPermission>> rolePermissions(@PathVariable Long roleId) {
+        java.util.List<IamRolePermission> links = rolePermMapper.selectList(
+                new LambdaQueryWrapper<IamRolePermission>()
+                        .eq(IamRolePermission::getRoleId, roleId));
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        for (IamRolePermission rp : links) {
+            ids.add(rp.getPermissionId());
+        }
+        if (ids.isEmpty()) {
+            return R.ok(java.util.List.of());
+        }
+        return R.ok(permMapper.selectBatchIds(ids));
+    }
+
     // ---------- 权限 ----------
 
     @PostMapping("/permissions")
