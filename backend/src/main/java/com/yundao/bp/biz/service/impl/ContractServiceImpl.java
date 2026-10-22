@@ -365,4 +365,49 @@ public class ContractServiceImpl implements ContractService {
     private static String blankToNull(String s) {
         return (s == null || s.isBlank()) ? null : s;
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ContractVO updateContract(Long id,
+            com.yundao.bp.biz.controller.ContractController.ContractUpdateCmd cmd) {
+        BizContract e = mapper.selectById(id);
+        if (e == null) {
+            throw BizException.notFound("合同");
+        }
+        if (!"DRAFT".equals(e.getContractStatus())) {
+            throw BizException.paramInvalid("仅草稿状态的合同可直接编辑，签约后请走合同变更");
+        }
+        if (cmd.rentPrice() != null) {
+            e.setRentPrice(money(cmd.rentPrice()));
+        }
+        if (cmd.monthlyRent() != null) {
+            e.setMonthlyRent(money(cmd.monthlyRent()));
+        }
+        if (cmd.depositAmount() != null) {
+            e.setDepositAmount(money(cmd.depositAmount()));
+        }
+        if (cmd.subsidyAmount() != null) {
+            e.setSubsidyAmount(money(cmd.subsidyAmount()));
+        }
+        if (cmd.leaseStart() != null) {
+            e.setLeaseStart(cmd.leaseStart());
+        }
+        if (cmd.leaseEnd() != null) {
+            e.setLeaseEnd(cmd.leaseEnd());
+        }
+        if (e.getLeaseStart() != null && e.getLeaseEnd() != null) {
+            e.setLeaseMonths(monthCount(e.getLeaseStart(), e.getLeaseEnd()));
+        }
+        if (cmd.payDay() != null) {
+            e.setPayDay(cmd.payDay());
+        }
+        if (cmd.payCycle() != null && !cmd.payCycle().isBlank()) {
+            e.setPayCycle(cmd.payCycle());
+        }
+        if (cmd.remark() != null) {
+            e.setRemark(cmd.remark());
+        }
+        mapper.updateById(e);
+        return ContractVO.from(e);
+    }
 }

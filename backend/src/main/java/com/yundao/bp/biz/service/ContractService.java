@@ -39,5 +39,9 @@ public interface ContractService {
     ContractVO cancel(Long id, String reason);
 
     /** 到期扫描：把已过止租日的履约中合同置为 EXPIRED，返回处理条数。 */
+    /** 更新合同条款（仅草稿）。 */
+    ContractVO updateContract(Long id,
+            com.yundao.bp.biz.controller.ContractController.ContractUpdateCmd cmd);
+
     int expireDue();
 }
