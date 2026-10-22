@@ -30,7 +30,7 @@
         <template #default="{ row }">{{ row.alertStatusLabel || enumLabel('alertStatus', row.alertStatus) }}</template>
       </el-table-column>
       <el-table-column prop="alertContent" label="内容" width="200" />
-      <el-table-column label="操作" width="280" fixed="right">
+      <el-table-column label="操作" width="424" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
           <el-button link type="warning" @click="actAction(row, '/api/v1/alerts/{id}/handle', '处理')">处理</el-button>

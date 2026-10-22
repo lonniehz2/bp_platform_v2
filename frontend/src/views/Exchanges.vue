@@ -33,7 +33,7 @@
       <el-table-column prop="exchangeStatus" label="状态" width="110">
         <template #default="{ row }">{{ row.exchangeStatusLabel || enumLabel('exchangeStatus', row.exchangeStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="270" fixed="right">
+      <el-table-column label="操作" width="424" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
           <el-button link @click="actPlain(row, '/api/v1/exchanges/{id}/submit', '提交')">提交</el-button>
