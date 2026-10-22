@@ -57,6 +57,45 @@ public class WorkOrderServiceImpl implements WorkOrderService {
     private final OpsWorkorderLogMapper logMapper;
     private final SnowflakeIdGenerator idGen;
 
+
+    /** 数据范围（ALL/ORG_SUB/ORG/SELF） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.datascope.DataScopeService dataScopeService;
+
+    /** 按数据范围追加组织与人员条件（full=true 时组织也过滤）。 */
+    private <T> void applyDataScope(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<T> qw,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> orgCol,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> personCol,
+            boolean full) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf()) {
+            if (scope.personId() == null) {
+                qw.eq(personCol, -1L);
+            } else {
+                qw.eq(personCol, scope.personId());
+            }
+            return;
+        }
+        if (!full) {
+            return;     // 实体无组织列时，ORG/ORG_SUB 不额外限制
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty()) {
+            qw.in(orgCol, scope.orgIds());
+            return;
+        }
+        if (scope.orgId() != null) {
+            qw.eq(orgCol, scope.orgId());
+        }
+    }
+
     public WorkOrderServiceImpl(OpsWorkorderMapper orderMapper,
                                 OpsWorkorderLogMapper logMapper,
                                 SnowflakeIdGenerator idGen) {
@@ -140,6 +179,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
                         OpsWorkorder::getOrderStatus, orderStatus)
                 .eq(assignUserId != null, OpsWorkorder::getAssignUserId, assignUserId)
                 .orderByDesc(OpsWorkorder::getId);
+        applyDataScope(qw, OpsWorkorder::getOrgId, OpsWorkorder::getPersonId, true);
         if (keyword != null && !keyword.isBlank()) {
             qw.and(w -> w.like(OpsWorkorder::getOrderTitle, keyword)
                     .or().like(OpsWorkorder::getWorkorderNo, keyword));

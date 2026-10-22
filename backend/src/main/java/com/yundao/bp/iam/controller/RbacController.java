@@ -87,6 +87,8 @@ public class RbacController {
         u.setPasswordHash(hasher.hash(cmd.password() == null ? "123456" : cmd.password()));
         u.setRealName(cmd.realName());
         u.setOrgId(cmd.orgId());
+        // 绑定人员档案：数据范围为 SELF 的角色（如租户）靠它过滤「只看自己的数据」
+        u.setPersonId(cmd.personId());
         u.setUserType("STAFF");  // 历史字段，系统概念上不再使用用户类型
         u.setIsAdmin(0);
         u.setSingleDevice(0);
@@ -349,8 +351,13 @@ public class RbacController {
 
     // ---------- 请求体 ----------
 
+    /**
+     * 新增用户入参。
+     *
+     * @param personId 绑定的人员档案（租户类角色必需：数据范围为 SELF 时按此过滤）
+     */
     public record UserCmd(String username, String password, String realName, Long orgId,
-                          java.util.List<Long> roleIds) {
+                          java.util.List<Long> roleIds, Long personId) {
     }
 
     public record RoleUpdateCmd(String roleName, String dataScope, String status) {

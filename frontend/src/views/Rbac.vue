@@ -142,6 +142,12 @@
             <el-option v-for="r in roles" :key="r.id"
                        :label="`${r.roleName}（${r.roleCode}）`" :value="String(r.id)" />
           </el-select></el-form-item>
+        <el-form-item label="绑定人员">
+          <PersonPicker v-model="uf.personId" />
+          <div class="muted" style="font-size:12px;line-height:1.5">
+            角色数据范围为「仅本人」时（如租户），必须绑定人员档案，否则登录后看不到自己的数据
+          </div>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="userVisible = false">取消</el-button>
@@ -324,6 +330,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
+import PersonPicker from '@/components/PersonPicker.vue'
 
 const TABS = ['user', 'role', 'perm']
 const route = useRoute()
@@ -357,7 +364,7 @@ const roleVisible = ref(false)
 const permVisible = ref(false)
 const grantVisible = ref(false)
 
-const uf = reactive({ username: '', password: '', realName: '', orgId: '', roleIds: [] })
+const uf = reactive({ username: '', password: '', realName: '', orgId: '', roleIds: [], personId: '' })
 const rf = reactive({ roleCode: '', roleName: '', dataScope: 'ALL' })
 const pf = reactive({ permCode: '', permName: '', permType: 'API',
   routePath: '', sortNo: 99 })
