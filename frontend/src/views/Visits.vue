@@ -28,7 +28,7 @@
       <el-table-column prop="visitStatus" label="状态" width="110">
         <template #default="{ row }">{{ row.visitStatusLabel || enumLabel('visitStatus', row.visitStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" :width="ROWACTIONS ? 210 : 110" fixed="right">
+      <el-table-column label="操作" width="210" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="report(row)">登记报告</el-button>
           <el-button link @click="openDetail(row)">详情</el-button>

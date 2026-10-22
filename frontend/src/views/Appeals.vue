@@ -30,7 +30,7 @@
       <el-table-column prop="personIdName" label="申请人" width="120">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="250" fixed="right">
+      <el-table-column label="操作" width="420" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
           <el-button link type="primary" @click="actReason(row, '/api/v1/appeals/{id}/accept', '受理')">受理</el-button>
