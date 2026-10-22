@@ -142,12 +142,29 @@ const NAME_BASE = {
   opscenter: '/ops-center'
 }
 
+
+/** 路由 path → 页面权限码 page:<slug>:view（与 _rbac_bootstrap 生成的编码一致） */
+export function pagePermCode(path) {
+  const p = String(path || '')
+  if (!p || p === '/' || p === '/login') return ''
+  const slug = p.replace(/^\//, '').split('/:')[0].replace(/\//g, '-')
+  return slug ? `page:${slug}:view` : ''
+}
+
 export function useMenu() {
   const auth = useAuthStore()
 
   /** 有子菜单的页面本身不再单独出现，避免「父项 + 子项」重复 */
   const menus = computed(() => {
-    const base = menuRoutes.filter((m) => !m.meta?.perm || auth.has(m.meta.perm))
+    // 菜单按权限过滤：
+    // 1) 显式 meta.perm 优先（细粒度权限码）
+    // 2) 否则用页面权限 page:<slug>:view（由角色配置页勾选）
+    // 3) 未声明的路由默认放行，避免漏配导致菜单整块消失
+    const base = menuRoutes.filter((m) => {
+      if (m.meta?.perm) return auth.has(m.meta.perm)
+      const code = pagePermCode(m.path)
+      return !code || auth.has(code)
+    })
     const out = []
     for (const m of base) {
       const basePath = NAME_BASE[m.name] || m.path.split('/:')[0]
