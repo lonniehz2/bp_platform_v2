@@ -37,18 +37,21 @@ public class MessageController {
     // ---------- 发送 ----------
 
     /** 发送消息（按模板或直发）。 */
+    @com.yundao.bp.iam.security.RequirePerm("messages:send:send")
     @PostMapping("/send")
     public R<MessageVO> send(@Valid @RequestBody MessageSendCmd cmd) {
         return R.ok(service.send(cmd));
     }
 
     /** 按业务类型广播给所有订阅者。 */
+    @com.yundao.bp.iam.security.RequirePerm("messages:broadcast:broadcast")
     @PostMapping("/broadcast")
     public R<Integer> broadcast(@RequestBody BroadcastCmd cmd) {
         return R.ok(service.broadcast(cmd.bizType(), cmd.title(), cmd.content(),
                 cmd.bizId()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("messages:records:record")
     @GetMapping("/records")
     public R<PageResult<MessageVO>> records(@RequestParam(defaultValue = "1") long pageNum,
                                             @RequestParam(defaultValue = "20") long pageSize,
@@ -61,6 +64,7 @@ public class MessageController {
     }
 
     /** 重投失败消息。 */
+    @com.yundao.bp.iam.security.RequirePerm("messages:retry-failed:create")
     @PostMapping("/retry-failed")
     public R<Integer> retryFailed(@RequestParam(defaultValue = "20") int limit) {
         return R.ok(service.retryFailed(limit));
@@ -68,12 +72,14 @@ public class MessageController {
 
     // ---------- 模板 ----------
 
+    @com.yundao.bp.iam.security.RequirePerm("messages:templates:view")
     @GetMapping("/templates")
     public R<List<MsgTemplate>> templates(@RequestParam(required = false) String bizType,
                                           @RequestParam(required = false) String channel) {
         return R.ok(service.listTemplates(bizType, channel));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("messages:templates:create")
     @PostMapping("/templates")
     public R<MsgTemplate> saveTemplate(@RequestBody TemplateCmd cmd) {
         return R.ok(service.saveTemplate(cmd.templateCode(), cmd.templateName(), cmd.channel(),
@@ -81,6 +87,7 @@ public class MessageController {
     }
 
     /** 模板渲染预览（校验变量是否齐全）。 */
+    @com.yundao.bp.iam.security.RequirePerm("messages:templates:create")
     @PostMapping("/templates/{code}/render")
     public R<String> render(@PathVariable String code,
                             @RequestBody(required = false) Map<String, Object> vars) {
@@ -89,12 +96,14 @@ public class MessageController {
 
     // ---------- 待办 ----------
 
+    @com.yundao.bp.iam.security.RequirePerm("messages:todo:create")
     @PostMapping("/todos")
     public R<MsgTodo> createTodo(@RequestBody TodoCreateCmd cmd) {
         return R.ok(service.createTodo(cmd.userId(), cmd.todoType(), cmd.title(), cmd.content(),
                 cmd.bizType(), cmd.bizId(), cmd.priority()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("messages:todo:view")
     @GetMapping("/todos")
     public R<PageResult<MsgTodo>> todos(@RequestParam(defaultValue = "1") long pageNum,
                                         @RequestParam(defaultValue = "20") long pageSize,
@@ -113,16 +122,19 @@ public class MessageController {
     }
 
     /** 未读数量（红点）。 */
+    @com.yundao.bp.iam.security.RequirePerm("messages:todo:read")
     @GetMapping("/todos/unread")
     public R<Long> unread(@RequestParam Long userId) {
         return R.ok(service.unreadCount(userId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("messages:todo:read")
     @PostMapping("/todos/{id}/read")
     public R<MsgTodo> read(@PathVariable Long id) {
         return R.ok(service.markRead(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("messages:todo:done")
     @PostMapping("/todos/{id}/done")
     public R<MsgTodo> done(@PathVariable Long id) {
         return R.ok(service.markDone(id));

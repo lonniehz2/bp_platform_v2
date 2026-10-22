@@ -65,6 +65,7 @@ public class AccessRecordController {
     }
 
     /** ⭐ 人员行为轨迹。 */
+    @com.yundao.bp.iam.security.RequirePerm("access-records:trace:view")
     @GetMapping("/trace/person/{personId}")
     public R<TraceVO> tracePerson(
             @org.springframework.web.bind.annotation.PathVariable Long personId,
@@ -76,6 +77,7 @@ public class AccessRecordController {
     }
 
     /** ⭐ 房源行为轨迹。 */
+    @com.yundao.bp.iam.security.RequirePerm("access-records:trace:view")
     @GetMapping("/trace/house/{houseId}")
     public R<TraceVO> traceHouse(
             @org.springframework.web.bind.annotation.PathVariable Long houseId,
@@ -87,6 +89,7 @@ public class AccessRecordController {
     }
 
     /** ⭐ 空置判定。 */
+    @com.yundao.bp.iam.security.RequirePerm("access-records:idle:view")
     @GetMapping("/idle")
     public R<List<IdleStatVO>> idle(@RequestParam(required = false) Long orgId,
                                     @RequestParam(defaultValue = "30") int idleDays) {
@@ -94,6 +97,7 @@ public class AccessRecordController {
     }
 
     /** 不可信开门占比（考核指标）。 */
+    @com.yundao.bp.iam.security.RequirePerm("access-records:untrusted-ratio:view")
     @GetMapping("/untrusted-ratio")
     public R<Map<String, Object>> untrustedRatio(
             @RequestParam(required = false) Long orgId,

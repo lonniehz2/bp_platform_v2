@@ -66,6 +66,7 @@ public class RuleEngineController {
     }
 
     /** ⭐ 取当前生效规则集（按场景/组织解析）。 */
+    @com.yundao.bp.iam.security.RequirePerm("rules:rulesets:view")
     @GetMapping("/rulesets/active")
     public R<RuleRuleset> active(@RequestParam String domain,
                                  @RequestParam(required = false) String scenario,
@@ -98,6 +99,7 @@ public class RuleEngineController {
     // ---------- 执行 ----------
 
     /** ⭐ 执行规则集（返回命中规则与判定说明）。 */
+    @com.yundao.bp.iam.security.RequirePerm("rules:rulesets:execute")
     @PostMapping("/rulesets/{id}/execute")
     public R<List<Map<String, Object>>> execute(@PathVariable Long id,
                                                 @RequestBody ExecuteCmd cmd) {
@@ -117,6 +119,7 @@ public class RuleEngineController {
     }
 
     /** ⭐ 命中统计（哪条规则最常触发）。 */
+    @com.yundao.bp.iam.security.RequirePerm("rules:stats:view")
     @GetMapping("/stats")
     public R<Map<String, Object>> stats(@RequestParam(required = false) Long rulesetId) {
         return R.ok(service.hitStats(rulesetId));

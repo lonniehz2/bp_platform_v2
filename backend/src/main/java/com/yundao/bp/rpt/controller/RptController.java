@@ -44,18 +44,21 @@ public class RptController {
 
     // ---------- 报表 ----------
 
+    @com.yundao.bp.iam.security.RequirePerm("rpt:report:view")
     @GetMapping("/reports")
     public R<List<RptReportDef>> reports(@RequestParam(required = false) String reportType) {
         return R.ok(reportService.listReports(reportType));
     }
 
     /** 报表查询（在线预览）。 */
+    @com.yundao.bp.iam.security.RequirePerm("rpt:report:query")
     @PostMapping("/reports/query")
     public R<ReportResultVO> query(@Valid @RequestBody ReportQueryCmd cmd) {
         return R.ok(reportService.query(cmd));
     }
 
     /** 发起导出：exportFormat=CSV（默认）或 EXCEL（.xls）。 */
+    @com.yundao.bp.iam.security.RequirePerm("rpt:exports:export")
     @PostMapping("/exports")
     public R<ExportTaskVO> export(@Valid @RequestBody ReportQueryCmd cmd,
                                   @RequestParam(required = false) Long userId) {
@@ -63,6 +66,7 @@ public class RptController {
     }
 
     /** 下载导出文件。CSV 与 Excel 分别给对应的 Content-Type。 */
+    @com.yundao.bp.iam.security.RequirePerm("rpt:exports:export")
     @GetMapping("/exports/{id}/download")
     public org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> download(
             @PathVariable Long id) {
@@ -91,17 +95,20 @@ public class RptController {
                 .body(new org.springframework.core.io.FileSystemResource(f));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("rpt:exports:export")
     @GetMapping("/exports")
     public R<List<ExportTaskVO>> tasks(@RequestParam(required = false) Long userId) {
         return R.ok(reportService.listTasks(userId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("rpt:exports:export")
     @GetMapping("/exports/{id}")
     public R<ExportTaskVO> task(@PathVariable Long id) {
         return R.ok(reportService.getTask(id));
     }
 
     /** 预览导出文件文本（CSV）。默认最多返回 20 万字符，可用 limit 调整。 */
+    @com.yundao.bp.iam.security.RequirePerm("rpt:exports:export")
     @GetMapping("/exports/{id}/content")
     public R<String> content(@PathVariable Long id,
                              @RequestParam(defaultValue = "200000") int limit) {
@@ -112,6 +119,7 @@ public class RptController {
                 : s);
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("rpt:exports:export")
     @PostMapping("/exports/run-pending")
     public R<Integer> runPending() {
         return R.ok(reportService.runPendingTasks());
@@ -119,17 +127,20 @@ public class RptController {
 
     // ---------- 大屏 ----------
 
+    @com.yundao.bp.iam.security.RequirePerm("rpt:screens:view")
     @GetMapping("/screens")
     public R<List<RptScreenDef>> screens(@RequestParam(required = false) String screenType) {
         return R.ok(screenService.listScreens(screenType));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("rpt:screens:view")
     @GetMapping("/screens/{code}")
     public R<RptScreenDef> screen(@PathVariable String code) {
         return R.ok(screenService.getByCode(code));
     }
 
     /** ⭐ 大屏数据（配置驱动，逐组件取实时指标）。 */
+    @com.yundao.bp.iam.security.RequirePerm("rpt:screens:view")
     @GetMapping("/screens/{code}/data")
     public R<Map<String, Object>> screenData(@PathVariable String code,
                                              @RequestParam(required = false) Long orgId) {
@@ -146,11 +157,13 @@ public class RptController {
     // ---------- 指标 ----------
 
     /** 实时指标（驾驶舱/大屏通用）。 */
+    @com.yundao.bp.iam.security.RequirePerm("rpt:metrics:view")
     @GetMapping("/metrics/current")
     public R<Map<String, Object>> current(@RequestParam(required = false) Long orgId) {
         return R.ok(metricService.currentAll(orgId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("rpt:metrics:view")
     @GetMapping("/metrics/current/{code}")
     public R<Double> currentOne(@PathVariable String code,
                                 @RequestParam(required = false) Long orgId) {
@@ -158,11 +171,13 @@ public class RptController {
     }
 
     /** 指标日快照（供趋势）。 */
+    @com.yundao.bp.iam.security.RequirePerm("rpt:metrics:create")
     @PostMapping("/metrics/snapshot")
     public R<Integer> snapshot(@RequestParam(required = false) Long orgId) {
         return R.ok(metricService.snapshotToday(orgId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("rpt:metrics:view")
     @GetMapping("/metrics/trend/{code}")
     public R<List<RptMetricDaily>> trend(
             @PathVariable String code,

@@ -92,7 +92,7 @@ public class OpenPlatformController {
      * <p>校验签名/白名单/授权范围/时间窗，通过返回租户ID。
      * 无论成功失败都会落调用日志。
      */
-    @com.yundao.bp.iam.security.RequirePerm("open:app:view")
+    @com.yundao.bp.iam.security.RequirePerm("open:verify:verify")
     @PostMapping("/verify")
     public R<Map<String, Object>> verify(@Valid @RequestBody ApiCallCmd cmd,
                                          @RequestParam(required = false) String clientIp) {

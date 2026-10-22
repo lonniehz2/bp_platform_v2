@@ -74,11 +74,13 @@ public class SysController {
     }
 
     /** 按类型取「编码→标签」映射。 */
+    @com.yundao.bp.iam.security.RequirePerm("sys:dict:view")
     @GetMapping("/dicts/{dictType}/map")
     public R<Map<String, String>> mapDict(@PathVariable String dictType) {
         return R.ok(dictService.mapByType(dictType));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("sys:dict:view")
     @GetMapping("/dicts")
     public R<List<String>> dictTypes() {
         return R.ok(dictService.types());

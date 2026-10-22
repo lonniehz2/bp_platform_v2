@@ -30,16 +30,19 @@ public class CreditController {
         this.service = service;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("credits:credits:create")
     @PostMapping
     public R<CreditVO> record(@Valid @RequestBody CreditCreateCmd cmd) {
         return R.ok(service.record(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("credits:credits:view")
     @GetMapping("/{id}")
     public R<CreditVO> get(@PathVariable Long id) {
         return R.ok(service.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("credits:credits:view")
     @GetMapping
     public R<PageResult<CreditVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                         @RequestParam(defaultValue = "20") long pageSize,
@@ -49,6 +52,7 @@ public class CreditController {
         return R.ok(service.page(pageNum, pageSize, personId, violationType, status));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("credits:by-person:view")
     @GetMapping("/by-person/{personId}")
     public R<List<CreditVO>> byPerson(@PathVariable Long personId) {
         return R.ok(service.listByPerson(personId));
@@ -59,6 +63,7 @@ public class CreditController {
      *
      * <p>处于限制期返回 false 并给出解禁日期。
      */
+    @com.yundao.bp.iam.security.RequirePerm("credits:check-ban:view")
     @GetMapping("/check-ban")
     public R<String> checkBan(@RequestParam Long personId) {
         if (service.isUnderBan(personId)) {
@@ -68,12 +73,14 @@ public class CreditController {
     }
 
     /** 解除（期满）。 */
+    @com.yundao.bp.iam.security.RequirePerm("credits:expire:create")
     @PostMapping("/{id}/expire")
     public R<CreditVO> expire(@PathVariable Long id) {
         return R.ok(service.expire(id));
     }
 
     /** 撤销（复议/纠错）。 */
+    @com.yundao.bp.iam.security.RequirePerm("credits:revoke:revoke")
     @PostMapping("/{id}/revoke")
     public R<CreditVO> revoke(@PathVariable Long id,
                               @RequestBody(required = false) ReasonCmd cmd) {
@@ -81,6 +88,7 @@ public class CreditController {
     }
 
     /** 标记推送信用平台结果。 */
+    @com.yundao.bp.iam.security.RequirePerm("credits:push:create")
     @PostMapping("/{id}/push")
     public R<CreditVO> push(@PathVariable Long id,
                             @RequestBody(required = false) PushCmd cmd) {
@@ -90,6 +98,7 @@ public class CreditController {
     }
 
     /** 期满扫描。 */
+    @com.yundao.bp.iam.security.RequirePerm("credits:scan-expired:scan")
     @PostMapping("/scan-expired")
     public R<Integer> scanExpired() {
         return R.ok(service.scanExpired());

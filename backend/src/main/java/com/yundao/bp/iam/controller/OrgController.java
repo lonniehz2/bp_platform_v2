@@ -31,16 +31,19 @@ public class OrgController {
         this.orgService = orgService;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("orgs:orgs:create")
     @PostMapping
     public R<OrgVO> create(@Valid @RequestBody OrgCreateCmd cmd) {
         return R.ok(orgService.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("orgs:orgs:view")
     @GetMapping("/{id}")
     public R<OrgVO> get(@PathVariable Long id) {
         return R.ok(orgService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("orgs:orgs:view")
     @GetMapping
     public R<PageResult<OrgVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                     @RequestParam(defaultValue = "20") long pageSize,
@@ -50,11 +53,13 @@ public class OrgController {
         return R.ok(orgService.page(pageNum, pageSize, keyword, parentId, includeSubtree));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("orgs:children:view")
     @GetMapping("/children")
     public R<List<OrgVO>> children(@RequestParam(required = false) Long parentId) {
         return R.ok(orgService.children(parentId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("orgs:orgs:delete")
     @DeleteMapping("/{id}")
     public R<Void> delete(@PathVariable Long id) {
         orgService.delete(id);

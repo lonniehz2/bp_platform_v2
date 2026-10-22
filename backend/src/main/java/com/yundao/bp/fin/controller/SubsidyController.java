@@ -56,7 +56,7 @@ public class SubsidyController {
         return R.ok(service.pageStandards(pageNum, pageSize, securityType, subsidyMode, keyword));
     }
 
-    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:view")
+    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:status")
     @PostMapping("/standards/{id}/status")
     public R<SubsidyStandardVO> setStatus(@PathVariable Long id,
                                           @RequestBody StatusCmd cmd) {
@@ -72,19 +72,19 @@ public class SubsidyController {
 
     // ---------- 发放 ----------
 
-    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:view")
+    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:record")
     @PostMapping("/records")
     public R<SubsidyRecordVO> grant(@Valid @RequestBody SubsidyGrantCmd cmd) {
         return R.ok(service.grant(cmd));
     }
 
-    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:view")
+    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:record")
     @GetMapping("/records/{id}")
     public R<SubsidyRecordVO> getRecord(@PathVariable Long id) {
         return R.ok(service.getRecord(id));
     }
 
-    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:view")
+    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:record")
     @GetMapping("/records")
     public R<PageResult<SubsidyRecordVO>> pageRecords(
             @RequestParam(defaultValue = "1") long pageNum,
@@ -97,7 +97,7 @@ public class SubsidyController {
     }
 
     /** 批量发放。 */
-    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:view")
+    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:record")
     @PostMapping("/records/batch")
     public R<SubsidyService.BatchResult> grantBatch(@RequestBody BatchCmd cmd) {
         return R.ok(service.grantBatch(cmd.subsidyPeriod(), cmd.orgId(), cmd.payMode(),
@@ -105,7 +105,7 @@ public class SubsidyController {
     }
 
     /** 确认发放（OFFSET_RENT 会抵扣当期租金账单）。 */
-    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:view")
+    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:record")
     @PostMapping("/records/{id}/confirm")
     public R<SubsidyRecordVO> confirm(@PathVariable Long id, @RequestBody(required = false) ConfirmCmd cmd) {
         return R.ok(service.confirmPaid(id, cmd == null ? null : cmd.paidAmount(),
@@ -113,7 +113,7 @@ public class SubsidyController {
     }
 
     /** 标记发放失败。 */
-    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:view")
+    @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:record")
     @PostMapping("/records/{id}/fail")
     public R<SubsidyRecordVO> fail(@PathVariable Long id,
                                    @RequestBody(required = false) ReasonCmd cmd) {

@@ -334,6 +334,7 @@ public class RbacController {
         return R.ok(p);
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("rbac:perm:view")
     @GetMapping("/permissions")
     public R<List<IamPermission>> listPermissions(@RequestParam(required = false) String keyword) {
         LambdaQueryWrapper<IamPermission> qw = new LambdaQueryWrapper<>();

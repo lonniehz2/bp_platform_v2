@@ -36,16 +36,19 @@ public class FeeItemController {
         this.service = service;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:feeItem:create")
     @PostMapping("/fee-items")
     public R<FeeItemVO> createFeeItem(@Valid @RequestBody FeeItemCreateCmd cmd) {
         return R.ok(service.createFeeItem(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:feeItem:view")
     @GetMapping("/fee-items/{id}")
     public R<FeeItemVO> getFeeItem(@PathVariable Long id) {
         return R.ok(service.getFeeItem(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:feeItem:view")
     @GetMapping("/fee-items")
     public R<PageResult<FeeItemVO>> pageFeeItems(@RequestParam(defaultValue = "1") long pageNum,
                                                  @RequestParam(defaultValue = "20") long pageSize,
@@ -55,22 +58,26 @@ public class FeeItemController {
         return R.ok(service.pageFeeItems(pageNum, pageSize, itemType, calcMode, keyword));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:feeItem:status")
     @PostMapping("/fee-items/{id}/status")
     public R<FeeItemVO> setStatus(@PathVariable Long id,
                                   @RequestBody(required = false) StatusCmd cmd) {
         return R.ok(service.setFeeItemStatus(id, cmd != null && cmd.enabled()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:billing-rules:create")
     @PostMapping("/billing-rules")
     public R<FinBillingRule> createRule(@Valid @RequestBody BillingRuleCreateCmd cmd) {
         return R.ok(service.createRule(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:billing-rules:view")
     @GetMapping("/billing-rules/{id}")
     public R<FinBillingRule> getRule(@PathVariable Long id) {
         return R.ok(service.getRule(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:billing-rules:view")
     @GetMapping("/billing-rules")
     public R<List<FinBillingRule>> listRules(@RequestParam(required = false) Long feeItemId,
                                              @RequestParam(required = false) String houseType) {
@@ -78,6 +85,7 @@ public class FeeItemController {
     }
 
     /** 政府限价审批。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:billing-rules:approve")
     @PostMapping("/billing-rules/{id}/approve")
     public R<FinBillingRule> approveRule(@PathVariable Long id,
                                          @RequestBody(required = false) ApproveCmd cmd) {
@@ -85,6 +93,7 @@ public class FeeItemController {
     }
 
     /** 试算（不落库）。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:calc-preview:calc")
     @PostMapping("/calc-preview")
     public R<BillingCalculator.Result> preview(@Valid @RequestBody CalcPreviewCmd cmd) {
         return R.ok(service.preview(cmd));

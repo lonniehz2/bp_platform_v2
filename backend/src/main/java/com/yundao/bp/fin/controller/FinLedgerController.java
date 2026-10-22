@@ -46,6 +46,7 @@ public class FinLedgerController {
     // ==================== 催缴 ====================
 
     /** 逾期账单催缴建议。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:dunning")
     @GetMapping("/dunnings/scan")
     public R<List<DunningService.DunningSuggestion>> scanDunning(
             @RequestParam(defaultValue = "3") int minOverdueDays,
@@ -53,16 +54,19 @@ public class FinLedgerController {
         return R.ok(dunningService.scanNeedDunning(minOverdueDays, maxDunningTimes));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:dunning")
     @PostMapping("/dunnings")
     public R<DunningVO> createDunning(@Valid @RequestBody DunningCreateCmd cmd) {
         return R.ok(dunningService.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:dunning")
     @GetMapping("/dunnings/{id}")
     public R<DunningVO> getDunning(@PathVariable Long id) {
         return R.ok(dunningService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:dunning")
     @GetMapping("/dunnings")
     public R<PageResult<DunningVO>> pageDunning(@RequestParam(defaultValue = "1") long pageNum,
                                                 @RequestParam(defaultValue = "20") long pageSize,
@@ -72,6 +76,7 @@ public class FinLedgerController {
         return R.ok(dunningService.page(pageNum, pageSize, billId, personId, dunningType));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:dunning")
     @GetMapping("/dunnings/by-bill/{billId}")
     public R<List<DunningVO>> dunningByBill(@PathVariable Long billId) {
         return R.ok(dunningService.listByBill(billId));
@@ -79,16 +84,19 @@ public class FinLedgerController {
 
     // ==================== 对账 ====================
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:reconciles:create")
     @PostMapping("/reconciles")
     public R<ReconcileVO> createReconcile(@Valid @RequestBody ReconcileCreateCmd cmd) {
         return R.ok(reconcileService.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:reconciles:view")
     @GetMapping("/reconciles/{id}")
     public R<ReconcileVO> getReconcile(@PathVariable Long id) {
         return R.ok(reconcileService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:reconciles:view")
     @GetMapping("/reconciles")
     public R<PageResult<ReconcileVO>> pageReconcile(
             @RequestParam(defaultValue = "1") long pageNum,
@@ -104,6 +112,7 @@ public class FinLedgerController {
     }
 
     /** 处理对账差异。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:reconciles:handle")
     @PostMapping("/reconciles/{id}/handle")
     public R<ReconcileVO> handleReconcile(@PathVariable Long id,
                                           @RequestBody(required = false) RemarkCmd cmd) {
@@ -113,16 +122,19 @@ public class FinLedgerController {
     // ==================== 资金流水 ====================
 
     /** 手工登记流水。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:bill:create")
     @PostMapping("/cash-flows")
     public R<CashFlowVO> recordFlow(@Valid @RequestBody CashFlowRecordCmd cmd) {
         return R.ok(cashFlowService.recordManual(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:bill:view")
     @GetMapping("/cash-flows/{id}")
     public R<CashFlowVO> getFlow(@PathVariable Long id) {
         return R.ok(cashFlowService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:bill:view")
     @GetMapping("/cash-flows")
     public R<PageResult<CashFlowVO>> pageFlow(
             @RequestParam(defaultValue = "1") long pageNum,
@@ -139,6 +151,7 @@ public class FinLedgerController {
     }
 
     /** 期间净流入。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:bill:view")
     @GetMapping("/cash-flows/net")
     public R<BigDecimal> netFlow(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -149,6 +162,7 @@ public class FinLedgerController {
     }
 
     /** 校验流水。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:bill:verify")
     @PostMapping("/cash-flows/{id}/verify")
     public R<CashFlowVO> verifyFlow(@PathVariable Long id,
                                      @RequestBody(required = false) RemarkCmd cmd) {

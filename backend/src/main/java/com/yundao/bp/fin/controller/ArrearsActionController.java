@@ -32,7 +32,7 @@ public class ArrearsActionController {
     }
 
     /** 欠费扫描（只给建议，不落库）。 */
-    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:view")
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:scan")
     @GetMapping("/scan")
     public R<List<ArrearsActionService.ArrearsSuggestion>> scan(
             @RequestParam(defaultValue = "1") int minOverdueDays) {
@@ -69,14 +69,14 @@ public class ArrearsActionController {
     }
 
     /** 执行处置。 */
-    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:view")
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:execute")
     @PostMapping("/{id}/execute")
     public R<ArrearsActionVO> execute(@PathVariable Long id) {
         return R.ok(service.execute(id));
     }
 
     /** 撤销处置（已缴清）。 */
-    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:view")
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:revoke")
     @PostMapping("/{id}/revoke")
     public R<ArrearsActionVO> revoke(@PathVariable Long id,
                                      @RequestBody(required = false) ReasonCmd cmd) {

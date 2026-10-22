@@ -28,6 +28,7 @@ public class BillGenerationController {
         this.service = service;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:bill:create")
     @PostMapping("/bills/generate")
     public R<GenerateResultVO> generate(@Valid @RequestBody GenerateBillsCmd cmd) {
         return R.ok(service.generate(cmd));
@@ -38,6 +39,7 @@ public class BillGenerationController {
      *
      * <p>项目间相互隔离，单项失败不影响其它项，结果逐项返回。
      */
+    @com.yundao.bp.iam.security.RequirePerm("fin:bill:batch")
     @PostMapping("/bills/generate-batch")
     public R<GenerateBatchVO> generateBatch(@Valid @RequestBody GenerateBatchCmd cmd) {
         return R.ok(service.generateBatch(cmd));

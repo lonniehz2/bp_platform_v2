@@ -36,6 +36,7 @@ public class FileController {
     }
 
     /** ⭐ 上传（multipart/form-data）。 */
+    @com.yundao.bp.iam.security.RequirePerm("files:upload:create")
     @PostMapping("/upload")
     @Audit(type = "DATA", level = "IMPORTANT", action = "上传附件")
     public R<SysFile> upload(@RequestParam("file") MultipartFile file,
@@ -48,6 +49,7 @@ public class FileController {
     }
 
     /** 按业务单据列出附件。 */
+    @com.yundao.bp.iam.security.RequirePerm("files:files:view")
     @GetMapping
     public R<List<SysFile>> list(@RequestParam String bizType,
                                  @RequestParam(required = false) Long bizId) {
@@ -55,6 +57,7 @@ public class FileController {
     }
 
     /** ⭐ 下载/预览（浏览器内联展示图片）。 */
+    @com.yundao.bp.iam.security.RequirePerm("files:download:view")
     @GetMapping("/{id}/download")
     public ResponseEntity<InputStreamResource> download(@PathVariable Long id) {
         SysFile f = service.get(id);

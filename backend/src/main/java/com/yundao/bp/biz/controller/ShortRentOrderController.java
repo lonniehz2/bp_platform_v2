@@ -33,16 +33,19 @@ public class ShortRentOrderController {
         this.service = service;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("short-rent-orders:short-rent-orders:create")
     @PostMapping
     public R<ShortRentOrderVO> create(@Valid @RequestBody ShortRentOrderCreateCmd cmd) {
         return R.ok(service.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("short-rent-orders:short-rent-orders:view")
     @GetMapping("/{id}")
     public R<ShortRentOrderVO> get(@PathVariable Long id) {
         return R.ok(service.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("short-rent-orders:short-rent-orders:view")
     @GetMapping
     public R<PageResult<ShortRentOrderVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                                 @RequestParam(defaultValue = "20") long pageSize,
@@ -54,6 +57,7 @@ public class ShortRentOrderController {
     }
 
     /** 按房源+日期查订单（日房态视图）。 */
+    @com.yundao.bp.iam.security.RequirePerm("short-rent-orders:by-house:view")
     @GetMapping("/by-house")
     public R<PageResult<ShortRentOrderVO>> byHouse(
             @RequestParam Long houseId,
@@ -64,6 +68,7 @@ public class ShortRentOrderController {
     }
 
     /** 房晚试算。 */
+    @com.yundao.bp.iam.security.RequirePerm("short-rent-orders:calc-nights:calc")
     @GetMapping("/calc-nights")
     public R<Integer> calcNights(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
@@ -73,35 +78,41 @@ public class ShortRentOrderController {
         return R.ok(service.calcNights(checkIn, checkOut));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("short-rent-orders:confirm:create")
     @PostMapping("/{id}/confirm")
     public R<ShortRentOrderVO> confirm(@PathVariable Long id) {
         return R.ok(service.confirm(id));
     }
 
     /** 办理入住。 */
+    @com.yundao.bp.iam.security.RequirePerm("short-rent-orders:check-in:create")
     @PostMapping("/{id}/check-in")
     public R<ShortRentOrderVO> checkIn(@PathVariable Long id) {
         return R.ok(service.checkIn(id));
     }
 
     /** 办理退房（可追加超时/消费费用）。 */
+    @com.yundao.bp.iam.security.RequirePerm("short-rent-orders:check-out:create")
     @PostMapping("/{id}/check-out")
     public R<ShortRentOrderVO> checkOut(@PathVariable Long id,
                                         @RequestBody(required = false) ExtraCmd cmd) {
         return R.ok(service.checkOut(id, cmd == null ? null : cmd.extraAmount()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("short-rent-orders:cancel:cancel")
     @PostMapping("/{id}/cancel")
     public R<ShortRentOrderVO> cancel(@PathVariable Long id,
                                      @RequestBody(required = false) ReasonCmd cmd) {
         return R.ok(service.cancel(id, cmd == null ? null : cmd.reason()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("short-rent-orders:no-show:create")
     @PostMapping("/{id}/no-show")
     public R<ShortRentOrderVO> noShow(@PathVariable Long id) {
         return R.ok(service.markNoShow(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("short-rent-orders:pay:pay")
     @PostMapping("/{id}/pay")
     public R<ShortRentOrderVO> pay(@PathVariable Long id, @RequestBody PayCmd cmd) {
         return R.ok(service.pay(id, cmd.amount()));

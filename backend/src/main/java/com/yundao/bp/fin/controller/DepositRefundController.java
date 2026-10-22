@@ -34,21 +34,25 @@ public class DepositRefundController {
 
     // ---------- 押金 ----------
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:deposit:create")
     @PostMapping("/deposits")
     public R<DepositVO> createDeposit(@Valid @RequestBody DepositCreateCmd cmd) {
         return R.ok(service.createDeposit(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:deposit:view")
     @GetMapping("/deposits/{id}")
     public R<DepositVO> getDeposit(@PathVariable Long id) {
         return R.ok(service.getDeposit(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:deposit:view")
     @GetMapping("/deposits/by-contract/{contractId}")
     public R<DepositVO> byContract(@PathVariable Long contractId) {
         return R.ok(service.getDepositByContract(contractId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:deposit:view")
     @GetMapping("/deposits")
     public R<PageResult<DepositVO>> pageDeposits(@RequestParam(defaultValue = "1") long pageNum,
                                                  @RequestParam(defaultValue = "20") long pageSize,
@@ -58,12 +62,14 @@ public class DepositRefundController {
         return R.ok(service.pageDeposits(pageNum, pageSize, contractId, personId, status));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:deposit:create")
     @PostMapping("/deposits/{id}/receive")
     public R<DepositVO> receive(@PathVariable Long id, @RequestBody AmountCmd cmd) {
         return R.ok(service.receiveDeposit(id, cmd.amount()));
     }
 
     /** 押金抵扣（退租损坏赔偿等）。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:deposit:deduct")
     @PostMapping("/deposits/{id}/deduct")
     public R<DepositVO> deduct(@PathVariable Long id, @RequestBody AmountCmd cmd) {
         return R.ok(service.deductDeposit(id, cmd.amount(), cmd.reason()));
@@ -71,16 +77,19 @@ public class DepositRefundController {
 
     // ---------- 退款 ----------
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:refunds:refund")
     @PostMapping("/refunds")
     public R<RefundVO> createRefund(@Valid @RequestBody RefundCreateCmd cmd) {
         return R.ok(service.createRefund(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:refunds:refund")
     @GetMapping("/refunds/{id}")
     public R<RefundVO> getRefund(@PathVariable Long id) {
         return R.ok(service.getRefund(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:refunds:refund")
     @GetMapping("/refunds")
     public R<PageResult<RefundVO>> pageRefunds(@RequestParam(defaultValue = "1") long pageNum,
                                                @RequestParam(defaultValue = "20") long pageSize,
@@ -90,11 +99,13 @@ public class DepositRefundController {
         return R.ok(service.pageRefunds(pageNum, pageSize, personId, contractId, status));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:refunds:approve")
     @PostMapping("/refunds/{id}/approve")
     public R<RefundVO> approve(@PathVariable Long id, @RequestBody(required = false) ApproveCmd cmd) {
         return R.ok(service.approveRefund(id, cmd == null ? null : cmd.approveById()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("fin:refunds:refund")
     @PostMapping("/refunds/{id}/reject")
     public R<RefundVO> reject(@PathVariable Long id, @RequestBody(required = false) ApproveCmd cmd) {
         return R.ok(service.rejectRefund(id,
@@ -103,6 +114,7 @@ public class DepositRefundController {
     }
 
     /** 打款完成（联动押金台账）。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:refunds:refund")
     @PostMapping("/refunds/{id}/complete")
     public R<RefundVO> complete(@PathVariable Long id) {
         return R.ok(service.completeRefund(id));
