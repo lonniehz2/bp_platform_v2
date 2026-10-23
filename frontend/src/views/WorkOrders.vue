@@ -10,6 +10,8 @@
       <el-button type="warning" plain @click="openPlans" data-testid="inspection-plans">
         巡检计划
       </el-button>
+      <el-button plain :loading="saving" @click="autoAssignPending"
+                 data-testid="wo-autoassign-all">批量派单</el-button>
       <el-button type="primary" @click="reload">刷新</el-button>
     </div>
 
@@ -88,30 +90,35 @@
     </el-dialog>
 
     <el-table :data="rows" v-loading="loading" border size="small">
-      <el-table-column prop="orderNo" label="工单号" width="170" />
+      <el-table-column prop="workorderNo" label="工单号" width="180" />
       <el-table-column prop="orderType" label="类型" width="110">
         <template #default="{ row }">{{ row.orderTypeLabel || enumLabel('orderType', row.orderType) }}</template>
       </el-table-column>
-      <el-table-column prop="title" label="标题" min-width="200" />
-      <el-table-column prop="priority" label="优先级" width="100">
+      <el-table-column prop="orderTitle" label="标题" min-width="200" />
+      <el-table-column prop="orderSource" label="来源" width="100">
         <template #default="{ row }">
-          <el-tag size="small" :type="row.priority === 'URGENT' ? 'danger' : 'info'">
-            {{ row.priority }}
-          </el-tag>
+          {{ row.orderSourceLabel || enumLabel('orderSource', row.orderSource) || row.orderSource }}
         </template>
       </el-table-column>
-      <el-table-column prop="orderStatus" label="状态" width="120">
+      <el-table-column prop="orderStatus" label="状态" width="110">
         <template #default="{ row }">{{ row.orderStatusLabel || enumLabel('orderStatus', row.orderStatus) }}</template>
       </el-table-column>
-      <el-table-column prop="slaOverdue" label="SLA" width="100">
+      <el-table-column prop="assignUserName" label="处理人" width="110">
+        <template #default="{ row }">{{ row.assignUserName || '—' }}</template>
+      </el-table-column>
+      <el-table-column prop="slaStatus" label="SLA" width="100">
         <template #default="{ row }">
-          <el-tag v-if="row.slaOverdue" type="danger" size="small">超时</el-tag>
-          <span v-else class="muted">正常</span>
+          <el-tag v-if="row.responseOverdue || row.finishOverdue" type="danger" size="small">
+            超时
+          </el-tag>
+          <el-tag v-else type="success" size="small">正常</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="170" />
-      <el-table-column label="操作" width="230" fixed="right">
+      <el-table-column label="操作" width="270" fixed="right">
         <template #default="{ row }">
+          <el-button v-if="row.orderStatus === 'PENDING'" link type="warning"
+                     @click="autoAssign(row)" data-testid="wo-autoassign">自动派单</el-button>
           <el-button link type="primary" @click="act(row, 'accept')">接单</el-button>
           <el-button link type="primary" @click="act(row, 'start')">开始</el-button>
           <el-button link type="success" @click="finish(row)">完成</el-button>
@@ -225,6 +232,30 @@ async function finish(row) {
 async function logs(row) {
   logList.value = await workOrderApi.logs(row.id)
   logVisible.value = true
+}
+
+/** 自动派单：同组织服务岗在手工单最少者 */
+async function autoAssign(row) {
+  saving.value = true
+  try {
+    const r = await req.post(`/workorders/${row.id}/auto-assign`)
+    ElMessage.success(`已派给 ${r?.assignUserName || '处理人'}`)
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '派单失败')
+  } finally { saving.value = false }
+}
+
+/** 批量派单：处理当前所有待派单工单 */
+async function autoAssignPending() {
+  saving.value = true
+  try {
+    const n = await req.post('/workorders/auto-assign-pending')
+    ElMessage.success(n > 0 ? `已派单 ${n} 条` : '没有可派单的工单')
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '批量派单失败')
+  } finally { saving.value = false }
 }
 onMounted(load)
 </script>
