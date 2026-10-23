@@ -106,13 +106,17 @@ RES_ALIAS.update({
     'deposits': 'deposit', 'subsidies': 'subsidy', 'workorders': 'workorder',
     'complaints': 'complaint', 'appeals': 'appeal', 'permissions': 'perm',
 })
-RES_MODULE.update({
+try:
+    RES_MODULE.update({
     'alert': 'ops', 'rule': 'ops', 'grant': 'asset', 'profile': 'person',
     'access': 'asset', 'file': 'sys', 'publicity': 'biz', 'verify': 'person',
     'visit': 'ops', 'shortRent': 'biz', 'meterReading': 'fin',
     'inspectionPlan': 'ops', 'cohabitant': 'biz', 'org': 'iam',
     'open': 'open', 'gov': 'gov', 'contractChange': 'biz',
 })
+except NameError:
+    RES_MODULE = {}
+
 CONTROLLER_FALLBACK = {
     'ContractChangeController': ('contractChange', 'biz'),
     'PublicityReviewController': ('publicity', 'biz'),
@@ -153,6 +157,10 @@ def main():
             module = module_of(base)
             res = resource_of(base)
             module = normalize_module(module, res)
+            if not module or not res:
+                _fb = fallback_target(fn)
+                if _fb:
+                    res, module = _fb
             if not module or not res:
                 continue
 

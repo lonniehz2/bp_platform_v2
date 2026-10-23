@@ -123,13 +123,17 @@ RES_ALIAS.update({
     'deposits': 'deposit', 'subsidies': 'subsidy', 'workorders': 'workorder',
     'complaints': 'complaint', 'appeals': 'appeal', 'permissions': 'perm',
 })
-RES_MODULE.update({
+try:
+    RES_MODULE.update({
     'alert': 'ops', 'rule': 'ops', 'grant': 'asset', 'profile': 'person',
     'access': 'asset', 'file': 'sys', 'publicity': 'biz', 'verify': 'person',
     'visit': 'ops', 'shortRent': 'biz', 'meterReading': 'fin',
     'inspectionPlan': 'ops', 'cohabitant': 'biz', 'org': 'iam',
     'open': 'open', 'gov': 'gov', 'contractChange': 'biz',
 })
+except NameError:
+    RES_MODULE = {}
+
 CONTROLLER_FALLBACK = {
     'ContractChangeController': ('contractChange', 'biz'),
     'PublicityReviewController': ('publicity', 'biz'),
@@ -173,6 +177,10 @@ def main():
             if not module:
                 module = ss[0]
             module = normalize_module(module, res)
+            if not module or not res:
+                _fb = fallback_target(fn)
+                if _fb:
+                    res, module = _fb
             for mm in re.finditer(r'@(Get|Post|Put|Delete)Mapping(?:\("([^"]*)"\))?', src):
                 kind, sub = mm.group(1), (mm.group(2) or '')
                 act = METHOD_ACT.get(kind, 'view')

@@ -32,6 +32,41 @@ RES_ALIAS = {
 }
 METHOD_ACT = {'Get': 'view', 'Post': 'create', 'Put': 'update', 'Delete': 'delete'}
 
+# 复数/别名资源补充
+RES_ALIAS.update({
+    'alerts': 'alert', 'rules': 'rule', 'grants': 'grant', 'grant-reconcile': 'grant',
+    'guarantee-profiles': 'profile', 'access-records': 'access',
+    'house-calendar': 'house', 'files': 'file', 'todos': 'todo',
+    'publicities': 'publicity', 'verify-records': 'verify', 'visits': 'visit',
+    'short-rent-orders': 'shortRent', 'meter-readings': 'meterReading',
+    'inspection-plans': 'inspectionPlan', 'cohabitants': 'cohabitant',
+    'applications': 'application', 'terminations': 'termination',
+    'houses': 'house', 'spaces': 'space', 'persons': 'person', 'users': 'user',
+    'roles': 'role', 'orgs': 'org', 'bills': 'bill', 'payments': 'payment',
+    'deposits': 'deposit', 'subsidies': 'subsidy', 'workorders': 'workorder',
+    'complaints': 'complaint', 'appeals': 'appeal', 'permissions': 'perm',
+})
+RES_MODULE.update({
+    'alert': 'ops', 'rule': 'ops', 'grant': 'asset', 'profile': 'person',
+    'access': 'asset', 'file': 'sys', 'publicity': 'biz', 'verify': 'person',
+    'visit': 'ops', 'shortRent': 'biz', 'meterReading': 'fin',
+    'inspectionPlan': 'ops', 'cohabitant': 'biz', 'org': 'iam',
+})
+
+# 类级路径只有 /api/v1 时，按控制器文件名兜底
+CONTROLLER_FALLBACK = {
+    'ContractChangeController.java': ('contractChange', 'biz'),
+    'PublicityReviewController.java': ('publicity', 'biz'),
+    'VerifyRecordController.java': ('verify', 'person'),
+    'VisitController.java': ('visit', 'ops'),
+    'OpenPlatformController.java': ('app', 'open'),
+    'GovReportController.java': ('report', 'gov'),
+}
+
+
+def fallback_target(fn_name):
+    return CONTROLLER_FALLBACK.get(fn_name)
+
 total = annotated = 0
 derived = Counter()
 missing_by_module = Counter()
@@ -52,6 +87,10 @@ for dirpath, _, files in os.walk(JAVA):
             RES_ALIAS.get(parts[0], parts[0]) if parts else ''
         if module not in MODULES:
             module = RES_MODULE.get(res, module)
+        if not module or not res:
+            _fb = fallback_target(fn)
+            if _fb:
+                res, module = _fb
         if not module or not res:
             unmapped.append(fn)
 
