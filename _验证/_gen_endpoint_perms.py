@@ -108,6 +108,44 @@ def fetch(path, method='GET', body=None, token=None):
             return {'code': 'HTTP%d' % e.code}
 
 
+
+# ---------- 映射补充（资源别名 / 模块归属 / 控制器兜底） ----------
+RES_ALIAS.update({
+    'alerts': 'alert', 'rules': 'rule', 'grants': 'grant', 'grant-reconcile': 'grant',
+    'guarantee-profiles': 'profile', 'access-records': 'access',
+    'house-calendar': 'house', 'files': 'file', 'todos': 'todo',
+    'publicities': 'publicity', 'verify-records': 'verify', 'visits': 'visit',
+    'short-rent-orders': 'shortRent', 'meter-readings': 'meterReading',
+    'inspection-plans': 'inspectionPlan', 'cohabitants': 'cohabitant',
+    'applications': 'application', 'terminations': 'termination',
+    'houses': 'house', 'spaces': 'space', 'persons': 'person', 'users': 'user',
+    'roles': 'role', 'orgs': 'org', 'bills': 'bill', 'payments': 'payment',
+    'deposits': 'deposit', 'subsidies': 'subsidy', 'workorders': 'workorder',
+    'complaints': 'complaint', 'appeals': 'appeal', 'permissions': 'perm',
+})
+RES_MODULE.update({
+    'alert': 'ops', 'rule': 'ops', 'grant': 'asset', 'profile': 'person',
+    'access': 'asset', 'file': 'sys', 'publicity': 'biz', 'verify': 'person',
+    'visit': 'ops', 'shortRent': 'biz', 'meterReading': 'fin',
+    'inspectionPlan': 'ops', 'cohabitant': 'biz', 'org': 'iam',
+    'open': 'open', 'gov': 'gov', 'contractChange': 'biz',
+})
+CONTROLLER_FALLBACK = {
+    'ContractChangeController': ('contractChange', 'biz'),
+    'PublicityReviewController': ('publicity', 'biz'),
+    'VerifyRecordController': ('verify', 'person'),
+    'VisitController': ('visit', 'ops'),
+    'OpenPlatformController': ('app', 'open'),
+    'GovReportController': ('report', 'gov'),
+}
+
+
+def fallback_target(fn_name):
+    """类级路径不足时，按控制器文件名兜底。"""
+    return CONTROLLER_FALLBACK.get(fn_name.replace('.java', ''))
+
+
+
 def main():
     token = fetch('/auth/login', 'POST',
                   {'tenantCode': '350600', 'username': 'admin', 'password': 'admin123'})['data']['token']
@@ -134,6 +172,7 @@ def main():
                     res, module = res2, RES_MODULE[res2]
             if not module:
                 module = ss[0]
+            module = normalize_module(module, res)
             for mm in re.finditer(r'@(Get|Post|Put|Delete)Mapping(?:\("([^"]*)"\))?', src):
                 kind, sub = mm.group(1), (mm.group(2) or '')
                 act = METHOD_ACT.get(kind, 'view')

@@ -65,6 +65,13 @@ def fetch_perm_codes():
     return {p['permCode'] for p in call('/rbac/permissions', token=token)['data']}
 
 
+def normalize_module(module, resource):
+    """把 housе/houses 这类资源反查成所属模块（asset/fin/...）。"""
+    if module in ('biz', 'fin', 'asset', 'person', 'iam', 'sys', 'msg', 'ops', 'rpt', 'open', 'gov'):
+        return module
+    return RES_MODULE.get(resource, module)
+
+
 def segs(path):
     """拆出语义段：跳过 /api/v1 与 {param} 段"""
     parts = [p for p in path.split('/') if p]
@@ -82,6 +89,44 @@ def resource_of(path):
     ss = segs(path)
     seg = ss[1] if len(ss) > 1 else (ss[0] if ss else '')
     return RES_ALIAS.get(seg, seg)
+
+
+
+# ---------- 映射补充（资源别名 / 模块归属 / 控制器兜底） ----------
+RES_ALIAS.update({
+    'alerts': 'alert', 'rules': 'rule', 'grants': 'grant', 'grant-reconcile': 'grant',
+    'guarantee-profiles': 'profile', 'access-records': 'access',
+    'house-calendar': 'house', 'files': 'file', 'todos': 'todo',
+    'publicities': 'publicity', 'verify-records': 'verify', 'visits': 'visit',
+    'short-rent-orders': 'shortRent', 'meter-readings': 'meterReading',
+    'inspection-plans': 'inspectionPlan', 'cohabitants': 'cohabitant',
+    'applications': 'application', 'terminations': 'termination',
+    'houses': 'house', 'spaces': 'space', 'persons': 'person', 'users': 'user',
+    'roles': 'role', 'orgs': 'org', 'bills': 'bill', 'payments': 'payment',
+    'deposits': 'deposit', 'subsidies': 'subsidy', 'workorders': 'workorder',
+    'complaints': 'complaint', 'appeals': 'appeal', 'permissions': 'perm',
+})
+RES_MODULE.update({
+    'alert': 'ops', 'rule': 'ops', 'grant': 'asset', 'profile': 'person',
+    'access': 'asset', 'file': 'sys', 'publicity': 'biz', 'verify': 'person',
+    'visit': 'ops', 'shortRent': 'biz', 'meterReading': 'fin',
+    'inspectionPlan': 'ops', 'cohabitant': 'biz', 'org': 'iam',
+    'open': 'open', 'gov': 'gov', 'contractChange': 'biz',
+})
+CONTROLLER_FALLBACK = {
+    'ContractChangeController': ('contractChange', 'biz'),
+    'PublicityReviewController': ('publicity', 'biz'),
+    'VerifyRecordController': ('verify', 'person'),
+    'VisitController': ('visit', 'ops'),
+    'OpenPlatformController': ('app', 'open'),
+    'GovReportController': ('report', 'gov'),
+}
+
+
+def fallback_target(fn_name):
+    """类级路径不足时，按控制器文件名兜底。"""
+    return CONTROLLER_FALLBACK.get(fn_name.replace('.java', ''))
+
 
 
 def main():
@@ -107,6 +152,7 @@ def main():
             base = m.group(1)
             module = module_of(base)
             res = resource_of(base)
+            module = normalize_module(module, res)
             if not module or not res:
                 continue
 
