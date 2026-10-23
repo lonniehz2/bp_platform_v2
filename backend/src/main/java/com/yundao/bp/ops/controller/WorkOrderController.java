@@ -61,7 +61,20 @@ public class WorkOrderController {
                 assignUserId, keyword));
     }
 
-    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:sign")
+    /** 自动派单：同组织服务岗在手工单最少者。 */
+    @PostMapping("/{id}/auto-assign")
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:assign")
+    public R<WorkOrderVO> autoAssign(@PathVariable Long id) {
+        return R.ok(workOrderService.autoAssign(id));
+    }
+
+    /** 批量自动派单（所有待派单）。 */
+    @PostMapping("/auto-assign-pending")
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:assign")
+    public R<Integer> autoAssignPending(@RequestParam(required = false) Long orgId) {
+        return R.ok(workOrderService.autoAssignPending(orgId));
+    }
+
     @PostMapping("/{id}/assign")
     public R<WorkOrderVO> assign(@PathVariable Long id, @RequestBody AssignCmd cmd) {
         return R.ok(workOrderService.assign(id, cmd.assignUserId(), cmd.assignUserName(),

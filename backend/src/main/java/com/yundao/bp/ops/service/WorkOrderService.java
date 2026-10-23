@@ -46,4 +46,10 @@ public interface WorkOrderService {
 
     /** 驳回。 */
     WorkOrderVO reject(Long id, Long operatorId, String operatorName, String reason);
+
+    /** 自动派单：按同组织服务岗在手工单最少者分配。 */
+    WorkOrderVO autoAssign(Long id);
+
+    /** 批量自动派单：处理所有待派单工单，返回成功派单数。 */
+    int autoAssignPending(Long orgId);
 }

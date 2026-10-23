@@ -1,0 +1,96 @@
+    @Override
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
+    public WorkOrderVO autoAssign(Long id) {
+        OpsWorkorder e = requireOrder(id);
+        WorkOrderStatus st = statusOf(e);
+        if (st != WorkOrderStatus.PENDING) {
+            throw com.yundao.bp.common.exception.BizException.stateConflict(
+                    "只有待派单工单可以自动派单，当前状态：" + st.label());
+        }
+        if (assignUserMapper == null || assignUserRoleMapper == null
+                || assignRoleMapper == null) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid("派单服务未就绪");
+        }
+        Long candidate = pickAssignee(e.getOrgId());
+        if (candidate == null) {
+            throw com.yundao.bp.common.exception.BizException.stateConflict(
+                    "该组织下没有可派单的服务岗人员，请先分配角色");
+        }
+        com.yundao.bp.iam.entity.IamUser u = assignUserMapper.selectById(candidate);
+        String name = u == null ? null
+                : (u.getRealName() != null ? u.getRealName() : u.getUsername());
+        String phone = u == null ? null : u.getPhone();
+        return assign(id, candidate, name, phone, "系统自动派单（在手工单最少）");
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
+    public int autoAssignPending(Long orgId) {
+        java.util.List<OpsWorkorder> list = mapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                        <OpsWorkorder>()
+                        .eq(orgId != null, OpsWorkorder::getOrgId, orgId)
+                        .eq(OpsWorkorder::getOrderStatus, WorkOrderStatus.PENDING.name()));
+        int n = 0;
+        for (OpsWorkorder o : list) {
+            try {
+                autoAssign(o.getId());
+                n++;
+            } catch (Exception ex) {
+                log.debug("工单 {} 自动派单跳过：{}", o.getWorkorderNo(), ex.getMessage());
+            }
+        }
+        log.info("批量自动派单：待派 {}，成功 {}", list.size(), n);
+        return n;
+    }
+
+    /** 选择在手工单最少的服务岗人员。 */
+    private Long pickAssignee(Long orgId) {
+        java.util.List<String> serviceRoleCodes = java.util.List.of(
+                "SERVICE_CLERK", "STAFF", "ACCEPTOR");
+        java.util.List<Long> roleIds = new java.util.ArrayList<>();
+        for (com.yundao.bp.iam.entity.IamRole r : assignRoleMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                        <com.yundao.bp.iam.entity.IamRole>()
+                        .in(com.yundao.bp.iam.entity.IamRole::getRoleCode, serviceRoleCodes))) {
+            roleIds.add(r.getId());
+        }
+        if (roleIds.isEmpty()) {
+            return null;
+        }
+        java.util.LinkedHashSet<Long> userIds = new java.util.LinkedHashSet<>();
+        for (com.yundao.bp.iam.entity.IamUserRole ur : assignUserRoleMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                        <com.yundao.bp.iam.entity.IamUserRole>()
+                        .in(com.yundao.bp.iam.entity.IamUserRole::getRoleId, roleIds))) {
+            userIds.add(ur.getUserId());
+        }
+        if (userIds.isEmpty()) {
+            return null;
+        }
+        Long best = null;
+        long bestLoad = Long.MAX_VALUE;
+        java.util.List<Long> candidates = new java.util.ArrayList<>(userIds);
+        java.util.Collections.sort(candidates);
+        for (Long uid : candidates) {
+            com.yundao.bp.iam.entity.IamUser u = assignUserMapper.selectById(uid);
+            if (u == null || !"ENABLED".equals(u.getStatus())) {
+                continue;
+            }
+            if (orgId != null && u.getOrgId() != null && !orgId.equals(u.getOrgId())) {
+                continue;
+            }
+            Long load = mapper.selectCount(
+                    new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                            <OpsWorkorder>()
+                            .eq(OpsWorkorder::getAssignUserId, uid)
+                            .notIn(OpsWorkorder::getOrderStatus,
+                                    java.util.List.of("CLOSED", "CANCELLED", "FINISHED")));
+            long n = load == null ? 0 : load;
+            if (n < bestLoad) {
+                bestLoad = n;
+                best = uid;
+            }
+        }
+        return best;
+    }
