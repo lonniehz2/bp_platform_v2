@@ -40,6 +40,7 @@ public class MybatisTenantConfig {
             "bp_sys_config",        // 系统参数（全局默认 + 租户覆盖，由 ConfigService 自行合并，不能加租户过滤）
             "bp_msg_template",      // 系统内置消息模板
             "bp_rpt_report_def",    // 报表定义（全局默认 + 租户覆盖）
+            "bp_sys_region",        // 全国五级行政区划（全局参考数据，无 tenant_id）
             "bp_rpt_screen_def",    // 大屏定义（全局默认 + 租户覆盖）
             "bp_open_api",          // 开放接口清单
             // 调用日志按 appKey 归属，表本身无 tenant_id 列；

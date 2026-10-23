@@ -74,16 +74,16 @@
             <el-option label="部门 DEPARTMENT" value="DEPARTMENT" />
           </el-select></el-form-item>
         <el-form-item label="标准地址">
-          <el-row :gutter="8" style="width:100%">
-            <el-col :span="8"><el-input v-model="f.province" placeholder="省" /></el-col>
-            <el-col :span="8"><el-input v-model="f.city" placeholder="地市" /></el-col>
-            <el-col :span="8"><el-input v-model="f.district" placeholder="区/县" /></el-col>
-          </el-row>
-          <el-row :gutter="8" style="width:100%;margin-top:6px">
-            <el-col :span="8"><el-input v-model="f.street" placeholder="街道/乡镇" /></el-col>
-            <el-col :span="16"><el-input v-model="f.community" placeholder="社区/村" /></el-col>
-          </el-row>
+          <el-cascader v-model="regionPath" :props="regionProps" clearable filterable
+                       placeholder="省 / 地市 / 区县 / 街道乡镇（点击逐级选择）"
+                       style="width:100%" @change="onRegionChange" />
+          <div class="muted" style="font-size:12px;margin-top:4px">
+            数据来源：国家统计局五级行政区划（已载入省/市/区县/街道共
+            {{ regionCount }} 条）
+          </div>
         </el-form-item>
+        <el-form-item label="社区/村">
+          <el-input v-model="f.community" placeholder="社区、村委会名称（可手填）" /></el-form-item>
         <el-form-item label="详细地址">
           <el-input v-model="f.address"
                     placeholder="路牌、楼宇、房号等（如：天府三街199号3栋1单元1201）" /></el-form-item>
@@ -118,6 +118,45 @@ const f = reactive({ orgCode: '', orgName: '', parentId: null,
   orgType: 'COMMUNITY', province: '', city: '', district: '', street: '', community: '',
   address: '', sortNo: 1, remark: '' })
 const query = reactive({ pageNum: 1, pageSize: 20 })
+
+/** 五级行政区划级联（懒加载，逐级请求 /sys/regions/children） */
+const regionPath = ref([])
+const regionCount = ref('31 万+')
+const regionProps = {
+  lazy: true,
+  value: 'code',
+  label: 'name',
+  async lazyLoad(node, resolve) {
+    const parentCode = node.level === 0 ? '' : node.value
+    try {
+      const list = await req.get('/sys/regions/children', {
+        params: parentCode ? { parentCode } : {}
+      })
+      resolve((list || []).map((r) => ({
+        value: r.code, label: r.name, leaf: r.leaf
+      })))
+    } catch (e) {
+      resolve([])
+    }
+  }
+}
+
+function onRegionChange(codes) {
+  if (!codes || !codes.length) {
+    f.province = ''; f.city = ''; f.district = ''; f.street = ''
+    return
+  }
+  // codes 是逐级代码，按顺序映射到 省/市/区县/街道
+  req.get('/sys/regions/path', { params: { code: codes[codes.length - 1] } })
+    .then((path) => {
+      const names = (path || []).map((x) => x.name)
+      f.province = names[0] || ''
+      f.city = names[1] || ''
+      f.district = names[2] || ''
+      f.street = names[3] || ''
+    })
+    .catch(() => { /* 忽略，保留已填名称 */ })
+}
 const includeSubtree = ref(false)
 const currentOrg = ref(null)
 

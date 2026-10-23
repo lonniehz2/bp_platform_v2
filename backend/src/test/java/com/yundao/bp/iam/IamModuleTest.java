@@ -78,7 +78,9 @@ class IamModuleTest {
                 "bp_rpt_screen_def", "bp_open_api", "bp_open_call_log"),
                 MybatisTenantConfig.IGNORE_TABLES);
         OrgVO vo = orgService.create(new OrgCreateCmd(
-                "ZZ0001", "第1期小区", null, "COMMUNITY", "福建省漳州市", 1, null));
+                "ZZ0001", "第1期小区", null, "COMMUNITY",
+                null, null, null, null, null,
+                "福建省漳州市", 1, null));
 
         assertEquals("ZZ0001", vo.orgCode());
         assertEquals(1, vo.orgLevel());
@@ -100,7 +102,8 @@ class IamModuleTest {
         when(orgMapper.insert(any(IamOrg.class))).thenReturn(1);
 
         OrgVO vo = orgService.create(new OrgCreateCmd(
-                "ZZ0001-01", "1幢", 900001L, "COMMUNITY", null, 1, null));
+                "ZZ0001-01", "1幢", 900001L, "COMMUNITY",
+                null, null, null, null, null, null, 1, null));
 
         assertEquals(2, vo.orgLevel());
         assertEquals("900001/", vo.orgPath());
@@ -113,7 +116,8 @@ class IamModuleTest {
 
         BizException ex = assertThrows(BizException.class, () ->
                 orgService.create(new OrgCreateCmd(
-                        "ZZ0001", "重复", null, "COMMUNITY", null, 1, null)));
+                        "ZZ0001", "重复", null, "COMMUNITY",
+                null, null, null, null, null, null, 1, null)));
         assertEquals(ErrorCode.DUPLICATED, ex.errorCode());
     }
 
@@ -125,7 +129,7 @@ class IamModuleTest {
 
         BizException ex = assertThrows(BizException.class, () ->
                 orgService.create(new OrgCreateCmd(
-                        "X", "X", 888888L, "COMMUNITY", null, 1, null)));
+                        "X", "X", 888888L, "COMMUNITY", null, null, null, null, null, null, 1, null)));
         assertEquals(ErrorCode.NOT_FOUND, ex.errorCode());
     }
 
@@ -152,7 +156,7 @@ class IamModuleTest {
         TenantContext.clear();
         BizException ex = assertThrows(BizException.class, () ->
                 orgService.create(new OrgCreateCmd(
-                        "A", "A", null, "COMMUNITY", null, 1, null)));
+                        "A", "A", null, "COMMUNITY", null, null, null, null, null, null, 1, null)));
         assertEquals(ErrorCode.TENANT_CONTEXT_MISSING, ex.errorCode());
     }
 }
