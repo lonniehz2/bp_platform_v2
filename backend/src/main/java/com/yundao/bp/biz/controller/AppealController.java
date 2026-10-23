@@ -31,16 +31,19 @@ public class AppealController {
         this.service = service;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:appeal:create")
     @PostMapping
     public R<AppealVO> submit(@Valid @RequestBody AppealCreateCmd cmd) {
         return R.ok(service.submit(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:appeal:view")
     @GetMapping("/{id}")
     public R<AppealVO> get(@PathVariable Long id) {
         return R.ok(service.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:appeal:view")
     @GetMapping
     public R<PageResult<AppealVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                         @RequestParam(defaultValue = "20") long pageSize,
@@ -51,17 +54,20 @@ public class AppealController {
     }
 
     /** 某业务对象的申诉记录。 */
+    @com.yundao.bp.iam.security.RequirePerm("ops:appeal:view")
     @GetMapping("/by-biz")
     public R<List<AppealVO>> byBiz(@RequestParam String bizType, @RequestParam Long bizId) {
         return R.ok(service.listByBiz(bizType, bizId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:appeal:create")
     @PostMapping("/{id}/accept")
     public R<AppealVO> accept(@PathVariable Long id,
                               @RequestBody(required = false) UserCmd cmd) {
         return R.ok(service.accept(id, cmd == null ? null : cmd.userId()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:appeal:create")
     @PostMapping("/{id}/investigate")
     public R<AppealVO> investigate(@PathVariable Long id,
                                    @RequestBody(required = false) UserCmd cmd) {
@@ -69,12 +75,14 @@ public class AppealController {
     }
 
     /** 作出决定。 */
+    @com.yundao.bp.iam.security.RequirePerm("ops:appeal:create")
     @PostMapping("/{id}/decide")
     public R<AppealVO> decide(@PathVariable Long id,
                               @Valid @RequestBody AppealDecisionCmd cmd) {
         return R.ok(service.decide(id, cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:appeal:create")
     @PostMapping("/{id}/withdraw")
     public R<AppealVO> withdraw(@PathVariable Long id,
                                 @RequestBody(required = false) ReasonCmd cmd) {
@@ -82,12 +90,14 @@ public class AppealController {
     }
 
     /** 告知结果。 */
+    @com.yundao.bp.iam.security.RequirePerm("ops:appeal:create")
     @PostMapping("/{id}/notify")
     public R<AppealVO> notifyResult(@PathVariable Long id) {
         return R.ok(service.markNotified(id));
     }
 
     /** 超期标记扫描。 */
+    @com.yundao.bp.iam.security.RequirePerm("ops:appeal:create")
     @PostMapping("/mark-timeout")
     public R<Integer> markTimeout() {
         return R.ok(service.markTimeout());

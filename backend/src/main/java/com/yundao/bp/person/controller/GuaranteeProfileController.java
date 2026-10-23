@@ -41,6 +41,7 @@ public class GuaranteeProfileController {
         return R.ok(service.save(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("person:profile:view")
     @GetMapping("/person/{personId}")
     public R<PersonGuaranteeProfile> getByPerson(@PathVariable Long personId) {
         return R.ok(service.getByPerson(personId));
@@ -76,12 +77,14 @@ public class GuaranteeProfileController {
     }
 
     /** ⭐ 资格到期预警（年审依据）。 */
+    @com.yundao.bp.iam.security.RequirePerm("person:profile:view")
     @GetMapping("/expiring")
     public R<List<Map<String, Object>>> expiring(
             @RequestParam(defaultValue = "30") int withinDays) {
         return R.ok(service.expiring(withinDays));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("person:profile:view")
     @GetMapping
     public R<PageResult<PersonGuaranteeProfile>> page(
             @RequestParam(defaultValue = "1") long pageNum,

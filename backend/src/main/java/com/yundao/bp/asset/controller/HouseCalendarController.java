@@ -35,6 +35,7 @@ public class HouseCalendarController {
     }
 
     /** 月历（自动补齐缺失日期）。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:view")
     @GetMapping("/{houseId}")
     public R<List<DayCellVO>> month(@PathVariable Long houseId,
                                     @RequestParam String month) {
@@ -42,12 +43,14 @@ public class HouseCalendarController {
     }
 
     /** 补日历。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:create")
     @PostMapping("/{houseId}/ensure")
     public R<Integer> ensure(@PathVariable Long houseId, @RequestParam String month) {
         return R.ok(service.ensureMonth(houseId, YearMonth.parse(month)));
     }
 
     /** 单房源可售查询。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:view")
     @GetMapping("/{houseId}/availability")
     public R<AvailabilityVO> availability(
             @PathVariable Long houseId,
@@ -57,6 +60,7 @@ public class HouseCalendarController {
     }
 
     /** 整段可售的房源列表（短租搜房）。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:view")
     @GetMapping("/available")
     public R<List<AvailabilityVO>> search(
             @RequestParam(required = false) Long orgId,
@@ -66,12 +70,14 @@ public class HouseCalendarController {
     }
 
     /** 预订/占用。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:create")
     @PostMapping("/book")
     public R<Integer> book(@Valid @RequestBody BookCmd cmd) {
         return R.ok(service.book(cmd));
     }
 
     /** 释放占用。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:create")
     @PostMapping("/release")
     public R<Integer> release(@RequestBody ReleaseCmd cmd) {
         return R.ok(service.release(cmd.houseId(), cmd.checkIn(), cmd.checkOut(),
@@ -79,6 +85,7 @@ public class HouseCalendarController {
     }
 
     /** 停售/维修。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:status")
     @PostMapping("/{houseId}/status")
     public R<Integer> setStatus(@PathVariable Long houseId, @RequestBody StatusCmd cmd) {
         return R.ok(service.setStatus(houseId, cmd.start(), cmd.end(), cmd.dayStatus(),
@@ -86,6 +93,7 @@ public class HouseCalendarController {
     }
 
     /** 当日调价。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:create")
     @PostMapping("/{houseId}/price")
     public R<DayCellVO> setPrice(@PathVariable Long houseId, @RequestBody PriceCmd cmd) {
         return R.ok(service.setPrice(houseId, cmd.date(), cmd.price()));

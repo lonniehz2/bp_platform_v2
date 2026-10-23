@@ -31,21 +31,25 @@ public class WorkOrderController {
         this.workOrderService = workOrderService;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:create")
     @PostMapping
     public R<WorkOrderVO> create(@Valid @RequestBody WorkOrderCreateCmd cmd) {
         return R.ok(workOrderService.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:view")
     @GetMapping("/{id}")
     public R<WorkOrderVO> get(@PathVariable Long id) {
         return R.ok(workOrderService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:view")
     @GetMapping("/{id}/logs")
     public R<List<OpsWorkorderLog>> logs(@PathVariable Long id) {
         return R.ok(workOrderService.logs(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:view")
     @GetMapping
     public R<PageResult<WorkOrderVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                            @RequestParam(defaultValue = "20") long pageSize,
@@ -57,42 +61,49 @@ public class WorkOrderController {
                 assignUserId, keyword));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:sign")
     @PostMapping("/{id}/assign")
     public R<WorkOrderVO> assign(@PathVariable Long id, @RequestBody AssignCmd cmd) {
         return R.ok(workOrderService.assign(id, cmd.assignUserId(), cmd.assignUserName(),
                 cmd.assignUserPhone(), cmd.content()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:create")
     @PostMapping("/{id}/accept")
     public R<WorkOrderVO> accept(@PathVariable Long id, @RequestBody ActionCmd cmd) {
         return R.ok(workOrderService.accept(id, cmd.operatorId(), cmd.operatorName(),
                 cmd.content()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:create")
     @PostMapping("/{id}/start")
     public R<WorkOrderVO> start(@PathVariable Long id, @RequestBody ActionCmd cmd) {
         return R.ok(workOrderService.start(id, cmd.operatorId(), cmd.operatorName(),
                 cmd.content()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:create")
     @PostMapping("/{id}/finish")
     public R<WorkOrderVO> finish(@PathVariable Long id, @RequestBody ActionCmd cmd) {
         return R.ok(workOrderService.finish(id, cmd.operatorId(), cmd.operatorName(),
                 cmd.handleResult(), cmd.content()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:close")
     @PostMapping("/{id}/close")
     public R<WorkOrderVO> close(@PathVariable Long id, @RequestBody ActionCmd cmd) {
         return R.ok(workOrderService.close(id, cmd.operatorId(), cmd.operatorName(),
                 cmd.content()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:cancel")
     @PostMapping("/{id}/cancel")
     public R<WorkOrderVO> cancel(@PathVariable Long id, @RequestBody ActionCmd cmd) {
         return R.ok(workOrderService.cancel(id, cmd.operatorId(), cmd.operatorName(),
                 cmd.content()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:create")
     @PostMapping("/{id}/reject")
     public R<WorkOrderVO> reject(@PathVariable Long id, @RequestBody ActionCmd cmd) {
         return R.ok(workOrderService.reject(id, cmd.operatorId(), cmd.operatorName(),

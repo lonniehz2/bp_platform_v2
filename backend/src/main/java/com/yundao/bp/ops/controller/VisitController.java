@@ -31,16 +31,19 @@ public class VisitController {
         this.visitService = visitService;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:visit:create")
     @PostMapping
     public R<VisitVO> create(@Valid @RequestBody VisitCreateCmd cmd) {
         return R.ok(visitService.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:visit:view")
     @GetMapping("/{id}")
     public R<VisitVO> get(@PathVariable Long id) {
         return R.ok(visitService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:visit:view")
     @GetMapping
     public R<PageResult<VisitVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                        @RequestParam(defaultValue = "20") long pageSize,
@@ -52,12 +55,14 @@ public class VisitController {
     }
 
     /** 回填走访结果。 */
+    @com.yundao.bp.iam.security.RequirePerm("ops:visit:create")
     @PostMapping("/{id}/report")
     public R<VisitVO> report(@PathVariable Long id, @Valid @RequestBody VisitResultCmd cmd) {
         return R.ok(visitService.report(id, cmd));
     }
 
     /** 走访异常转工单。 */
+    @com.yundao.bp.iam.security.RequirePerm("ops:visit:create")
     @PostMapping("/{id}/to-workorder")
     public R<VisitVO> toWorkOrder(@PathVariable Long id,
                                   @RequestBody(required = false) Cmd cmd) {
@@ -66,6 +71,7 @@ public class VisitController {
                 cmd == null ? null : cmd.operatorName()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("ops:visit:cancel")
     @PostMapping("/{id}/cancel")
     public R<VisitVO> cancel(@PathVariable Long id, @RequestBody(required = false) Cmd cmd) {
         return R.ok(visitService.cancel(id, cmd == null ? null : cmd.reason()));

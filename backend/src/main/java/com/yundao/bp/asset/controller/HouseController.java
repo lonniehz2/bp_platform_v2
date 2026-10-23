@@ -29,16 +29,19 @@ public class HouseController {
         this.houseService = houseService;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:create")
     @PostMapping
     public R<HouseVO> create(@Valid @RequestBody HouseCreateCmd cmd) {
         return R.ok(houseService.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:view")
     @GetMapping("/{id}")
     public R<HouseVO> get(@PathVariable Long id) {
         return R.ok(houseService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:view")
     @GetMapping
     public R<PageResult<HouseVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                        @RequestParam(defaultValue = "20") long pageSize,
@@ -66,6 +69,7 @@ public class HouseController {
         return R.ok(houseService.importCsv(file));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:status")
     @PostMapping("/{id}/status")
     public R<HouseVO> changeStatus(@PathVariable Long id, @RequestBody StatusCmd cmd) {
         return R.ok(houseService.changeStatus(id, cmd.status()));

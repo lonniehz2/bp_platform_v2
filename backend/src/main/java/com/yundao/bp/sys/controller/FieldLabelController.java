@@ -22,12 +22,14 @@ public class FieldLabelController {
         this.fieldLabelService = fieldLabelService;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("sys:field-labels:view")
     @GetMapping
     public R<Map<String, String>> labels() {
         return R.ok(fieldLabelService.labels());
     }
 
     /** DDL 变更后手动刷新缓存 */
+    @com.yundao.bp.iam.security.RequirePerm("sys:field-labels:create")
     @PostMapping("/refresh")
     public R<Integer> refresh() {
         fieldLabelService.refresh();

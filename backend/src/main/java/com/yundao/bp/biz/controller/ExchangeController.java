@@ -29,16 +29,19 @@ public class ExchangeController {
         this.service = service;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:exchange:create")
     @PostMapping
     public R<ExchangeVO> apply(@Valid @RequestBody ExchangeCreateCmd cmd) {
         return R.ok(service.apply(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:exchange:view")
     @GetMapping("/{id}")
     public R<ExchangeVO> get(@PathVariable Long id) {
         return R.ok(service.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:exchange:view")
     @GetMapping
     public R<PageResult<ExchangeVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                           @RequestParam(defaultValue = "20") long pageSize,
@@ -48,17 +51,20 @@ public class ExchangeController {
         return R.ok(service.page(pageNum, pageSize, personId, oldContractId, status));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:exchange:submit")
     @PostMapping("/{id}/submit")
     public R<ExchangeVO> submit(@PathVariable Long id) {
         return R.ok(service.submit(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:exchange:approve")
     @PostMapping("/{id}/approve")
     public R<ExchangeVO> approve(@PathVariable Long id,
                                  @RequestBody(required = false) ReasonCmd cmd) {
         return R.ok(service.approve(id, cmd == null ? null : cmd.reason()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:exchange:create")
     @PostMapping("/{id}/reject")
     public R<ExchangeVO> reject(@PathVariable Long id,
                                 @RequestBody(required = false) ReasonCmd cmd) {
@@ -66,12 +72,14 @@ public class ExchangeController {
     }
 
     /** 执行换房（权限迁移）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:exchange:create")
     @PostMapping("/{id}/complete")
     public R<ExchangeVO> complete(@PathVariable Long id) {
         return R.ok(service.complete(id));
     }
 
     /** 标记应换不换（重庆 1.5 倍计租）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:exchange:change")
     @PostMapping("/{id}/no-exchange")
     public R<ExchangeVO> noExchange(@PathVariable Long id,
                                     @RequestBody(required = false) ReasonCmd cmd) {
@@ -79,6 +87,7 @@ public class ExchangeController {
     }
 
     /** 某合同已完成换房次数。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:exchange:view")
     @GetMapping("/count")
     public R<Integer> count(@RequestParam Long oldContractId) {
         return R.ok(service.countCompleted(oldContractId));

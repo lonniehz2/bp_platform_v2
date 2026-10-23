@@ -31,16 +31,19 @@ public class PersonController {
         this.personService = personService;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("person:person:create")
     @PostMapping
     public R<PersonVO> create(@Valid @RequestBody PersonCreateCmd cmd) {
         return R.ok(personService.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("person:person:view")
     @GetMapping("/{id}")
     public R<PersonVO> get(@PathVariable Long id) {
         return R.ok(personService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("person:person:view")
     @GetMapping
     public R<PageResult<PersonVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                         @RequestParam(defaultValue = "20") long pageSize,
@@ -53,22 +56,26 @@ public class PersonController {
     }
 
     /** 按身份证号精确查找（走哈希列）。未找到返回 null 而非 404。 */
+    @com.yundao.bp.iam.security.RequirePerm("person:person:view")
     @GetMapping("/by-id-card")
     public R<PersonVO> byIdCard(@RequestParam String idCard) {
         return R.ok(personService.findByIdCard(idCard));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("person:person:update")
     @PutMapping("/{id}")
     public R<PersonVO> update(@PathVariable Long id,
                               @Valid @RequestBody com.yundao.bp.person.dto.PersonUpdateCmd cmd) {
         return R.ok(personService.update(id, cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("person:person:status")
     @PostMapping("/{id}/status")
     public R<PersonVO> changeStatus(@PathVariable Long id, @RequestBody StatusCmd cmd) {
         return R.ok(personService.changeStatus(id, cmd.status()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("person:person:delete")
     @DeleteMapping("/{id}")
     public R<Void> delete(@PathVariable Long id) {
         personService.delete(id);

@@ -28,33 +28,39 @@ public class SpaceController {
         this.spaceService = spaceService;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:space:create")
     @PostMapping
     public R<SpaceVO> create(@Valid @RequestBody SpaceCreateCmd cmd) {
         return R.ok(spaceService.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:space:view")
     @GetMapping("/{id}")
     public R<SpaceVO> get(@PathVariable Long id) {
         return R.ok(spaceService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:space:view")
     @GetMapping("/children")
     public R<List<SpaceVO>> children(@RequestParam(required = false) Long parentId) {
         return R.ok(spaceService.children(parentId));
     }
 
     /** 整棵子树（按 path_code 前序排序）。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:space:view")
     @GetMapping("/{id}/subtree")
     public R<List<SpaceVO>> subtree(@PathVariable Long id) {
         return R.ok(spaceService.subtree(id));
     }
 
     /** 某组织（小区）下的完整空间树。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:space:view")
     @GetMapping("/tree")
     public R<List<SpaceVO>> tree(@RequestParam Long orgId) {
         return R.ok(spaceService.treeOfOrg(orgId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:space:delete")
     @DeleteMapping("/{id}")
     public R<Void> delete(@PathVariable Long id) {
         spaceService.delete(id);

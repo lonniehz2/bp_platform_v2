@@ -36,16 +36,19 @@ public class ContractController {
         this.contractService = contractService;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:create")
     @PostMapping
     public R<ContractVO> create(@Valid @RequestBody ContractCreateCmd cmd) {
         return R.ok(contractService.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:view")
     @GetMapping("/{id}")
     public R<ContractVO> get(@PathVariable Long id) {
         return R.ok(contractService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:view")
     @GetMapping
     public R<PageResult<ContractVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                           @RequestParam(defaultValue = "20") long pageSize,
@@ -58,11 +61,13 @@ public class ContractController {
                 lesseePersonId, keyword));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:sign")
     @PostMapping("/{id}/submit-sign")
     public R<ContractVO> submitSign(@PathVariable Long id) {
         return R.ok(contractService.submitSign(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:sign")
     @PostMapping("/{id}/start-signing")
     public R<ContractVO> startSigning(@PathVariable Long id,
                                       @RequestBody(required = false) SignCmd cmd) {
@@ -70,6 +75,7 @@ public class ContractController {
     }
 
     /** 签署生效。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:sign")
     @PostMapping("/{id}/sign")
     public R<ContractVO> sign(@PathVariable Long id, @RequestBody(required = false) SignCmd cmd) {
         return R.ok(contractService.sign(id,
@@ -78,18 +84,21 @@ public class ContractController {
     }
 
     /** 续签。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:renew")
     @PostMapping("/{id}/renew")
     public R<ContractVO> renew(@PathVariable Long id, @RequestBody RenewCmd cmd) {
         return R.ok(contractService.renew(id, cmd.newLeaseEnd(), cmd.newMonthlyRent()));
     }
 
     /** 终止（退租）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:terminate")
     @PostMapping("/{id}/terminate")
     public R<ContractVO> terminate(@PathVariable Long id,
                                    @RequestBody(required = false) SignCmd cmd) {
         return R.ok(contractService.terminate(id, cmd == null ? null : cmd.reason()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:cancel")
     @PostMapping("/{id}/cancel")
     public R<ContractVO> cancel(@PathVariable Long id,
                                 @RequestBody(required = false) SignCmd cmd) {
@@ -97,6 +106,7 @@ public class ContractController {
     }
 
     /** 到期扫描（可挂定时任务）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:create")
     @PostMapping("/expire-due")
     public R<Integer> expireDue() {
         return R.ok(contractService.expireDue());

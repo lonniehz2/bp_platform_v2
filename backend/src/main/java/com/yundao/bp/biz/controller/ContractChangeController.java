@@ -31,6 +31,7 @@ public class ContractChangeController {
     }
 
     /** 发起变更（合同维度）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:change")
     @PostMapping("/contracts/{contractId}/changes")
     public R<ChangeVO> create(@PathVariable Long contractId,
                               @Valid @RequestBody ChangeCreateCmd cmd) {
@@ -43,11 +44,13 @@ public class ContractChangeController {
         return R.ok(service.createFromReview(reviewId, cmd.newMonthlyRent(), cmd.reason()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:change")
     @GetMapping("/contract-changes/{id}")
     public R<ChangeVO> get(@PathVariable Long id) {
         return R.ok(service.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:change")
     @GetMapping("/contract-changes")
     public R<PageResult<ChangeVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                         @RequestParam(defaultValue = "20") long pageSize,
@@ -58,11 +61,13 @@ public class ContractChangeController {
     }
 
     /** 批准并写回合同。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:approve")
     @PostMapping("/contract-changes/{id}/approve")
     public R<ChangeVO> approve(@PathVariable Long id) {
         return R.ok(service.approve(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:change")
     @PostMapping("/contract-changes/{id}/reject")
     public R<ChangeVO> reject(@PathVariable Long id,
                               @RequestBody(required = false) ReasonCmd cmd) {

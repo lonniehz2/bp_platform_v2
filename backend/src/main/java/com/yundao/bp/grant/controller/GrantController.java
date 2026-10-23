@@ -36,16 +36,19 @@ public class GrantController {
         this.grantServiceImpl = grantServiceImpl;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:create")
     @PostMapping
     public R<GrantVO> apply(@Valid @RequestBody GrantApplyCmd cmd) {
         return R.ok(grantService.apply(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:view")
     @GetMapping("/{id}")
     public R<GrantVO> get(@PathVariable Long id) {
         return R.ok(grantService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:view")
     @GetMapping
     public R<PageResult<GrantVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                        @RequestParam(defaultValue = "20") long pageSize,
@@ -56,17 +59,20 @@ public class GrantController {
     }
 
     /** 任务状态（轮询用）。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:view")
     @GetMapping("/tasks/{taskId}")
     public R<GrantTaskVO> task(@PathVariable Long taskId) {
         return R.ok(grantService.task(taskId));
     }
 
     /** 任务逐设备明细。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:view")
     @GetMapping("/tasks/{taskId}/details")
     public R<List<GrantTaskDetail>> details(@PathVariable Long taskId) {
         return R.ok(grantServiceImpl.details(taskId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:revoke")
     @PostMapping("/{id}/revoke")
     public R<GrantVO> revoke(@PathVariable Long id, @RequestBody(required = false) RevokeCmd cmd) {
         return R.ok(grantService.revoke(id, cmd == null ? null : cmd.reason()));

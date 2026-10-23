@@ -32,16 +32,19 @@ public class ApplicationController {
         this.applicationService = applicationService;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:application:create")
     @PostMapping
     public R<ApplicationVO> create(@Valid @RequestBody ApplicationCreateCmd cmd) {
         return R.ok(applicationService.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:application:view")
     @GetMapping("/{id}")
     public R<ApplicationVO> get(@PathVariable Long id) {
         return R.ok(applicationService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:application:view")
     @GetMapping
     public R<PageResult<ApplicationVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                              @RequestParam(defaultValue = "20") long pageSize,
@@ -55,6 +58,7 @@ public class ApplicationController {
     }
 
     /** 受理（同时进入审核中）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:application:create")
     @PostMapping("/{id}/accept")
     public R<ApplicationVO> accept(@PathVariable Long id,
                                    @RequestBody(required = false) Cmd cmd) {
@@ -62,6 +66,7 @@ public class ApplicationController {
     }
 
     /** 提交审核结果。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:application:view")
     @PostMapping("/{id}/review")
     public R<ApplicationVO> review(@PathVariable Long id, @Valid @RequestBody ReviewCmd cmd,
                                    @RequestParam(required = false) Long userId,
@@ -70,12 +75,14 @@ public class ApplicationController {
     }
 
     /** 补件后重新提交。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:application:submit")
     @PostMapping("/{id}/resubmit")
     public R<ApplicationVO> resubmit(@PathVariable Long id) {
         return R.ok(applicationService.resubmit(id));
     }
 
     /** 撤回。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:application:cancel")
     @PostMapping("/{id}/cancel")
     public R<ApplicationVO> cancel(@PathVariable Long id,
                                    @RequestBody(required = false) Cmd cmd) {
@@ -83,6 +90,7 @@ public class ApplicationController {
     }
 
     /** 审核轨迹。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:application:view")
     @GetMapping("/{id}/reviews")
     public R<List<BizReviewRecord>> reviews(@PathVariable Long id) {
         return R.ok(applicationService.reviewRecords(id));

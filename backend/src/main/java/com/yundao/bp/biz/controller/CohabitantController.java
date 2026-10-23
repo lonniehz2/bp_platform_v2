@@ -29,28 +29,33 @@ public class CohabitantController {
         this.service = service;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:cohabitant:create")
     @PostMapping
     public R<CohabitantVO> add(@PathVariable Long contractId,
                                @Valid @RequestBody CohabitantCreateCmd cmd) {
         return R.ok(service.add(contractId, cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:cohabitant:view")
     @GetMapping
     public R<List<CohabitantVO>> list(@PathVariable Long contractId) {
         return R.ok(service.list(contractId));
     }
 
     /** 保障人口数（承租人 1 + 同住人）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:cohabitant:view")
     @GetMapping("/household-size")
     public R<Integer> householdSize(@PathVariable Long contractId) {
         return R.ok(service.householdSize(contractId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:cohabitant:view")
     @GetMapping("/{id}")
     public R<CohabitantVO> get(@PathVariable Long contractId, @PathVariable Long id) {
         return R.ok(service.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:cohabitant:delete")
     @DeleteMapping("/{id}")
     public R<Void> remove(@PathVariable Long contractId, @PathVariable Long id) {
         service.remove(id);
@@ -58,6 +63,7 @@ public class CohabitantController {
     }
 
     /** 门禁开门授权。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:cohabitant:grant")
     @PostMapping("/{id}/grant")
     public R<CohabitantVO> grant(@PathVariable Long contractId, @PathVariable Long id,
                                  @RequestBody GrantCmd cmd) {

@@ -40,17 +40,20 @@ public class KeyringController {
     }
 
     /** ⭐ 某人钥匙包。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:keyring:view")
     @GetMapping("/person/{personId}")
     public R<List<KeyringVO>> listByPerson(@PathVariable Long personId) {
         return R.ok(service.listByPerson(personId));
     }
 
     /** ⭐ 钥匙包概览（四分类统计 + 是否满足强安全要求）。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:keyring:view")
     @GetMapping("/person/{personId}/summary")
     public R<Map<String, Object>> summary(@PathVariable Long personId) {
         return R.ok(service.summary(personId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:keyring:view")
     @GetMapping
     public R<PageResult<KeyringVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                          @RequestParam(defaultValue = "20") long pageSize,
@@ -61,6 +64,7 @@ public class KeyringController {
         return R.ok(service.page(pageNum, pageSize, personId, keyType, keyClass, keyStatus));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:keyring:view")
     @GetMapping("/{id}")
     public R<KeyringVO> get(@PathVariable Long id) {
         return R.ok(KeyringVO.from(service.get(id)));

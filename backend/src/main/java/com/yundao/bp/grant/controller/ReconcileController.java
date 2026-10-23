@@ -37,6 +37,7 @@ public class ReconcileController {
         return R.ok(service.reconcile(lockId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:view")
     @GetMapping("/diffs")
     public R<PageResult<GrantReconcileDiff>> diffs(
             @RequestParam(defaultValue = "1") long pageNum,
@@ -47,6 +48,7 @@ public class ReconcileController {
         return R.ok(service.pageDiffs(pageNum, pageSize, lockId, diffType, handleStatus));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:view")
     @GetMapping("/diffs/pending")
     public R<List<GrantReconcileDiff>> pending() {
         return R.ok(service.listByHandleStatus("PENDING"));
@@ -69,6 +71,7 @@ public class ReconcileController {
     }
 
     /** 未处置差异统计（看板）。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:view")
     @GetMapping("/stats")
     public R<Map<String, Object>> stats() {
         return R.ok(service.stats());

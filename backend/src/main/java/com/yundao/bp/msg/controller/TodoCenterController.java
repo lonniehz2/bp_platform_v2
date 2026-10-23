@@ -23,6 +23,7 @@ public class TodoCenterController {
         this.service = service;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("msg:todo:view")
     @GetMapping("/overview")
     public R<TodoOverviewVO> overview() {
         return R.ok(service.overview());

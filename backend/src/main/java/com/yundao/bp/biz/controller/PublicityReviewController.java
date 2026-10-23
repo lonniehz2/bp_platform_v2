@@ -41,16 +41,19 @@ public class PublicityReviewController {
 
     // ---------- 公示 ----------
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:publicity:create")
     @PostMapping("/publicities")
     public R<PublicityVO> createPublicity(@Valid @RequestBody PublicityCreateCmd cmd) {
         return R.ok(publicityService.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:publicity:view")
     @GetMapping("/publicities/{id}")
     public R<PublicityVO> getPublicity(@PathVariable Long id) {
         return R.ok(publicityService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:publicity:view")
     @GetMapping("/publicities")
     public R<PageResult<PublicityVO>> pagePublicity(
             @RequestParam(defaultValue = "1") long pageNum,
@@ -70,11 +73,13 @@ public class PublicityReviewController {
         return R.ok(publicityService.winners(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:publicity:publish")
     @PostMapping("/publicities/{id}/publish")
     public R<PublicityVO> publishPublicity(@PathVariable Long id) {
         return R.ok(publicityService.publish(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:publicity:close")
     @PostMapping("/publicities/{id}/close")
     public R<PublicityVO> closePublicity(@PathVariable Long id,
                                          @RequestBody(required = false) RemarkCmd cmd) {
@@ -82,6 +87,7 @@ public class PublicityReviewController {
     }
 
     /** 是否已完成配租公示（签约前置校验）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:publicity:view")
     @GetMapping("/publicities/allocation-check")
     public R<Boolean> allocationCheck(
             @RequestParam(required = false) Long orgId,

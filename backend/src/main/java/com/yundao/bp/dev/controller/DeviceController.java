@@ -38,6 +38,7 @@ public class DeviceController {
      * onlineStatus。该表<b>没有</b> houseId / lockId 列——门锁与房源的关系
      * 由绑定记录与空间层级推导，不在设备表冗余。
      */
+    @com.yundao.bp.iam.security.RequirePerm("asset:device:view")
     @GetMapping
     public R<PageResult<DevDevice>> page(
             @RequestParam(defaultValue = "1") long pageNum,
@@ -59,6 +60,7 @@ public class DeviceController {
     }
 
     /** 设备详情。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:device:view")
     @GetMapping("/{id}")
     public R<DevDevice> get(@PathVariable Long id) {
         DevDevice d = mapper.selectById(id);
@@ -69,6 +71,7 @@ public class DeviceController {
     }
 
     /** 在线/绑定状态统计（看板用）。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:device:view")
     @GetMapping("/stats")
     public R<java.util.Map<String, Object>> stats() {
         long total = orZero(mapper.selectCount(new LambdaQueryWrapper<>()));

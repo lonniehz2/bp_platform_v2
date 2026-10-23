@@ -40,11 +40,13 @@ public class VerifyRecordController {
                 cmd.faceResult(), cmd.citizenResult(), cmd.rawResponse()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("person:verify:view")
     @GetMapping("/{id}")
     public R<PersonVerifyRecord> get(@PathVariable Long id) {
         return R.ok(service.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("person:verify:view")
     @GetMapping
     public R<PageResult<PersonVerifyRecord>> page(
             @RequestParam(defaultValue = "1") long pageNum,
@@ -57,6 +59,7 @@ public class VerifyRecordController {
     }
 
     /** ⭐ 认证结论（申请校验时用）。 */
+    @com.yundao.bp.iam.security.RequirePerm("person:verify:view")
     @GetMapping("/person/{personId}/conclusion")
     public R<Map<String, Object>> conclusion(@PathVariable Long personId) {
         return R.ok(service.conclusion(personId));

@@ -37,16 +37,19 @@ public class AllocationController {
     // ---------- 轮候 ----------
 
     /** 申请通过后入轮候库。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:create")
     @PostMapping("/waiting")
     public R<WaitingVO> enter(@Valid @RequestBody WaitingEnterCmd cmd) {
         return R.ok(service.enterQueue(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:view")
     @GetMapping("/waiting/{id}")
     public R<WaitingVO> getWaiting(@PathVariable Long id) {
         return R.ok(service.getWaiting(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:view")
     @GetMapping("/waiting")
     public R<PageResult<WaitingVO>> pageWaiting(@RequestParam(defaultValue = "1") long pageNum,
                                                 @RequestParam(defaultValue = "20") long pageSize,
@@ -57,23 +60,27 @@ public class AllocationController {
     }
 
     /** 重算轮候排名。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:calc")
     @PostMapping("/waiting/recalc")
     public R<Integer> recalc(@RequestParam(required = false) String securityType,
                              @RequestParam(required = false) Long orgId) {
         return R.ok(service.recalcRank(securityType, orgId));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:freeze")
     @PostMapping("/waiting/{id}/freeze")
     public R<WaitingVO> freeze(@PathVariable Long id,
                                @RequestBody(required = false) ReasonCmd cmd) {
         return R.ok(service.freezeWaiting(id, cmd == null ? null : cmd.reason()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:freeze")
     @PostMapping("/waiting/{id}/unfreeze")
     public R<WaitingVO> unfreeze(@PathVariable Long id) {
         return R.ok(service.unfreezeWaiting(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:create")
     @PostMapping("/waiting/{id}/exit")
     public R<WaitingVO> exit(@PathVariable Long id,
                              @RequestBody(required = false) ReasonCmd cmd) {
@@ -82,16 +89,19 @@ public class AllocationController {
 
     // ---------- 批次 ----------
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
     @PostMapping("/batches")
     public R<BatchVO> createBatch(@Valid @RequestBody BatchCreateCmd cmd) {
         return R.ok(service.createBatch(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
     @GetMapping("/batches/{id}")
     public R<BatchVO> getBatch(@PathVariable Long id) {
         return R.ok(service.getBatch(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
     @GetMapping("/batches")
     public R<PageResult<BatchVO>> pageBatch(@RequestParam(defaultValue = "1") long pageNum,
                                             @RequestParam(defaultValue = "20") long pageSize,
@@ -101,11 +111,13 @@ public class AllocationController {
     }
 
     /** 批次加房源。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
     @PostMapping("/batches/{id}/houses")
     public R<Integer> addHouses(@PathVariable Long id, @RequestBody HousesCmd cmd) {
         return R.ok(service.addHouses(id, cmd.houseIds()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
     @GetMapping("/batches/{id}/houses")
     public R<List<Long>> listHouses(@PathVariable Long id,
                                     @RequestParam(required = false) String inPoolStatus) {
@@ -113,6 +125,7 @@ public class AllocationController {
     }
 
     /** 状态流转（PUBLISHED / SIGNUP / SELECTING / CLOSED / CANCELLED）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
     @PostMapping("/batches/{id}/status")
     public R<BatchVO> transition(@PathVariable Long id, @RequestBody StatusCmd cmd) {
         return R.ok(service.transition(id, cmd.batchStatus()));
@@ -121,11 +134,13 @@ public class AllocationController {
     // ---------- 摇号 ----------
 
     /** 执行摇号（种子可复现、公证留痕）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:create")
     @PostMapping("/lottery")
     public R<List<LotteryResultVO>> lottery(@Valid @RequestBody LotteryRunCmd cmd) {
         return R.ok(service.runLottery(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
     @GetMapping("/lottery/{batchId}")
     public R<List<LotteryResultVO>> lotteryResults(@PathVariable Long batchId) {
         return R.ok(service.listLotteryResults(batchId));
@@ -134,16 +149,19 @@ public class AllocationController {
     // ---------- 配租 ----------
 
     /** 生成配租单（锁定房源）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:create")
     @PostMapping("/allocations")
     public R<AllocationVO> allocate(@Valid @RequestBody AllocateCmd cmd) {
         return R.ok(service.allocate(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:view")
     @GetMapping("/allocations/{id}")
     public R<AllocationVO> getAllocation(@PathVariable Long id) {
         return R.ok(service.getAllocation(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:view")
     @GetMapping("/allocations")
     public R<PageResult<AllocationVO>> pageAllocations(
             @RequestParam(defaultValue = "1") long pageNum,
@@ -155,12 +173,14 @@ public class AllocationController {
     }
 
     /** 签约。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:sign")
     @PostMapping("/allocations/{id}/sign")
     public R<AllocationVO> sign(@PathVariable Long id) {
         return R.ok(service.sign(id));
     }
 
     /** 放弃配租（释放房源）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:create")
     @PostMapping("/allocations/{id}/give-up")
     public R<AllocationVO> giveUp(@PathVariable Long id,
                                   @RequestBody(required = false) ReasonCmd cmd) {
@@ -168,6 +188,7 @@ public class AllocationController {
     }
 
     /** 扫描释放超时未签约的房源。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:create")
     @PostMapping("/allocations/release-expired")
     public R<Integer> releaseExpired() {
         return R.ok(service.releaseExpiredLocks());
