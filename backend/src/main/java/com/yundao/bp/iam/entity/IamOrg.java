@@ -32,6 +32,21 @@ public class IamOrg {
     /** 监管类别 */
     private String superviseType;
     private String address;
+    /** 标准地址-province */
+    private String province;
+
+    /** 标准地址-city */
+    private String city;
+
+    /** 标准地址-district */
+    private String district;
+
+    /** 标准地址-street */
+    private String street;
+
+    /** 标准地址-community */
+    private String community;
+
     private BigDecimal longitude;
     private BigDecimal latitude;
     private Integer sortNo;
@@ -82,6 +97,21 @@ public class IamOrg {
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+
+    public String getProvince() { return province; }
+    public void setProvince(String province) { this.province = province; }
+
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+
+    public String getDistrict() { return district; }
+    public void setDistrict(String district) { this.district = district; }
+
+    public String getStreet() { return street; }
+    public void setStreet(String street) { this.street = street; }
+
+    public String getCommunity() { return community; }
+    public void setCommunity(String community) { this.community = community; }
 
     public BigDecimal getLongitude() { return longitude; }
     public void setLongitude(BigDecimal longitude) { this.longitude = longitude; }

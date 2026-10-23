@@ -68,6 +68,11 @@ public class OrgServiceImpl implements OrgService {
         e.setOrgPath(orgPath);
         e.setOrgLevel(level);
         e.setOrgType(cmd.orgType());
+        e.setProvince(cmd.province());
+        e.setCity(cmd.city());
+        e.setDistrict(cmd.district());
+        e.setStreet(cmd.street());
+        e.setCommunity(cmd.community());
         e.setAddress(cmd.address());
         e.setSortNo(cmd.sortNo() == null ? 0 : cmd.sortNo());
         e.setStatus("ENABLED");

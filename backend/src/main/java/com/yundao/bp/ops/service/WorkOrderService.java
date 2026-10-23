@@ -52,4 +52,7 @@ public interface WorkOrderService {
 
     /** 批量自动派单：处理所有待派单工单，返回成功派单数。 */
     int autoAssignPending(Long orgId);
+
+    /** SLA 超时升级：标记超时工单并补派责任人。 */
+    int escalateOverdue(Long orgId);
 }

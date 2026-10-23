@@ -483,4 +483,73 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         }
         return best;
     }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
+    public int escalateOverdue(Long orgId) {
+        java.util.List<OpsWorkorder> list = orderMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                        <OpsWorkorder>()
+                        .eq(orgId != null, OpsWorkorder::getOrgId, orgId)
+                        .notIn(OpsWorkorder::getOrderStatus,
+                                java.util.List.of("FINISHED", "CLOSED", "CANCELLED")));
+        int n = 0;
+        for (OpsWorkorder o : list) {
+            // 实体不存超时标记，按 SLA 分钟数与时间戳现算
+            java.time.LocalDateTime nowTs = java.time.LocalDateTime.now();
+            boolean responseLate = o.getAcceptTime() == null && o.getCreateTime() != null
+                    && o.getSlaResponseMinutes() != null
+                    && o.getCreateTime().plusMinutes(o.getSlaResponseMinutes())
+                            .isBefore(nowTs);
+            boolean finishLate = o.getFinishTime() == null && o.getCreateTime() != null
+                    && o.getSlaFinishMinutes() != null
+                    && o.getCreateTime().plusMinutes(o.getSlaFinishMinutes())
+                            .isBefore(nowTs);
+            if (!responseLate && !finishLate) {
+                continue;
+            }
+            // 幂等：当天已升级过则跳过
+            Long recent = logMapper.selectCount(
+                    new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                            <OpsWorkorderLog>()
+                            .eq(OpsWorkorderLog::getWorkorderId, o.getId())
+                            .eq(OpsWorkorderLog::getAction, "ESCALATE")
+                            .ge(OpsWorkorderLog::getCreateTime,
+                                    java.time.LocalDate.now().atStartOfDay()));
+            if (recent != null && recent > 0) {
+                continue;
+            }
+            StringBuilder sb = new StringBuilder("SLA 超时升级：");
+            if (responseLate) {
+                sb.append("响应超时");
+            }
+            if (finishLate) {
+                sb.append(responseLate ? "、" : "").append("完工超时");
+            }
+            // 未派单的自动派单，保证升级后有明确责任人
+            if (o.getAssignUserId() == null) {
+                try {
+                    autoAssign(o.getId());
+                    sb.append("；已自动派单");
+                } catch (Exception ex) {
+                    sb.append("；自动派单失败：" ).append(ex.getMessage());
+                }
+            }
+            OpsWorkorderLog lg = new OpsWorkorderLog();
+            lg.setId(idGen.nextId());
+            lg.setTenantId(TenantContext.tenantId());
+            lg.setWorkorderId(o.getId());
+            lg.setAction("ESCALATE");
+            lg.setFromStatus(o.getOrderStatus());
+            lg.setToStatus(o.getOrderStatus());
+            lg.setOperatorId(TenantContext.userId());
+            lg.setOperatorName("系统");
+            lg.setContent(sb.toString());
+            lg.setCreateTime(java.time.LocalDateTime.now());
+            logMapper.insert(lg);
+            n++;
+        }
+        log.info("SLA 超时升级：扫描 {}，升级 {}", list.size(), n);
+        return n;
+    }
 }

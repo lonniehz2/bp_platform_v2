@@ -12,6 +12,8 @@
       </el-button>
       <el-button plain :loading="saving" @click="autoAssignPending"
                  data-testid="wo-autoassign-all">批量派单</el-button>
+      <el-button plain :loading="saving" @click="escalateOverdue"
+                 data-testid="wo-escalate">超时升级</el-button>
       <el-button type="primary" @click="reload">刷新</el-button>
     </div>
 
@@ -255,6 +257,17 @@ async function autoAssignPending() {
     load()
   } catch (e) {
     ElMessage.error(e?.response?.data?.message || '批量派单失败')
+  } finally { saving.value = false }
+}
+/** SLA 超时升级：标记超时工单并补派责任人 */
+async function escalateOverdue() {
+  saving.value = true
+  try {
+    const n = await req.post('/workorders/escalate-overdue')
+    ElMessage.success(n > 0 ? `已升级 ${n} 条超时工单` : '暂无超时工单')
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '超时升级失败')
   } finally { saving.value = false }
 }
 onMounted(load)

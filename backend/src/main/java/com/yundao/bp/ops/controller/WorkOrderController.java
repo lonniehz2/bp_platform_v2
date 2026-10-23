@@ -69,6 +69,14 @@ public class WorkOrderController {
     }
 
     /** 批量自动派单（所有待派单）。 */
+
+    /** SLA 超时升级：标记超时工单并补派责任人。 */
+    @PostMapping("/escalate-overdue")
+    @com.yundao.bp.iam.security.RequirePerm("ops:workorder:update")
+    public R<Integer> escalateOverdue(@RequestParam(required = false) Long orgId) {
+        return R.ok(workOrderService.escalateOverdue(orgId));
+    }
+
     @PostMapping("/auto-assign-pending")
     @com.yundao.bp.iam.security.RequirePerm("ops:workorder:assign")
     public R<Integer> autoAssignPending(@RequestParam(required = false) Long orgId) {

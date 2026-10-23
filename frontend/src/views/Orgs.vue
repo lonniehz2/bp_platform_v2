@@ -73,8 +73,20 @@
             <el-option label="公司 COMPANY" value="COMPANY" />
             <el-option label="部门 DEPARTMENT" value="DEPARTMENT" />
           </el-select></el-form-item>
-        <el-form-item label="地址">
-          <el-input v-model="f.address" /></el-form-item>
+        <el-form-item label="标准地址">
+          <el-row :gutter="8" style="width:100%">
+            <el-col :span="8"><el-input v-model="f.province" placeholder="省" /></el-col>
+            <el-col :span="8"><el-input v-model="f.city" placeholder="地市" /></el-col>
+            <el-col :span="8"><el-input v-model="f.district" placeholder="区/县" /></el-col>
+          </el-row>
+          <el-row :gutter="8" style="width:100%;margin-top:6px">
+            <el-col :span="8"><el-input v-model="f.street" placeholder="街道/乡镇" /></el-col>
+            <el-col :span="16"><el-input v-model="f.community" placeholder="社区/村" /></el-col>
+          </el-row>
+        </el-form-item>
+        <el-form-item label="详细地址">
+          <el-input v-model="f.address"
+                    placeholder="路牌、楼宇、房号等（如：天府三街199号3栋1单元1201）" /></el-form-item>
         <el-form-item label="排序">
           <el-input-number v-model="f.sortNo" :min="1" style="width:100%" />
         </el-form-item>
@@ -103,7 +115,8 @@ const viewMode = ref('tree')
 const createVisible = ref(false)
 const saving = ref(false)
 const f = reactive({ orgCode: '', orgName: '', parentId: null,
-  orgType: 'COMMUNITY', address: '', sortNo: 1, remark: '' })
+  orgType: 'COMMUNITY', province: '', city: '', district: '', street: '', community: '',
+  address: '', sortNo: 1, remark: '' })
 const query = reactive({ pageNum: 1, pageSize: 20 })
 const includeSubtree = ref(false)
 const currentOrg = ref(null)
@@ -161,7 +174,8 @@ async function load() {
 function openCreate() {
   Object.assign(f, { orgCode: '', orgName: '',
     parentId: currentOrg.value ? currentOrg.value.id : null,
-    orgType: 'COMMUNITY', address: '', sortNo: 1, remark: '' })
+    orgType: 'COMMUNITY', province: '', city: '', district: '', street: '',
+    community: '', address: '', sortNo: 1, remark: '' })
   createVisible.value = true
 }
 

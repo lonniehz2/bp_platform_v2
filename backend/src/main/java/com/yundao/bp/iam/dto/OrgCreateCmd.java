@@ -31,6 +31,8 @@ public record OrgCreateCmd(
         String orgType,
 
         @Size(max = 500, message = "地址不能超过 500 字符")
+        String province, String city, String district,
+        String street, String community,
         String address,
 
         Integer sortNo,

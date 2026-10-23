@@ -17,6 +17,8 @@ public record OrgVO(
         String orgPath,
         Integer orgLevel,
         String orgType,
+        String province, String city, String district,
+        String street, String community,
         String address,
         Integer sortNo,
         String status,
@@ -28,7 +30,9 @@ public record OrgVO(
             return null;
         }
         return new OrgVO(e.getId(), e.getOrgCode(), e.getOrgName(), e.getParentId(),
-                e.getOrgPath(), e.getOrgLevel(), e.getOrgType(), e.getAddress(),
+                e.getOrgPath(), e.getOrgLevel(), e.getOrgType(),
+                e.getProvince(), e.getCity(), e.getDistrict(), e.getStreet(),
+                e.getCommunity(), e.getAddress(),
                 e.getSortNo(), e.getStatus(), e.getRemark(), e.getCreateTime());
     }
 }
