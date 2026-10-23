@@ -53,4 +53,15 @@ public interface HouseCalendarService {
 
     /** 手工改某一天的当日价（节假日调价）。 */
     DayCellVO setPrice(Long houseId, LocalDate date, java.math.BigDecimal price);
+
+    /**
+     * 区间改价：把 [start, end] 的价格改为 price；weekendPrice 非空时，
+     * 周六/周日用 weekendPrice 覆盖（酒店平日/周末差价）。
+     *
+     * <p>已占用（BOOKED/OCCUPIED）的日期不改价，避免影响已成交订单。
+     *
+     * @return 实际更新的天数
+     */
+    int setPriceRange(Long houseId, java.time.LocalDate start, java.time.LocalDate end,
+                      java.math.BigDecimal price, java.math.BigDecimal weekendPrice);
 }

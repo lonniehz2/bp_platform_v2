@@ -94,6 +94,15 @@ public class HouseCalendarController {
 
     /** 当日调价。 */
     @com.yundao.bp.iam.security.RequirePerm("asset:house:create")
+
+    /** 区间改价（支持周末价），跳过已占用日期。 */
+    @PostMapping("/{houseId}/price-range")
+    public R<Integer> setPriceRange(@PathVariable Long houseId,
+                                    @RequestBody PriceRangeCmd cmd) {
+        return R.ok(service.setPriceRange(houseId, cmd.start(), cmd.end(),
+                cmd.price(), cmd.weekendPrice()));
+    }
+
     @PostMapping("/{houseId}/price")
     public R<DayCellVO> setPrice(@PathVariable Long houseId, @RequestBody PriceCmd cmd) {
         return R.ok(service.setPrice(houseId, cmd.date(), cmd.price()));
@@ -113,5 +122,11 @@ public class HouseCalendarController {
 
     public record PriceCmd(
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, BigDecimal price) {
+    }
+
+    public record PriceRangeCmd(
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            BigDecimal price, BigDecimal weekendPrice) {
     }
 }

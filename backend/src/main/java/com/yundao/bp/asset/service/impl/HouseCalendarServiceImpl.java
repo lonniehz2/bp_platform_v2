@@ -356,4 +356,38 @@ public class HouseCalendarServiceImpl implements HouseCalendarService {
             }
         }
     }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
+    public int setPriceRange(Long houseId, java.time.LocalDate start, java.time.LocalDate end,
+                             java.math.BigDecimal price, java.math.BigDecimal weekendPrice) {
+        if (price == null || price.compareTo(java.math.BigDecimal.ZERO) < 0) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid("价格不能为空且不能为负");
+        }
+        validateRange(start, end, true);
+        ensureRange(houseId, start, end);
+        java.util.List<com.yundao.bp.asset.entity.AssetHouseCalendar> cells =
+                loadRows(houseId, start, end);
+        int n = 0;
+        for (com.yundao.bp.asset.entity.AssetHouseCalendar c : cells) {
+            String st = c.getDayStatus();
+            if ("BOOKED".equals(st) || "OCCUPIED".equals(st)) {
+                continue;   // 已占用不改价，避免影响已成交订单
+            }
+            java.math.BigDecimal target = price;
+            if (weekendPrice != null) {
+                java.time.DayOfWeek dow = c.getCalDate().getDayOfWeek();
+                if (dow == java.time.DayOfWeek.SATURDAY || dow == java.time.DayOfWeek.SUNDAY) {
+                    target = weekendPrice;
+                }
+            }
+            c.setPriceOverride(target);
+            c.setUpdateTime(java.time.LocalDateTime.now());
+            calMapper.updateById(c);
+            n++;
+        }
+        log.info("日房态批量改价 houseId={} {}~{} 平日={} 周末={}，更新 {} 天",
+                houseId, start, end, price, weekendPrice, n);
+        return n;
+    }
 }
