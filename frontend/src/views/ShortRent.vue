@@ -30,7 +30,17 @@
       <el-table-column label="操作" :width="ROWACTIONS ? 210 : 110" fixed="right">
         <template #default="{ row }">
 
-          <el-button link type="danger" @click="cancel(row)">取消</el-button>
+          <el-button v-if="row.orderStatus === 'PENDING'" link type="primary"
+                       @click="doConfirm(row)" data-testid="sr-confirm">确认</el-button>
+            <el-button v-if="row.orderStatus === 'CONFIRMED'" link type="success"
+                       @click="doCheckIn(row)" data-testid="sr-checkin">入住</el-button>
+            <el-button v-if="row.orderStatus === 'CHECKED_IN'" link type="warning"
+                       @click="doCheckOut(row)" data-testid="sr-checkout">退房</el-button>
+            <el-button v-if="row.orderStatus === 'CONFIRMED'" link
+                       @click="doNoShow(row)">未到</el-button>
+            <el-button v-if="row.orderStatus === 'CHECKED_OUT'" link type="primary"
+                       @click="doPay(row)">收款</el-button>
+            <el-button link type="danger" @click="cancel(row)">取消</el-button>
           <el-button link @click="openDetail(row)">详情</el-button>
         </template>
       </el-table-column>
@@ -167,6 +177,54 @@ function resetQuery() {
   keyword.value = ''
   pageNum.value = 1
   reload()
+}
+
+
+/** 前台动作：确认 / 入住 / 退房 / 未到 / 收款 */
+async function doConfirm(row) {
+  await shortRentApi.confirm(row.id)
+  ElMessage.success('订单已确认')
+  load()
+}
+
+async function doCheckIn(row) {
+  await shortRentApi.checkIn(row.id)
+  ElMessage.success('已办理入住')
+  load()
+}
+
+async function doCheckOut(row) {
+  let extra = '0'
+  try {
+    const r = await ElMessageBox.prompt('额外费用（如超时、损坏，无则填 0）', '办理退房', {
+      inputValue: '0', inputPattern: /^\d+(\.\d{1,2})?$/,
+      inputErrorMessage: '请输入数字'
+    })
+    extra = r.value
+  } catch (e) { return }
+  await shortRentApi.checkOut(row.id, Number(extra))
+  ElMessage.success('已办理退房，房态已释放')
+  load()
+}
+
+async function doNoShow(row) {
+  await shortRentApi.noShow(row.id)
+  ElMessage.success('已标记未到')
+  load()
+}
+
+async function doPay(row) {
+  let amount = String(row.payableAmount || row.roomAmount || 0)
+  try {
+    const r = await ElMessageBox.prompt('收款金额', '登记收款', {
+      inputValue: amount, inputPattern: /^\d+(\.\d{1,2})?$/,
+      inputErrorMessage: '请输入数字'
+    })
+    amount = r.value
+  } catch (e) { return }
+  await shortRentApi.pay(row.id, Number(amount))
+  ElMessage.success('收款已登记')
+  load()
 }
 
 onMounted(load)
