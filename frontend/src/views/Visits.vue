@@ -20,10 +20,10 @@
       </el-table-column>
       <el-table-column prop="visitNo" label="来访号" width="170" />
       <el-table-column prop="visitUserName" label="走访人" width="120">
-            <template #default="{ row }">{{ row.visitUserName || row.visitUserId || "-" }}</template>
+            <template #default="{ row }">{{ row.visitUserName || row.visitUserId || '未指派' }}</template>
           </el-table-column>
       <el-table-column prop="personName" label="被访人" width="120">
-        <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
+        <template #default="{ row }">{{ row.personName || row.personId }}</template>
       </el-table-column>
       <el-table-column prop="visitStatus" label="状态" width="110">
         <template #default="{ row }">{{ row.visitStatusLabel || enumLabel('visitStatus', row.visitStatus) }}</template>
