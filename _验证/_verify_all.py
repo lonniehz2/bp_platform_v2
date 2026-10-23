@@ -30,6 +30,7 @@ STEPS = [
     ('concurrency', '并发与幂等', ['_check_concurrency.py']),
     ('health', '数据一致性', ['_check_data_health.py']),
     ('perf', '接口性能', ['_perf_baseline.py', '--rounds', '2']),
+    ('stress', '压力场景', ['_perf_stress.py']),
 ]
 
 # 体检脚本发现问题时返回 1，但「业务态/造数残留」不算失败，单独标注
