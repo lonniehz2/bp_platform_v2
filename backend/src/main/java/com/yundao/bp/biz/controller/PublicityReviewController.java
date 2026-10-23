@@ -98,16 +98,19 @@ public class PublicityReviewController {
 
     // ---------- 年审 ----------
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:annualReview:view")
     @PostMapping("/annual-reviews")
     public R<ReviewVO> createReview(@Valid @RequestBody ReviewCreateCmd cmd) {
         return R.ok(reviewService.create(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:annualReview:view")
     @GetMapping("/annual-reviews/{id}")
     public R<ReviewVO> getReview(@PathVariable Long id) {
         return R.ok(reviewService.get(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:annualReview:view")
     @GetMapping("/annual-reviews")
     public R<PageResult<ReviewVO>> pageReview(
             @RequestParam(defaultValue = "1") long pageNum,
@@ -120,12 +123,14 @@ public class PublicityReviewController {
                 status));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("biz:annualReview:view")
     @PostMapping("/annual-reviews/{id}/start")
     public R<ReviewVO> startReview(@PathVariable Long id) {
         return R.ok(reviewService.start(id));
     }
 
     /** 完成复核。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:annualReview:view")
     @PostMapping("/annual-reviews/{id}/finish")
     public R<ReviewVO> finishReview(@PathVariable Long id,
                                     @Valid @RequestBody ReviewFinishCmd cmd) {
@@ -133,6 +138,7 @@ public class PublicityReviewController {
     }
 
     /** 批量生成年度复核单。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:annualReview:batch")
     @PostMapping("/annual-reviews/batch")
     public R<AnnualReviewService.BatchResult> createReviewBatch(@RequestBody BatchReviewCmd cmd) {
         return R.ok(reviewService.createBatch(cmd.reviewYear(), cmd.orgId(), cmd.reviewBatch(),
@@ -140,6 +146,7 @@ public class PublicityReviewController {
     }
 
     /** 标记逾期未复核。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:annualReview:view")
     @PostMapping("/annual-reviews/mark-overdue")
     public R<Integer> markOverdue() {
         return R.ok(reviewService.markOverdue());

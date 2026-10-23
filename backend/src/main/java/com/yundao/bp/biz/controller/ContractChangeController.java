@@ -39,6 +39,7 @@ public class ContractChangeController {
     }
 
     /** 由年审结论发起调租。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:annualReview:change")
     @PostMapping("/annual-reviews/{reviewId}/rent-change")
     public R<ChangeVO> fromReview(@PathVariable Long reviewId, @RequestBody FromReviewCmd cmd) {
         return R.ok(service.createFromReview(reviewId, cmd.newMonthlyRent(), cmd.reason()));

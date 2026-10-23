@@ -31,7 +31,7 @@ RES_ALIAS = {
     'publicities': 'publicity', 'short-rent-orders': 'shortRent',
     'meter-readings': 'meterReading', 'inspection-plans': 'inspectionPlan',
     'cohabitants': 'cohabitant', 'fee-items': 'feeItem', 'cash-flows': 'cashFlow',
-    'audit-logs': 'audit', 'rule-engine': 'rule',
+    'audit-logs': 'audit', 'rule-engine': 'rule', 'annual-reviews': 'annualReview',
 }
 
 RES_MODULE = {
@@ -47,7 +47,7 @@ RES_MODULE = {
     'appeal': 'ops', 'visit': 'ops', 'rule': 'ops', 'inspectionPlan': 'ops',
     'user': 'iam', 'role': 'iam', 'perm': 'iam', 'org': 'iam',
     'dict': 'sys', 'config': 'sys', 'audit': 'sys', 'file': 'sys',
-    'report': 'rpt', 'app': 'open',
+    'report': 'rpt', 'app': 'open', 'annualReview': 'biz',
 }
 
 METHOD_ACTION = {'Get': 'view', 'Post': 'create', 'Put': 'update', 'Delete': 'delete'}
@@ -81,7 +81,7 @@ RES_CN = {
     'keyring': '钥匙', 'access': '门禁记录',
     'bill': '账单', 'payment': '收款', 'deposit': '押金', 'arrear': '催缴',
     'subsidy': '补贴', 'feeItem': '计费项目', 'cashFlow': '资金流水',
-    'meterReading': '抄表', 'todo': '待办', 'workorder': '工单', 'alert': '告警',
+    'meterReading': '抄表', 'annualReview': '年审', 'todo': '待办', 'workorder': '工单', 'alert': '告警',
     'complaint': '投诉', 'appeal': '申诉', 'visit': '走访', 'rule': '规则',
     'inspectionPlan': '巡检计划', 'user': '用户', 'role': '角色', 'perm': '权限',
     'org': '组织', 'dict': '数据字典', 'config': '系统参数', 'audit': '审计日志',

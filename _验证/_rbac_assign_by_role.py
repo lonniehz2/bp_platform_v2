@@ -101,6 +101,7 @@ ROLE_EXTRA = {
                 'asset:house:view', 'ops:workorder:view', 'ops:workorder:create',
                 'person:person:view', 'biz:termination:create', 'biz:exchange:create',
                 'biz:application:view', 'biz:application:create', 'biz:waitlist:view',
+                'biz:annualReview:view', 'biz:publicity:view',
                 'ops:complaint:create', 'ops:appeal:create', 'msg:todo:read'],
     'CONTRACT_CLERK': ['biz:contract:*', 'biz:application:view', 'biz:termination:view',
                        'asset:house:view', 'person:person:view', 'fin:bill:view'],
