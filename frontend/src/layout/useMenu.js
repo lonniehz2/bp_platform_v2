@@ -8,14 +8,31 @@ export const GROUP_ORDER = [
   '授权与交房', '服务与监督', '资产台账', '系统与集成'
 ]
 
+/** 旧分组名 → 现行分组名的兼容映射（路由 meta 中仍有历史命名） */
+const GROUP_ALIAS = {
+  仪表盘: '运营总览',
+  会员: '保障对象',
+  线索: '资格准入',
+  合同: '合同管理',
+  财务: '账务收费',
+  房源: '资产台账',
+  管理后台: '系统与集成',
+  退出与监督: '服务与监督',
+  更多: '服务与监督'
+}
+
+/** 取规范化后的分组名 */
+export function groupNameOf(meta) {
+  const g = meta?.group || ''
+  return GROUP_ALIAS[g] || g || '更多'
+}
+
 export const GROUP_ICON = {
-  仪表盘: 'Odometer',
-  会员: 'User',
-  线索: 'Tickets',
-  房源: 'OfficeBuilding',
-  合同: 'Document',
-  财务: 'Money',
+  运营总览: 'Odometer',
+  保障对象: 'User',
+  资格准入: 'Tickets',
   合同管理: 'Document',
+  账务收费: 'Money',
   授权与交房: 'Key',
   服务与监督: 'Service',
   资产台账: 'OfficeBuilding',
@@ -191,7 +208,7 @@ export function useMenu() {
     const out = []
     for (const name of GROUP_ORDER) {
       const items = menus.value
-        .filter((m) => (m.meta?.group || '更多') === name)
+        .filter((m) => groupNameOf(m.meta) === name)
         .sort((a, b) => rankOf(a) - rankOf(b))
       if (items.length) {
         out.push({ name, icon: GROUP_ICON[name] || 'Menu', items })

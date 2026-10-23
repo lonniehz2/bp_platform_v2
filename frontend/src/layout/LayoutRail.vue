@@ -62,9 +62,10 @@ const auth = useAuthStore()
 const { groups, titleOf } = useMenu()
 const todo = useTodoStore()
 
-const activeGroup = ref('仪表盘')
+const activeGroup = ref(groups.value[0]?.name || '')
 const activeItems = computed(() =>
-  groups.value.find((g) => g.name === activeGroup.value)?.items || [])
+  groups.value.find((g) => g.name === activeGroup.value)?.items
+  || groups.value[0]?.items || [])
 
 function pickGroup(name) {
   activeGroup.value = name
@@ -76,8 +77,20 @@ function pickGroup(name) {
 
 watch(() => route.path, () => {
   const hit = groups.value.find((g) => g.items.some((m) => m.path === route.path))
-  if (hit) activeGroup.value = hit.name
+  if (hit) {
+    activeGroup.value = hit.name
+  } else if (!groups.value.some((g) => g.name === activeGroup.value)) {
+    // 渲染时权限可能尚未就绪：回退到第一个分组，避免左侧面板空白
+    activeGroup.value = groups.value[0]?.name || ''
+  }
 }, { immediate: true })
+
+// 权限加载完成后菜单可能从空变有，这里补一次校正
+watch(() => groups.value.length, () => {
+  if (!groups.value.some((g) => g.name === activeGroup.value)) {
+    activeGroup.value = groups.value[0]?.name || ''
+  }
+})
 
 function openScreen() {
   window.open('./view-screen.html', 'bp-screen', 'width=1600,height=900')
