@@ -166,4 +166,14 @@ public class ContractController {
             String securityType,
             String remark) {
     }
+
+    /** 宿舍床位调换。 */
+    @PostMapping("/{id}/swap-bed")
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:update")
+    public R<ContractVO> swapBed(@PathVariable Long id, @RequestBody SwapBedCmd cmd) {
+        return R.ok(contractService.swapBed(id, cmd.targetHouseId(), cmd.reason()));
+    }
+
+    public record SwapBedCmd(Long targetHouseId, String reason) {
+    }
 }

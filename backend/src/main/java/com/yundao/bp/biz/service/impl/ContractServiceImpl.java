@@ -116,6 +116,11 @@ public class ContractServiceImpl implements ContractService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.asset.mapper.AssetHouseMapper houseMapper;
 
+
+    /** 房源（床位调换时校验与更新状态） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.asset.mapper.AssetHouseMapper bedHouseMapper;
+
     public ContractServiceImpl(BizContractMapper mapper, SnowflakeIdGenerator idGen,
                                OccupancyService occupancyService) {
         this.mapper = mapper;
@@ -609,5 +614,70 @@ public class ContractServiceImpl implements ContractService {
                         null,                   // lateFeeRate
                         cmd.remark());          // remark
         return create(create);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
+    public ContractVO swapBed(Long id, Long targetHouseId, String reason) {
+        BizContract e = require(id);
+        if (!ContractStatus.EFFECTIVE.name().equals(e.getContractStatus())
+                && !ContractStatus.RENEWING.name().equals(e.getContractStatus())) {
+            throw com.yundao.bp.common.exception.BizException.stateConflict(
+                    "只有生效中的合同可以调换床位");
+        }
+        if (targetHouseId == null || targetHouseId.equals(e.getHouseId())) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid("目标床位不能与原床位相同");
+        }
+        if (bedHouseMapper == null) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid("床位服务未就绪");
+        }
+        com.yundao.bp.asset.entity.AssetHouse from =
+                bedHouseMapper.selectById(e.getHouseId());
+        com.yundao.bp.asset.entity.AssetHouse to = bedHouseMapper.selectById(targetHouseId);
+        if (from == null || to == null) {
+            throw com.yundao.bp.common.exception.BizException.notFound("房源");
+        }
+        if (!"DORMITORY".equals(from.getHouseType()) || !"DORMITORY".equals(to.getHouseType())) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid(
+                    "床位调换仅适用于宿舍房源");
+        }
+        if (to.getOrgId() != null && from.getOrgId() != null
+                && !to.getOrgId().equals(from.getOrgId())) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid("不能跨组织调换床位");
+        }
+        Long occupied = mapper.selectCount(new LambdaQueryWrapper<BizContract>()
+                .eq(BizContract::getHouseId, targetHouseId)
+                .in(BizContract::getContractStatus,
+                        List.of(ContractStatus.EFFECTIVE.name(),
+                                ContractStatus.RENEWING.name())));
+        if (occupied != null && occupied > 0) {
+            throw com.yundao.bp.common.exception.BizException.stateConflict(
+                    "目标床位已被占用，不能调换");
+        }
+
+        // 释放旧床 → 占用新床（占用流水由 OccupancyService 统一维护）
+        occupancyService.releaseByContract(e.getId(), java.time.LocalDate.now());
+        occupancyService.occupyByContract(e.getId(), to.getId(), to.getSpaceId(),
+                e.getLesseePersonId(), e.getLeaseStart(), e.getLeaseEnd());
+
+        e.setHouseId(to.getId());
+        e.setSpaceId(to.getSpaceId());
+        String note = (reason == null || reason.isBlank()) ? "床位调换" : reason;
+        e.setRemark(appendNote(e.getRemark(),
+                "[" + java.time.LocalDate.now() + "] 床位由 " + from.getHouseCode()
+                        + " 调换至 " + to.getHouseCode() + "：" + note));
+        e.setUpdateTime(java.time.LocalDateTime.now());
+        mapper.updateById(e);
+        log.info("合同 {} 床位调换：{} → {}", e.getContractNo(),
+                from.getHouseCode(), to.getHouseCode());
+        return ContractVO.from(e);
+    }
+
+    /** 追加备注，保留历史。 */
+    private String appendNote(String old, String add) {
+        if (old == null || old.isBlank()) {
+            return add;
+        }
+        return old + "；" + add;
     }
 }
