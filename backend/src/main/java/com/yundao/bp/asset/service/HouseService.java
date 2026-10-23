@@ -27,4 +27,11 @@ public interface HouseService {
     /** 批量导入房源（CSV）。 */
     java.util.Map<String, Object> importCsv(
             org.springframework.web.multipart.MultipartFile file);
+
+    /** 为房间批量生成床位房源，返回新建数量。 */
+    int batchCreateBeds(Long roomSpaceId, int count,
+                        java.math.BigDecimal rentStandard, java.math.BigDecimal areaPerBed);
+
+    /** 房间下的床位列表（含租住状态与在租人）。 */
+    java.util.List<java.util.Map<String, Object>> listBeds(Long roomSpaceId);
 }

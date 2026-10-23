@@ -16,6 +16,8 @@
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
       <el-button type="success" @click="openCreate">新增房源</el-button>
+        <el-button type="primary" plain @click="openBeds"
+                   data-testid="house-beds">床位管理</el-button>
         <el-button type="warning" plain @click="importVisible = true"
                    data-testid="house-import">批量导入</el-button>
     </div>
@@ -165,6 +167,54 @@
                    @click="doImport">开始导入</el-button>
       </template>
     </el-dialog>
+
+    <!-- 宿舍床位管理 -->
+    <el-dialog v-model="bedVisible" title="宿舍床位管理" width="720px">
+      <el-form label-width="90px">
+        <el-form-item label="房间">
+          <el-tree-select v-model="bedRoomId" :data="spaceTree" check-strictly
+                          :props="{ label: 'spaceName', value: 'id', children: 'children' }"
+                          filterable placeholder="选择房间（ROOM）" style="width:100%"
+                          @change="loadBeds" />
+        </el-form-item>
+        <el-row :gutter="12">
+          <el-col :span="8"><el-form-item label="生成数量">
+            <el-input v-model="bedCount" type="number" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="床位月租">
+            <el-input v-model="bedRent" type="number" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="单床面积">
+            <el-input v-model="bedArea" type="number" /></el-form-item></el-col>
+        </el-row>
+      </el-form>
+      <div style="margin:8px 0 12px">
+        <el-button type="primary" :loading="saving" :disabled="!bedRoomId"
+                   @click="doCreateBeds">批量生成床位</el-button>
+        <span class="muted" style="font-size:12px;margin-left:8px">
+          已存在的床位编号会自动跳过，不会重复创建
+        </span>
+      </div>
+      <el-table :data="bedRows" size="small" border max-height="320" v-loading="bedLoading">
+        <el-table-column prop="bedCode" label="床位编号" width="150" />
+        <el-table-column prop="bedName" label="床位名称" min-width="150" />
+        <el-table-column prop="houseStatus" label="房源状态" width="110">
+          <template #default="{ row }">
+            <el-tag size="small" :type="row.occupied ? 'success' : 'info'">
+              {{ row.occupied ? '在租' : (row.houseStatus === 'VACANT' ? '空置' : row.houseStatus) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="occupant" label="承租人" width="110">
+          <template #default="{ row }">{{ row.occupant || '—' }}</template>
+        </el-table-column>
+        <el-table-column prop="leaseEnd" label="到期日" width="120">
+          <template #default="{ row }">{{ row.leaseEnd || '—' }}</template>
+        </el-table-column>
+        <el-table-column prop="rentStandard" label="月租" width="100" />
+      </el-table>
+      <template #footer>
+        <el-button @click="bedVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
 </template>
 
 <script setup>
@@ -172,6 +222,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { houseApi } from '@/api/modules'
 import req from '@/api/request'
+import { useAuthStore } from '@/store/auth'
 import { enumLabel } from '@/constants/enums'
 import DetailView from '@/components/DetailView.vue'
 
@@ -179,6 +230,7 @@ const statuses = ['VACANT', 'PENDING_ALLOC', 'ALLOCATED', 'OCCUPIED', 'LOCKED',
   'REPAIR', 'OFFLINE']
 const loading = ref(false)
 const saving = ref(false)
+const auth = useAuthStore()
 const rows = ref([])
 const total = ref(0)
 const pageNum = ref(1)
@@ -292,6 +344,57 @@ async function doImport() {
     load()
   } catch (e) {
     ElMessage.error(e?.response?.data?.message || '导入失败')
+  } finally { saving.value = false }
+}
+
+
+/** 宿舍床位管理 */
+const bedVisible = ref(false)
+const bedRoomId = ref('')
+const bedRows = ref([])
+const bedLoading = ref(false)
+const bedCount = ref(4)
+const bedRent = ref(300)
+const bedArea = ref(8)
+const spaceTree = ref([])
+
+async function openBeds() {
+  bedVisible.value = true
+  bedRows.value = []
+  bedRoomId.value = ''
+  if (!spaceTree.value.length) {
+    try {
+      const orgId = query.orgId || auth.user?.orgId
+      const tree = await req.get('/spaces/tree', { params: { orgId } })
+      spaceTree.value = tree || []
+    } catch (e) { /* 忽略，用户可手动输入房间 ID */ }
+  }
+}
+
+async function loadBeds() {
+  if (!bedRoomId.value) { bedRows.value = []; return }
+  bedLoading.value = true
+  try {
+    bedRows.value = (await req.get('/houses/beds', {
+      params: { roomSpaceId: bedRoomId.value } })) || []
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '加载床位失败')
+  } finally { bedLoading.value = false }
+}
+
+async function doCreateBeds() {
+  if (!bedRoomId.value) { ElMessage.warning('请选择房间'); return }
+  saving.value = true
+  try {
+    const n = await req.post('/houses/beds/batch-create', {
+      roomSpaceId: bedRoomId.value, count: Number(bedCount.value) || 1,
+      rentStandard: Number(bedRent.value) || 0, areaPerBed: Number(bedArea.value) || 0
+    })
+    ElMessage.success(`已生成 ${n} 张床位`)
+    await loadBeds()
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '生成失败')
   } finally { saving.value = false }
 }
 

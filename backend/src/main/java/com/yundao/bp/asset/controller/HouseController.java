@@ -77,4 +77,24 @@ public class HouseController {
 
     public record StatusCmd(String status) {
     }
+
+    /** 宿舍：为房间批量生成床位房源。 */
+    @PostMapping("/beds/batch-create")
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:create")
+    public R<Integer> batchCreateBeds(@RequestBody BedBatchCmd cmd) {
+        return R.ok(houseService.batchCreateBeds(cmd.roomSpaceId(), cmd.count(),
+                cmd.rentStandard(), cmd.areaPerBed()));
+    }
+
+    /** 宿舍：房间下的床位视图（含在租人）。 */
+    @GetMapping("/beds")
+    public R<java.util.List<java.util.Map<String, Object>>> listBeds(
+            @RequestParam Long roomSpaceId) {
+        return R.ok(houseService.listBeds(roomSpaceId));
+    }
+
+    public record BedBatchCmd(Long roomSpaceId, int count,
+                              java.math.BigDecimal rentStandard,
+                              java.math.BigDecimal areaPerBed) {
+    }
 }

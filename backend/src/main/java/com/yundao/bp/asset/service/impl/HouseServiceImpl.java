@@ -81,6 +81,15 @@ public class HouseServiceImpl implements HouseService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.iam.mapper.IamOrgMapper importOrgMapper;
 
+
+    /** 空间（批量建床位用） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.asset.mapper.AssetSpaceMapper bedSpaceMapper;
+
+    /** 合同（床位租住状态） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.biz.mapper.BizContractMapper bedContractMapper;
+
     public HouseServiceImpl(AssetHouseMapper houseMapper, AssetSpaceMapper spaceMapper,
                             SnowflakeIdGenerator idGen) {
         this.houseMapper = houseMapper;
@@ -408,5 +417,122 @@ public class HouseServiceImpl implements HouseService {
         m.put("line", line);
         m.put("message", message);
         return m;
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
+    public int batchCreateBeds(Long roomSpaceId, int count,
+                               java.math.BigDecimal rentStandard,
+                               java.math.BigDecimal areaPerBed) {
+        if (roomSpaceId == null) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid("房间不能为空");
+        }
+        if (count <= 0 || count > 20) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid("单次生成床位数量需在 1~20 之间");
+        }
+        com.yundao.bp.asset.entity.AssetSpace room = spaceMapper.selectById(roomSpaceId);
+        if (room == null) {
+            throw com.yundao.bp.common.exception.BizException.notFound("房间");
+        }
+        if (!"ROOM".equals(room.getSpaceType())) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid(
+                    "只能在房间（ROOM）下生成床位，当前为 " + room.getSpaceType());
+        }
+        int created = 0;
+        for (int i = 1; i <= count; i++) {
+            String bedCode = room.getSpaceCode() + "-B" + i;
+            com.yundao.bp.asset.entity.AssetSpace exist = bedSpaceMapper.selectOne(
+                    new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                            <com.yundao.bp.asset.entity.AssetSpace>()
+                            .eq(com.yundao.bp.asset.entity.AssetSpace::getSpaceCode, bedCode)
+                            .last("LIMIT 1"));
+            if (exist != null) {
+                continue;
+            }
+            com.yundao.bp.asset.entity.AssetSpace bed =
+                    new com.yundao.bp.asset.entity.AssetSpace();
+            bed.setId(idGen.nextId());
+            bed.setTenantId(com.yundao.bp.common.tenant.TenantContext.tenantId());
+            bed.setOrgId(room.getOrgId());
+            bed.setParentId(room.getId());
+            bed.setSpaceCode(bedCode);
+            bed.setSpaceName(room.getSpaceName() + " 床位" + i);
+            bed.setSpaceType("BED");
+            bed.setArea(areaPerBed);
+            bed.setSortNo(i);
+            bed.setIsDeleted(0);
+            bed.setCreateTime(java.time.LocalDateTime.now());
+            spaceMapper.insert(bed);
+
+            com.yundao.bp.asset.entity.AssetHouse h = new com.yundao.bp.asset.entity.AssetHouse();
+            h.setId(idGen.nextId());
+            h.setTenantId(com.yundao.bp.common.tenant.TenantContext.tenantId());
+            h.setOrgId(room.getOrgId());
+            h.setSpaceId(bed.getId());
+            h.setHouseCode(bedCode);
+            h.setHouseName(room.getSpaceName() + " 床位" + i);
+            h.setHouseType("DORMITORY");
+            h.setUseType("CIVIL");
+            h.setRentUnit("BED_MONTH");
+            h.setRentStandard(rentStandard);
+            h.setArea(areaPerBed);
+            h.setHouseStatus("VACANT");
+            h.setCurrentCapacity(0);
+            h.setMaxCapacity(1);
+            h.setIsDeleted(0);
+            h.setCreateTime(java.time.LocalDateTime.now());
+            houseMapper.insert(h);
+            created++;
+        }
+        log.info("房间 {} 批量生成床位：请求 {}，实际新建 {}", room.getSpaceCode(), count, created);
+        return created;
+    }
+
+    @Override
+    public java.util.List<java.util.Map<String, Object>> listBeds(Long roomSpaceId) {
+        if (roomSpaceId == null) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid("房间不能为空");
+        }
+        java.util.List<com.yundao.bp.asset.entity.AssetSpace> beds = bedSpaceMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                        <com.yundao.bp.asset.entity.AssetSpace>()
+                        .eq(com.yundao.bp.asset.entity.AssetSpace::getParentId, roomSpaceId)
+                        .eq(com.yundao.bp.asset.entity.AssetSpace::getSpaceType, "BED")
+                        .orderByAsc(com.yundao.bp.asset.entity.AssetSpace::getSortNo));
+        java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
+        for (com.yundao.bp.asset.entity.AssetSpace bed : beds) {
+            com.yundao.bp.asset.entity.AssetHouse h = houseMapper.selectOne(
+                    new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                            <com.yundao.bp.asset.entity.AssetHouse>()
+                            .eq(com.yundao.bp.asset.entity.AssetHouse::getSpaceId, bed.getId())
+                            .last("LIMIT 1"));
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("spaceId", String.valueOf(bed.getId()));
+            m.put("bedCode", bed.getSpaceCode());
+            m.put("bedName", bed.getSpaceName());
+            m.put("houseId", h == null ? null : String.valueOf(h.getId()));
+            m.put("houseStatus", h == null ? "NO_HOUSE" : h.getHouseStatus());
+            m.put("rentStandard", h == null ? null : h.getRentStandard());
+            String occupant = null;
+            if (h != null && bedContractMapper != null) {
+                com.yundao.bp.biz.entity.BizContract c = bedContractMapper.selectOne(
+                        new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                                <com.yundao.bp.biz.entity.BizContract>()
+                                .eq(com.yundao.bp.biz.entity.BizContract::getHouseId, h.getId())
+                                .in(com.yundao.bp.biz.entity.BizContract::getContractStatus,
+                                        java.util.List.of("EFFECTIVE", "RENEWING"))
+                                .last("LIMIT 1"));
+                if (c != null) {
+                    occupant = c.getLesseeName() != null ? c.getLesseeName() : null;
+                    m.put("contractNo", c.getContractNo());
+                    m.put("leaseEnd", c.getLeaseEnd() == null ? null
+                            : c.getLeaseEnd().toString());
+                }
+            }
+            m.put("occupant", occupant);
+            m.put("occupied", occupant != null);
+            out.add(m);
+        }
+        return out;
     }
 }
