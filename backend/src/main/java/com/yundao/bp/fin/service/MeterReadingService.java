@@ -14,4 +14,7 @@ public interface MeterReadingService {
 
     /** 按读数生成账单。 */
     BillVO bill(Long readingId);
+
+    /** 能耗分析：月度用量/金额 + 楼栋与房源排名。 */
+    java.util.Map<String, Object> analytics(Long orgId, int months);
 }

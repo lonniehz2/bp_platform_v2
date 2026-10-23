@@ -49,4 +49,12 @@ public class MeterReadingController {
     public R<BillVO> bill(@PathVariable Long id) {
         return R.ok(service.bill(id));
     }
+
+    /** 能耗分析：月度用量/金额 + 楼栋与房源排名。 */
+    @GetMapping("/analytics")
+    public R<java.util.Map<String, Object>> analytics(
+            @RequestParam(required = false) Long orgId,
+            @RequestParam(defaultValue = "6") int months) {
+        return R.ok(service.analytics(orgId, months));
+    }
 }

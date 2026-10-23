@@ -125,6 +125,8 @@ export const financeApi = {
   orgs: (params) => req.get('/orgs', { params }),
   houses: (params) => req.get('/houses', { params }),
   meterRecord: (data) => req.post('/fin/meter-readings', data),
+  meterAnalytics: (months) =>
+    req.get('/fin/meter-readings/analytics', { params: { months } }),
   meterList: (params) => req.get('/fin/meter-readings', { params }),
   meterBill: (id) => req.post(`/fin/meter-readings/` + id + `/bill`),
   feeItems: (params) => req.get('/fin/fee-items', { params }),
