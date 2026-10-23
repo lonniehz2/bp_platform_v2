@@ -32,10 +32,10 @@
       <el-table-column prop="actionType" label="催缴方式" width="120">
         <template #default="{ row }">{{ row.actionTypeLabel || enumLabel('actionType', row.actionType) }}</template>
       </el-table-column>
-      <el-table-column prop="dunningLevel" label="催缴级别" width="120">
+      <el-table-column prop="triggerType" label="催缴级别" width="120">
         <template #default="{ row }">{{ row.dunningLevelLabel || enumLabel('dunningLevel', row.dunningLevel) }}</template>
       </el-table-column>
-      <el-table-column prop="actionTime" label="时间" width="170" />
+      <el-table-column prop="executeTime" label="时间" width="170" />
       <el-table-column prop="remark" label="备注" min-width="160" />
       <el-table-column label="操作" width="120" fixed="right">
         <template #default="{ row }">

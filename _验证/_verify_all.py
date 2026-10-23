@@ -32,6 +32,7 @@ STEPS = [
     ('perf', '接口性能', ['_perf_baseline.py', '--rounds', '2']),
     ('stress', '压力场景', ['_perf_stress.py']),
     ('docs', '文档一致性', ['_check_docs.py']),
+    ('props', '列字段校验', ['_check_props.py']),
 ]
 
 # 体检脚本发现问题时返回 1，但「业务态/造数残留」不算失败，单独标注

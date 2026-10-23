@@ -22,8 +22,8 @@
       <el-table-column prop="houseId" label="房源" width="120">
         <template #default="{ row }">{{ row.houseIdName || row.houseId }}</template>
       </el-table-column>
-      <el-table-column prop="checkInDate" label="入住" width="120" />
-      <el-table-column prop="checkOutDate" label="退房" width="120" />
+      <el-table-column prop="checkInTime" label="入住" width="120" />
+      <el-table-column prop="checkOutTime" label="退房" width="120" />
       <el-table-column prop="orderStatus" label="状态" width="110">
         <template #default="{ row }">{{ row.orderStatusLabel || enumLabel('orderStatus', row.orderStatus) }}</template>
       </el-table-column>

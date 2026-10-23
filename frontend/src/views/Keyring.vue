@@ -21,7 +21,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="keyAlias" label="钥匙别名" width="140" />
-      <el-table-column prop="personIdName" label="持有人" width="120">
+      <el-table-column prop="personName" label="持有人" width="120">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
       <el-table-column prop="keyStatus" label="状态" width="110">

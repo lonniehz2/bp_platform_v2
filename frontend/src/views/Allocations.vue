@@ -62,7 +62,7 @@
       <el-table :data="allocations" v-loading="loading" border size="small">
         <el-table-column prop="allocationNo" label="配租单号" width="170" />
         <el-table-column prop="personId" label="人员" width="110">
-          <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
+          <template #default="{ row }">{{ row.personName || row.personId }}</template>
         </el-table-column>
         <el-table-column prop="houseId" label="房源" width="110">
           <template #default="{ row }">{{ row.houseIdName || row.houseId }}</template>
@@ -82,14 +82,14 @@
       <el-alert type="info" :closable="false" show-icon
                 title="中签数 = 房源数；中签之后 3 名为递补。相同种子可完全复现，可用于公证复核。" />
       <el-table :data="results" border size="small" style="margin-top:12px">
-        <el-table-column prop="queueId" label="轮候ID" width="140">
-          <template #default="{ row }">{{ row.queueIdName || row.queueId }}</template>
+        <el-table-column prop="waitingId" label="轮候单" width="140">
+          <template #default="{ row }">{{ row.waitingId }}</template>
         </el-table-column>
         <el-table-column prop="personId" label="人员" width="120">
-          <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
+          <template #default="{ row }">{{ row.personName || row.personId }}</template>
         </el-table-column>
         <el-table-column prop="totalScore" label="总分" width="100" />
-        <el-table-column prop="rankNo" label="名次" width="90" />
+        <el-table-column prop="selectSeq" label="选房序号" width="90" />
         <el-table-column prop="resultType" label="结果" width="100">
           <template #default="{ row }">{{ row.resultTypeLabel || enumLabel('resultType', row.resultType) }}</template>
         </el-table-column>

@@ -22,7 +22,7 @@
       <el-table-column prop="visitUserName" label="走访人" width="120">
             <template #default="{ row }">{{ row.visitUserName || row.visitUserId || "-" }}</template>
           </el-table-column>
-      <el-table-column prop="personIdName" label="被访人" width="120">
+      <el-table-column prop="personName" label="被访人" width="120">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
       <el-table-column prop="visitStatus" label="状态" width="110">
