@@ -120,9 +120,18 @@ def main():
                 mm = re.search(r'@(Get|Post|Put|Delete)Mapping(?:\("([^"]*)"\))?', line)
                 if mm:
                     kind, sub = mm.group(1), (mm.group(2) or '')
-                    # 找该方法前 3 行是否已有 RequirePerm
-                    ctx = ''.join(lines[max(0, i - 8):i])
-                    has_perm = '@RequirePerm' in ctx
+                    # 只在「同一方法」范围内判断是否已有注解：
+                    # 向上回溯，遇到上一个映射注解 / 方法边界即停止
+                    has_perm = False
+                    for back in range(i - 1, max(-1, i - 15), -1):
+                        prev = lines[back]
+                        if 'RequirePerm' in prev:
+                            has_perm = True
+                            break
+                        if ('Mapping' in prev and '@' in prev) or 'class ' in prev \
+                                or prev.strip().startswith('}') or 'public ' in prev \
+                                or 'private ' in prev:
+                            break
                     if has_perm:
                         skipped_have += 1
                         out.append(line)

@@ -49,6 +49,7 @@ public class AccessRecordController {
         return R.ok(service.reportBatch(cmds));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("access-records:access-records:view")
     @GetMapping
     public R<PageResult<AccessVO>> page(
             @RequestParam(defaultValue = "1") long pageNum,

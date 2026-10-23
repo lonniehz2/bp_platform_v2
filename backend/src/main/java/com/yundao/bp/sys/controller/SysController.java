@@ -68,6 +68,7 @@ public class SysController {
     // ---------- 数据字典 ----------
 
     /** 按类型取字典项（前端下拉用）。 */
+    @com.yundao.bp.iam.security.RequirePerm("sys:sys:view")
     @GetMapping("/dicts/{dictType}")
     public R<List<SysDict>> listDict(@PathVariable String dictType) {
         return R.ok(dictService.listByType(dictType));
@@ -111,6 +112,7 @@ public class SysController {
     }
 
     /** 读取单个参数（含类型化取值）。 */
+    @com.yundao.bp.iam.security.RequirePerm("sys:sys:view")
     @GetMapping("/configs/{key}")
     public R<String> getConfig(@PathVariable String key) {
         return R.ok(configService.getString(key, null));

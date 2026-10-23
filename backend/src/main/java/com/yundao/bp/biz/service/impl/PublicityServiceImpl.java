@@ -66,6 +66,69 @@ public class PublicityServiceImpl implements PublicityService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.asset.mapper.AssetHouseMapper winnerHouseMapper;
 
+
+    /** 数据范围（ALL/ORG_SUB/ORG/SELF） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.datascope.DataScopeService dataScopeService;
+
+    private <T> void applyDataScope(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<T> qw,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> orgCol,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> personCol,
+            boolean full) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf()) {
+            if (scope.personId() == null) {
+                qw.eq(personCol, -1L);
+            } else {
+                qw.eq(personCol, scope.personId());
+            }
+            return;
+        }
+        if (!full) {
+            return;
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty()) {
+            qw.in(orgCol, scope.orgIds());
+            return;
+        }
+        if (scope.orgId() != null) {
+            qw.eq(orgCol, scope.orgId());
+        }
+    }
+
+    /** 仅组织维度的数据范围（实体无人员列时使用）。 */
+    private <T> void applyDataScopeOrg(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<T> qw,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> orgCol) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf()) {
+            qw.eq(orgCol, -1L);   // 仅本人角色无组织级数据
+            return;
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty()) {
+            qw.in(orgCol, scope.orgIds());
+            return;
+        }
+        if (scope.orgId() != null) {
+            qw.eq(orgCol, scope.orgId());
+        }
+    }
+
     public PublicityServiceImpl(BizPublicityMapper mapper, SnowflakeIdGenerator idGen) {
         this.mapper = mapper;
         this.idGen = idGen;
@@ -129,6 +192,7 @@ public class PublicityServiceImpl implements PublicityService {
                 .eq(orgId != null, BizPublicity::getOrgId, orgId)
                 .eq(status != null && !status.isBlank(), BizPublicity::getPublicityStatus, status)
                 .orderByDesc(BizPublicity::getId);
+        applyDataScopeOrg(qw, BizPublicity::getOrgId);
         IPage<BizPublicity> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
         List<PublicityVO> rows = page.getRecords().stream().map(PublicityVO::from).toList();
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);

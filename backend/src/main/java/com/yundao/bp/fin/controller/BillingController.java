@@ -51,7 +51,7 @@ public class BillingController {
         return R.ok(billingService.createBill(cmd));
     }
 
-    @com.yundao.bp.iam.security.RequirePerm("fin:bill:view")
+    @com.yundao.bp.iam.security.RequirePerm("fin:fin:view")
     @GetMapping("/bills/{id}")
     public R<BillVO> getBill(@PathVariable Long id) {
         return R.ok(billingService.getBill(id));

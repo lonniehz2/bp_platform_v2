@@ -79,6 +79,7 @@ public class OpenPlatformController {
 
     // ---------- 接口清单 ----------
 
+    @com.yundao.bp.iam.security.RequirePerm("open:app:view")
     @GetMapping("/apis")
     public R<List<OpenApi>> apis(@RequestParam(required = false) String apiGroup) {
         return R.ok(openService.listApis(apiGroup));
@@ -167,6 +168,7 @@ public class OpenPlatformController {
     }
 
     /** 发布业务事件（业务侧调用，也可由 MQ 消费触发）。 */
+    @com.yundao.bp.iam.security.RequirePerm("open:app:publish")
     @PostMapping("/webhooks/publish")
     public R<Integer> publish(@RequestBody PublishCmd cmd) {
         return R.ok(webhookService.publish(cmd.eventType(), cmd.payload()));

@@ -59,6 +59,7 @@ public class RuleEngineController {
         return R.ok(service.disable(id));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("rules:rules:view")
     @GetMapping("/rulesets")
     public R<List<RuleRuleset>> rulesets(@RequestParam(required = false) String domain,
                                          @RequestParam(required = false) String status) {
@@ -91,6 +92,7 @@ public class RuleEngineController {
         return R.ok(service.setRuleStatus(id, cmd.status()));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("rules:rules:view")
     @GetMapping("/rulesets/{id}/rules")
     public R<List<RuleRule>> rules(@PathVariable Long id) {
         return R.ok(service.listRules(id));

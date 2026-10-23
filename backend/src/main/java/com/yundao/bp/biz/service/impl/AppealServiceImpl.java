@@ -77,6 +77,44 @@ public class AppealServiceImpl implements AppealService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private TerminationService terminationService;
 
+
+    /** 数据范围（ALL/ORG_SUB/ORG/SELF） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.datascope.DataScopeService dataScopeService;
+
+    private <T> void applyDataScope(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<T> qw,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> orgCol,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> personCol,
+            boolean full) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf()) {
+            if (scope.personId() == null) {
+                qw.eq(personCol, -1L);
+            } else {
+                qw.eq(personCol, scope.personId());
+            }
+            return;
+        }
+        if (!full) {
+            return;
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty()) {
+            qw.in(orgCol, scope.orgIds());
+            return;
+        }
+        if (scope.orgId() != null) {
+            qw.eq(orgCol, scope.orgId());
+        }
+    }
+
     public AppealServiceImpl(BizAppealMapper mapper, SnowflakeIdGenerator idGen) {
         this.mapper = mapper;
         this.idGen = idGen;
@@ -140,6 +178,7 @@ public class AppealServiceImpl implements AppealService {
                 .eq(bizType != null && !bizType.isBlank(), BizAppeal::getBizType, bizType)
                 .eq(status != null && !status.isBlank(), BizAppeal::getAppealStatus, status)
                 .orderByDesc(BizAppeal::getId);
+        applyDataScope(qw, BizAppeal::getOrgId, BizAppeal::getPersonId, true);
         IPage<BizAppeal> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
         List<AppealVO> rows = page.getRecords().stream().map(AppealVO::from).toList();
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);
