@@ -340,6 +340,11 @@ public class BillingServiceImpl implements BillingService {
             = new java.util.concurrent.ConcurrentHashMap<>();
 
     private BillVO doAllocate(Long paymentId, Long billId, BigDecimal amount) {
+        // 数据库行锁：跨实例并发核销保护
+        Long billRowLock = billMapper == null ? null : billMapper.lockForUpdate(billId);
+        if (billRowLock == null) {
+            throw BizException.notFound("账单");
+        }
         FinPayment pay = requirePayment(paymentId);
         FinBill bill = requireBill(billId);
 

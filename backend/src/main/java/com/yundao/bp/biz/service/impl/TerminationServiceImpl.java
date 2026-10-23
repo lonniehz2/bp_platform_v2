@@ -107,6 +107,11 @@ public class TerminationServiceImpl implements TerminationService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private org.springframework.transaction.PlatformTransactionManager txManager;
 
+
+    /** 合同（退租申请前加行锁） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.biz.mapper.BizContractMapper contractMapper;
+
     public TerminationServiceImpl(BizTerminationMapper mapper, SnowflakeIdGenerator idGen) {
         this.mapper = mapper;
         this.idGen = idGen;
@@ -129,6 +134,12 @@ public class TerminationServiceImpl implements TerminationService {
             = new java.util.concurrent.ConcurrentHashMap<>();
 
     private TerminationVO doApply(TerminationCreateCmd cmd) {
+        // 数据库行锁：跨实例并发申请保护
+        Long contractRowLock = contractMapper == null ? null
+                : contractMapper.lockForUpdate(cmd.contractId());
+        if (contractRowLock == null) {
+            throw BizException.notFound("合同");
+        }
         String tenantId = TenantContext.tenantId();
         TerminationType type;
         try {

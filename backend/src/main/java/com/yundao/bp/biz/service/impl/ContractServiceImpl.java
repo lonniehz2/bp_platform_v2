@@ -111,6 +111,11 @@ public class ContractServiceImpl implements ContractService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private org.springframework.transaction.PlatformTransactionManager txManager;
 
+
+    /** 房源（签约前加行锁，跨实例并发保护） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.asset.mapper.AssetHouseMapper houseMapper;
+
     public ContractServiceImpl(BizContractMapper mapper, SnowflakeIdGenerator idGen,
                                OccupancyService occupancyService) {
         this.mapper = mapper;
@@ -249,6 +254,14 @@ public class ContractServiceImpl implements ContractService {
 
     private ContractVO doSign(Long id, String signFileUrl, String signFlowId) {
         BizContract e = require(id);
+        // 数据库行锁：跨实例并发时保证同一房源串行（JVM 锁只覆盖本实例）
+        if (e.getHouseId() != null) {
+            Long houseRowLock = houseMapper == null ? null
+                    : houseMapper.lockForUpdate(e.getHouseId());
+            if (houseRowLock == null) {
+                throw com.yundao.bp.common.exception.BizException.notFound("房源");
+            }
+        }
         // 防一房多签：同一房源已有生效合同时拒绝（并发场景由 DB 唯一性 + 本检查共同兜底）
         if (e.getHouseId() != null) {
             Long occupied = mapper.selectCount(new LambdaQueryWrapper<BizContract>()
