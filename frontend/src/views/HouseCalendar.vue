@@ -110,8 +110,11 @@
     </el-drawer>
   </div>
 
-    <!-- 预订 -->
-    <el-dialog v-model="bookVisible" title="预订房源（按日）" width="560px">
+    <!-- 预订 → 生成短租订单（后端同步占用日房态） -->
+    <el-dialog v-model="bookVisible" title="预订房源（生成短租订单）" width="580px">
+      <el-alert type="info" :closable="false" show-icon
+                title="提交后生成短租订单，并自动占用 [入住日, 退房日)；取消订单会释放房态"
+                style="margin-bottom:12px" />
       <el-form :model="bf" label-width="100px">
         <el-form-item label="房源 ID" required>
           <el-input v-model="bf.houseId" placeholder="可从列表行点「预订」自动带入" />
@@ -123,11 +126,14 @@
           <el-col :span="12"><el-form-item label="退房日" required>
             <el-date-picker v-model="bf.checkOut" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="占用类型">
-            <el-select v-model="bf.targetStatus" style="width:100%">
-              <el-option label="预订（BOOKED）" value="BOOKED" />
-              <el-option label="直接入住（OCCUPIED）" value="OCCUPIED" />
-            </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="客人姓名" required>
+            <el-input v-model="bf.guestName" placeholder="入住人" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="联系电话">
+            <el-input v-model="bf.guestPhone" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="入住人数">
+            <el-input v-model="bf.guestCount" type="number" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="每晚价格">
+            <el-input v-model="bf.nightlyPrice" type="number" /></el-form-item></el-col>
           <el-col :span="24"><el-form-item label="备注">
             <el-input v-model="bf.remark" type="textarea" :rows="2" /></el-form-item></el-col>
         </el-row>
@@ -288,21 +294,30 @@ function resetQuery() {
 }
 
 
-/** 日房态：预订 / 释放（酒店民宿场景） */
+/** 日房态：预订（生成短租订单）/ 释放（酒店民宿场景） */
 const bookVisible = ref(false)
 const releaseVisible = ref(false)
-const bf = reactive({ houseId: '', checkIn: '', checkOut: '', targetStatus: 'BOOKED', remark: '' })
+// 预订表单：走短租订单，订单创建时后端自动占日房态（防超卖）
+const bf = reactive({ houseId: '', checkIn: '', checkOut: '', guestName: '',
+  guestPhone: '', guestCount: 1, nightlyPrice: 0, remark: '' })
 const rf = reactive({ houseId: '', checkIn: '', checkOut: '' })
 
 function openBook() {
-  Object.assign(bf, { houseId: '', checkIn: '', checkOut: '', targetStatus: 'BOOKED', remark: '' })
+  Object.assign(bf, { houseId: '', checkIn: '', checkOut: '', guestName: '',
+    guestPhone: '', guestCount: 1, nightlyPrice: 0, remark: '' })
   bookVisible.value = true
 }
 
 function bookForHouse(row) {
   openBook()
   bf.houseId = String(row.houseId || '')
-  bf.checkIn = row.calendarDate || ''
+  const d = row.date || row.calendarDate || ''
+  bf.checkIn = d
+  if (d) {
+    const dt = new Date(d + 'T00:00:00')
+    dt.setDate(dt.getDate() + 1)
+    bf.checkOut = dt.toISOString().slice(0, 10)
+  }
 }
 
 function openRelease() {
@@ -314,13 +329,27 @@ async function doBook() {
   if (!bf.houseId || !bf.checkIn || !bf.checkOut) {
     ElMessage.warning('请填写房源与起止日期'); return
   }
+  if (!bf.guestName) {
+    ElMessage.warning('请填写客人姓名'); return
+  }
+  if (bf.checkOut <= bf.checkIn) {
+    ElMessage.warning('退房日必须晚于入住日'); return
+  }
   saving.value = true
   try {
-    const n = await req.post('/house-calendar/book', {
-      houseId: bf.houseId, checkIn: bf.checkIn, checkOut: bf.checkOut,
-      sourceType: 'MANUAL', targetStatus: bf.targetStatus, remark: bf.remark
+    // 创建短租订单：后端同步占用 [入住日, 退房日) 的日房态
+    const o = await req.post('/short-rent-orders', {
+      houseId: bf.houseId,
+      sourceChannel: 'DIRECT',
+      checkInTime: bf.checkIn + ' 14:00:00',
+      checkOutTime: bf.checkOut + ' 12:00:00',
+      guestName: bf.guestName,
+      guestPhone: bf.guestPhone || undefined,
+      guestCount: bf.guestCount || 1,
+      nightlyPrice: bf.nightlyPrice || undefined,
+      remark: bf.remark || undefined
     })
-    ElMessage.success(`已锁定 ${n} 天`)
+    ElMessage.success(`订单 ${o?.orderNo || ''} 已创建，房态已占用 ${o?.nightCount || ''} 晚`)
     bookVisible.value = false
     reload()
   } catch (e) {
