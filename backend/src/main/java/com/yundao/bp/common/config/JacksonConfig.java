@@ -31,6 +31,49 @@ public class JacksonConfig {
     public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     public static final String DATE_PATTERN = "yyyy-MM-dd";
 
+
+    /**
+     * 宽松时间反序列化：兼容空格与 ISO 两种写法，避免前端传 T 分隔就 500。
+     */
+    static class LenientLocalDateTimeDeserializer
+            extends com.fasterxml.jackson.databind.JsonDeserializer<LocalDateTime> {
+
+        private static final DateTimeFormatter SPACE = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
+
+        @Override
+        public LocalDateTime deserialize(com.fasterxml.jackson.core.JsonParser p,
+                                         com.fasterxml.jackson.databind.DeserializationContext ctx)
+                throws java.io.IOException {
+            String text = p.getText();
+            if (text == null || text.isBlank()) {
+                return null;
+            }
+            String v = text.trim();
+            try {
+                if (v.length() == 10) {
+                    return LocalDate.parse(v).atStartOfDay();   // 只给日期
+                }
+                if (v.indexOf('T') > 0) {
+                    String n = v.replace('Z', ' ');
+                    if (n.endsWith(" ")) {
+                        n = n.trim();
+                    }
+                    if (n.length() > 19) {
+                        n = n.substring(0, 19);                 // 去掉毫秒/时区
+                    }
+                    return LocalDateTime.parse(n.replace('T', ' '), SPACE);
+                }
+                if (v.length() > 19) {
+                    v = v.substring(0, 19);
+                }
+                return LocalDateTime.parse(v, SPACE);
+            } catch (Exception ex) {
+                throw new java.io.IOException("时间格式无法解析：" + text
+                        + "（支持 yyyy-MM-dd HH:mm:ss 或 ISO 2026-11-05T14:00:00）", ex);
+            }
+        }
+    }
+
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
         return builder -> {
@@ -44,7 +87,7 @@ public class JacksonConfig {
             DateTimeFormatter df = DateTimeFormatter.ofPattern(DATE_PATTERN);
             JavaTimeModule time = new JavaTimeModule();
             time.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(dtf));
-            time.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(dtf));
+            time.addDeserializer(LocalDateTime.class, new LenientLocalDateTimeDeserializer());
             time.addSerializer(LocalDate.class, new LocalDateSerializer(df));
             time.addDeserializer(LocalDate.class, new LocalDateDeserializer(df));
 

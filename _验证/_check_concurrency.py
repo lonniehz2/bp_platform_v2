@@ -10,6 +10,7 @@
 用法：python _check_concurrency.py
 """
 import json
+import random
 import threading
 import time
 import urllib.error
@@ -200,15 +201,18 @@ def main():
 
     def new_person(tag):
         W = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
-        seq = str(int(time.time() * 1000))[-3:]
-        base = '33010619900101' + tag + seq
-        base = base[:17]
-        idc = base + '10X98765432'[sum(int(base[i]) * W[i] for i in range(17)) % 11]
-        st, r = call('/persons', 'POST',
-                     {'personName': '%s%s' % (TAG, tag), 'idCard': idc,
-                      'phone': '138%08d' % (int(time.time() * 1000) % 100000000),
-                      'orgId': oid, 'householdType': 'URBAN'}, tok)
-        return d((st, r))
+        for _ in range(8):
+            seq = '%03d' % random.randint(100, 999)
+            base = ('33010619900101' + tag + seq)[:17]
+            idc = base + '10X98765432'[sum(int(base[i]) * W[i] for i in range(17)) % 11]
+            st, r = call('/persons', 'POST',
+                         {'personName': '%s%s' % (TAG, seq), 'idCard': idc,
+                          'phone': '138%08d' % random.randint(0, 99999999),
+                          'orgId': oid, 'householdType': 'URBAN'}, tok)
+            p = d((st, r))
+            if p:
+                return p
+        return None
 
     h1 = new_house('A')
     p1 = new_person('1')
