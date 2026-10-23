@@ -51,6 +51,21 @@ public class HouseController {
                 houseType, keyword));
     }
 
+
+    /**
+     * 批量导入房源（CSV）。
+     *
+     * <p>用于真实台账迁移：逐行校验组织、空间、枚举与编号唯一性，
+     * 失败行返回行号与原因，不中断整批。
+     */
+    @PostMapping("/import")
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:create")
+    public R<java.util.Map<String, Object>> importCsv(
+            @org.springframework.web.bind.annotation.RequestParam("file")
+            org.springframework.web.multipart.MultipartFile file) {
+        return R.ok(houseService.importCsv(file));
+    }
+
     @PostMapping("/{id}/status")
     public R<HouseVO> changeStatus(@PathVariable Long id, @RequestBody StatusCmd cmd) {
         return R.ok(houseService.changeStatus(id, cmd.status()));

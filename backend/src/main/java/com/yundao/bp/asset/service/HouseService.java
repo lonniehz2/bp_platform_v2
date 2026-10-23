@@ -23,4 +23,8 @@ public interface HouseService {
                              Long spaceId, String houseStatus, String houseType, String keyword);
 
     HouseVO changeStatus(Long id, String targetStatus);
+
+    /** 批量导入房源（CSV）。 */
+    java.util.Map<String, Object> importCsv(
+            org.springframework.web.multipart.MultipartFile file);
 }
