@@ -125,7 +125,7 @@ public class GrantServiceImpl implements GrantService {
         // ---- 2) 幂等：同人+同空间+同层级+同有效期 只建一次 ----
         // ⚠️ 必须用 cmd 里"原始"的 validStart，不能用上面解析出的 start（=now()）
         //    否则每次申请 now() 都不同，幂等键永远不命中
-        requireManagerForSecondary(cmd.grantLevel(), cmd.spaceId());
+        requireOwnershipForTransfer(cmd.grantLevel(), cmd.spaceId());
         String idemKey = idempotentKey(cmd.personId(), cmd.spaceId(), cmd.grantLevel(),
                 cmd.validStart(), end);
         GrantTask existTask = taskMapper.selectOne(new LambdaQueryWrapper<GrantTask>()
@@ -246,6 +246,7 @@ public class GrantServiceImpl implements GrantService {
         if (e == null) {
             throw BizException.notFound("权益");
         }
+        requireRevokeRight(e);
         GrantStatus cur = GrantStatus.valueOf(e.getGrantStatus());
         if (cur.isTerminal()) {
             throw BizException.stateConflict("权益已是终态（" + cur.label() + "），不可撤销");
@@ -470,33 +471,120 @@ public class GrantServiceImpl implements GrantService {
      * 只有在该空间上拥有 OWNERSHIP / MANAGEMENT 且 allowManage=1 的人，
      * 才能创建或删除 SECONDARY_MANAGEMENT；二级管理权本身不能再向下授予。
      */
-    private void requireManagerForSecondary(String grantLevel, Long spaceId) {
-        if (!"SECONDARY_MANAGEMENT".equals(grantLevel)) {
+    /**
+     * 管理权转移约束（按业务确认口径）：
+     * <ul>
+     *   <li>设备初始绑定到某账号 → 该账号拥有所有权（OWNERSHIP，含管理能力）</li>
+     *   <li><b>只有所有权者</b>可以把管理权转移给其他账号</li>
+     *   <li>只有管理权（无所有权）的账号不能再转让，只能归还自己的管理权</li>
+     * </ul>
+     */
+    private void requireOwnershipForTransfer(String grantLevel, Long spaceId) {
+        if (!"MANAGEMENT".equals(grantLevel)
+                && !"SECONDARY_MANAGEMENT".equals(grantLevel)) {
             return;
         }
         Long me = TenantContext.userId();
         if (me == null) {
-            throw com.yundao.bp.common.exception.BizException.stateConflict(
-                    "无法识别当前操作人，不能授予二级管理权");
+            return;   // 系统任务/内部调用
         }
-        Long personId = me;
-        if (userMapper != null) {
-            com.yundao.bp.iam.entity.IamUser u = userMapper.selectById(me);
-            if (u != null && u.getPersonId() != null) {
-                personId = u.getPersonId();
+        if (isAdmin(me)) {
+            return;   // 组织管理员可代为转移
+        }
+        java.util.List<Long> ids = idsForUser(me);
+        Long owner = entitlementMapper.selectCount(
+                new LambdaQueryWrapper<GrantEntitlement>()
+                        .in(GrantEntitlement::getPersonId, ids)
+                        .eq(spaceId != null, GrantEntitlement::getSpaceId, spaceId)
+                        .eq(GrantEntitlement::getGrantLevel, "OWNERSHIP")
+                        .eq(GrantEntitlement::getAllowManage, 1)
+                        .in(GrantEntitlement::getGrantStatus, java.util.List.of("ACTIVE", "PENDING")));
+        if (owner != null && owner > 0) {
+            return;
+        }
+        Long manager = entitlementMapper.selectCount(
+                new LambdaQueryWrapper<GrantEntitlement>()
+                        .in(GrantEntitlement::getPersonId, ids)
+                        .eq(spaceId != null, GrantEntitlement::getSpaceId, spaceId)
+                        .eq(GrantEntitlement::getGrantLevel, "MANAGEMENT")
+                        .in(GrantEntitlement::getGrantStatus, java.util.List.of("ACTIVE", "PENDING")));
+        if (manager != null && manager > 0) {
+            throw com.yundao.bp.common.exception.BizException.stateConflict(
+                    "只有所有权者可以转移管理权；管理权持有者只能归还自己的管理权");
+        }
+        throw com.yundao.bp.common.exception.BizException.stateConflict(
+                "只有该空间的所有权者才能授予管理权");
+    }
+
+    /** 是否组织管理员（跨组织代管场景放行）。 */
+    private boolean isAdmin(Long userId) {
+        if (userMapper == null) {
+            return false;
+        }
+        com.yundao.bp.iam.entity.IamUser u = userMapper.selectById(userId);
+        return u != null && ("PLATFORM".equals(u.getUserType())
+                || "ADMIN".equals(u.getUserType()));
+    }
+
+
+    /**
+     * 撤销/归还权限：
+     * 所有权者可强制收回；权益持有者本人可归还；管理员可代操作。
+     */
+    private void requireRevokeRight(GrantEntitlement e) {
+        Long me = TenantContext.userId();
+        if (me == null || isAdmin(me)) {
+            return;
+        }
+        java.util.List<Long> ids = idsForUser(me);
+        if (e.getPersonId() != null && ids.contains(e.getPersonId())) {
+            return;   // 本人归还
+        }
+        Long owner = entitlementMapper.selectCount(
+                new LambdaQueryWrapper<GrantEntitlement>()
+                        .in(GrantEntitlement::getPersonId, ids)
+                        .eq(e.getSpaceId() != null, GrantEntitlement::getSpaceId, e.getSpaceId())
+                        .eq(GrantEntitlement::getGrantLevel, "OWNERSHIP")
+                        .in(GrantEntitlement::getGrantStatus, java.util.List.of("ACTIVE", "PENDING")));
+        if (owner == null || owner == 0) {
+            throw com.yundao.bp.common.exception.BizException.stateConflict(
+                    "无权撤销：只有所有权者或权益持有人本人可以操作");
+        }
+    }
+
+    @Override
+    public int expireOverdue() {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.util.List<GrantEntitlement> list = entitlementMapper.selectList(
+                new LambdaQueryWrapper<GrantEntitlement>()
+                        .eq(GrantEntitlement::getGrantStatus, "ACTIVE")
+                        .isNotNull(GrantEntitlement::getValidEnd)
+                        .lt(GrantEntitlement::getValidEnd, now));
+        int n = 0;
+        for (GrantEntitlement e : list) {
+            if (e.getValidEnd() != null && e.getValidEnd().isBefore(now)) {
+                e.setGrantStatus("EXPIRED");
+                e.setRevokeReason("管理权到期自动归还");
+                entitlementMapper.updateById(e);
+                n++;
             }
         }
-        Long granted = entitlementMapper.selectCount(
-                new LambdaQueryWrapper<GrantEntitlement>()
-                        .eq(GrantEntitlement::getPersonId, personId)
-                        .eq(spaceId != null, GrantEntitlement::getSpaceId, spaceId)
-                        .in(GrantEntitlement::getGrantLevel,
-                                java.util.List.of("OWNERSHIP", "MANAGEMENT"))
-                        .eq(GrantEntitlement::getAllowManage, 1)
-                        .eq(GrantEntitlement::getGrantStatus, "ACTIVE"));
-        if (granted == null || granted == 0) {
-            throw com.yundao.bp.common.exception.BizException.stateConflict(
-                    "只有拥有管理权或所有权的人才能授予/撤销二级管理权");
+        if (n > 0) {
+            log.info("权益到期归还：{} 条", n);
         }
+        return n;
+    }
+
+    /** 账号可能在人员档案与账号两种 id 下建权益，这里同时匹配。 */
+    private java.util.List<Long> idsForUser(Long userId) {
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        ids.add(userId);
+        if (userMapper != null) {
+            com.yundao.bp.iam.entity.IamUser u = userMapper.selectById(userId);
+            if (u != null && u.getPersonId() != null && !u.getPersonId().equals(userId)) {
+                ids.add(u.getPersonId());
+            }
+        }
+        return ids;
     }
 }

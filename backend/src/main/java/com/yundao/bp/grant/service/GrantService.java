@@ -29,4 +29,7 @@ public interface GrantService {
 
     /** 执行下发（供 MQ 消费者/重试任务调用）；幂等。 */
     void dispatch(Long taskId);
+
+    /** 管理权到期自动归还：把 valid_end 已过的生效权益置为 EXPIRED，返回条数。 */
+    int expireOverdue();
 }

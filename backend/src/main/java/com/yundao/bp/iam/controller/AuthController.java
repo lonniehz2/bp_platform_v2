@@ -28,14 +28,12 @@ public class AuthController {
     }
 
     /** 登录（唯一免鉴权接口）。 */
-    @com.yundao.bp.iam.security.RequirePerm("auth:auth:create")
     @PostMapping("/login")
     public R<LoginVO> login(@Valid @RequestBody LoginCmd cmd, HttpServletRequest req) {
         return R.ok(authService.login(cmd, clientIp(req)));
     }
 
     /** 登出。 */
-    @com.yundao.bp.iam.security.RequirePerm("auth:auth:create")
     @PostMapping("/logout")
     public R<Void> logout(HttpServletRequest req) {
         authService.logout(token(req));
@@ -43,7 +41,6 @@ public class AuthController {
     }
 
     /** 当前用户（含权限清单，供前端控制菜单/按钮）。 */
-    @com.yundao.bp.iam.security.RequirePerm("auth:auth:view")
     @GetMapping("/me")
     public R<MeVO> me() {
         LoginUser u = LoginUser.get();
