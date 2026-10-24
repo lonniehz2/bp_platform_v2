@@ -372,6 +372,12 @@ export default GLOBAL
  * 字典类型码 → 中文名（系统支撑页的字典类型下拉用）。
  * 与 bp_sys_dict.dict_type 一一对应。
  */
+export const METER_MODE_LABEL = {
+  INDEPENDENT: '独立表',
+  SHARED: '整户分摊',
+  MIXED: '独立表+公区分摊'
+}
+
 export const DICT_TYPE_LABEL = {
   HOUSE_TYPE: '房源类型',
   SECURITY_TYPE: '保障类型',
