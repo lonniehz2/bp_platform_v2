@@ -3,7 +3,8 @@
     <el-aside :width="collapsed ? '64px' : '210px'" class="aside">
       <div class="brand">{{ collapsed ? '保' : '住房保障运营平台' }}</div>
       <el-menu :default-active="$route.path" :collapse="collapsed"
-               :collapse-transition="false" router class="menu">
+               :collapse-transition="false" :default-openeds="openedGroups"
+               router class="menu" @open="onMenuOpen" @close="onMenuClose">
         <template v-for="g in groups" :key="g.name">
           <el-sub-menu v-if="g.items.length > 1" :index="g.name">
             <template #title>
@@ -46,19 +47,81 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/store/auth'
 import { useMenu } from './useMenu'
 import { useTodoStore } from '@/store/todo'
 import StyleSwitch from './StyleSwitch.vue'
+import { defaultOpenGroups, loadOpenGroups, saveOpenGroups } from './menuPrefs'
 
 const router = useRouter()
 const auth = useAuthStore()
 const todo = useTodoStore()
 const { classicGroups: groups, titleOf, groupOf } = useMenu()
 const collapsed = ref(false)
+
+/**
+ * 菜单展开状态：按角色默认 + 记住用户手动选择。
+ *
+ * 默认展开依据页面权限推断（见 menuPrefs.js），用户点开/收起后写入 localStorage。
+ */
+const openedGroups = ref((() => {
+  const saved = loadOpenGroups(null)
+  const base = defaultOpenGroups((code) => auth.has(code))
+  return (saved && saved.length) ? saved : base
+})())
+const menuRef = ref(null)
+const menuKey = ref(0)
+const menuReady = ref(false)
+
+function initOpenGroups() {
+  const saved = loadOpenGroups(auth.user?.userId)
+  openedGroups.value = (saved && saved.length)
+    ? saved
+    : defaultOpenGroups((code) => auth.has(code))
+  // 展开状态确定后再挂载菜单，确保 default-openeds 生效
+  menuReady.value = true
+  nextTick(() => {
+    menuKey.value++
+    nextTick(() => applyOpen())
+  })
+}
+
+function applyOpen() {
+  const menu = menuRef.value
+  if (!menu) return
+  for (const g of openedGroups.value) {
+    try { menu.open(g) } catch (e) { /* 分组未渲染 */ }
+  }
+}
+
+function onMenuOpen(index) {
+  if (!openedGroups.value.includes(index)) {
+    openedGroups.value = [...openedGroups.value, index]
+    saveOpenGroups(auth.user?.userId, openedGroups.value)
+  }
+}
+
+function onMenuClose(index) {
+  openedGroups.value = openedGroups.value.filter((x) => x !== index)
+  saveOpenGroups(auth.user?.userId, openedGroups.value)
+}
+
+onMounted(initOpenGroups)
+watch(() => groups.value.length, (n) => {
+  if (n > 0) {
+    // 子菜单渲染需要多帧，延迟兜底展开
+    setTimeout(() => applyOpen(), 300)
+  }
+}, { immediate: true })
+watch(() => auth.user?.userId, initOpenGroups)
+watch(() => (auth.permissions || []).length, (n) => {
+  if (n > 0 && !loadOpenGroups(auth.user?.userId)) {
+    initOpenGroups()
+  }
+})
 
 async function logout() {
   await ElMessageBox.confirm('确认退出登录？', '提示', { type: 'warning' })
