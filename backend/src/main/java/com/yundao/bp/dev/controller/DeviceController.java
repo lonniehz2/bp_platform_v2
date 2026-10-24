@@ -10,6 +10,8 @@ import com.yundao.bp.dev.entity.DevDevice;
 import com.yundao.bp.dev.mapper.DevDeviceMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,9 +58,12 @@ public class DeviceController {
             @RequestParam(required = false) Long spaceId,
             @RequestParam(required = false) String deviceId,
             @RequestParam(required = false) String deviceMac,
-            @RequestParam(required = false) Integer onlineStatus) {
+            @RequestParam(required = false) Integer onlineStatus,
+            @RequestParam(required = false) String deviceType) {
         LambdaQueryWrapper<DevDevice> qw = new LambdaQueryWrapper<DevDevice>()
                 .eq(spaceId != null, DevDevice::getSpaceId, spaceId)
+                .eq(deviceType != null && !deviceType.isBlank(),
+                        DevDevice::getDeviceType, deviceType)
                 .eq(deviceId != null && !deviceId.isBlank(),
                         DevDevice::getDeviceId, deviceId)
                 .like(deviceMac != null && !deviceMac.isBlank(),
@@ -69,6 +74,61 @@ public class DeviceController {
         return R.ok(PageResult.of(page.getTotal(), pageNum, pageSize, page.getRecords()));
     }
 
+
+    /** 设备分类清单（具体分类 + 大类 + 数量）。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:device:view")
+    @GetMapping("/types")
+    public R<java.util.List<java.util.Map<String, Object>>> types() {
+        java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
+        for (com.yundao.bp.dev.constant.DevDeviceType t
+                : com.yundao.bp.dev.constant.DevDeviceType.values()) {
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("code", t.name());
+            m.put("label", t.label());
+            m.put("category", t.category());
+            m.put("count", mapper.selectCount(new LambdaQueryWrapper<DevDevice>()
+                    .eq(DevDevice::getDeviceType, t.name())));
+            out.add(m);
+        }
+        return R.ok(out);
+    }
+
+    /** 未绑定任何空间的设备（供绑定弹窗选择）。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:device:view")
+    @GetMapping("/unbound")
+    public R<java.util.List<DevDevice>> unbound(
+            @RequestParam(required = false) String deviceType) {
+        return R.ok(mapper.selectList(new LambdaQueryWrapper<DevDevice>()
+                .isNull(DevDevice::getSpaceId)
+                .eq(deviceType != null && !deviceType.isBlank(),
+                        DevDevice::getDeviceType, deviceType)
+                .orderByDesc(DevDevice::getId)));
+    }
+
+    /** 设备绑定/解绑空间：spaceId 传空表示解绑。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:device:update")
+    @org.springframework.web.bind.annotation.PostMapping("/{id:\\d+}/bind")
+    public R<DevDevice> bind(@PathVariable Long id,
+                             @RequestBody java.util.Map<String, Object> body) {
+        DevDevice d = mapper.selectById(id);
+        if (d == null) {
+            throw BizException.notFound("设备");
+        }
+        Object raw = body == null ? null : body.get("spaceId");
+        if (raw == null || String.valueOf(raw).isBlank()
+                || "null".equals(String.valueOf(raw))) {
+            d.setSpaceId(null);
+        } else {
+            Long spaceId = Long.valueOf(String.valueOf(raw));
+            if (spaceMapper.selectById(spaceId) == null) {
+                throw BizException.notFound("空间");
+            }
+            d.setSpaceId(spaceId);
+        }
+        d.setUpdateTime(java.time.LocalDateTime.now());
+        mapper.updateById(d);
+        return R.ok(d);
+    }
 
     /**
      * 空间设备继承：给定房源，沿空间祖先链收集可授权设备。
@@ -144,7 +204,7 @@ public class DeviceController {
 
     /** 设备详情。 */
     @com.yundao.bp.iam.security.RequirePerm("asset:device:view")
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public R<DevDevice> get(@PathVariable Long id) {
         DevDevice d = mapper.selectById(id);
         if (d == null) {

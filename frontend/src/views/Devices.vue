@@ -11,9 +11,8 @@
                 style="width:210px" @keyup.enter="load" />
       <el-select v-model="query.deviceType" placeholder="设备类型" clearable
                  style="width:150px" @change="load">
-        <el-option label="门锁" value="LOCK" />
-        <el-option label="门禁/道闸" value="GATE" />
-        <el-option label="计量表（水电燃气）" value="METER" />
+        <el-option v-for="t in devTypes" :key="t.code" :value="t.code"
+                   :label="t.label + (t.count ? '（' + t.count + '）' : '')" />
       </el-select>
       <el-select v-model="query.onlineStatus" placeholder="在线状态" clearable
                  style="width:130px" @change="load">
@@ -146,12 +145,22 @@ const stats = ref({})
 const query = reactive({ pageNum: 1, pageSize: 20, spaceId: '', onlineStatus: '',
   deviceType: '' })
 
+const devTypes = ref([])
+
+async function loadTypes() {
+  try {
+    const list = await req.get('/devices/types')
+    devTypes.value = (list || []).filter((t) => t.count > 0 || t.code !== 'OTHER')
+  } catch (e) { devTypes.value = [] }
+}
+
 async function load() {
   loading.value = true
   try {
     const data = await devApi.devices({
       pageNum: query.pageNum, pageSize: query.pageSize,
       spaceId: query.spaceId || undefined,
+      deviceType: query.deviceType || undefined,
       onlineStatus: query.onlineStatus === '' ? undefined : query.onlineStatus
     })
     rows.value = data.rows || []
@@ -218,5 +227,5 @@ async function handleEvent(row) {
   }
 }
 
-onMounted(load)
+onMounted(() => { loadTypes(); load() })
 </script>

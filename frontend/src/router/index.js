@@ -62,6 +62,12 @@ export const menuRoutes = [
     meta: { title: '设备管理', icon: 'Cpu', group: '资产与设备' }
   },
   {
+    path: '/device-bind',
+    name: 'DeviceBinding',
+    component: () => import('@/views/DeviceBinding.vue'),
+    meta: { title: '设备绑定', icon: 'Connection', group: '资产与设备' }
+  },
+  {
     path: '/dev-events',
     name: 'DevEvents',
     component: () => import('@/views/DevEvents.vue'),
