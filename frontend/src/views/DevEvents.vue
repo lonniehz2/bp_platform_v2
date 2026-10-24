@@ -13,7 +13,7 @@
         <el-option label="信息" value="INFO" />
       </el-select>
       <el-input v-model="query.deviceId" placeholder="设备编号" clearable
-                style="width:170px" @keyup.enter="load" />
+                style="width:220px" @keyup.enter="load" />
       <el-checkbox v-model="query.alarmOnly" @change="load">只看告警</el-checkbox>
       <el-checkbox v-model="query.unhandledOnly" @change="load">只看未处理</el-checkbox>
       <el-button type="primary" @click="load">查询</el-button>
