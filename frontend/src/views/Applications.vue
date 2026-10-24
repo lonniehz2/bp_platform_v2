@@ -38,10 +38,13 @@
         <template #default="{ row }">{{ row.currentNodeLabel || enumLabel('currentNode', row.currentNode) }}</template>
       </el-table-column>
         <el-table-column prop="applyTime" label="申请时间" width="170" />
-        <el-table-column label="操作" width="230" fixed="right">
+        <el-table-column label="操作" width="290" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-            <el-button link type="primary" @click="openReview(row)">审核</el-button>
+            <el-button v-if="row.applyStatus === 'SUBMITTED'" link type="success"
+                       @click="accept(row)" data-testid="row-accept">受理</el-button>
+            <el-button v-if="canReview(row)" link type="primary"
+                       @click="openReview(row)">审核</el-button>
             <el-button link @click="openRecords(row)">轨迹</el-button>
           </template>
         </el-table-column>
@@ -238,6 +241,23 @@ async function save() {
     load()
   } finally {
     saving.value = false
+  }
+}
+
+
+/** 只有已受理/审核中/补件状态可以审核 */
+function canReview(row) {
+  return ['ACCEPTED', 'REVIEWING', 'SUPPLEMENT'].includes(row.applyStatus)
+}
+
+/** 受理：已提交 → 已受理 */
+async function accept(row) {
+  try {
+    await req.post(/applications//accept, {})
+    ElMessage.success('已受理')
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '受理失败')
   }
 }
 

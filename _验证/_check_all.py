@@ -22,6 +22,7 @@ STEPS = [
     ('数据范围扫描（列表接口必须限权）', '_check_datascope.py', STRICT),
     ('数据范围运行时校验（租户 vs 管理员）', '_check_scope_runtime.py', STRICT),
     ('全功能页面对照（46 项）', '_verify_all_pages.py', []),
+    ('用户旅程闭环（31 步）', '_check_journeys.py', STRICT),
 ]
 
 results = []
