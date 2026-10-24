@@ -64,9 +64,10 @@ public class BillingController {
                                            @RequestParam(required = false) Long orgId,
                                            @RequestParam(required = false) Long contractId,
                                            @RequestParam(required = false) Long personId,
+                                           @RequestParam(required = false) Long houseId,
                                            @RequestParam(required = false) String status,
                                            @RequestParam(required = false) String keyword) {
-        return R.ok(billingService.pageBills(pageNum, pageSize, orgId, contractId, personId,
+        return R.ok(billingService.pageBills(pageNum, pageSize, orgId, contractId, personId, houseId,
                 status, keyword));
     }
 

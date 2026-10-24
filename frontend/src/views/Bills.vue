@@ -9,6 +9,12 @@
         </el-select>
         <el-input v-model="q.billPeriod" placeholder="账期 2026-10" clearable
                   style="width:140px" @keyup.enter="reload" />
+        <el-select v-model="q.houseId" filterable remote :remote-method="searchMeterHouse"
+                   :loading="houseLoading" clearable style="width:200px"
+                   placeholder="房源（含水电费）" @change="reload">
+          <el-option v-for="h in meterHouses" :key="h.id" :label="h.houseName"
+                     :value="String(h.id)" />
+        </el-select>
         <el-button type="primary" @click="reload">查询</el-button>
         <el-button @click="resetQuery">清空</el-button>
         <div class="spacer" />
@@ -374,7 +380,8 @@ async function doMeterBill(row) {
 }
 const rows = ref([])
 const total = ref(0)
-const q = reactive({ pageNum: 1, pageSize: 20, billStatus: '', billPeriod: '' })
+const q = reactive({ pageNum: 1, pageSize: 20, billStatus: '', billPeriod: '',
+  houseId: '' })
 const current = ref(null)
 
 const genVisible = ref(false)
@@ -437,7 +444,8 @@ async function load() {
     const d = await financeApi.bills({
       pageNum: q.pageNum, pageSize: q.pageSize,
       billStatus: q.billStatus || undefined,
-      billPeriod: q.billPeriod || undefined
+      billPeriod: q.billPeriod || undefined,
+      houseId: q.houseId || undefined
     })
     rows.value = d.rows || []
     total.value = Number(d.total || 0)

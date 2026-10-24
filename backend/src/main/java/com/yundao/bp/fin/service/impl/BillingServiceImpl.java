@@ -170,13 +170,13 @@ public class BillingServiceImpl implements BillingService {
     }
 
     @Override
-    public PageResult<BillVO> pageBills(long pageNum, long pageSize, Long orgId, Long contractId,
-                                        Long personId, String status, String keyword) {
+    public PageResult<BillVO> pageBills(long pageNum, long pageSize, Long orgId, Long contractId, Long personId, Long houseId, String status, String keyword) {
         LambdaQueryWrapper<FinBill> qw = new LambdaQueryWrapper<FinBill>()
                 .eq(orgId != null, FinBill::getOrgId, orgId)
                 .eq(contractId != null, FinBill::getContractId, contractId)
                 .eq(personId != null, FinBill::getPersonId, personId)
                 .eq(status != null && !status.isBlank(), FinBill::getBillStatus, status)
+                .eq(houseId != null, FinBill::getHouseId, houseId)
                 .orderByDesc(FinBill::getId);
         applyDataScope(qw, FinBill::getOrgId, FinBill::getPersonId);
         if (keyword != null && !keyword.isBlank()) {

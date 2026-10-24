@@ -19,8 +19,8 @@ public interface BillingService {
 
     BillVO getBill(Long id);
 
-    PageResult<BillVO> pageBills(long pageNum, long pageSize, Long orgId, Long contractId,
-                                 Long personId, String status, String keyword);
+    PageResult<BillVO> pageBills(long pageNum, long pageSize, Long orgId, Long contractId, Long personId, Long houseId,
+                                 String status, String keyword);
 
     /** 逾期扫描：过缴费截止日仍未缴的账单置 OVERDUE 并回填逾期天数。 */
     int scanOverdue();

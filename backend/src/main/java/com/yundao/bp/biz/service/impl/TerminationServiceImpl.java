@@ -428,8 +428,8 @@ public class TerminationServiceImpl implements TerminationService {
             throw BizException.stateConflict("已处于 " + target.label() + " 状态");
         }
         if (!TerminationStatus.nextOf(from).contains(target)) {
-            throw BizException.stateConflict(
-                    "状态不允许从 " + from.label() + " 变更为 " + target.label());
+            throw BizException.stateConflict("状态不允许从 " + from.label() + " 变更为 "
+                    + target.label());
         }
         e.setTerminationStatus(target.name());
         e.setUpdateTime(LocalDateTime.now());
