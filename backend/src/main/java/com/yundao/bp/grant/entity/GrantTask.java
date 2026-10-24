@@ -26,6 +26,15 @@ public class GrantTask {
     /** sha1(personId + spaceId + level + 有效期) —— 库上唯一 */
     private String idempotentKey;
 
+    /** 下发关联号（回调 serviceId 对应） */
+    private String serviceId;
+
+    /** 回调到达时间 */
+    private java.time.LocalDateTime callbackTime;
+
+    /** 超时判定时间（默认下发后 3 分钟） */
+    private java.time.LocalDateTime timeoutAt;
+
     /** GRANT / REVOKE / FREEZE / UNFREEZE */
     private String taskType;
 

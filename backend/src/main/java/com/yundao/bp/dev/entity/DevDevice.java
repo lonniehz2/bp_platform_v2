@@ -29,6 +29,9 @@ public class DevDevice {
 
     /** LOCK / ACCESS / ELEVATOR / GATE / METER_* / ... 见 OpenableDeviceType */
     private String deviceType;
+
+    /** 父设备（网关）编号；直连设备为空 */
+    private String parentDeviceId;
     private String deviceModel;
     private String lockType;
     private String ventor;
