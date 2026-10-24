@@ -28,16 +28,22 @@ public class RegionController {
         this.mapper = mapper;
     }
 
-    /** 子级列表（parentCode 为空返回省级）。 */
+    /** 子级列表（parentCode 为空返回省级）；code 可按下级代码反查其父级下的兄弟节点。 */
     @GetMapping("/children")
     public R<List<Map<String, Object>>> children(
             @RequestParam(required = false) String parentCode,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String code) {
+        String parent = parentCode;
+        if ((parent == null || parent.isBlank()) && code != null && !code.isBlank()) {
+            SysRegion self = mapper.selectById(code);
+            parent = self == null ? null : self.getParentCode();
+        }
         LambdaQueryWrapper<SysRegion> qw = new LambdaQueryWrapper<>();
-        if (parentCode == null || parentCode.isBlank()) {
+        if (parent == null || parent.isBlank()) {
             qw.eq(SysRegion::getLevel, 1);
         } else {
-            qw.eq(SysRegion::getParentCode, parentCode);
+            qw.eq(SysRegion::getParentCode, parent);
         }
         if (keyword != null && !keyword.isBlank()) {
             qw.like(SysRegion::getName, keyword);
