@@ -16,6 +16,9 @@
       </el-select>
       <el-button type="primary" @click="load">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
+      <el-button type="danger" plain @click="openEvents(null)" data-testid="dev-events">
+        设备告警
+      </el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon
@@ -63,6 +66,56 @@
     <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
+
+    <!-- 设备告警 / 事件 -->
+    <el-dialog v-model="evVisible" title="设备告警与事件" width="900px" top="6vh">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+        <el-select v-model="evQuery.identifier" placeholder="事件类型" clearable
+                   style="width:200px" @change="loadEvents">
+          <el-option v-for="t in evTypes" :key="t.code" :value="t.code"
+                     :label="t.label + (t.level === 'CRITICAL' ? '（严重）' : '')" />
+        </el-select>
+        <el-checkbox v-model="evQuery.alarmOnly" @change="loadEvents">只看告警</el-checkbox>
+        <el-checkbox v-model="evQuery.unhandledOnly" @change="loadEvents">只看未处理</el-checkbox>
+        <span class="muted" style="font-size:12px">
+          共 {{ evTotal }} 条，未处理 {{ evStats.unhandled || 0 }} 条
+        </span>
+      </div>
+      <el-table :data="evRows" v-loading="evLoading" size="small" border max-height="420">
+        <el-table-column prop="eventTime" label="时间" width="170" />
+        <el-table-column prop="deviceId" label="设备" width="170" />
+        <el-table-column prop="identifier" label="类型" width="150">
+          <template #default="{ row }">{{ evLabel(row.identifier) }}</template>
+        </el-table-column>
+        <el-table-column prop="eventLevel" label="级别" width="90">
+          <template #default="{ row }">
+            <el-tag size="small" :type="row.eventLevel === 'CRITICAL' ? 'danger'
+              : (row.eventLevel === 'WARN' ? 'warning' : 'info')">
+              {{ row.eventLevel }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="body" label="详情" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="handled" label="状态" width="90">
+          <template #default="{ row }">
+            <el-tag size="small" :type="row.handled ? 'success' : 'danger'">
+              {{ row.handled ? '已处理' : '未处理' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="100" fixed="right">
+          <template #default="{ row }">
+            <el-button v-if="!row.handled" link type="primary"
+                       @click="handleEvent(row)">标记处理</el-button>
+            <span v-else class="muted">—</span>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination style="margin-top:10px" layout="total, prev, pager, next"
+                     :total="evTotal" :page-size="evQuery.pageSize"
+                     :current-page="evQuery.pageNum"
+                     @current-change="(p) => { evQuery.pageNum = p; loadEvents() }" />
+    </el-dialog>
 </template>
 
 <script setup>
@@ -76,6 +129,7 @@ function openDetail(row) {
 
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
+import req from '@/api/request'
 import DetailView from '@/components/DetailView.vue'
 import { devApi } from '@/api/modules'
 
@@ -103,6 +157,58 @@ const query0 = JSON.parse(JSON.stringify(query))
 function resetQuery() {
   Object.assign(query, query0)
   load()
+}
+
+
+/** 设备告警与事件 */
+const evVisible = ref(false)
+const evLoading = ref(false)
+const evRows = ref([])
+const evTotal = ref(0)
+const evStats = ref({})
+const evTypes = ref([])
+const evQuery = reactive({ pageNum: 1, pageSize: 20, identifier: '', alarmOnly: true,
+  unhandledOnly: false })
+
+const EV_LABEL = {
+  OPEN: '开锁', ONLINE: '上线', OFFLINE: '离线', LOW_BATTERY: '低电量告警',
+  BATTERY_RESTORED: '低电解除', TAMPER: '防拆告警', TRIAL_ERROR: '试错告警',
+  DURESS: '胁迫告警', POWER_OVER: '超功率告警', LOCAL_SWITCH: '本地合闸',
+  METER_READ: '抄表读数', OTHER: '其他'
+}
+function evLabel(code) { return EV_LABEL[code] || code }
+
+async function openEvents() {
+  evVisible.value = true
+  await loadEvents()
+}
+
+async function loadEvents() {
+  evLoading.value = true
+  try {
+    const params = { pageNum: evQuery.pageNum, pageSize: evQuery.pageSize }
+    if (evQuery.identifier) params.identifier = evQuery.identifier
+    if (evQuery.alarmOnly) params.alarmOnly = true
+    const r = await req.get('/dev-events', { params })
+    evRows.value = (r && r.rows) || []
+    evTotal.value = (r && r.total) || 0
+    const st = await req.get('/dev-events/stats',
+      { params: evQuery.unhandledOnly ? { unhandledOnly: true } : {} })
+    evStats.value = st || {}
+    evTypes.value = (st && st.alarmTypes) || []
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '加载设备事件失败')
+  } finally { evLoading.value = false }
+}
+
+async function handleEvent(row) {
+  try {
+    await req.post(/dev-events//handle, { remark: '人工确认处理' })
+    ElMessage.success('已标记处理')
+    loadEvents()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '操作失败')
+  }
 }
 
 onMounted(load)

@@ -140,3 +140,48 @@ did / identifier / event_time / body(json) / severity / handled
 
 我方业务侧（房源/合同/账单/催缴）已经比文档更完整，**缺的正是设备侧的标准化与闭环**——
 按上面 6 条补齐后，与任意 IoT 平台对接的成本都会显著降低。
+
+---
+
+## 七、已落地：统一设备事件与告警
+
+参照泊寓的 {did, identifier, time, body} 事件模型，新增表 p_dev_event 与接口。
+
+### 7.1 事件类型
+
+| 类型 | 含义 | 默认级别 | 是否告警 |
+|---|---|---|---|
+| OPEN | 开锁 | INFO | 否 |
+| ONLINE / OFFLINE | 上下线 | INFO / WARN | 离线算告警 |
+| LOW_BATTERY | **低电量告警** | WARN | 是 |
+| BATTERY_RESTORED | 低电解除 | INFO | 否 |
+| TAMPER | **防拆告警** | CRITICAL | 是 |
+| TRIAL_ERROR | **试错告警**（密码连续错误） | WARN | 是 |
+| DURESS | **胁迫告警** | CRITICAL | 是 |
+| POWER_OVER | 超功率告警 | WARN | 是 |
+| LOCAL_SWITCH | 本地合闸 | INFO | 否 |
+| METER_READ | 抄表读数 | INFO | 否 |
+
+### 7.2 接口
+
+`
+POST /dev-events                      上报（IoT 回调），自动带出设备的 orgId/spaceId
+GET  /dev-events?alarmOnly=true       告警列表（支持类型/级别/未处理过滤）
+POST /dev-events/{id}/handle          标记已处理
+GET  /dev-events/stats                按类型/级别统计 + 告警类型定义
+`
+
+### 7.3 实测
+
+`
+上报 LOW_BATTERY  200  level=WARN
+上报 TAMPER       200  level=CRITICAL
+上报 TRIAL_ERROR  200  level=WARN
+上报 DURESS       200  level=CRITICAL
+上报 OPEN         200  level=INFO
+
+告警类事件数: 4
+未处理统计: 5   按级别: {WARN:2, CRITICAL:2, INFO:1}
+`
+
+前端「设备管理 → 设备告警」弹窗已可用：按类型筛选、只看告警/未处理、一键标记处理。
