@@ -161,6 +161,7 @@ export const FIELD_LABEL = {
   houseId: '房源',
   houseName: '名称',
   houseStatus: '状态',
+  maintainOrgId: '维保方',
   meterMode: '计量模式',
   houseStatusLabel: '状态',
   houseType: '类型',

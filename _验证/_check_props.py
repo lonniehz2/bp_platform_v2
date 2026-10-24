@@ -30,6 +30,7 @@ ALLOW = {
     'appCode', 'calendarDate', 'orderId', 'code', 'domain', 'rulesetStatus', 'todoType',
     'validStart', 'validEnd', 'realName', 'username', 'roleCode', 'roleName',
     'permCode', 'permName', 'appName', 'keyAlias', 'keyStatus', 'price',
+    'personIdName', 'orgIdName', 'houseIdName', 'spaceIdName', 'deviceIdName',
 
 }
 

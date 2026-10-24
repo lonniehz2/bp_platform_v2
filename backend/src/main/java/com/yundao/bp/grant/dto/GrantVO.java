@@ -11,6 +11,7 @@ public record GrantVO(
         Long id,
         String grantNo,
         Long personId,
+        String personIdName,
         Long spaceId,
         Long houseId,
         String grantLevel,
@@ -27,6 +28,10 @@ public record GrantVO(
         LocalDateTime createTime
 ) {
     public static GrantVO from(GrantEntitlement e) {
+        return from(e, null);
+    }
+
+    public static GrantVO from(GrantEntitlement e, String personIdName) {
         if (e == null) {
             return null;
         }
@@ -36,7 +41,7 @@ public record GrantVO(
         } catch (IllegalArgumentException ex) {
             st = GrantStatus.PENDING;
         }
-        return new GrantVO(e.getId(), e.getGrantNo(), e.getPersonId(), e.getSpaceId(),
+        return new GrantVO(e.getId(), e.getGrantNo(), e.getPersonId(), personIdName, e.getSpaceId(),
                 e.getHouseId(), e.getGrantLevel(), e.getValidStart(), e.getValidEnd(),
                 e.getAllowOpen() != null && e.getAllowOpen() == 1,
                 e.getVisitLimitTimes(), e.getVisitUsedTimes(),

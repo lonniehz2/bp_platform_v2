@@ -20,7 +20,7 @@
       <el-table-column type="expand">
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
-      <el-table-column prop="personName" label="轮候人" width="200">
+      <el-table-column prop="personIdName" label="轮候人" width="200">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
       <el-table-column prop="priorityScore" label="优先分" width="100" />
