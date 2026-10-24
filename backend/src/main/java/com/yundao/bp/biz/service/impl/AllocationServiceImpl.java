@@ -620,7 +620,23 @@ public class AllocationServiceImpl implements AllocationService {
         return AllocationVO.from(requireAllocation(id));
     }
 
-    @Override
+    /** 配租记录按人员限权（SELF 只看本人）。 */
+    private void applyAllocationScope(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                    <com.yundao.bp.biz.entity.BizAllocation> qw) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf()) {
+            qw.eq(com.yundao.bp.biz.entity.BizAllocation::getPersonId,
+                    scope.personId() == null ? -1L : scope.personId());
+        }
+    }
+
     public PageResult<AllocationVO> pageAllocations(long pageNum, long pageSize, Long personId,
                                                     Long batchId, String status) {
         LambdaQueryWrapper<BizAllocation> qw = new LambdaQueryWrapper<BizAllocation>()
@@ -628,6 +644,7 @@ public class AllocationServiceImpl implements AllocationService {
                 .eq(batchId != null, BizAllocation::getBatchId, batchId)
                 .eq(status != null && !status.isBlank(), BizAllocation::getAllocationStatus, status)
                 .orderByDesc(BizAllocation::getId);
+        applyAllocationScope(qw);
         IPage<BizAllocation> page = allocationMapper.selectPage(new Page<>(pageNum, pageSize), qw);
         List<AllocationVO> rows = page.getRecords().stream().map(AllocationVO::from).toList();
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);
