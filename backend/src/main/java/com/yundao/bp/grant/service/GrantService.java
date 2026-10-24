@@ -32,4 +32,7 @@ public interface GrantService {
 
     /** 管理权到期自动归还：把 valid_end 已过的生效权益置为 EXPIRED，返回条数。 */
     int expireOverdue();
+
+    /** 授权任务超时判定：下发超过 3 分钟未回调的置为失败，返回条数。 */
+    int markTimeout();
 }

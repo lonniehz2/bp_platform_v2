@@ -587,4 +587,35 @@ public class GrantServiceImpl implements GrantService {
         }
         return ids;
     }
+
+    @Override
+    public int markTimeout() {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.util.List<GrantTask> tasks = taskMapper.selectList(
+                new LambdaQueryWrapper<GrantTask>()
+                        .in(GrantTask::getTaskStatus, java.util.List.of("PENDING", "RUNNING")));
+        int n = 0;
+        for (GrantTask t : tasks) {
+            if (t.getCallbackTime() != null) {
+                continue;   // 已回调
+            }
+            java.time.LocalDateTime deadline = t.getTimeoutAt();
+            if (deadline == null && t.getCreateTime() != null) {
+                // 兼容历史任务：按创建时间 + 3 分钟推算
+                deadline = t.getCreateTime().plusMinutes(3);
+            }
+            if (deadline == null || deadline.isAfter(now)) {
+                continue;
+            }
+            t.setTaskStatus("FAILED");
+            t.setFailCount((t.getFailCount() == null ? 0 : t.getFailCount()) + 1);
+            t.setLastError("超时未回调（超过 3 分钟），判定下发失败");
+            taskMapper.updateById(t);
+            n++;
+        }
+        if (n > 0) {
+            log.warn("授权任务超时判定：{} 条置为失败", n);
+        }
+        return n;
+    }
 }

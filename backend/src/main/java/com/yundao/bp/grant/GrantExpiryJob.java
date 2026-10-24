@@ -29,6 +29,10 @@ public class GrantExpiryJob {
     @Scheduled(initialDelay = 300000, fixedDelay = 3600000)
     public void sweep() {
         try {
+            int timedOut = grantService.markTimeout();
+            if (timedOut > 0) {
+                log.warn("授权任务超时判定：{} 条", timedOut);
+            }
             int n = grantService.expireOverdue();
             if (n > 0) {
                 log.info("权益到期自动归还：{} 条", n);
