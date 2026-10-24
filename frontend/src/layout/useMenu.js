@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/auth'
 /** 一级分组顺序（两种风格共用） */
 export const GROUP_ORDER = [
   '运营总览', '保障对象', '资格准入', '合同管理', '账务收费',
-  '授权与交房', '服务与监督', '资产台账', '系统与集成'
+  '资产与设备', '服务与监督', '系统与集成'
 ]
 
 /** 旧分组名 → 现行分组名的兼容映射（路由 meta 中仍有历史命名） */
@@ -15,7 +15,9 @@ const GROUP_ALIAS = {
   线索: '资格准入',
   合同: '合同管理',
   财务: '账务收费',
-  房源: '资产台账',
+  房源: '资产与设备',
+  授权与交房: '资产与设备',
+  资产台账: '资产与设备',
   管理后台: '系统与集成',
   退出与监督: '服务与监督',
   更多: '服务与监督'
@@ -28,16 +30,14 @@ export function groupNameOf(meta) {
 }
 
 export const GROUP_ICON = {
-  运营总览: 'Odometer',
-  保障对象: 'User',
+  运营总览: 'DataBoard',
+  保障对象: 'UserFilled',
   资格准入: 'Tickets',
   合同管理: 'Document',
   账务收费: 'Money',
-  授权与交房: 'Key',
+  资产与设备: 'OfficeBuilding',
   服务与监督: 'Service',
-  资产台账: 'OfficeBuilding',
-  系统与集成: 'Setting',
-  更多: 'Grid'
+  系统与集成: 'Setting'
 }
 
 /** 组内业务顺序 */
@@ -67,7 +67,7 @@ const MENU_RANK = {
  */
 export const CLASSIC_ORDER = [
   '运营总览', '保障对象', '资格准入', '合同管理', '账务收费',
-  '授权与交房', '服务与监督', '资产台账', '系统与集成'
+  '资产与设备', '服务与监督', '系统与集成'
 ]
 
 export const CLASSIC_ICON = {
@@ -76,41 +76,21 @@ export const CLASSIC_ICON = {
   资格准入: 'Tickets',
   合同管理: 'Document',
   账务收费: 'Money',
-  授权与交房: 'Key',
+  资产与设备: 'OfficeBuilding',
   服务与监督: 'Service',
-  资产台账: 'OfficeBuilding',
   系统与集成: 'Setting'
 }
 
 /** 路径 → 风格1 分组 */
 const CLASSIC_GROUP = {
-  '/dashboard': '运营总览', '/reports': '运营总览', '/todos': '运营总览',
-
+  '/dashboard': '运营总览', '/todos': '运营总览', '/messages': '运营总览',
   '/persons': '保障对象', '/annual-reviews': '保障对象',
-
-  '/applications': '资格准入', '/waitlist': '资格准入',
-  '/allocations': '资格准入', '/publicities': '资格准入',
-
-  '/contracts': '合同管理', '/contract-changes': '合同管理',
-  '/exchanges': '合同管理', '/terminations': '合同管理',
-
-  '/fee-items': '账务收费', '/bills': '账务收费', '/deposits': '账务收费',
-  '/arrears': '账务收费', '/subsidies': '账务收费', '/cashflow': '账务收费',
-
-  '/devices': '授权与交房', '/access': '授权与交房',
-  '/keyring': '授权与交房', '/grants': '授权与交房',
-
-  '/workorders': '服务与监督', '/complaints': '服务与监督',
-  '/appeals': '服务与监督', '/visits': '服务与监督',
-  '/credits': '服务与监督', '/alerts': '服务与监督',
-  '/messages': '服务与监督',
-
-  '/houses': '资产台账', '/spaces': '资产台账',
-  '/house-calendar': '资产台账', '/short-rent': '资产台账',
-
-  '/orgs': '系统与集成', '/rbac': '系统与集成', '/sys': '系统与集成',
-  '/ops-center': '系统与集成', '/ops-extras': '系统与集成',
-  '/open': '系统与集成', '/gov': '系统与集成'
+  '/applications': '资格准入', '/waitlist': '资格准入', '/allocations': '资格准入', '/publicities': '资格准入',
+  '/contracts': '合同管理', '/contract-changes': '合同管理', '/exchanges': '合同管理', '/terminations': '合同管理',
+  '/fee-items': '账务收费', '/bills': '账务收费', '/deposits': '账务收费', '/arrears': '账务收费', '/subsidies': '账务收费', '/cashflow': '账务收费', '/reports': '账务收费',
+  '/houses': '资产与设备', '/spaces': '资产与设备', '/house-calendar': '资产与设备', '/short-rent': '资产与设备', '/devices': '资产与设备', '/dev-events': '资产与设备', '/access': '资产与设备', '/keyring': '资产与设备', '/grants': '资产与设备',
+  '/workorders': '服务与监督', '/alerts': '服务与监督', '/complaints': '服务与监督', '/visits': '服务与监督', '/appeals': '服务与监督', '/credits': '服务与监督',
+  '/orgs': '系统与集成', '/rbac': '系统与集成', '/sys': '系统与集成', '/ops-center': '系统与集成', '/ops-extras': '系统与集成', '/open': '系统与集成', '/gov': '系统与集成',
 }
 
 /**
