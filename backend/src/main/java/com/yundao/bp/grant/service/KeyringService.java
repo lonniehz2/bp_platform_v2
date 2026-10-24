@@ -42,4 +42,10 @@ public interface KeyringService {
                       String keySource, String verifyWay, String syncScope,
                       String expireTime) {
     }
+
+    /** 冻结钥匙（临时停用，可解冻）。 */
+    KeyringVO freeze(Long id);
+
+    /** 解冻钥匙。 */
+    KeyringVO unfreeze(Long id);
 }

@@ -50,7 +50,14 @@ public class KeyringServiceImpl implements KeyringService {
         if (type == null) {
             throw BizException.paramInvalid("非法钥匙类型：" + cmd.keyType());
         }
-        if (cmd.channelValue() == null || cmd.channelValue().isBlank()) {
+        // 离线激活码无需外部介质值：由系统生成 6 位数字码
+        String channelValue = cmd.channelValue();
+        if ((channelValue == null || channelValue.isBlank())
+                && type == KeyType.OFFLINE_CODE) {
+            channelValue = String.format("%06d",
+                    new java.security.SecureRandom().nextInt(1000000));
+        }
+        if (channelValue == null || channelValue.isBlank()) {
             throw BizException.paramInvalid("介质值不能为空");
         }
         KeyClass cls = KeyClass.derive(type, cmd.verifyWay(),
@@ -95,7 +102,7 @@ public class KeyringServiceImpl implements KeyringService {
         e.setKeyAlias(cmd.keyAlias());
         e.setChannelModuleType(type.moduleType());
         e.setChannelType(type.channelType());
-        e.setChannelValue(cmd.channelValue());
+        e.setChannelValue(channelValue);
         e.setKeySource(cmd.keySource() == null ? "ADMIN" : cmd.keySource());
         e.setVerifyWay(cmd.verifyWay());
         e.setIsReal(cls.realName() ? 1 : 0);
@@ -214,5 +221,17 @@ public class KeyringServiceImpl implements KeyringService {
             throw BizException.notFound("钥匙");
         }
         return e;
+    }
+
+    @Override
+    public KeyringVO freeze(Long id) {
+        log.info("冻结钥匙 {}", id);
+        return setStatus(id, "FROZEN");
+    }
+
+    @Override
+    public KeyringVO unfreeze(Long id) {
+        log.info("解冻钥匙 {}", id);
+        return setStatus(id, "ACTIVE");
     }
 }

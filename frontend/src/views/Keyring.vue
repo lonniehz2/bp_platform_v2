@@ -27,9 +27,13 @@
       <el-table-column prop="keyStatus" label="状态" width="110">
         <template #default="{ row }">{{ row.keyStatusLabel || enumLabel('keyStatus', row.keyStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="190" fixed="right">
+      <el-table-column label="操作" width="260" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
+          <el-button v-if="row.keyStatus === 'ACTIVE'" link type="warning"
+                     @click="freeze(row)" data-testid="row-freeze">冻结</el-button>
+          <el-button v-if="row.keyStatus === 'FROZEN'" link type="success"
+                     @click="unfreeze(row)" data-testid="row-unfreeze">解冻</el-button>
           <el-button link @click="actPlain(row, '/api/v1/keyring/{id}/status', '改状态')">改状态</el-button>
           <el-button link @click="actPlain(row, '/api/v1/keyring/{id}/remove', '回收')">回收</el-button>
         </template>
@@ -180,6 +184,20 @@ function resetQuery() {
   keyword.value = ''
   pageNum.value = 1
   reload()
+}
+
+
+/** 冻结 / 解冻钥匙 */
+async function freeze(row) {
+  await req.post(/keyring//freeze)
+  ElMessage.success('已冻结')
+  load()
+}
+
+async function unfreeze(row) {
+  await req.post(/keyring//unfreeze)
+  ElMessage.success('已解冻')
+  load()
 }
 
 onMounted(load)

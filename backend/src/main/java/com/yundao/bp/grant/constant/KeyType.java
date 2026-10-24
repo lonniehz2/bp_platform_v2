@@ -14,7 +14,8 @@ public enum KeyType {
     PASSWORD("密码", "01", "101"),
     CARD("卡片", "02", "201"),
     IDCARD("身份证", "02", "202"),
-    QRCODE("二维码", "07", "701");
+    QRCODE("二维码", "07", "701"),
+    OFFLINE_CODE("离线激活码", "08", "801");
 
     private final String label;
     private final String moduleType;

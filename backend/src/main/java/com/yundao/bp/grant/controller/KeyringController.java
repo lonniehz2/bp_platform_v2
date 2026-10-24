@@ -70,6 +70,22 @@ public class KeyringController {
         return R.ok(KeyringVO.from(service.get(id)));
     }
 
+    /** 冻结钥匙（临时停用）。 */
+    @PostMapping("/{id}/freeze")
+    @RequirePerm("grant:keyring:manage")
+    @Audit(type = "SECURITY", level = "IMPORTANT", action = "冻结钥匙")
+    public R<KeyringVO> freeze(@PathVariable Long id) {
+        return R.ok(service.freeze(id));
+    }
+
+    /** 解冻钥匙。 */
+    @PostMapping("/{id}/unfreeze")
+    @RequirePerm("grant:keyring:manage")
+    @Audit(type = "SECURITY", level = "IMPORTANT", action = "解冻钥匙")
+    public R<KeyringVO> unfreeze(@PathVariable Long id) {
+        return R.ok(service.unfreeze(id));
+    }
+
     /** 冻结/解冻/置为过期。 */
     @PostMapping("/{id}/status")
     @RequirePerm("grant:keyring:manage")
