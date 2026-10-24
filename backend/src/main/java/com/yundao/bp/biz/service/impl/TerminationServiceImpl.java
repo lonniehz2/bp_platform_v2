@@ -174,7 +174,8 @@ public class TerminationServiceImpl implements TerminationService {
         e.setTenantId(tenantId);
         e.setTerminationNo("BT" + id);
         e.setContractId(cmd.contractId());
-        // 组织取自合同，供数据范围（ORG/ORG_SUB）过滤
+        // 组织取自合同，供数据范围过滤
+
         if (contractOrgIdMapper != null) {
             com.yundao.bp.biz.entity.BizContract c = contractOrgIdMapper.selectById(cmd.contractId());
             if (c != null) {

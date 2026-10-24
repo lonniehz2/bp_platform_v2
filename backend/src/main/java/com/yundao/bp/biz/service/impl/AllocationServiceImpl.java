@@ -147,7 +147,31 @@ public class AllocationServiceImpl implements AllocationService {
         return WaitingVO.from(requireWaiting(id));
     }
 
-    @Override
+    /** 数据范围（ALL/ORG_SUB/ORG/SELF） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.datascope.DataScopeService dataScopeService;
+
+    /** 轮候队列按人员维度限权：实体无 org 列，ORG 档不额外限制。 */
+    private void applyWaitingScope(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                    <com.yundao.bp.biz.entity.BizWaitingQueue> qw) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf()) {
+            qw.eq(com.yundao.bp.biz.entity.BizWaitingQueue::getPersonId,
+                    scope.personId() == null ? -1L : scope.personId());
+            return;
+        }
+        if (scope.orgId() != null) {
+            qw.eq(com.yundao.bp.biz.entity.BizWaitingQueue::getOrgId, scope.orgId());
+        }
+    }
+
     public PageResult<WaitingVO> pageWaiting(long pageNum, long pageSize, String securityType,
                                              Long orgId, String status) {
         LambdaQueryWrapper<BizWaitingQueue> qw = new LambdaQueryWrapper<BizWaitingQueue>()
@@ -157,6 +181,7 @@ public class AllocationServiceImpl implements AllocationService {
                 .eq(status != null && !status.isBlank(), BizWaitingQueue::getQueueStatus, status)
                 .orderByAsc(BizWaitingQueue::getWaitingRank)
                 .orderByAsc(BizWaitingQueue::getEnterTime);
+        applyWaitingScope(qw);
         IPage<BizWaitingQueue> page = waitingMapper.selectPage(new Page<>(pageNum, pageSize), qw);
         List<WaitingVO> rows = page.getRecords().stream().map(WaitingVO::from).toList();
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);
