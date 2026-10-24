@@ -30,6 +30,45 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class ComplaintServiceImpl implements ComplaintService {
+    /** 数据范围服务（ALL/ORG_SUB/ORG/SELF） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.datascope.DataScopeService dataScopeService;
+
+    /** 按组织或人员列限权；personCol 传 null 表示该实体只有组织维度。 */
+    private <T> void applyDataScope(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<T> qw,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> orgCol,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> personCol) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf() && personCol != null) {
+            qw.eq(personCol, scope.personId() == null ? -1L : scope.personId());
+            return;
+        }
+        if (scope.isSelf()) {
+            // 无人员列：仅本人不可见，退化为按组织
+            if (scope.orgId() != null && orgCol != null) {
+                qw.eq(orgCol, scope.orgId());
+            } else {
+                qw.apply("1 = 0");
+            }
+            return;
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty() && orgCol != null) {
+            qw.in(orgCol, scope.orgIds());
+            return;
+        }
+        if (scope.orgId() != null && orgCol != null) {
+            qw.eq(orgCol, scope.orgId());
+        }
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(ComplaintServiceImpl.class);
 
@@ -84,6 +123,7 @@ public class ComplaintServiceImpl implements ComplaintService {
                 .eq(status != null && !status.isBlank(), OpsComplaint::getHandleStatus, status)
                 .eq(orgId != null, OpsComplaint::getOrgId, orgId)
                 .orderByDesc(OpsComplaint::getId);
+        applyDataScope(qw, OpsComplaint::getOrgId, OpsComplaint::getPersonId);
         if (keyword != null && !keyword.isBlank()) {
             qw.and(w -> w.like(OpsComplaint::getTitle, keyword)
                     .or().like(OpsComplaint::getComplaintNo, keyword));

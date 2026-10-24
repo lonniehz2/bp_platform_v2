@@ -19,6 +19,7 @@ STEPS = [
     ('接口路径核对（前后端一致性）', '_check_api_paths.py', STRICT),
     ('查询参数接线（前端传的键后端必须认）', '_audit_params.py', ['--strict']),
     ('显示层一致性（字段/枚举/ID/树）', '_check_display.py', STRICT),
+    ('数据范围扫描（列表接口必须限权）', '_check_datascope.py', STRICT),
     ('全功能页面对照（46 项）', '_verify_all_pages.py', []),
 ]
 

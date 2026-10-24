@@ -313,6 +313,7 @@ public class AllocationServiceImpl implements AllocationService {
 
     @Override
     public PageResult<BatchVO> pageBatch(long pageNum, long pageSize, Long orgId, String status) {
+        // scope:ignore 批次为组织级作业对象
         LambdaQueryWrapper<BizBatch> qw = new LambdaQueryWrapper<BizBatch>()
                 .eq(orgId != null, BizBatch::getOrgId, orgId)
                 .eq(status != null && !status.isBlank(), BizBatch::getBatchStatus, status)

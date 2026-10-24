@@ -25,6 +25,36 @@ import org.springframework.transaction.annotation.Transactional;
 /** 巡检计划实现：按周期生成工单。 */
 @Service
 public class InspectionPlanServiceImpl implements InspectionPlanService {
+    /** 数据范围服务 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.datascope.DataScopeService dataScopeService;
+
+    /** 按组织/人员列限权；personCol 为 null 表示仅组织维度。 */
+    private <T> void applyScope(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<T> qw,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> orgCol,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> personCol) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf() && personCol != null) {
+            qw.eq(personCol, scope.personId() == null ? -1L : scope.personId());
+            return;
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty() && orgCol != null) {
+            qw.in(orgCol, scope.orgIds());
+            return;
+        }
+        if (scope.orgId() != null && orgCol != null) {
+            qw.eq(orgCol, scope.orgId());
+        }
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(InspectionPlanServiceImpl.class);
 
@@ -70,6 +100,7 @@ public class InspectionPlanServiceImpl implements InspectionPlanService {
                 .eq(planStatus != null && !planStatus.isBlank(),
                         OpsInspectionPlan::getPlanStatus, planStatus)
                 .orderByAsc(OpsInspectionPlan::getNextRunDate);
+        applyScope(qw, OpsInspectionPlan::getOrgId, null);
         var page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
         return PageResult.of(page.getTotal(), pageNum, pageSize, page.getRecords());
     }

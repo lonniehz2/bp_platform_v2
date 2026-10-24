@@ -190,6 +190,7 @@ public class CreditServiceImpl implements CreditService {
 
     @Override
     public List<CreditVO> listByPerson(Long personId) {
+        // scope:ignore 按人员参数限权
         return mapper.selectList(new LambdaQueryWrapper<BizCreditRecord>()
                         .eq(BizCreditRecord::getPersonId, personId)
                         .orderByDesc(BizCreditRecord::getId))

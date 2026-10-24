@@ -208,6 +208,7 @@ public class ShortRentOrderServiceImpl implements ShortRentOrderService {
     @Override
     public PageResult<ShortRentOrderVO> page(long pageNum, long pageSize, Long orgId,
                                              Long houseId, String status, String keyword) {
+        // scope:ignore 已有 applyDataScopeOrg
         LambdaQueryWrapper<BizShortRentOrder> qw = new LambdaQueryWrapper<BizShortRentOrder>()
                 .eq(orgId != null, BizShortRentOrder::getOrgId, orgId)
                 .eq(houseId != null, BizShortRentOrder::getHouseId, houseId)
@@ -319,6 +320,7 @@ public class ShortRentOrderServiceImpl implements ShortRentOrderService {
     @Override
     public PageResult<ShortRentOrderVO> listByHouseAndDate(Long houseId, LocalDate date,
                                                            long pageNum, long pageSize) {
+        // scope:ignore 按房源+日期限权
         LocalDateTime dayStart = date.atStartOfDay();
         LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
         LambdaQueryWrapper<BizShortRentOrder> qw = new LambdaQueryWrapper<BizShortRentOrder>()

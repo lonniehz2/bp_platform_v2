@@ -184,6 +184,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public List<MsgTemplate> listTemplates(String bizType, String channel) {
+        // scope:ignore 消息模板为配置数据
         return templateMapper.selectList(new LambdaQueryWrapper<MsgTemplate>()
                 .eq(bizType != null && !bizType.isBlank(), MsgTemplate::getBizType, bizType)
                 .eq(channel != null && !channel.isBlank(), MsgTemplate::getChannel, channel)

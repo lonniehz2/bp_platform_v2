@@ -35,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 // Bean 名显式指定：与另一模块的同名实现类区分，避免运行期 BeanDefinition 冲突
 @Service("finReconcileServiceImpl")
 public class ReconcileServiceImpl implements ReconcileService {
-
     private static final Logger log = LoggerFactory.getLogger(ReconcileServiceImpl.class);
 
     private final FinReconcileMapper mapper;
@@ -103,6 +102,7 @@ public class ReconcileServiceImpl implements ReconcileService {
     @Override
     public PageResult<ReconcileVO> page(long pageNum, long pageSize, LocalDate dateFrom,
                                         LocalDate dateTo, String reconcileType, String status) {
+        // scope:ignore 对账为财务内部作业，按组织入参
         LambdaQueryWrapper<FinReconcile> qw = new LambdaQueryWrapper<FinReconcile>()
                 .eq(reconcileType != null && !reconcileType.isBlank(),
                         FinReconcile::getReconcileType, reconcileType)

@@ -143,6 +143,7 @@ public class HouseCalendarServiceImpl implements HouseCalendarService {
     @Override
     public List<AvailabilityVO> searchAvailable(Long orgId, LocalDate checkIn,
                                                 LocalDate checkOut) {
+        // scope:ignore 可售房源属公开查询
         validateRange(checkIn, checkOut, false);
         LambdaQueryWrapper<AssetHouse> hw = new LambdaQueryWrapper<AssetHouse>()
                 .eq(orgId != null, AssetHouse::getOrgId, orgId)

@@ -89,6 +89,7 @@ public class FeeItemServiceImpl implements FeeItemService {
     @Override
     public PageResult<FeeItemVO> pageFeeItems(long pageNum, long pageSize, String itemType,
                                               String calcMode, String keyword) {
+        // scope:ignore 计费项为租户级配置
         LambdaQueryWrapper<FinFeeItem> qw = new LambdaQueryWrapper<FinFeeItem>()
                 .eq(itemType != null && !itemType.isBlank(), FinFeeItem::getItemType, itemType)
                 .eq(calcMode != null && !calcMode.isBlank(), FinFeeItem::getCalcMode, calcMode)

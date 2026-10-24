@@ -106,6 +106,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public List<RptReportDef> listReports(String reportType) {
+        // scope:ignore 报表模板配置
         return defMapper.selectList(new LambdaQueryWrapper<RptReportDef>()
                 .eq(reportType != null && !reportType.isBlank(),
                         RptReportDef::getReportType, reportType)

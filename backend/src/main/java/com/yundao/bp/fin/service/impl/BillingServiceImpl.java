@@ -298,6 +298,7 @@ public class BillingServiceImpl implements BillingService {
                 .eq(personId != null, FinPayment::getPersonId, personId)
                 .eq(status != null && !status.isBlank(), FinPayment::getPayStatus, status)
                 .orderByDesc(FinPayment::getId);
+        applyDataScope(qw, FinPayment::getOrgId, FinPayment::getPersonId);
         if (keyword != null && !keyword.isBlank()) {
             qw.like(FinPayment::getPaymentNo, keyword);
         }

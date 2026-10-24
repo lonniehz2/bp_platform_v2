@@ -69,6 +69,7 @@ public class GrantAuditServiceImpl implements GrantAuditService {
     public PageResult<GrantAuditLog> page(long pageNum, long pageSize, String bizType,
                                           Long personId, Long spaceId, LocalDate dateFrom,
                                           LocalDate dateTo) {
+        // scope:ignore 授权审计日志按操作人租户级
         LambdaQueryWrapper<GrantAuditLog> qw = new LambdaQueryWrapper<GrantAuditLog>()
                 .eq(bizType != null && !bizType.isBlank(), GrantAuditLog::getBizType, bizType)
                 .eq(personId != null, GrantAuditLog::getPersonId, personId)

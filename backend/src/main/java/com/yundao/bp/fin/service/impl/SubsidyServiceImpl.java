@@ -153,6 +153,7 @@ public class SubsidyServiceImpl implements SubsidyService {
     public PageResult<SubsidyStandardVO> pageStandards(long pageNum, long pageSize,
                                                        String securityType, String subsidyMode,
                                                        String keyword) {
+        // scope:ignore 补贴标准为租户级配置
         LambdaQueryWrapper<FinSubsidyStandard> qw = new LambdaQueryWrapper<FinSubsidyStandard>()
                 .eq(securityType != null && !securityType.isBlank(),
                         FinSubsidyStandard::getSecurityType, securityType)

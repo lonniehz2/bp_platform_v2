@@ -35,6 +35,36 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class VisitServiceImpl implements VisitService {
+    /** 数据范围服务 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.datascope.DataScopeService dataScopeService;
+
+    /** 按组织/人员列限权；personCol 为 null 表示仅组织维度。 */
+    private <T> void applyScope(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<T> qw,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> orgCol,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> personCol) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf() && personCol != null) {
+            qw.eq(personCol, scope.personId() == null ? -1L : scope.personId());
+            return;
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty() && orgCol != null) {
+            qw.in(orgCol, scope.orgIds());
+            return;
+        }
+        if (scope.orgId() != null && orgCol != null) {
+            qw.eq(orgCol, scope.orgId());
+        }
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(VisitServiceImpl.class);
 
@@ -92,6 +122,7 @@ public class VisitServiceImpl implements VisitService {
                         OpsHouseVisit::getVisitStatus, visitStatus)
                 .eq(houseId != null, OpsHouseVisit::getHouseId, houseId)
                 .orderByDesc(OpsHouseVisit::getId);
+        applyScope(qw, OpsHouseVisit::getOrgId, OpsHouseVisit::getPersonId);
         if (keyword != null && !keyword.isBlank()) {
             qw.and(w -> w.like(OpsHouseVisit::getVisitNo, keyword)
                     .or().like(OpsHouseVisit::getFindings, keyword));

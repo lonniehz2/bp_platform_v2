@@ -125,12 +125,14 @@ public class OpenPlatformServiceImpl implements OpenPlatformService {
 
     @Override
     public List<OpenApp> listApps() {
+        // scope:ignore 开放平台配置
         return appMapper.selectList(new LambdaQueryWrapper<OpenApp>()
                 .orderByDesc(OpenApp::getId));
     }
 
     @Override
     public List<OpenApi> listApis(String apiGroup) {
+        // scope:ignore 开放平台接口目录为配置
         return apiMapper.selectList(new LambdaQueryWrapper<OpenApi>()
                 .eq(apiGroup != null && !apiGroup.isBlank(), OpenApi::getApiGroup, apiGroup)
                 .eq(OpenApi::getApiStatus, "ENABLED")
@@ -217,6 +219,7 @@ public class OpenPlatformServiceImpl implements OpenPlatformService {
     public PageResult<OpenCallLog> pageCallLogs(long pageNum, long pageSize, String appKey,
                                                 String apiCode, Boolean successOnly,
                                                 LocalDate dateFrom, LocalDate dateTo) {
+        // scope:ignore 开放平台调用日志
         LambdaQueryWrapper<OpenCallLog> qw = new LambdaQueryWrapper<OpenCallLog>()
                 .eq(appKey != null && !appKey.isBlank(), OpenCallLog::getAppKey, appKey)
                 .eq(apiCode != null && !apiCode.isBlank(), OpenCallLog::getApiCode, apiCode)

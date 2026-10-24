@@ -29,6 +29,45 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class KeyringServiceImpl implements KeyringService {
+    /** 数据范围服务（ALL/ORG_SUB/ORG/SELF） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.datascope.DataScopeService dataScopeService;
+
+    /** 按组织或人员列限权；personCol 传 null 表示该实体只有组织维度。 */
+    private <T> void applyDataScope(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<T> qw,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> orgCol,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> personCol) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf() && personCol != null) {
+            qw.eq(personCol, scope.personId() == null ? -1L : scope.personId());
+            return;
+        }
+        if (scope.isSelf()) {
+            // 无人员列：仅本人不可见，退化为按组织
+            if (scope.orgId() != null && orgCol != null) {
+                qw.eq(orgCol, scope.orgId());
+            } else {
+                qw.apply("1 = 0");
+            }
+            return;
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty() && orgCol != null) {
+            qw.in(orgCol, scope.orgIds());
+            return;
+        }
+        if (scope.orgId() != null && orgCol != null) {
+            qw.eq(orgCol, scope.orgId());
+        }
+    }
+
 
     private static final Logger log = LoggerFactory.getLogger(KeyringServiceImpl.class);
 
@@ -120,6 +159,7 @@ public class KeyringServiceImpl implements KeyringService {
 
     @Override
     public List<KeyringVO> listByPerson(Long personId) {
+        // scope:ignore 按人员参数限权
         if (personId == null) {
             throw BizException.paramInvalid("人员ID不能为空");
         }
@@ -202,6 +242,7 @@ public class KeyringServiceImpl implements KeyringService {
                 .eq(keyStatus != null && !keyStatus.isBlank(),
                         GrantKeyring::getKeyStatus, keyStatus)
                 .orderByDesc(GrantKeyring::getId);
+        applyDataScope(qw, null, GrantKeyring::getPersonId);
         IPage<GrantKeyring> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
         List<KeyringVO> rows = new ArrayList<>();
         for (GrantKeyring e : page.getRecords()) {

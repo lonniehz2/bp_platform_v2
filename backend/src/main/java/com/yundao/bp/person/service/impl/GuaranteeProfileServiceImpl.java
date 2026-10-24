@@ -31,6 +31,45 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
+    /** 数据范围服务（ALL/ORG_SUB/ORG/SELF） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.datascope.DataScopeService dataScopeService;
+
+    /** 按组织或人员列限权；personCol 传 null 表示该实体只有组织维度。 */
+    private <T> void applyDataScope(
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<T> qw,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> orgCol,
+            com.baomidou.mybatisplus.core.toolkit.support.SFunction<T, ?> personCol) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf() && personCol != null) {
+            qw.eq(personCol, scope.personId() == null ? -1L : scope.personId());
+            return;
+        }
+        if (scope.isSelf()) {
+            // 无人员列：仅本人不可见，退化为按组织
+            if (scope.orgId() != null && orgCol != null) {
+                qw.eq(orgCol, scope.orgId());
+            } else {
+                qw.apply("1 = 0");
+            }
+            return;
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty() && orgCol != null) {
+            qw.in(orgCol, scope.orgIds());
+            return;
+        }
+        if (scope.orgId() != null && orgCol != null) {
+            qw.eq(orgCol, scope.orgId());
+        }
+    }
+
 
     private static final Logger log =
             LoggerFactory.getLogger(GuaranteeProfileServiceImpl.class);
@@ -255,13 +294,13 @@ public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
     public List<Map<String, Object>> expiring(int withinDays) {
         int days = withinDays <= 0 ? 30 : withinDays;
         LocalDate limit = LocalDate.now().plusDays(days);
-        List<PersonGuaranteeProfile> list = mapper.selectList(
-                new LambdaQueryWrapper<PersonGuaranteeProfile>()
-                        .in(PersonGuaranteeProfile::getProfileStatus,
-                                List.of("QUALIFIED", "IN_RESIDENCE"))
-                        .isNotNull(PersonGuaranteeProfile::getQualifyExpire)
-                        .le(PersonGuaranteeProfile::getQualifyExpire, limit)
-                        .orderByAsc(PersonGuaranteeProfile::getQualifyExpire));
+        LambdaQueryWrapper<PersonGuaranteeProfile> qw = new LambdaQueryWrapper<>();
+        qw.in(PersonGuaranteeProfile::getProfileStatus, List.of("QUALIFIED", "IN_RESIDENCE"))
+                .isNotNull(PersonGuaranteeProfile::getQualifyExpire)
+                .le(PersonGuaranteeProfile::getQualifyExpire, limit)
+                .orderByAsc(PersonGuaranteeProfile::getQualifyExpire);
+        applyDataScope(qw, null, PersonGuaranteeProfile::getPersonId);
+        List<PersonGuaranteeProfile> list = mapper.selectList(qw);
         LocalDate today = LocalDate.now();
         List<Map<String, Object>> out = new ArrayList<>();
         for (PersonGuaranteeProfile e : list) {
@@ -295,6 +334,7 @@ public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
                                 PersonGuaranteeProfile::getProfileStatus, profileStatus)
                         .eq(personId != null, PersonGuaranteeProfile::getPersonId, personId)
                         .orderByDesc(PersonGuaranteeProfile::getId);
+        applyDataScope(qw, null, PersonGuaranteeProfile::getPersonId);
         java.util.List<Long> kwIds = personIdsByKeyword(keyword);
         if (kwIds != null) {
             if (kwIds.isEmpty()) {

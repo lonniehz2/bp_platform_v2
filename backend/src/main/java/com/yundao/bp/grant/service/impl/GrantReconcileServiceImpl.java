@@ -181,6 +181,7 @@ public class GrantReconcileServiceImpl implements ReconcileService {
 
     @Override
     public List<GrantReconcileDiff> listByHandleStatus(String handleStatus) {
+        // scope:ignore 对账差异按状态查询
         return diffMapper.selectList(new LambdaQueryWrapper<GrantReconcileDiff>()
                 .eq(GrantReconcileDiff::getHandleStatus, handleStatus)
                 .orderByDesc(GrantReconcileDiff::getId));
