@@ -48,6 +48,9 @@ public class DevDevice {
     private Integer onlineStatus;
     private LocalDateTime onlineTime;
     private LocalDateTime offlineTime;
+
+    /** 最后一次上报时间（属性/事件/心跳均可刷新） */
+    private LocalDateTime lastReportTime;
     private Integer battery;
     private String rssi;
 
