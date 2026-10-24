@@ -95,6 +95,7 @@ public class MeterReadingServiceImpl implements MeterReadingService {
         e.setFeeItemId(cmd.feeItemId());
         e.setReadDate(readDate);
         e.setReading(cmd.reading());
+        e.setDeviceId(cmd.deviceId());
         e.setPrevReading(prevReading);
         e.setUsageAmount(usage);
         e.setUnitPrice(price);

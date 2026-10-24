@@ -34,6 +34,12 @@ public class DevDevice {
     private String ventor;
 
     private Long orgId;
+
+    /** 产权方组织（设备归谁所有） */
+    private Long ownerOrgId;
+
+    /** 维保方组织（谁负责维修） */
+    private Long maintainOrgId;
     /** 安装空间（绑定锚点） */
     private Long spaceId;
     private String installAddress;

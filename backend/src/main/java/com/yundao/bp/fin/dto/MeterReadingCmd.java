@@ -15,6 +15,7 @@ public record MeterReadingCmd(
         @NotNull(message = "收费项目不能为空") Long feeItemId,
         @NotNull(message = "读数不能为空") BigDecimal reading,
         LocalDate readDate,
+        String deviceId,
         String billPeriod,
         String remark) {
 }

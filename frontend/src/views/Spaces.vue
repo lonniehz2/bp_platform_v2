@@ -64,6 +64,8 @@
         <el-form-item label="空间编码" required>
           <el-input v-model="f.spaceCode" placeholder="同级唯一，建议用层级前缀" />
         </el-form-item>
+        <el-alert type="info" :closable="false" show-icon style="margin-bottom:8px"
+                   title="父级选择「房间」时，可建「套内房间」（一套房分隔多间出租）；此时入户门锁挂外层房间、内门锁挂内层房间" />
         <el-form-item label="空间名称" required>
           <el-input v-model="f.spaceName" /></el-form-item>
         <el-form-item label="空间类型" required>

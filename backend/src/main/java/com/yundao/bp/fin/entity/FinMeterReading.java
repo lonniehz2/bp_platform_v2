@@ -20,6 +20,9 @@ public class FinMeterReading {
     private Long orgId;
     private Long houseId;
     private Long feeItemId;
+
+    /** 计量来源设备（用于溯源，可为空=人工录入） */
+    private String deviceId;
     private LocalDate readDate;
     private BigDecimal reading;
     private BigDecimal prevReading;

@@ -121,6 +121,12 @@
               <el-option label="元/套·夜" value="HOUSE_NIGHT" />
               <el-option label="元/床·夜" value="BED_NIGHT" />
             </el-select></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="计量模式">
+            <el-select v-model="f.meterMode" style="width:100%">
+              <el-option label="独立表（每间独立计量）" value="INDEPENDENT" />
+              <el-option label="整户分摊（一表按间分摊）" value="SHARED" />
+              <el-option label="独立表 + 公区分摊" value="MIXED" />
+            </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="最大入住">
             <el-input-number v-model="f.maxCapacity" :min="1" style="width:100%" />
           </el-form-item></el-col>
@@ -287,7 +293,7 @@ const createVisible = ref(false)
 const f = reactive({ spaceId: null, houseCode: '', houseName: '',
   houseType: 'PUBLIC_RENTAL', structType: 'MULTI', useType: 'CIVIL',
   unitLayout: '', floorNo: 1, orientation: 'SOUTH', area: null, innerArea: null,
-  decorateLevel: 'SIMPLE', rentStandard: null, rentUnit: 'AREA_MONTH',
+  decorateLevel: 'SIMPLE', rentStandard: null, rentUnit: 'AREA_MONTH', meterMode: 'INDEPENDENT',
   maxCapacity: 2 })
 
 function statusType(s) {
