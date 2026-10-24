@@ -98,9 +98,13 @@ public class SpaceServiceImpl implements SpaceService {
                 throw BizException.stateConflict(
                         parentType.label() + " 下不允许再建子节点");
             }
-            if (expected != type) {
+            // 套内隔间：允许「房间下再建房间」（一套房分隔成多个独立房间出租），
+            // 此时内部门锁挂子房间、入户门锁挂外层房间，授权按祖先链继承。
+            boolean innerRoom = parentType == SpaceType.ROOM && type == SpaceType.ROOM;
+            if (expected != type && !innerRoom) {
                 throw BizException.stateConflict(
                         parentType.label() + " 下只能是 " + expected.label()
+                                + (parentType == SpaceType.ROOM ? " 或套内房间" : "")
                                 + "，实际为 " + type.label());
             }
         } else if (type != SpaceType.BUILDING && type != SpaceType.AREA) {

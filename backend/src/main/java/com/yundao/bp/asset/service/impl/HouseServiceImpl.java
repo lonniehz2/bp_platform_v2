@@ -152,6 +152,7 @@ public class HouseServiceImpl implements HouseService {
         e.setSecurityType(blankToNull(cmd.securityType()));
         e.setRentStandard(cmd.rentStandard());
         e.setRentUnit(blankToNull(cmd.rentUnit()));
+        e.setMeterMode(normalizeMeterMode(cmd.meterMode()));
         e.setMaxCapacity(cmd.maxCapacity());
         e.setCurrentCapacity(0);
         // ---- 4) 初始状态固定为待分配 ----
@@ -534,5 +535,18 @@ public class HouseServiceImpl implements HouseService {
             out.add(m);
         }
         return out;
+    }
+
+    /** 计量模式校验：空值默认独立表。 */
+    private String normalizeMeterMode(String v) {
+        if (v == null || v.isBlank()) {
+            return "INDEPENDENT";
+        }
+        String up = v.trim().toUpperCase();
+        if (!java.util.Set.of("INDEPENDENT", "SHARED", "MIXED").contains(up)) {
+            throw com.yundao.bp.common.exception.BizException.paramInvalid(
+                    "计量模式只能是 INDEPENDENT / SHARED / MIXED");
+        }
+        return up;
     }
 }

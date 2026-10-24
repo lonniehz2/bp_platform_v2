@@ -31,6 +31,7 @@ public record HouseVO(
         BigDecimal area,
         BigDecimal rentStandard,
         String rentUnit,
+        String meterMode,
         Integer maxCapacity,
         Integer currentCapacity,
         String houseStatus,
@@ -56,7 +57,7 @@ public record HouseVO(
         return new HouseVO(e.getId(), e.getOrgId(), e.getSpaceId(), spaceName, spaceType,
                 e.getHouseCode(), e.getHouseName(), e.getHouseType(), e.getSecurityType(),
                 e.getUnitLayout(), e.getFloorNo(), e.getOrientation(), e.getArea(),
-                e.getRentStandard(), e.getRentUnit(), e.getMaxCapacity(),
+                e.getRentStandard(), e.getRentUnit(), e.getMeterMode(), e.getMaxCapacity(),
                 e.getCurrentCapacity(), e.getHouseStatus(), statusLabel,
                 e.getOwnerOrgId(), e.getOwnerPersonId(), vacantDays,
                 e.getLockStatusTime(), e.getCreateTime());

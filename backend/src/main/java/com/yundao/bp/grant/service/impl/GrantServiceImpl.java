@@ -84,6 +84,11 @@ public class GrantServiceImpl implements GrantService {
     /** 设备-空间绑定解析（把空间锚点翻译成真实设备列表） */
     private final DeviceBindingResolver deviceResolver;
 
+
+    /** 用户（操作人 → 人员映射） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.mapper.IamUserMapper userMapper;
+
     public GrantServiceImpl(GrantEntitlementMapper entitlementMapper,
                             GrantTaskMapper taskMapper,
                             GrantTaskDetailMapper detailMapper,
@@ -120,6 +125,7 @@ public class GrantServiceImpl implements GrantService {
         // ---- 2) 幂等：同人+同空间+同层级+同有效期 只建一次 ----
         // ⚠️ 必须用 cmd 里"原始"的 validStart，不能用上面解析出的 start（=now()）
         //    否则每次申请 now() 都不同，幂等键永远不命中
+        requireManagerForSecondary(cmd.grantLevel(), cmd.spaceId());
         String idemKey = idempotentKey(cmd.personId(), cmd.spaceId(), cmd.grantLevel(),
                 cmd.validStart(), end);
         GrantTask existTask = taskMapper.selectOne(new LambdaQueryWrapper<GrantTask>()
@@ -148,7 +154,8 @@ public class GrantServiceImpl implements GrantService {
         // 所有权不含开门权限（管理权才含），见 DDL 注释
         e.setAllowOpen("OWNERSHIP".equals(cmd.grantLevel()) ? 0 : 1);
         e.setAllowManage("OWNERSHIP".equals(cmd.grantLevel())
-                || "MANAGEMENT".equals(cmd.grantLevel()) ? 1 : 0);
+                || "MANAGEMENT".equals(cmd.grantLevel())
+                || "SECONDARY_MANAGEMENT".equals(cmd.grantLevel()) ? 1 : 0);
         e.setAllowDelegate("OWNERSHIP".equals(cmd.grantLevel()) ? 1 : 0);
         e.setVisitLimitTimes("VISIT".equals(cmd.grantLevel()) ? 1 : null);
         e.setVisitUsedTimes(0);
@@ -456,5 +463,40 @@ public class GrantServiceImpl implements GrantService {
 
     private static String blankToNull(String s) {
         return (s == null || s.isBlank()) ? null : s;
+    }
+
+    /**
+     * 二级管理权的授予约束：
+     * 只有在该空间上拥有 OWNERSHIP / MANAGEMENT 且 allowManage=1 的人，
+     * 才能创建或删除 SECONDARY_MANAGEMENT；二级管理权本身不能再向下授予。
+     */
+    private void requireManagerForSecondary(String grantLevel, Long spaceId) {
+        if (!"SECONDARY_MANAGEMENT".equals(grantLevel)) {
+            return;
+        }
+        Long me = TenantContext.userId();
+        if (me == null) {
+            throw com.yundao.bp.common.exception.BizException.stateConflict(
+                    "无法识别当前操作人，不能授予二级管理权");
+        }
+        Long personId = me;
+        if (userMapper != null) {
+            com.yundao.bp.iam.entity.IamUser u = userMapper.selectById(me);
+            if (u != null && u.getPersonId() != null) {
+                personId = u.getPersonId();
+            }
+        }
+        Long granted = entitlementMapper.selectCount(
+                new LambdaQueryWrapper<GrantEntitlement>()
+                        .eq(GrantEntitlement::getPersonId, personId)
+                        .eq(spaceId != null, GrantEntitlement::getSpaceId, spaceId)
+                        .in(GrantEntitlement::getGrantLevel,
+                                java.util.List.of("OWNERSHIP", "MANAGEMENT"))
+                        .eq(GrantEntitlement::getAllowManage, 1)
+                        .eq(GrantEntitlement::getGrantStatus, "ACTIVE"));
+        if (granted == null || granted == 0) {
+            throw com.yundao.bp.common.exception.BizException.stateConflict(
+                    "只有拥有管理权或所有权的人才能授予/撤销二级管理权");
+        }
     }
 }

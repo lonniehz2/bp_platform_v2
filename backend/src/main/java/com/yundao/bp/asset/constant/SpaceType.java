@@ -65,6 +65,15 @@ public enum SpaceType {
         return this == BED || this == PARKING || this == GARAGE || this == SITE;
     }
 
+    /**
+     * 套内隔间判定：房间下再建房间，用于「一套房分隔多个独立房间出租」。
+     *
+     * <p>此时入户门锁挂外层房间、内部门锁挂内层房间，租户按祖先链继承。
+     */
+    public static boolean isInnerRoom(SpaceType parent, SpaceType child) {
+        return parent == ROOM && child == ROOM;
+    }
+
     /** 是否允许作为房源挂载点（房源挂 ROOM；床位出租时挂 BED）。 */
     public boolean canHostHouse() {
         return this == ROOM || this == BED;

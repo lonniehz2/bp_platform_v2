@@ -89,7 +89,7 @@ class HouseCreateTest {
         return new HouseCreateCmd(spaceId, code, "101室房源", "PUBLIC_RENTAL",
                 "HIGH", "CIVIL", "2居", 10, "南",
                 new BigDecimal("89.50"), null, "FINE", "PUBLIC",
-                new BigDecimal("12.50"), "AREA_MONTH", 3, "SELF", "STATE",
+                new BigDecimal("12.50"), "AREA_MONTH", "INDEPENDENT", 3, "SELF", "STATE",
                 null, null, null, "测试房源");
     }
 
@@ -135,7 +135,7 @@ class HouseCreateTest {
     void areaInheritedFromSpace() {
         when(spaceMapper.selectById(ROOM_ID)).thenReturn(space(ROOM_ID, "ROOM", "101室"));
         HouseCreateCmd c = new HouseCreateCmd(ROOM_ID, "H-003", "继承面积", "TALENT",
-                null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, null, null,
                 2, null, null, null, null, null, null);
         HouseVO vo = houseService.create(c);
         assertEquals(new BigDecimal("89.50"), vo.area());

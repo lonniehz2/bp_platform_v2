@@ -42,6 +42,9 @@ public class AssetHouse {
     private BigDecimal rentStandard;
     private String rentUnit;
     private Integer maxCapacity;
+    /** 计量模式：INDEPENDENT 独立表 / SHARED 分摊 / MIXED 独立+公区分摊 */
+    private String meterMode;
+
     private Integer currentCapacity;
     /** 见 {@code HouseStatus} */
     private String houseStatus;
@@ -141,4 +144,7 @@ public class AssetHouse {
     public void setUpdateBy(String updateBy) { this.updateBy = updateBy; }
     public LocalDateTime getUpdateTime() { return updateTime; }
     public void setUpdateTime(LocalDateTime updateTime) { this.updateTime = updateTime; }
+
+    public String getMeterMode() { return meterMode; }
+    public void setMeterMode(String meterMode) { this.meterMode = meterMode; }
 }

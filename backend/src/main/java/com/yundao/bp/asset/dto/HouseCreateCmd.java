@@ -83,6 +83,7 @@ public record HouseCreateCmd(
 
         @Pattern(regexp = "^$|AREA_MONTH|HOUSE_MONTH|BED_MONTH|HOUSE_NIGHT|BED_NIGHT", message = "租金计价单位不合法")
         String rentUnit,
+        String meterMode,
 
         @Min(value = 1, message = "最大入住人数至少为 1")
         Integer maxCapacity,
