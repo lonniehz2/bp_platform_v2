@@ -192,10 +192,40 @@ public class PublicityServiceImpl implements PublicityService {
                 .eq(orgId != null, BizPublicity::getOrgId, orgId)
                 .eq(status != null && !status.isBlank(), BizPublicity::getPublicityStatus, status)
                 .orderByDesc(BizPublicity::getId);
-        applyDataScopeOrg(qw, BizPublicity::getOrgId);
+        applyPublicityScope(qw);
         IPage<BizPublicity> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
         List<PublicityVO> rows = page.getRecords().stream().map(PublicityVO::from).toList();
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);
+    }
+
+    /**
+     * 公示的数据范围。
+     *
+     * <p>公示属于对公众公开的信息（中签名单本身已脱敏），因此「仅本人」角色
+     * 也能查看已发布/已结束的公示，但看不到草稿。
+     */
+    private void applyPublicityScope(LambdaQueryWrapper<BizPublicity> qw) {
+        if (dataScopeService == null) {
+            return;
+        }
+        com.yundao.bp.iam.datascope.DataScope scope = dataScopeService.current();
+        if (scope.isAll()) {
+            return;
+        }
+        if (scope.isSelf()) {
+            qw.in(BizPublicity::getPublicityStatus,
+                    java.util.List.of(PublicityStatus.PUBLISHED.name(),
+                            PublicityStatus.CLOSED.name()));
+            return;
+        }
+        if ("ORG_SUB".equals(scope.level()) && scope.orgIds() != null
+                && !scope.orgIds().isEmpty()) {
+            qw.in(BizPublicity::getOrgId, scope.orgIds());
+            return;
+        }
+        if (scope.orgId() != null) {
+            qw.eq(BizPublicity::getOrgId, scope.orgId());
+        }
     }
 
     @Override
