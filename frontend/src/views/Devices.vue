@@ -9,6 +9,12 @@
       <div class="spacer" />
       <el-input v-model="query.spaceId" placeholder="空间ID" clearable
                 style="width:210px" @keyup.enter="load" />
+      <el-select v-model="query.deviceType" placeholder="设备类型" clearable
+                 style="width:150px" @change="load">
+        <el-option label="门锁" value="LOCK" />
+        <el-option label="门禁/道闸" value="GATE" />
+        <el-option label="计量表（水电燃气）" value="METER" />
+      </el-select>
       <el-select v-model="query.onlineStatus" placeholder="在线状态" clearable
                  style="width:130px" @change="load">
         <el-option label="在线" :value="1" />
@@ -137,7 +143,8 @@ const loading = ref(false)
 const rows = ref([])
 const total = ref(0)
 const stats = ref({})
-const query = reactive({ pageNum: 1, pageSize: 20, spaceId: '', onlineStatus: '' })
+const query = reactive({ pageNum: 1, pageSize: 20, spaceId: '', onlineStatus: '',
+  deviceType: '' })
 
 async function load() {
   loading.value = true

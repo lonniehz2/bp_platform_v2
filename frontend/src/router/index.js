@@ -32,6 +32,18 @@ export const menuRoutes = [
     meta: { title: '合同管理', icon: 'Files', group: '合同管理' }
   },
   {
+    path: '/meter-readings',
+    name: 'MeterReadings',
+    component: () => import('@/views/MeterReadings.vue'),
+    meta: { title: '抄表管理', icon: 'Odometer', group: '账务收费' }
+  },
+  {
+    path: '/energy',
+    name: 'EnergyAnalysis',
+    component: () => import('@/views/EnergyAnalysis.vue'),
+    meta: { title: '能耗分析', icon: 'TrendCharts', group: '账务收费' }
+  },
+  {
     path: '/bills',
     name: 'bills',
     component: () => import('@/views/Bills.vue'),

@@ -31,6 +31,8 @@ ALLOW = {
     'validStart', 'validEnd', 'realName', 'username', 'roleCode', 'roleName',
     'permCode', 'permName', 'appName', 'keyAlias', 'keyStatus', 'price',
     'personIdName', 'orgIdName', 'houseIdName', 'spaceIdName', 'deviceIdName',
+    # 前端按接口字段派生/聚合的列
+    'lastReading', 'usageAmount', 'readings', 'month',
 
 }
 

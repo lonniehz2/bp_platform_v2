@@ -9,6 +9,10 @@
       <el-button @click="ruleVisible = true; loadRules()">规则列表</el-button>
     </div>
 
+    <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
+              title="水费 / 电费 / 燃气费单价在此维护：新增项目时「计费方式」选「按表（METER）」，
+                     填写「单价」与「计量单位」（度/吨/方），再到「抄表管理」录读数即可出账。" />
+
     <FilterBar @search="resetAndLoad" @reset="resetQuery">
       <el-input v-model="ff.keyword" placeholder="项目编码 / 名称" clearable
                 style="width:200px" data-testid="fee-keyword"
