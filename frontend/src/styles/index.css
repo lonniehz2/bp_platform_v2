@@ -1,5 +1,14 @@
 * { box-sizing: border-box; }
 
+/*
+ * 弹窗遮罩统一调浅：
+ * 默认 rgba(0,0,0,.5) 在浅色页面上观感接近「整页变黑」，
+ * 容易误判为题。改为 0.28，既保留模态层级又不遮挡页面内容。
+ */
+.el-overlay {
+  background-color: rgba(15, 23, 42, 0.28);
+}
+
 html, body, #app {
   height: 100%;
   margin: 0;
