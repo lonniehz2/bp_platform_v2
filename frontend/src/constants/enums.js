@@ -372,7 +372,20 @@ const TYPE_OVERRIDE = {
   permType: { API: '接口', MENU: '菜单', BUTTON: '按钮', DATA: '数据' },
   valueType: { STRING: '字符串', NUMBER: '数值', JSON: 'JSON' },
   onlineStatus: { ONLINE: '在线', OFFLINE: '离线' },
-  auditLevel: { INFO: '提示', WARNING: '警告', CRITICAL: '严重' },
+  auditType: {
+    DATA: '数据变更',
+    SECURITY: '安全事件',
+    CONFIG: '配置变更',
+    LOGIN: '登录行为',
+    FINANCE: '财务操作',
+    SYSTEM: '系统操作'
+  },
+  auditLevel: {
+    INFO: '提示',
+    WARNING: '警告',
+    IMPORTANT: '重要',
+    CRITICAL: '严重'
+  },
   alertLevel: { INFO: '提示', WARNING: '警告', CRITICAL: '严重' },
   creditLevel: { MINOR: '轻微', MAJOR: '较重', SEVERE: '严重' },
   handleStatus: { PENDING: '待处理', HANDLED: '已处理', IGNORED: '已忽略' },

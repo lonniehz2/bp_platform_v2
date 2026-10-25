@@ -29,7 +29,32 @@
             <template #default="{ row }">
               <span v-if="row.roleNames">{{ row.roleNames }}</span>
               <span v-else class="muted">未分配</span>
-            </template>
+            
+    <el-dialog v-model="userDetailVisible" title="用户详情" width="560px">
+      <el-descriptions :column="2" border size="small">
+        <el-descriptions-item label="账号">{{ userDetail.username }}</el-descriptions-item>
+        <el-descriptions-item label="姓名">{{ userDetail.realName || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="手机">{{ userDetail.phone || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="邮箱">{{ userDetail.email || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="状态">{{ enumLabel('status', userDetail.status) }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{ userDetail.userType || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="最近登录">{{ userDetail.lastLoginTime || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="登录次数">{{ userDetail.loginCount || 0 }}</el-descriptions-item>
+      </el-descriptions>
+    </el-dialog>
+
+    <el-dialog v-model="userEditVisible" title="编辑用户" width="520px">
+      <el-form :model="userForm" label-width="90px">
+        <el-form-item label="姓名"><el-input v-model="userForm.realName" /></el-form-item>
+        <el-form-item label="手机"><el-input v-model="userForm.phone" /></el-form-item>
+        <el-form-item label="邮箱"><el-input v-model="userForm.email" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="userEditVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveUser">保存</el-button>
+      </template>
+    </el-dialog>
+</template>
           </el-table-column>
           <el-table-column prop="orgId" label="组织" width="180">
             <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
@@ -52,9 +77,16 @@
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="160" fixed="right">
+          <el-table-column label="操作" width="300" fixed="right">
             <template #default="{ row }">
+              <el-button link type="primary" @click="openUserDetail(row)">详情</el-button>
+              <el-button link type="primary" @click="openUserEdit(row)">编辑</el-button>
               <el-button link type="primary" @click="openGrantRoles(row)">授权角色</el-button>
+              <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
+                         @click="toggleUserStatus(row)">
+                {{ row.status === 'ENABLED' ? '停用' : '启用' }}
+              </el-button>
+              <el-button link type="danger" @click="removeUser(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -436,7 +468,7 @@ async function doCreatePerm() {
 }
 
 /** 给用户授权角色 */
-function openGrantRoles(row) {
+async function openGrantRoles(row) {
   grantKind.value = 'user'
   grantTarget.value = row
   grantTitle.value = `给「${row.realName || row.username}」授权角色`
@@ -445,7 +477,13 @@ function openGrantRoles(row) {
   grantOptions.value = roles.value.map((r) => ({
     value: String(r.id), label: `${r.roleName}（${r.roleCode}）`
   }))
+  // 预填该用户已有角色，便于增减
   grantIds.value = []
+  try {
+    const cur = await req.get(`/rbac/users/${row.id}/roles`)
+    const list = Array.isArray(cur) ? cur : (cur?.rows || [])
+    grantIds.value = list.map((x) => String(x.id || x.roleId)).filter(Boolean)
+  } catch (e) { /* 无权限或未配置时留空 */ }
   grantVisible.value = true
 }
 

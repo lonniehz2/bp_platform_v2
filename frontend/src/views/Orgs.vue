@@ -21,7 +21,7 @@
 
       <el-row :gutter="16">
         <el-col :span="7">
-          <el-tree :data="tree" :props="{ label: 'orgName', children: 'children' }"
+          <el-tree :data="tree" :props="{ label: 'treeLabel', children: 'children' }"
                    node-key="id" default-expand-all highlight-current
                    @node-click="onSelect" />
           <el-empty v-if="!tree.length" description="暂无组织数据" :image-size="60" />
@@ -35,7 +35,37 @@
             <el-table-column prop="orgType" label="类型" width="110">
               <template #default="{ row }">
                 {{ row.orgTypeLabel || enumLabel('orgType', row.orgType) }}
-              </template>
+              
+    <el-dialog v-model="detailVisible" title="组织详情" width="640px">
+      <el-descriptions :column="2" border size="small">
+        <el-descriptions-item label="组织名称">{{ detailRow.orgName }}</el-descriptions-item>
+        <el-descriptions-item label="编码">{{ detailRow.orgCode }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{ enumLabel('orgType', detailRow.orgType) }}</el-descriptions-item>
+        <el-descriptions-item label="状态">{{ enumLabel('status', detailRow.status) }}</el-descriptions-item>
+        <el-descriptions-item label="省">{{ detailRow.province || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="市">{{ detailRow.city || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="区县">{{ detailRow.district || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="街道">{{ detailRow.street || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="社区/村">{{ detailRow.community || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="详细地址" :span="2">{{ detailRow.address || '—' }}</el-descriptions-item>
+      </el-descriptions>
+    </el-dialog>
+
+    <el-dialog v-model="editVisible" title="编辑组织" width="560px">
+      <el-form :model="editForm" label-width="100px">
+        <el-form-item label="组织名称"><el-input v-model="editForm.orgName" /></el-form-item>
+        <el-form-item label="编码"><el-input v-model="editForm.orgCode" /></el-form-item>
+        <el-form-item label="社区/村"><el-input v-model="editForm.community" /></el-form-item>
+        <el-form-item label="详细地址"><el-input v-model="editForm.address" /></el-form-item>
+        <el-form-item label="排序"><el-input-number v-model="editForm.sortNo" :min="1" /></el-form-item>
+        <el-form-item label="备注"><el-input v-model="editForm.remark" type="textarea" :rows="2" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveEdit">保存</el-button>
+      </template>
+    </el-dialog>
+</template>
             </el-table-column>
             <el-table-column prop="parentId" label="上级" width="150">
               <template #default="{ row }">{{ row.parentIdName || row.parentId }}</template>
@@ -45,6 +75,17 @@
                 <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">
                   {{ row.statusLabel || enumLabel('status', row.status) }}
                 </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="250" fixed="right">
+              <template #default="{ row }">
+                <el-button link type="primary" @click="openDetail(row)">详情</el-button>
+                <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
+                <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
+                           @click="toggleStatus(row)">
+                  {{ row.status === 'ENABLED' ? '停用' : '启用' }}
+                </el-button>
+                <el-button link type="danger" @click="removeOrg(row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -133,7 +174,7 @@ const regionProps = {
         params: parentCode ? { parentCode } : {}
       })
       resolve((list || []).map((r) => ({
-        value: r.code, label: r.name, leaf: r.leaf
+        code: r.code, name: r.name, leaf: r.leaf
       })))
     } catch (e) {
       resolve([])
@@ -178,6 +219,9 @@ async function loadTree() {
         if (seen.has(n.id)) continue      // 防环
         seen.add(n.id)
         const node = { ...n }
+        // 树节点标签：名称 + 编码 + 状态（否则树只显示名称，与列表看不出差异）
+        node.treeLabel = `${n.orgName}（${n.orgCode || '-'}）`
+          + (n.status === 'DISABLED' ? ' ⏸停用' : '')
         if (depth < MAX_DEPTH) {
           try {
             const kids = await childrenOf(n.id)
@@ -207,6 +251,62 @@ async function load() {
     total.value = Number(data.total || 0)
   } finally {
     loading.value = false
+  }
+}
+
+
+/** 详情 / 编辑 / 启停 / 删除 */
+const detailVisible = ref(false)
+const detailRow = ref({})
+const editVisible = ref(false)
+const editForm = reactive({ id: null, orgName: '', orgCode: '', orgType: '',
+  parentId: null, community: '', address: '', sortNo: 1, remark: '' })
+
+function openDetail(row) {
+  detailRow.value = row
+  detailVisible.value = true
+}
+
+function openEdit(row) {
+  Object.assign(editForm, {
+    id: row.id, orgName: row.orgName, orgCode: row.orgCode,
+    orgType: row.orgType, parentId: row.parentId,
+    community: row.community, address: row.address,
+    sortNo: row.sortNo || 1, remark: row.remark
+  })
+  editVisible.value = true
+}
+
+async function saveEdit() {
+  try {
+    await req.put(`/orgs/${editForm.id}`, { ...editForm })
+    ElMessage.success('已保存')
+    editVisible.value = false
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '保存失败')
+  }
+}
+
+async function toggleStatus(row) {
+  const next = row.status === 'ENABLED' ? 'DISABLED' : 'ENABLED'
+  try {
+    await req.post(`/orgs/${row.id}/status`, { status: next })
+    ElMessage.success(next === 'ENABLED' ? '已启用' : '已停用')
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '操作失败')
+  }
+}
+
+async function removeOrg(row) {
+  try {
+    await ElMessageBox.confirm(`确认删除组织「${row.orgName}」？`, '提示', { type: 'warning' })
+    await req.delete(`/orgs/${row.id}`)
+    ElMessage.success('已删除')
+    load()
+  } catch (e) {
+    if (e !== 'cancel') ElMessage.error(e?.response?.data?.message || '删除失败')
   }
 }
 

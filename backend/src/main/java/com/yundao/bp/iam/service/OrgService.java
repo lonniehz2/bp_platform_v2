@@ -25,4 +25,10 @@ public interface OrgService {
 
     /** 逻辑删除。 */
     void delete(Long id);
+
+    /** 更新组织（名称/编码/地址/社区/排序/备注等）。 */
+    OrgVO update(Long id, com.yundao.bp.iam.dto.OrgCreateCmd cmd);
+
+    /** 启用 / 停用组织。 */
+    OrgVO changeStatus(Long id, String status);
 }

@@ -145,4 +145,57 @@ public class OrgServiceImpl implements OrgService {
             throw BizException.notFound("组织");
         }
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public OrgVO update(Long id, com.yundao.bp.iam.dto.OrgCreateCmd cmd) {
+        IamOrg e = orgMapper.selectById(id);
+        if (e == null) {
+            throw BizException.notFound("组织");
+        }
+        if (cmd.orgName() != null && !cmd.orgName().isBlank()) {
+            e.setOrgName(cmd.orgName());
+        }
+        if (cmd.orgCode() != null && !cmd.orgCode().isBlank()) {
+            e.setOrgCode(cmd.orgCode());
+        }
+        if (cmd.parentId() != null) {
+            if (id.equals(cmd.parentId())) {
+                throw BizException.paramInvalid("上级组织不能是自己");
+            }
+            e.setParentId(cmd.parentId());
+        }
+        if (cmd.orgType() != null && !cmd.orgType().isBlank()) {
+            e.setOrgType(cmd.orgType());
+        }
+        e.setProvince(cmd.province());
+        e.setCity(cmd.city());
+        e.setDistrict(cmd.district());
+        e.setStreet(cmd.street());
+        e.setCommunity(cmd.community());
+        e.setAddress(cmd.address());
+        if (cmd.sortNo() != null) {
+            e.setSortNo(cmd.sortNo());
+        }
+        e.setRemark(cmd.remark());
+        e.setUpdateTime(java.time.LocalDateTime.now());
+        orgMapper.updateById(e);
+        return OrgVO.from(e);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public OrgVO changeStatus(Long id, String status) {
+        IamOrg e = orgMapper.selectById(id);
+        if (e == null) {
+            throw BizException.notFound("组织");
+        }
+        if (!java.util.List.of("ENABLED", "DISABLED").contains(status)) {
+            throw BizException.paramInvalid("状态只能是 ENABLED / DISABLED");
+        }
+        e.setStatus(status);
+        e.setUpdateTime(java.time.LocalDateTime.now());
+        orgMapper.updateById(e);
+        return OrgVO.from(e);
+    }
 }
