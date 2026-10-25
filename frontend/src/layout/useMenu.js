@@ -202,7 +202,14 @@ export function useMenu() {
     const out = []
     for (const name of CLASSIC_ORDER) {
       const items = menus.value
-        .filter((m) => (CLASSIC_GROUP[m.path] || CLASSIC_GROUP[m._parent]) === name)
+        .filter((m) => {
+          const key = m.path || m._parent
+          const mapped = CLASSIC_GROUP[key] || CLASSIC_GROUP[m._parent]
+          if (mapped) return mapped === name
+          // 兜底：未登记的路径使用 meta.group（旧名走别名）
+          const g = GROUP_ALIAS[m.meta?.group] || m.meta?.group
+          return g === name
+        })
         .sort((a, b) => rankOf(a) - rankOf(b))
       if (items.length) {
         out.push({ name, icon: CLASSIC_ICON[name] || 'Menu', items })
