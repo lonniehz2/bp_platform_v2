@@ -232,6 +232,14 @@ for path, label in [('/rpt/metrics/current', '驾驶舱指标'),
     st, r = call(path, 'GET', None, admin)
     step('旅程6', label + '可访问', st == 200, (r or {}).get('message', '')[:40])
 
+# ---------------------------------------------------------------- 边缘旅程
+import _check_journeys_edge as edge
+
+edge.run_edge_journeys({
+    'call': call, 'step': step, 'rows': rows, 'data': data,
+    'rid': rid, 'gen_id_card': gen_id_card, 'admin': admin,
+})
+
 # ---------------------------------------------------------------- 汇总
 print('\n' + '=' * 66)
 print('闭环检查：通过 %d 步，失败 %d 步' % (len(OK), len(FAIL)))

@@ -336,6 +336,13 @@ const TYPE_OVERRIDE = {
   flowType: { IN: '收入', OUT: '支出' },
   bizType: { RENT: '租金', DEPOSIT: '押金', SUBSIDY: '补贴', PROPERTY: '物业费' },
   calcMode: { FIXED: '定额', METER: '抄表' },
+  inspectStatus: {
+    PENDING: '待验房',
+    PASSED: '验房通过',
+    ABNORMAL: '验房异常'
+  },
+  generateType: { MANUAL: '手工出账', AUTO: '自动出账', METER: '抄表出账',
+                  SHORT_RENT: '短租结算' },
   subsidyMode: { FIXED: '定额', RATIO: '按比例' },
   permType: { API: '接口', MENU: '菜单', BUTTON: '按钮', DATA: '数据' },
   valueType: { STRING: '字符串', NUMBER: '数值', JSON: 'JSON' },
@@ -399,4 +406,9 @@ export const DICT_TYPE_LABEL = {
 
 export function dictTypeLabel(code) {
   return DICT_TYPE_LABEL[code] || code
+}
+
+/** 验房状态 */
+export const INSPECT_STATUS_LABEL = {
+  PENDING: '待验房', PASSED: '验房通过', ABNORMAL: '验房异常'
 }
