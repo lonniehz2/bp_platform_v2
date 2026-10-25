@@ -46,6 +46,27 @@ fs.mkdirSync(shots, { recursive: true })
   })
   await new Promise(r => setTimeout(r, 1500))
 
+  // 切到「继承设备」页签并记录条目
+  const inherit = await page.evaluate(async () => {
+    const tabs = Array.from(document.querySelectorAll('.el-tabs__item'))
+    const t = tabs.find((x) => x.innerText.includes('继承'))
+    if (t) { t.click(); return true }
+    return false
+  })
+  await new Promise(r => setTimeout(r, 1500))
+  const inheritRows = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('.el-table__body tr'))
+      .map((tr) => tr.innerText.replace(/\n/g, ' | ')))
+  console.log('继承页签条目：', inheritRows.length)
+  inheritRows.slice(0, 5).forEach((r) => console.log('   ' + r))
+  await page.evaluate(() => {
+    const t = Array.from(document.querySelectorAll('.el-tabs__item'))
+      .find((x) => x.innerText.includes('本房源'))
+    t && t.click()
+  })
+  await new Promise(r => setTimeout(r, 1200))
+  await page.screenshot({ path: path.join(shots, 'device-inherit.png') })
+
   // 打开绑定弹窗
   const opened = await page.evaluate(() => {
     const btn = Array.from(document.querySelectorAll('button'))

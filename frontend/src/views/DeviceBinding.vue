@@ -158,7 +158,8 @@ async function loadDevices() {
       const d = await req.get('/devices/inherited', {
         params: { houseId: current.value.id }
       })
-      rows.value = (d && d.devices) || []
+      // 继承页签只显示上级空间设备，排除本房源自身的设备
+      rows.value = ((d && d.devices) || []).filter((x) => x.scope === '继承')
     } else {
       const sid = current.value.spaceId
       if (!sid) {
