@@ -195,23 +195,31 @@ public class MeterReadingServiceImpl implements MeterReadingService {
 
         // 单价（按收费项）
         java.util.Map<Long, java.math.BigDecimal> priceOf = new java.util.HashMap<>();
+        java.util.Map<Long, String> itemName = new java.util.HashMap<>();
         if (anaFeeItemMapper != null) {
             for (com.yundao.bp.fin.entity.FinFeeItem it : anaFeeItemMapper.selectList(
                     new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>())) {
                 priceOf.put(it.getId(), it.getUnitPrice());
+                itemName.put(it.getId(), it.getItemName());
             }
         }
 
-        java.util.Map<Long, com.yundao.bp.fin.entity.FinMeterReading> prev = new java.util.HashMap<>();
+        // 关键：同一房源有多个计量项目（水/电/燃气），必须按「房源+项目」分别计算上期读数
+        java.util.Map<String, com.yundao.bp.fin.entity.FinMeterReading> prev =
+                new java.util.HashMap<>();
         java.util.Map<String, java.math.BigDecimal> monthUsage = new java.util.TreeMap<>();
         java.util.Map<String, java.math.BigDecimal> monthAmount = new java.util.TreeMap<>();
         java.util.Map<String, Integer> monthReadings = new java.util.HashMap<>();
         java.util.Map<Long, java.math.BigDecimal> houseUsage = new java.util.HashMap<>();
+        java.util.Map<Long, java.math.BigDecimal> itemUsage = new java.util.HashMap<>();
+        java.util.Map<Long, java.math.BigDecimal> itemAmount = new java.util.HashMap<>();
+        java.util.Map<Long, Integer> itemReadings = new java.util.HashMap<>();
 
         for (com.yundao.bp.fin.entity.FinMeterReading r : list) {
             String month = r.getReadDate() == null ? "" : r.getReadDate().toString().substring(0, 7);
             monthReadings.merge(month, 1, Integer::sum);
-            com.yundao.bp.fin.entity.FinMeterReading last = prev.get(r.getHouseId());
+            String key = r.getHouseId() + "#" + r.getFeeItemId();
+            com.yundao.bp.fin.entity.FinMeterReading last = prev.get(key);
             if (last != null && last.getReading() != null && r.getReading() != null) {
                 java.math.BigDecimal used = r.getReading().subtract(last.getReading());
                 if (used.signum() > 0) {
@@ -222,9 +230,15 @@ public class MeterReadingServiceImpl implements MeterReadingService {
                                 java.math.BigDecimal::add);
                     }
                     houseUsage.merge(r.getHouseId(), used, java.math.BigDecimal::add);
+                    itemUsage.merge(r.getFeeItemId(), used, java.math.BigDecimal::add);
+                    if (price != null) {
+                        itemAmount.merge(r.getFeeItemId(), used.multiply(price),
+                                java.math.BigDecimal::add);
+                    }
+                    itemReadings.merge(r.getFeeItemId(), 1, Integer::sum);
                 }
             }
-            prev.put(r.getHouseId(), r);
+            prev.put(key, r);
         }
 
         java.util.List<java.util.Map<String, Object>> monthRows = new java.util.ArrayList<>();
@@ -285,6 +299,20 @@ public class MeterReadingServiceImpl implements MeterReadingService {
         out.put("months", monthRows);
         out.put("topHouses", topHouses);
         out.put("byBuilding", buildingRows);
+        java.util.List<java.util.Map<String, Object>> itemRows = new java.util.ArrayList<>();
+        for (java.util.Map.Entry<Long, java.math.BigDecimal> e : itemUsage.entrySet()) {
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("feeItemId", String.valueOf(e.getKey()));
+            m.put("feeItemName", itemName.get(e.getKey()));
+            m.put("usage", e.getValue().setScale(2, java.math.RoundingMode.HALF_UP));
+            m.put("amount", itemAmount.getOrDefault(e.getKey(),
+                    java.math.BigDecimal.ZERO).setScale(2, java.math.RoundingMode.HALF_UP));
+            m.put("readings", itemReadings.getOrDefault(e.getKey(), 0));
+            itemRows.add(m);
+        }
+        itemRows.sort((a, b) -> ((java.math.BigDecimal) b.get("usage"))
+                .compareTo((java.math.BigDecimal) a.get("usage")));
+        out.put("byFeeItem", itemRows);
         out.put("windowMonths", window);
         return out;
     }

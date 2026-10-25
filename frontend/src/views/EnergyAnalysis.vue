@@ -29,6 +29,14 @@
       </el-col>
     </el-row>
 
+    <div style="font-weight:600;margin-bottom:6px">按计量项目（水 / 电 / 燃气）</div>
+    <el-table :data="itemRows" size="small" border style="margin-bottom:14px">
+      <el-table-column prop="feeItemName" label="计量项目" width="190" />
+      <el-table-column prop="readings" label="读数次数" width="110" />
+      <el-table-column prop="usage" label="用量" width="150" />
+      <el-table-column prop="amount" label="金额" width="150" />
+    </el-table>
+
     <el-row :gutter="12">
       <el-col :span="12">
         <div style="font-weight:600;margin-bottom:6px">月度趋势</div>
@@ -70,6 +78,7 @@ const months = ref(6)
 const monthRows = ref([])
 const buildings = ref([])
 const top = ref([])
+const itemRows = ref([])
 
 const totalUsage = computed(() =>
   monthRows.value.reduce((s, m) => s + Number(m.usage || 0), 0).toFixed(2))
@@ -87,6 +96,7 @@ async function load() {
     }))
     buildings.value = (r && r.byBuilding) || []
     top.value = (r && r.topHouses) || []
+    itemRows.value = (r && r.byFeeItem) || []
   } catch (e) {
     ElMessage.error(e?.response?.data?.message || '加载能耗数据失败')
   }
