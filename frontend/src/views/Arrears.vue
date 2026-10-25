@@ -17,6 +17,17 @@
               title="催缴后仍不缴可触发欠费停权；默认只停门锁、不停大门（EXCLUDE_MAIN_DOOR）"
               style="margin-bottom:12px" />
 
+    <el-row :gutter="12" style="margin-bottom:12px">
+      <el-col :span="12">
+        <div style="font-weight:600;margin-bottom:2px">逾期金额趋势（近 6 月）</div>
+        <LineTrend :rows="overdueTrend" color="#f56c6c" :height="170" />
+      </el-col>
+      <el-col :span="12">
+        <div style="font-weight:600;margin-bottom:2px">逾期账单数趋势</div>
+        <LineTrend :rows="countTrend" color="#e6a23c" :height="170" />
+      </el-col>
+    </el-row>
+
     <el-table :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">
         <template #default="{ row }">
@@ -79,15 +90,32 @@
 <script setup>
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage } from 'element-plus'
 import { financeApi } from '@/api/modules'
 import req from '@/api/request'
+import LineTrend from '@/components/LineTrend.vue'
 
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref([])
+
+/** 欠费趋势：逾期金额 / 逾期账单数 */
+const trendRows = ref([])
+const overdueTrend = computed(() => trendRows.value.map((m) => ({
+  label: String(m.month || '').slice(5), value: Number(m.overdueAmount) || 0
+})))
+const countTrend = computed(() => trendRows.value.map((m) => ({
+  label: String(m.month || '').slice(5), value: Number(m.overdueBills) || 0
+})))
+
+async function loadTrend() {
+  try {
+    const d = await req.get('/fin/arrears/trend', { params: { months: 6 } })
+    trendRows.value = d || []
+  } catch (e) { trendRows.value = [] }
+}
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(20)
@@ -139,7 +167,7 @@ function resetQuery() {
   reload()
 }
 
-onMounted(load)
+onMounted(() => { loadTrend(); load() })
 </script>
 
 <style scoped>

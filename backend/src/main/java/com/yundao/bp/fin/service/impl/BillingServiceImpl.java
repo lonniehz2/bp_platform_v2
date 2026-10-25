@@ -48,6 +48,9 @@ public class BillingServiceImpl implements BillingService {
     private static final Logger log = LoggerFactory.getLogger(BillingServiceImpl.class);
 
     private final FinBillMapper billMapper;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.fin.mapper.FinArrearsActionMapper arrearsActionMapper;
     private final FinPaymentMapper paymentMapper;
     private final FinPaymentAllocateMapper allocateMapper;
     private final SnowflakeIdGenerator idGen;
@@ -617,5 +620,21 @@ public class BillingServiceImpl implements BillingService {
         String compact = period.replace("-", "");
         return billMapper.selectList(new LambdaQueryWrapper<com.yundao.bp.fin.entity.FinBill>()
                 .in(com.yundao.bp.fin.entity.FinBill::getBillPeriod, period, compact));
+    }
+
+    @Override
+    public long countArrearsActions(String period) {
+        if (period == null || period.isBlank() || arrearsActionMapper == null) {
+            return 0L;
+        }
+        java.time.LocalDate start = java.time.YearMonth.parse(period).atDay(1);
+        java.time.LocalDate stop = start.plusMonths(1);
+        Long n = arrearsActionMapper.selectCount(
+                new LambdaQueryWrapper<com.yundao.bp.fin.entity.FinArrearsAction>()
+                        .ge(com.yundao.bp.fin.entity.FinArrearsAction::getCreateTime,
+                                start.atStartOfDay())
+                        .lt(com.yundao.bp.fin.entity.FinArrearsAction::getCreateTime,
+                                stop.atStartOfDay()));
+        return n == null ? 0L : n;
     }
 }

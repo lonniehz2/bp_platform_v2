@@ -27,6 +27,10 @@ public class ArrearsActionController {
 
     private final ArrearsActionService service;
 
+    /** 趋势统计复用账单服务 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.fin.service.BillingService billingService;
+
     public ArrearsActionController(ArrearsActionService service) {
         this.service = service;
     }
@@ -63,6 +67,7 @@ public class ArrearsActionController {
     }
 
     @com.yundao.bp.iam.security.RequirePerm("fin:arrear:view")
+
     @GetMapping("/by-contract/{contractId}")
     public R<List<ArrearsActionVO>> byContract(@PathVariable Long contractId) {
         return R.ok(service.listByContract(contractId));
@@ -84,5 +89,54 @@ public class ArrearsActionController {
     }
 
     public record ReasonCmd(String reason) {
+    }
+    /**
+     * 欠费趋势：近 N 个月逾期金额、逾期账单数、催缴动作数。
+     *
+     * <p>逾期口径：账单状态为 OVERDUE 或已过期仍未缴清的账单，
+     * 按账单所属账期（yyyy-MM 或 yyyyMM）归月。
+     */
+    @com.yundao.bp.iam.security.RequirePerm("fin:bill:view")
+    @GetMapping("/trend")
+    public R<java.util.List<java.util.Map<String, Object>>> trend(
+            @RequestParam(defaultValue = "6") int months) {
+        int window = Math.max(1, Math.min(months, 24));
+        java.time.YearMonth end = java.time.YearMonth.now();
+        java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
+        for (int i = window - 1; i >= 0; i--) {
+            java.time.YearMonth ym = end.minusMonths(i);
+            String period = ym.toString();
+            java.util.List<com.yundao.bp.fin.entity.FinBill> bills =
+                    billingService.listByPeriod(period);
+            java.math.BigDecimal overdue = java.math.BigDecimal.ZERO;
+            int overdueCount = 0;
+            for (com.yundao.bp.fin.entity.FinBill b : bills) {
+                boolean isOverdue = "OVERDUE".equals(b.getBillStatus())
+                        || (("UNPAID".equals(b.getBillStatus())
+                                || "PARTIAL".equals(b.getBillStatus()))
+                            && b.getDueDate() != null
+                            && b.getDueDate().isBefore(java.time.LocalDate.now()));
+                if (!isOverdue) {
+                    continue;
+                }
+                overdueCount++;
+                java.math.BigDecimal pending = b.getPayableAmount() == null
+                        ? java.math.BigDecimal.ZERO : b.getPayableAmount();
+                if (b.getPaidAmount() != null) {
+                    pending = pending.subtract(b.getPaidAmount());
+                }
+                if (pending.signum() > 0) {
+                    overdue = overdue.add(pending);
+                }
+            }
+            long actions = billingService.countArrearsActions(period);
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("month", period);
+            m.put("overdueAmount", overdue.setScale(2, java.math.RoundingMode.HALF_UP));
+            m.put("overdueBills", overdueCount);
+            m.put("actions", actions);
+            out.add(m);
+        }
+        return R.ok(out);
     }
 }

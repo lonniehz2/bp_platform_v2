@@ -55,4 +55,7 @@ public interface BillingService {
 
     /** 按账期（yyyy-MM）取账单，供趋势统计。 */
     java.util.List<com.yundao.bp.fin.entity.FinBill> listByPeriod(String period);
+
+    /** 按账期统计催缴动作数（趋势用）。 */
+    long countArrearsActions(String period);
 }
