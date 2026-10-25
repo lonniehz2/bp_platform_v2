@@ -17,9 +17,25 @@ def run_edge_journeys(env):
 
     # ------------------------------------------------------------ 旅程7
     print('\n[旅程7] 退租：建合同 → 签约 → 申请 → 审批 → 验房 → 结算 → 释放房源')
-    st, ro = call('/orgs?pageNum=1&pageSize=1', 'GET', None, admin)
-    org = (rows((st, ro)) or [{}])[0].get('id')
-    # 选一间没有生效合同的房源，保证脚本可重复执行
+    # 取一套已有房源作为模板，沿用其组织与空间（避免参数猜错）
+    st, rsample = call('/houses?pageNum=1&pageSize=1', 'GET', None, admin)
+    sample = (rows((st, rsample)) or [{}])[0]
+    org = sample.get('orgId')
+    # 每次新建一间独立房源，彻底避免「一房多签」导致的偶发失败
+    new_code = 'ZZ-QA-' + rid()
+    st, rh0 = call('/houses', 'POST', {
+        'houseCode': new_code, 'houseName': '闭环测试房' + rid(),
+        'houseType': sample.get('houseType') or 'PUBLIC_RENTAL',
+        'orgId': org, 'spaceId': sample.get('spaceId'),
+        'area': 45, 'rentStandard': 15,
+        'rentUnit': sample.get('rentUnit') or 'AREA_MONTH'}, admin)
+    made_house = data((st, rh0)) or {}
+    if made_house.get('id'):
+        house = made_house
+        print('  新建房源:', new_code)
+    else:
+        print('  建房失败，改用既有房源：', (rh0 or {}).get('message', '')[:40])
+    # 选一间没有生效合同的房源（兜底）；优先使用本次新建的独立房源
     st, rc0 = call('/contracts?pageNum=1&pageSize=300', 'GET', None, admin)
     used = {str(x.get('houseId')) for x in rows((st, rc0))
             if x.get('contractStatus') in ('ACTIVE', 'SIGNING', 'PENDING_SIGN')}
@@ -27,6 +43,9 @@ def run_edge_journeys(env):
     hs = [x for x in rows((st, rh)) if str(x.get('id')) not in used]
     house = next((x for x in hs if x.get('houseStatus') in ('AVAILABLE', 'VACANT')),
                  hs[0] if hs else {})
+    if made_house.get('id'):
+        house = made_house
+        print('  使用新建房源:', made_house.get('houseCode'))
     st, rp = call('/persons?pageNum=1&pageSize=1', 'GET', None, admin)
     person = (rows((st, rp)) or [{}])[0]
 
