@@ -138,3 +138,60 @@ def run_edge_journeys(env):
         st, rl = call('/fin/arrears?pageNum=1&pageSize=5', 'GET', None, admin)
         step('旅程10', '催缴记录可查', st == 200 and len(rows((st, rl))) > 0,
              '共 %d 条' % len(rows((st, rl))))
+
+    # ------------------------------------------------------------ 旅程11
+    print('\n[旅程11] 多级审核：受理 → 形式审核 → 联合审核 → 终审 → 入轮候')
+    name11 = '多级审核' + rid()
+    st, rp = call('/persons', 'POST', {
+        'personName': name11, 'idCard': env['gen_id_card'](),
+        'phone': '137%08d' % __import__('random').randint(0, 99999999),
+        'personType': 'FAMILY', 'gender': 'MALE'}, admin)
+    p11 = data((st, rp)) or {}
+    pid11 = p11.get('id')
+    step('旅程11', '新建申请人', st == 200 and pid11, (rp or {}).get('message', '')[:60])
+
+    if pid11:
+        call('/verify-records', 'POST', {
+            'personId': pid11, 'verifyType': 'FACE', 'userName': name11,
+            'faceResult': '1', 'citizenResult': '1', 'faceScore': 96.0,
+            'resultCode': '0000', 'responseCode': '200'}, admin)
+        call('/guarantee-profiles', 'POST', {
+            'personId': pid11, 'securityType': 'PUBLIC', 'familySize': 2,
+            'monthlyIncome': 3800, 'annualIncome': 45600,
+            'householdIncome': 45600, 'profileStatus': 'QUALIFIED'}, admin)
+        st, rp11 = call('/persons?pageNum=1&pageSize=1', 'GET', None, admin)
+        org11 = (rows((st, rp11)) or [{}])[0].get('orgId')
+        st, ra11 = call('/applications', 'POST', {
+            'personId': pid11, 'securityType': 'PUBLIC', 'applyChannel': 'ONLINE',
+            'orgId': org11, 'familySize': 2,
+            'complianceCommitFlag': 1, 'dataShareAgreeFlag': 1}, admin)
+        app11 = data((st, ra11)) or {}
+        aid = app11.get('id')
+        step('旅程11', '提交申请', st == 200 and aid, (ra11 or {}).get('message', '')[:70])
+
+        if aid:
+            st, r = call('/applications/%s/accept' % aid, 'POST', {}, admin)
+            step('旅程11', '受理', st == 200, (r or {}).get('message', '')[:60])
+            for stage, label in (('ACCEPT', '受理初审'), ('FORM', '形式审核'),
+                                 ('JOINT', '联合审核'), ('FINAL', '终审')):
+                st, r = call('/applications/%s/review' % aid, 'POST', {
+                    'stage': stage, 'result': 'PASS', 'opinion': label + '通过'}, admin)
+                step('旅程11', label + '通过', st == 200, (r or {}).get('message', '')[:70])
+
+            st, rd = call('/applications/%s' % aid, 'GET', None, admin)
+            d11 = data((st, rd)) or {}
+            step('旅程11', '终审后状态为已通过',
+                 d11.get('applicationStatus') == 'APPROVED', str(d11.get('applicationStatus')))
+            step('旅程11', '当前节点为已完成', d11.get('currentNode') in ('DONE', None),
+                 str(d11.get('currentNode')))
+
+            st, rrec = call('/applications/%s/reviews' % aid, 'GET', None, admin)
+            recs = data((st, rrec)) or []
+            stages = {x.get('reviewStage') for x in recs} if isinstance(recs, list) else set()
+            step('旅程11', '四级审核轨迹完整',
+                 {'ACCEPT', 'FORM', 'JOINT', 'FINAL'} <= stages, str(sorted(stages)))
+
+            st, rw = call('/allocation/waiting?pageNum=1&pageSize=5&keyword=%s'
+                          % __import__('urllib.parse').parse.quote(name11), 'GET', None, admin)
+            wl = rows((st, rw))
+            step('旅程11', '自动进入轮候队列', len(wl) >= 1, '轮候 %d 条' % len(wl))
