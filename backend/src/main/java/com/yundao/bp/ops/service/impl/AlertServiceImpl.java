@@ -165,7 +165,9 @@ public class AlertServiceImpl implements AlertService {
     public AlertVO handle(Long id, Long handleUserId, String action, String result) {
         OpsAlert e = require(id);
         transition(e, AlertStatus.HANDLING);
-        e.setHandleUserId(handleUserId);
+        // 未显式传入处理人时，记录当前登录用户
+        e.setHandleUserId(handleUserId != null ? handleUserId
+                : com.yundao.bp.common.tenant.TenantContext.userId());
         e.setHandleAction(action);
         e.setUpdateTime(LocalDateTime.now());
         alertMapper.updateById(e);
@@ -177,6 +179,8 @@ public class AlertServiceImpl implements AlertService {
     public AlertVO resolve(Long id, Long handleUserId, String result) {
         OpsAlert e = require(id);
         transition(e, AlertStatus.HANDLED);
+        e.setHandleUserId(handleUserId != null ? handleUserId
+                : com.yundao.bp.common.tenant.TenantContext.userId());
         e.setHandleUserId(handleUserId);
         e.setHandleResult(result);
         e.setHandleTime(LocalDateTime.now());
@@ -190,6 +194,8 @@ public class AlertServiceImpl implements AlertService {
     public AlertVO ignore(Long id, Long handleUserId, String reason) {
         OpsAlert e = require(id);
         transition(e, AlertStatus.IGNORED);
+        e.setHandleUserId(handleUserId != null ? handleUserId
+                : com.yundao.bp.common.tenant.TenantContext.userId());
         e.setHandleUserId(handleUserId);
         e.setHandleResult(reason == null ? "误报忽略" : reason);
         e.setHandleTime(LocalDateTime.now());

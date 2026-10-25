@@ -443,7 +443,7 @@ async function load() {
   try {
     const d = await financeApi.bills({
       pageNum: q.pageNum, pageSize: q.pageSize,
-      billStatus: q.billStatus || undefined,
+      status: q.billStatus || undefined,
       billPeriod: q.billPeriod || undefined,
       houseId: q.houseId || undefined
     })

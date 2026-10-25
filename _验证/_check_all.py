@@ -19,6 +19,7 @@ STEPS = [
     ('接口路径核对（前后端一致性）', '_check_api_paths.py', STRICT),
     ('查询参数接线（前端传的键后端必须认）', '_audit_params.py', ['--strict']),
     ('显示层一致性（字段/枚举/ID/树）', '_check_display.py', STRICT),
+    ('列表内容与筛选（列有值/筛选生效）', '_check_content.py', STRICT),
     ('菜单完整性（路由都能在菜单出现）', '_check_menu.py', STRICT),
     ('菜单权限一致性（角色可见=可访问）', '_check_menu_perm.py', STRICT),
     ('数据范围扫描（列表接口必须限权）', '_check_datascope.py', STRICT),
