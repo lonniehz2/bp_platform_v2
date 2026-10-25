@@ -134,7 +134,7 @@ public class FinLedgerController {
         return R.ok(cashFlowService.get(id));
     }
 
-    @com.yundao.bp.iam.security.RequirePerm("fin:bill:manage")
+    @com.yundao.bp.iam.security.RequirePerm("fin:cashflow:view")
     @GetMapping("/cash-flows")
     public R<PageResult<CashFlowVO>> pageFlow(
             @RequestParam(defaultValue = "1") long pageNum,
