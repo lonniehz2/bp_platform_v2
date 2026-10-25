@@ -39,5 +39,11 @@ public record OrgCreateCmd(
 
         @Size(max = 500, message = "备注不能超过 500 字符")
         String remark
-) {
+,
+        String provinceCode,
+        String cityCode,
+        String districtCode,
+        String streetCode,
+        String communityCode
+        ) {
 }

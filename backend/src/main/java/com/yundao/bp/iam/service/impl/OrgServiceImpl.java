@@ -69,6 +69,11 @@ public class OrgServiceImpl implements OrgService {
         e.setOrgLevel(level);
         e.setOrgType(cmd.orgType());
         e.setProvince(cmd.province());
+        e.setProvinceCode(cmd.provinceCode());
+        e.setCityCode(cmd.cityCode());
+        e.setDistrictCode(cmd.districtCode());
+        e.setStreetCode(cmd.streetCode());
+        e.setCommunityCode(cmd.communityCode());
         e.setCity(cmd.city());
         e.setDistrict(cmd.district());
         e.setStreet(cmd.street());
@@ -169,6 +174,16 @@ public class OrgServiceImpl implements OrgService {
             e.setOrgType(cmd.orgType());
         }
         e.setProvince(cmd.province());
+        e.setProvinceCode(cmd.provinceCode());
+        e.setCityCode(cmd.cityCode());
+        e.setDistrictCode(cmd.districtCode());
+        e.setStreetCode(cmd.streetCode());
+        e.setCommunityCode(cmd.communityCode());
+        e.setProvinceCode(cmd.provinceCode());
+        e.setCityCode(cmd.cityCode());
+        e.setDistrictCode(cmd.districtCode());
+        e.setStreetCode(cmd.streetCode());
+        e.setCommunityCode(cmd.communityCode());
         e.setCity(cmd.city());
         e.setDistrict(cmd.district());
         e.setStreet(cmd.street());

@@ -34,6 +34,11 @@ public class IamOrg {
     private String address;
     /** 标准地址-province */
     private String province;
+    private String provinceCode;
+    private String cityCode;
+    private String districtCode;
+    private String streetCode;
+    private String communityCode;
 
     /** 标准地址-city */
     private String city;
@@ -100,6 +105,21 @@ public class IamOrg {
 
     public String getProvince() { return province; }
     public void setProvince(String province) { this.province = province; }
+
+    public String getProvinceCode() { return provinceCode; }
+    public void setProvinceCode(String provinceCode) { this.provinceCode = provinceCode; }
+
+    public String getCityCode() { return cityCode; }
+    public void setCityCode(String cityCode) { this.cityCode = cityCode; }
+
+    public String getDistrictCode() { return districtCode; }
+    public void setDistrictCode(String districtCode) { this.districtCode = districtCode; }
+
+    public String getStreetCode() { return streetCode; }
+    public void setStreetCode(String streetCode) { this.streetCode = streetCode; }
+
+    public String getCommunityCode() { return communityCode; }
+    public void setCommunityCode(String communityCode) { this.communityCode = communityCode; }
 
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }

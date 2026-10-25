@@ -96,7 +96,15 @@
           </div>
         </el-form-item>
         <el-form-item label="社区/村">
-          <el-input v-model="f.community" placeholder="社区、村委会名称（可手填）" /></el-form-item>
+          <el-select v-model="f.community" filterable allow-create default-first-option
+                     clearable placeholder="可从下拉选择，也可直接输入新社区名"
+                     style="width:100%">
+            <el-option v-for="c in communityOptions" :key="c" :label="c" :value="c" />
+          </el-select>
+          <div class="muted" style="font-size:12px;margin-top:4px">
+            第五级（社区/村）允许手填：区划库未收录时直接输入即可
+          </div>
+        </el-form-item>
         <el-form-item label="详细地址">
           <el-input v-model="f.address"
                     placeholder="路牌、楼宇、房号等（如：天府三街199号3栋1单元1201）" /></el-form-item>
@@ -130,11 +138,20 @@
         <el-form-item label="组织名称" required><el-input v-model="editForm.orgName" /></el-form-item>
         <el-form-item label="编码" required><el-input v-model="editForm.orgCode" /></el-form-item>
         <el-form-item label="标准地址">
+          <div v-if="editAddrText" class="muted" style="font-size:12px;margin-bottom:4px">
+            当前：{{ editAddrText }}
+          </div>
           <el-cascader v-model="editRegionPath" :props="regionProps" clearable filterable
-                       placeholder="省 / 地市 / 区县 / 街道乡镇（点击逐级选择）"
+                       placeholder="如需修改，请重新逐级选择"
                        style="width:100%" @change="onEditRegionChange" />
         </el-form-item>
-        <el-form-item label="社区/村"><el-input v-model="editForm.community" /></el-form-item>
+        <el-form-item label="社区/村">
+          <el-select v-model="editForm.community" filterable allow-create
+                     default-first-option clearable
+                     placeholder="可从下拉选择，也可直接输入" style="width:100%">
+            <el-option v-for="c in communityOptions" :key="c" :label="c" :value="c" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="详细地址"><el-input v-model="editForm.address" /></el-form-item>
         <el-form-item label="排序"><el-input-number v-model="editForm.sortNo" :min="1" /></el-form-item>
         <el-form-item label="备注">
@@ -150,12 +167,13 @@
 
 <script setup>
 import { enumLabel } from '@/constants/enums'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { orgApi } from '@/api/modules'
 import { ElMessage } from 'element-plus'
 import req from '@/api/request'
 
 const loading = ref(false)
+let reloadingRoot = false
 const tree = ref([])
 const rows = ref([])
 const total = ref(0)
@@ -189,10 +207,38 @@ const regionProps = {
   }
 }
 
+
+/** 社区选项：优先取区划库第五级，其次取已有组织里用过的社区名 */
+const communityOptions = ref([])
+
+async function loadCommunities(streetCode) {
+  const set = new Set()
+  try {
+    const list = await req.get('/sys/regions/children', { params: { parentCode: streetCode } })
+    ;(list || []).forEach((r) => r.name && set.add(r.name))
+  } catch (e) { /* 区划库未收录第五级时忽略 */ }
+  // 合并历史输入，便于复用
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 200 } })
+    ;(d.rows || d || []).forEach((o) => o.community && set.add(o.community))
+  } catch (e) { /* 忽略 */ }
+  communityOptions.value = Array.from(set)
+}
+
 function onRegionChange(codes) {
   if (!codes || !codes.length) {
     f.province = ''; f.city = ''; f.district = ''; f.street = ''
+    f.provinceCode = ''; f.cityCode = ''; f.districtCode = ''; f.streetCode = ''
+    communityOptions.value = []
     return
+  }
+  // 代码逐级落到表单，供后端保存（第五级社区允许手填，故不存代码）
+  f.provinceCode = codes[0] || ''
+  f.cityCode = codes[1] || ''
+  f.districtCode = codes[2] || ''
+  f.streetCode = codes[3] || ''
+  if (f.streetCode) {
+    loadCommunities(f.streetCode)
   }
   // codes 是逐级代码，按顺序映射到 省/市/区县/街道
   req.get('/sys/regions/path', { params: { code: codes[codes.length - 1] } })
@@ -256,6 +302,12 @@ async function load() {
     })
     rows.value = data.rows || []
     total.value = Number(data.total || 0)
+    // 选中的组织可能已被删除（或不属于当前租户）：自动回到根级，避免整页空白
+    if (total.value === 0 && currentOrg.value && !reloadingRoot) {
+      reloadingRoot = true
+      currentOrg.value = null
+      try { await load() } finally { reloadingRoot = false }
+    }
   } finally {
     loading.value = false
   }
@@ -267,7 +319,10 @@ const detailVisible = ref(false)
 const detailRow = ref({})
 const editVisible = ref(false)
 const editForm = reactive({ id: null, orgName: '', orgCode: '', orgType: '',
-  parentId: null, community: '', address: '', sortNo: 1, remark: '' })
+  parentId: null, community: '', address: '', sortNo: 1, remark: '',
+  province: '', city: '', district: '', street: '',
+  provinceCode: '', cityCode: '', districtCode: '', streetCode: '', communityCode: ''
+})
 
 function openDetail(row) {
   detailRow.value = row
@@ -283,8 +338,14 @@ function openEdit(row) {
     province: row.province, city: row.city,
     district: row.district, street: row.street
   })
-  editRegionPath.value = [row.province, row.city, row.district, row.street]
-    .filter(Boolean)
+  // 优先用代码回显，缺失时退回名称（兼容历史数据）
+  const codes = [row.provinceCode, row.cityCode, row.districtCode, row.streetCode]
+  editRegionPath.value = codes.every(Boolean)
+    ? codes
+    : []
+  if (row.streetCode) {
+    loadCommunities(row.streetCode)
+  }
   editVisible.value = true
 }
 
@@ -328,6 +389,14 @@ function standardAddress(row) {
   return parts.length ? parts.join(' / ') : '—'
 }
 
+/** 当前标准地址文字（级联懒加载无法回显标签时用名称展示） */
+const editAddrText = computed(() => {
+  const parts = [editForm.province, editForm.city, editForm.district, editForm.street]
+    .filter(Boolean)
+  const code = editForm.provinceCode ? '（已存代码）' : ''
+  return parts.length ? parts.join(' / ') + code : ''
+})
+
 /** 编辑弹窗内的标准地址级联 */
 const editRegionPath = ref([])
 
@@ -335,7 +404,16 @@ function onEditRegionChange(codes) {
   if (!codes || !codes.length) {
     editForm.province = ''; editForm.city = ''
     editForm.district = ''; editForm.street = ''
+    editForm.provinceCode = ''; editForm.cityCode = ''
+    editForm.districtCode = ''; editForm.streetCode = ''
     return
+  }
+  editForm.provinceCode = codes[0] || ''
+  editForm.cityCode = codes[1] || ''
+  editForm.districtCode = codes[2] || ''
+  editForm.streetCode = codes[3] || ''
+  if (editForm.streetCode) {
+    loadCommunities(editForm.streetCode)
   }
   req.get('/sys/regions/path', { params: { code: codes[codes.length - 1] } })
     .then((path) => {
