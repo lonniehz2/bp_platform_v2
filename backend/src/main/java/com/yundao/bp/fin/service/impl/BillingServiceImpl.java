@@ -607,4 +607,15 @@ public class BillingServiceImpl implements BillingService {
         log.info("公摊分摊完成 org={} 方式={} 生成 {} 张", cmd.orgId(), allocateBy, created);
         return out;
     }
+
+    @Override
+    public java.util.List<com.yundao.bp.fin.entity.FinBill> listByPeriod(String period) {
+        if (period == null || period.isBlank()) {
+            return java.util.List.of();
+        }
+        // 兼容两种账期写法：yyyy-MM 与 yyyyMM
+        String compact = period.replace("-", "");
+        return billMapper.selectList(new LambdaQueryWrapper<com.yundao.bp.fin.entity.FinBill>()
+                .in(com.yundao.bp.fin.entity.FinBill::getBillPeriod, period, compact));
+    }
 }

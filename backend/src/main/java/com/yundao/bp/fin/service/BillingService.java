@@ -52,4 +52,7 @@ public interface BillingService {
     /** 公摊费用分摊出账。 */
     java.util.Map<String, Object> generateSharedBills(
             com.yundao.bp.fin.dto.SharedBillCmd cmd);
+
+    /** 按账期（yyyy-MM）取账单，供趋势统计。 */
+    java.util.List<com.yundao.bp.fin.entity.FinBill> listByPeriod(String period);
 }

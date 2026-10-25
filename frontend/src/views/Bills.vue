@@ -26,6 +26,17 @@
         <el-button @click="scanOverdue">扫描逾期</el-button>
       </div>
 
+      <el-row :gutter="12" style="margin-bottom:10px">
+        <el-col :span="12">
+          <div style="font-weight:600;margin-bottom:2px">应收趋势</div>
+          <LineTrend :rows="recvTrend" color="#409eff" :height="170" />
+        </el-col>
+        <el-col :span="12">
+          <div style="font-weight:600;margin-bottom:2px">实收趋势 / 收缴率</div>
+          <LineTrend :rows="paidTrend" color="#67c23a" :height="170" />
+        </el-col>
+      </el-row>
+
       <el-table :data="rows" v-loading="loading" border size="small">
         <el-table-column prop="billNo" label="账单号" width="165" />
         <el-table-column prop="payerName" label="缴费人" width="95" />
@@ -303,12 +314,13 @@ function openDetail(row) {
 }
 
 import { enumLabel } from '@/constants/enums'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import DetailView from '@/components/DetailView.vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { financeApi } from '@/api/modules'
 import req from '@/api/request'
+import LineTrend from '@/components/LineTrend.vue'
 
 const statuses = ['UNPAID', 'PARTIAL', 'PAID', 'OVERDUE', 'WAIVED', 'CANCELLED']
 const loading = ref(false)
@@ -382,6 +394,22 @@ const rows = ref([])
 const total = ref(0)
 const q = reactive({ pageNum: 1, pageSize: 20, billStatus: '', billPeriod: '',
   houseId: '' })
+
+/** 账单趋势：应收 / 实收 */
+const trendRows = ref([])
+const recvTrend = computed(() => trendRows.value.map((m) => ({
+  label: String(m.month || '').slice(5), value: Number(m.receivable) || 0
+})))
+const paidTrend = computed(() => trendRows.value.map((m) => ({
+  label: String(m.month || '').slice(5), value: Number(m.received) || 0
+})))
+
+async function loadTrend() {
+  try {
+    const d = await req.get('/fin/bills/trend', { params: { months: 6 } })
+    trendRows.value = d || []
+  } catch (e) { trendRows.value = [] }
+}
 const current = ref(null)
 
 const genVisible = ref(false)
@@ -550,5 +578,5 @@ async function loadEnergy() {
   }
 }
 
-onMounted(load)
+onMounted(() => { loadTrend(); load() })
 </script>
