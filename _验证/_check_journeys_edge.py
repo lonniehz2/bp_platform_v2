@@ -38,6 +38,8 @@ def run_edge_journeys(env):
             'houseId': house['id'], 'spaceId': house.get('spaceId'),
             'leaseStart': str(date.today() - timedelta(days=30)),
             'leaseEnd': str(date.today() + timedelta(days=335)),
+            'houseAddress': '一期示范小区1幢' + str(house.get('houseName') or ''),
+            'houseArea': 50,
             'rentPrice': 1800, 'monthlyRent': 1800, 'rentUnit': 'HOUSE_MONTH',
             'depositAmount': 1800}, admin)
         contract = data((st, rc)) or {}
@@ -163,7 +165,8 @@ def run_edge_journeys(env):
         org11 = (rows((st, rp11)) or [{}])[0].get('orgId')
         st, ra11 = call('/applications', 'POST', {
             'personId': pid11, 'securityType': 'PUBLIC', 'applyChannel': 'ONLINE',
-            'orgId': org11, 'familySize': 2,
+            'orgId': org11, 'familySize': 2, 'declaredIncome': 3800,
+            'declaredIncomeYear': 45600, 'incomeCheckPeriod': 'LAST_12M',
             'complianceCommitFlag': 1, 'dataShareAgreeFlag': 1}, admin)
         app11 = data((st, ra11)) or {}
         aid = app11.get('id')

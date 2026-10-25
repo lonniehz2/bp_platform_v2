@@ -104,7 +104,9 @@ st, ro = call('/orgs?pageNum=1&pageSize=1', 'GET', None, admin)
 org = (rows((st, ro)) or [{}])[0].get('id')
 st, r = call('/applications', 'POST', {
     'personId': pid, 'securityType': 'PUBLIC', 'applyChannel': 'ONLINE',
-    'orgId': org, 'familySize': 2, 'complianceCommitFlag': 1, 'dataShareAgreeFlag': 1}, admin)
+    'orgId': org, 'familySize': 2, 'declaredIncome': 4200,
+    'declaredIncomeYear': 50400, 'incomeCheckPeriod': 'LAST_12M',
+    'complianceCommitFlag': 1, 'dataShareAgreeFlag': 1}, admin)
 app_id = (data((st, r)) or {}).get('id')
 step('旅程1', '提交申请', st == 200 and app_id, (r or {}).get('message', '')[:60])
 
