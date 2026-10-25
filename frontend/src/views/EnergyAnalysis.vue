@@ -37,9 +37,20 @@
       <el-table-column prop="amount" label="金额" width="150" />
     </el-table>
 
+    <el-row :gutter="12" style="margin-bottom:6px">
+      <el-col :span="12">
+        <div style="font-weight:600;margin-bottom:2px">用量趋势</div>
+        <LineTrend :rows="usageTrend" unit="用量" color="#409eff" :height="200" />
+      </el-col>
+      <el-col :span="12">
+        <div style="font-weight:600;margin-bottom:2px">金额趋势</div>
+        <LineTrend :rows="amountTrend" unit="元" color="#e6a23c" :height="200" />
+      </el-col>
+    </el-row>
+
     <el-row :gutter="12">
       <el-col :span="12">
-        <div style="font-weight:600;margin-bottom:6px">月度趋势</div>
+        <div style="font-weight:600;margin-bottom:6px">月度明细</div>
         <el-table :data="monthRows" size="small" border max-height="300">
           <el-table-column prop="month" label="月份" width="110" />
           <el-table-column prop="readings" label="读数次数" width="100" />
@@ -73,12 +84,21 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import req from '@/api/request'
+import LineTrend from '@/components/LineTrend.vue'
 
 const months = ref(6)
 const monthRows = ref([])
 const buildings = ref([])
 const top = ref([])
 const itemRows = ref([])
+
+/** 折线图数据：用量 / 金额（月份显示为 MM） */
+const usageTrend = computed(() => monthRows.value.map((m) => ({
+  label: String(m.month || '').slice(5), value: Number(m.usage) || 0
+})))
+const amountTrend = computed(() => monthRows.value.map((m) => ({
+  label: String(m.month || '').slice(5), value: Number(m.amount) || 0
+})))
 
 const totalUsage = computed(() =>
   monthRows.value.reduce((s, m) => s + Number(m.usage || 0), 0).toFixed(2))
