@@ -306,12 +306,14 @@ def main():
 
     def new_person(tag):
         W = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
-        for _ in range(8):
-            seq = '%03d' % random.randint(100, 999)
-            base = ('33010619900101' + tag + seq)[:17]
+        for _ in range(12):
+            # 17 位本体：6 位地区 + 8 位生日 + 3 位顺序码（顺序码随机，避免截断碰撞）
+            base = '330106' + '%04d%02d%02d' % (
+                random.randint(1960, 2000), random.randint(1, 12),
+                random.randint(1, 28)) + '%03d' % random.randint(1, 999)
             idc = base + '10X98765432'[sum(int(base[i]) * W[i] for i in range(17)) % 11]
             st, r = call('/persons', 'POST',
-                         {'personName': '%s%s' % (TAG, seq), 'idCard': idc,
+                         {'personName': '%s%s' % (TAG, base[-3:]), 'idCard': idc,
                           'phone': '138%08d' % random.randint(0, 99999999),
                           'orgId': oid, 'householdType': 'URBAN'}, tok)
             p = d((st, r))
