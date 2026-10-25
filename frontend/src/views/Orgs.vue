@@ -36,35 +36,7 @@
               <template #default="{ row }">
                 {{ row.orgTypeLabel || enumLabel('orgType', row.orgType) }}
               
-    <el-dialog v-model="detailVisible" title="组织详情" width="640px">
-      <el-descriptions :column="2" border size="small">
-        <el-descriptions-item label="组织名称">{{ detailRow.orgName }}</el-descriptions-item>
-        <el-descriptions-item label="编码">{{ detailRow.orgCode }}</el-descriptions-item>
-        <el-descriptions-item label="类型">{{ enumLabel('orgType', detailRow.orgType) }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ enumLabel('status', detailRow.status) }}</el-descriptions-item>
-        <el-descriptions-item label="省">{{ detailRow.province || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="市">{{ detailRow.city || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="区县">{{ detailRow.district || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="街道">{{ detailRow.street || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="社区/村">{{ detailRow.community || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="详细地址" :span="2">{{ detailRow.address || '—' }}</el-descriptions-item>
-      </el-descriptions>
-    </el-dialog>
 
-    <el-dialog v-model="editVisible" title="编辑组织" width="560px">
-      <el-form :model="editForm" label-width="100px">
-        <el-form-item label="组织名称"><el-input v-model="editForm.orgName" /></el-form-item>
-        <el-form-item label="编码"><el-input v-model="editForm.orgCode" /></el-form-item>
-        <el-form-item label="社区/村"><el-input v-model="editForm.community" /></el-form-item>
-        <el-form-item label="详细地址"><el-input v-model="editForm.address" /></el-form-item>
-        <el-form-item label="排序"><el-input-number v-model="editForm.sortNo" :min="1" /></el-form-item>
-        <el-form-item label="备注"><el-input v-model="editForm.remark" type="textarea" :rows="2" /></el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveEdit">保存</el-button>
-      </template>
-    </el-dialog>
 </template>
             </el-table-column>
             <el-table-column prop="parentId" label="上级" width="150">
@@ -139,6 +111,41 @@
         <el-button type="primary" :loading="saving" @click="doCreate">保存</el-button>
       </template>
     </el-dialog>
+    <el-dialog v-model="detailVisible" title="组织详情" width="680px">
+      <el-descriptions :column="2" border size="small">
+        <el-descriptions-item label="组织名称">{{ detailRow.orgName }}</el-descriptions-item>
+        <el-descriptions-item label="编码">{{ detailRow.orgCode }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{ enumLabel('orgType', detailRow.orgType) }}</el-descriptions-item>
+        <el-descriptions-item label="状态">{{ enumLabel('status', detailRow.status) }}</el-descriptions-item>
+        <el-descriptions-item label="标准地址" :span="2">
+          {{ standardAddress(detailRow) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="社区/村">{{ detailRow.community || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="详细地址">{{ detailRow.address || '—' }}</el-descriptions-item>
+      </el-descriptions>
+    </el-dialog>
+
+    <el-dialog v-model="editVisible" title="编辑组织" width="640px">
+      <el-form :model="editForm" label-width="100px">
+        <el-form-item label="组织名称" required><el-input v-model="editForm.orgName" /></el-form-item>
+        <el-form-item label="编码" required><el-input v-model="editForm.orgCode" /></el-form-item>
+        <el-form-item label="标准地址">
+          <el-cascader v-model="editRegionPath" :props="regionProps" clearable filterable
+                       placeholder="省 / 地市 / 区县 / 街道乡镇（点击逐级选择）"
+                       style="width:100%" @change="onEditRegionChange" />
+        </el-form-item>
+        <el-form-item label="社区/村"><el-input v-model="editForm.community" /></el-form-item>
+        <el-form-item label="详细地址"><el-input v-model="editForm.address" /></el-form-item>
+        <el-form-item label="排序"><el-input-number v-model="editForm.sortNo" :min="1" /></el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="editForm.remark" type="textarea" :rows="2" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="saveEdit">保存</el-button>
+      </template>
+    </el-dialog>
+
 </template>
 
 <script setup>
@@ -272,8 +279,12 @@ function openEdit(row) {
     id: row.id, orgName: row.orgName, orgCode: row.orgCode,
     orgType: row.orgType, parentId: row.parentId,
     community: row.community, address: row.address,
-    sortNo: row.sortNo || 1, remark: row.remark
+    sortNo: row.sortNo || 1, remark: row.remark,
+    province: row.province, city: row.city,
+    district: row.district, street: row.street
   })
+  editRegionPath.value = [row.province, row.city, row.district, row.street]
+    .filter(Boolean)
   editVisible.value = true
 }
 
@@ -308,6 +319,33 @@ async function removeOrg(row) {
   } catch (e) {
     if (e !== 'cancel') ElMessage.error(e?.response?.data?.message || '删除失败')
   }
+}
+
+
+/** 标准地址：省市区街道拼接 */
+function standardAddress(row) {
+  const parts = [row.province, row.city, row.district, row.street].filter(Boolean)
+  return parts.length ? parts.join(' / ') : '—'
+}
+
+/** 编辑弹窗内的标准地址级联 */
+const editRegionPath = ref([])
+
+function onEditRegionChange(codes) {
+  if (!codes || !codes.length) {
+    editForm.province = ''; editForm.city = ''
+    editForm.district = ''; editForm.street = ''
+    return
+  }
+  req.get('/sys/regions/path', { params: { code: codes[codes.length - 1] } })
+    .then((path) => {
+      const names = (path || []).map((x) => x.name)
+      editForm.province = names[0] || ''
+      editForm.city = names[1] || ''
+      editForm.district = names[2] || ''
+      editForm.street = names[3] || ''
+    })
+    .catch(() => {})
 }
 
 function openCreate() {

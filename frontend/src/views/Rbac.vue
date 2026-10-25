@@ -30,30 +30,6 @@
               <span v-if="row.roleNames">{{ row.roleNames }}</span>
               <span v-else class="muted">未分配</span>
             
-    <el-dialog v-model="userDetailVisible" title="用户详情" width="560px">
-      <el-descriptions :column="2" border size="small">
-        <el-descriptions-item label="账号">{{ userDetail.username }}</el-descriptions-item>
-        <el-descriptions-item label="姓名">{{ userDetail.realName || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="手机">{{ userDetail.phone || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="邮箱">{{ userDetail.email || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ enumLabel('status', userDetail.status) }}</el-descriptions-item>
-        <el-descriptions-item label="类型">{{ userDetail.userType || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="最近登录">{{ userDetail.lastLoginTime || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="登录次数">{{ userDetail.loginCount || 0 }}</el-descriptions-item>
-      </el-descriptions>
-    </el-dialog>
-
-    <el-dialog v-model="userEditVisible" title="编辑用户" width="520px">
-      <el-form :model="userForm" label-width="90px">
-        <el-form-item label="姓名"><el-input v-model="userForm.realName" /></el-form-item>
-        <el-form-item label="手机"><el-input v-model="userForm.phone" /></el-form-item>
-        <el-form-item label="邮箱"><el-input v-model="userForm.email" /></el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="userEditVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveUser">保存</el-button>
-      </template>
-    </el-dialog>
 </template>
           </el-table-column>
           <el-table-column prop="orgId" label="组织" width="180">
@@ -354,6 +330,30 @@
       </template>
     </el-dialog>
   </div>
+    <el-dialog v-model="userDetailVisible" title="用户详情" width="560px">
+      <el-descriptions :column="2" border size="small">
+        <el-descriptions-item label="账号">{{ userDetail.username }}</el-descriptions-item>
+        <el-descriptions-item label="姓名">{{ userDetail.realName || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="手机">{{ userDetail.phone || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="邮箱">{{ userDetail.email || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="状态">{{ enumLabel('status', userDetail.status) }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{ userDetail.userType || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="最近登录">{{ userDetail.lastLoginTime || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="登录次数">{{ userDetail.loginCount || 0 }}</el-descriptions-item>
+      </el-descriptions>
+    </el-dialog>
+
+    <el-dialog v-model="userEditVisible" title="编辑用户" width="520px">
+      <el-form :model="userForm" label-width="90px">
+        <el-form-item label="姓名"><el-input v-model="userForm.realName" /></el-form-item>
+        <el-form-item label="手机"><el-input v-model="userForm.phone" /></el-form-item>
+        <el-form-item label="邮箱"><el-input v-model="userForm.email" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="userEditVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveUser">保存</el-button>
+      </template>
+    </el-dialog>
 </template>
 
 <script setup>
