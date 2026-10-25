@@ -372,8 +372,14 @@ public class BillingServiceImpl implements BillingService {
             throw BizException.paramInvalid(
                     "核销金额超过收款单可核销余额 " + payRemain);
         }
-        if (req.compareTo(billPayable) > 0) {
-            throw BizException.paramInvalid("核销金额超过账单应付金额 " + billPayable);
+        // 以「应收总额 - 已收」计算剩余可核销额，避免 payableAmount 被并发改写后判断失真
+        java.math.BigDecimal billTotal = money(bill.getBillAmount())
+                .subtract(money(bill.getDiscountAmount()))
+                .add(money(bill.getLateFee()))
+                .subtract(money(bill.getWaivedAmount()));
+        java.math.BigDecimal remaining = billTotal.subtract(money(bill.getPaidAmount()));
+        if (req.compareTo(remaining) > 0) {
+            throw BizException.paramInvalid("核销金额超过账单剩余应付 " + remaining);
         }
 
         // 1) 写核销明细

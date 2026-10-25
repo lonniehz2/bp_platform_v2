@@ -39,6 +39,9 @@ public class AccessRecordServiceImpl implements AccessRecordService {
             "1001", "1002", "1003", "1004", "1005", "1006", "1007", "1008");
 
     private final DevAccessRecordMapper mapper;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.dev.mapper.DevDeviceMapper deviceMapper;
     private final SnowflakeIdGenerator idGen;
 
 
@@ -156,7 +159,34 @@ public class AccessRecordServiceImpl implements AccessRecordService {
         }
         IPage<DevAccessRecord> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
         List<AccessVO> rows = page.getRecords().stream().map(AccessVO::from).toList();
+        // 回填门锁名称（lockId → 设备名）
+        java.util.Map<String, String> names = lockIdNameOf(page.getRecords());
+        if (!names.isEmpty()) {
+            rows = rows.stream().map(v -> new AccessVO(v.id(), v.eventId(), v.lockId(),
+                    names.get(v.lockId()), v.houseId(), v.spaceId(), v.personId(),
+                    v.targetUserMobile(), v.openType(), v.openTypeName(), v.trusted(),
+                    v.openTime(), v.source(), v.abnormal(), v.abnormalType())).toList();
+        }
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);
+    }
+
+    /** 批量取设备名称：lockId 即 device_id。 */
+    private java.util.Map<String, String> lockIdNameOf(List<DevAccessRecord> list) {
+        java.util.Map<String, String> out = new java.util.HashMap<>();
+        if (deviceMapper == null || list == null || list.isEmpty()) {
+            return out;
+        }
+        java.util.Set<String> ids = list.stream().map(DevAccessRecord::getLockId)
+                .filter(java.util.Objects::nonNull).collect(java.util.stream.Collectors.toSet());
+        if (ids.isEmpty()) {
+            return out;
+        }
+        for (com.yundao.bp.dev.entity.DevDevice d : deviceMapper.selectList(
+                new LambdaQueryWrapper<com.yundao.bp.dev.entity.DevDevice>()
+                        .in(com.yundao.bp.dev.entity.DevDevice::getDeviceId, ids))) {
+            out.put(d.getDeviceId(), d.getDeviceName());
+        }
+        return out;
     }
 
     @Override

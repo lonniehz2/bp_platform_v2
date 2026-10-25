@@ -10,6 +10,7 @@ public record AccessVO(
         Long id,
         String eventId,
         String lockId,
+        String lockIdName,
         Long houseId,
         Long spaceId,
         Long personId,
@@ -26,7 +27,7 @@ public record AccessVO(
         if (e == null) {
             return null;
         }
-        return new AccessVO(e.getId(), e.getEventId(), e.getLockId(), e.getHouseId(),
+        return new AccessVO(e.getId(), e.getEventId(), e.getLockId(), null, e.getHouseId(),
                 e.getSpaceId(), e.getPersonId(), e.getTargetUserMobile(), e.getOpenType(),
                 e.getOpenTypeName(), e.getIsTrusted() != null && e.getIsTrusted() == 1,
                 e.getOpenTime(), e.getSource(),
