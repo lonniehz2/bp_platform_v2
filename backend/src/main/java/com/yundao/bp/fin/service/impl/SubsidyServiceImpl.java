@@ -239,7 +239,13 @@ public class SubsidyServiceImpl implements SubsidyService {
         e.setRecordStatus(SubsidyStatus.PENDING.name());
         e.setCreateTime(now);
         e.setUpdateTime(now);
-        recordMapper.insert(e);
+        try {
+            recordMapper.insert(e);
+        } catch (org.springframework.dao.DuplicateKeyException dupEx) {
+            // 唯一索引 uk_contract_period 兜底：并发下同合同同期间只允许一条
+            throw BizException.stateConflict(
+                    "该合同 " + cmd.subsidyPeriod() + " 补贴已发放（并发幂等拒绝）");
+        }
         log.info("补贴发放登记：合同 {} 期间 {} 应发 {}（标准 {}：{}）",
                 ct.getContractNo(), cmd.subsidyPeriod(), r.cappedAmount(),
                 std.getStandardCode(), r.explain());

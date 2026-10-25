@@ -23,6 +23,7 @@ STEPS = [
     ('筛选全覆盖（每页至少 1 个筛选生效）', '_check_filter_coverage.py', STRICT),
     ('菜单完整性（路由都能在菜单出现）', '_check_menu.py', STRICT),
     ('菜单权限一致性（角色可见=可访问）', '_check_menu_perm.py', STRICT),
+    ('先查后写扫描（资金并发风险）', '_check_race_pattern.py', []),
     ('数据范围扫描（列表接口必须限权）', '_check_datascope.py', STRICT),
     ('数据范围运行时校验（租户 vs 管理员）', '_check_scope_runtime.py', STRICT),
     ('全功能页面对照（46 项）', '_verify_all_pages.py', []),
