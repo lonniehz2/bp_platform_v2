@@ -359,7 +359,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
 import PersonPicker from '@/components/PersonPicker.vue'
@@ -494,6 +494,59 @@ const MODULE_LABEL = {
   iam: '用户与权限', person: '人员与档案', biz: '业务办理', fin: '财务',
   asset: '资产房源', ops: '运维工单', msg: '消息待办', sys: '系统配置',
   rpt: '报表统计', open: '开放平台', gov: '监管报送', alloc: '配租轮候'
+}
+
+
+/** 用户详情 / 编辑 / 启停 / 删除 */
+const userDetailVisible = ref(false)
+const userDetail = ref({})
+const userEditVisible = ref(false)
+const userForm = reactive({ id: null, realName: '', phone: '', email: '', orgId: null })
+
+function openUserDetail(row) {
+  userDetail.value = row
+  userDetailVisible.value = true
+}
+
+function openUserEdit(row) {
+  Object.assign(userForm, {
+    id: row.id, realName: row.realName, phone: row.phone,
+    email: row.email, orgId: row.orgId
+  })
+  userEditVisible.value = true
+}
+
+async function saveUser() {
+  try {
+    await req.put(`/rbac/users/${userForm.id}`, { ...userForm })
+    ElMessage.success('已保存')
+    userEditVisible.value = false
+    loadUsers()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '保存失败')
+  }
+}
+
+async function toggleUserStatus(row) {
+  const next = row.status === 'ENABLED' ? 'DISABLED' : 'ENABLED'
+  try {
+    await req.post(`/rbac/users/${row.id}/status`, { status: next })
+    ElMessage.success(next === 'ENABLED' ? '已启用' : '已停用')
+    loadUsers()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '操作失败')
+  }
+}
+
+async function removeUser(row) {
+  try {
+    await ElMessageBox.confirm(`确认删除用户「${row.username}」？`, '提示', { type: 'warning' })
+    await req.delete(`/rbac/users/${row.id}`)
+    ElMessage.success('已删除')
+    loadUsers()
+  } catch (e) {
+    if (e !== 'cancel') ElMessage.error(e?.response?.data?.message || '删除失败')
+  }
 }
 
 /** 组织下拉选项（新增用户时必填，决定数据归属） */
