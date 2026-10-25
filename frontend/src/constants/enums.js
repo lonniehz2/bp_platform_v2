@@ -335,6 +335,19 @@ const TYPE_OVERRIDE = {
   actionType: { VISIT: '上门', PHONE: '电话', SMS: '短信', LETTER: '律师函' },
   flowType: { IN: '收入', OUT: '支出' },
   bizType: { RENT: '租金', DEPOSIT: '押金', SUBSIDY: '补贴', PROPERTY: '物业费' },
+  deviceType: {
+    LOCK: '门锁',
+    ACCESS: '门禁',
+    BARRIER: '道闸',
+    ELEVATOR: '梯控',
+    WATER_METER: '水表',
+    ELEC_METER: '电表',
+    GAS_METER: '燃气表',
+    HEAT_METER: '热量表',
+    CAMERA: '摄像头',
+    SENSOR: '传感器',
+    OTHER: '其他'
+  },
   calcMode: { FIXED: '定额', METER: '抄表' },
   inspectStatus: {
     PENDING: '待验房',

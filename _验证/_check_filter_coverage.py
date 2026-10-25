@@ -80,8 +80,8 @@ def login(u='admin', p='admin123'):
     return ((d or {}).get('data') or {}).get('token')
 
 
-def fetch(path, tok, extra='', size=20):
-    url = path + ('&' if '?' in path else '?') + 'pageNum=1&pageSize=%d' % size + extra
+def fetch(path, tok, extra='', size=20, page=1):
+    url = path + ('&' if '?' in path else '?') + 'pageNum=%d&pageSize=%d' % (page, size) + extra
     st, d = call(url, tok)
     data = (d or {}).get('data') or {}
     return st, data.get('total'), (data.get('rows') or [])
@@ -114,6 +114,10 @@ def param_candidates(field):
     return uniq
 
 
+# 优先用「类型/状态」这类枚举筛选（比 deviceId 更有业务意义）
+PREFER = ('Type', 'Status', 'Level', 'Category', 'Mode', 'Channel', 'Source')
+
+
 def enum_fields(rows):
     """找出枚举型字段：值为全大写常量，且**至少有 2 个不同取值**。"""
     out = []
@@ -126,6 +130,7 @@ def enum_fields(rows):
         distinct = {r.get(k) for r in rows if r.get(k)}
         if len(distinct) >= 2:
             out.append(k)
+    out.sort(key=lambda f: (0 if f.endswith(PREFER) else 1, f))
     return out
 
 
@@ -168,8 +173,12 @@ def main():
 
     for path, label in ENDPOINTS:
         st, total, rows = fetch(path, tok)
-        # 采样 200 行用于发现多值枚举（筛选断言仍用 20 行口径）
-        _, _, sample_rows = fetch(path, tok, size=200)
+        # 采样多页（前 3 页 × 100）用于发现多值枚举，避免首页同质化
+        sample_rows = []
+        last_pg = max(1, int(int(total or 0) / 100))
+        for pg in (1, 2, last_pg):
+            _, _, part = fetch(path, tok, size=100, page=pg)
+            sample_rows.extend(part)
         if sample_rows:
             rows_for_enum = sample_rows
         else:

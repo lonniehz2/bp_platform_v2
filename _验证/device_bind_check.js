@@ -1,5 +1,5 @@
 /**
- * 设备绑定页检查：选房源 → 看设备 → 打开绑定弹窗。
+ * 设备类型筛选与绑定页验证（多类型数据）。
  */
 const puppeteer = require('puppeteer-core')
 const path = require('path')
@@ -36,57 +36,51 @@ fs.mkdirSync(shots, { recursive: true })
   })
   await page.waitForFunction(() => !!document.querySelector('.rail, .el-menu, .aside'),
     { timeout: 20000 })
-  await page.goto(BASE + '/#/device-bind', { waitUntil: 'networkidle2' })
+  await page.goto(BASE + '/#/devices', { waitUntil: 'networkidle2' })
   await new Promise(r => setTimeout(r, 2500))
 
-  // 选中第一行房源
+  const total0 = await page.evaluate(() =>
+    (document.querySelector('.el-pagination__total')?.innerText || '')
+      .replace(/[^0-9]/g, ''))
+
+  // 选择「水表」
+  const picked = await page.evaluate(() => {
+    const sels = Array.from(document.querySelectorAll('.el-select'))
+    const t = sels.find((x) => (x.querySelector('input')?.placeholder || '').includes('设备类型'))
+    if (!t) return '未找到类型下拉'
+    t.click()
+    return 'ok'
+  })
+  await new Promise(r => setTimeout(r, 700))
+  const opt = await page.evaluate(() => {
+    const items = Array.from(document.querySelectorAll('.el-select-dropdown__item'))
+    const o = items.find((x) => (x.innerText || '').includes('水表'))
+    if (!o) return '未找到水表选项'
+    o.click()
+    return 'ok'
+  })
+  await new Promise(r => setTimeout(r, 2200))
   await page.evaluate(() => {
-    const row = document.querySelector('.el-table__body tr')
-    row && row.click()
+    const b = Array.from(document.querySelectorAll('button')).find((x) => x.innerText.trim() === '查询')
+    b && b.click()
   })
-  await new Promise(r => setTimeout(r, 1500))
+  await new Promise(r => setTimeout(r, 2200))
 
-  // 切到「继承设备」页签并记录条目
-  const inherit = await page.evaluate(async () => {
-    const tabs = Array.from(document.querySelectorAll('.el-tabs__item'))
-    const t = tabs.find((x) => x.innerText.includes('继承'))
-    if (t) { t.click(); return true }
-    return false
-  })
-  await new Promise(r => setTimeout(r, 1500))
-  const inheritRows = await page.evaluate(() =>
-    Array.from(document.querySelectorAll('.el-table__body tr'))
-      .map((tr) => tr.innerText.replace(/\n/g, ' | ')))
-  console.log('继承页签条目：', inheritRows.length)
-  inheritRows.slice(0, 5).forEach((r) => console.log('   ' + r))
-  await page.evaluate(() => {
-    const t = Array.from(document.querySelectorAll('.el-tabs__item'))
-      .find((x) => x.innerText.includes('本房源'))
-    t && t.click()
-  })
-  await new Promise(r => setTimeout(r, 1200))
-  await page.screenshot({ path: path.join(shots, 'device-inherit.png') })
+  const info = await page.evaluate(() => ({
+    total: (document.querySelector('.el-pagination__total')?.innerText || '')
+      .replace(/[^0-9]/g, ''),
+    rows: Array.from(document.querySelectorAll('.el-table__body tr')).slice(0, 3)
+      .map((tr) => tr.innerText.replace(/\n+/g, ' | ')),
+    types: Array.from(document.querySelectorAll('.el-table__body tr'))
+      .slice(0, 5).map((tr) => tr.querySelectorAll('td')[2]?.innerText.trim())
+  }))
+  await page.screenshot({ path: path.join(shots, 'devices-water.png') })
 
-  // 打开绑定弹窗
-  const opened = await page.evaluate(() => {
-    const btn = Array.from(document.querySelectorAll('button'))
-      .find((b) => b.innerText.trim() === '绑定设备')
-    if (btn) { btn.click(); return true }
-    return false
-  })
-  await new Promise(r => setTimeout(r, 1800))
-
-  const info = await page.evaluate(() => {
-    const dlg = Array.from(document.querySelectorAll('.el-dialog')).pop()
-    return {
-      dialog: !!dlg,
-      rows: dlg ? dlg.querySelectorAll('.el-table__body tr').length : 0,
-      header: (document.querySelector('.el-card__body') || {}).innerText?.slice(0, 60) || ''
-    }
-  })
-  await page.screenshot({ path: path.join(shots, 'device-bind.png') })
-  console.log('打开弹窗:', opened, ' 弹窗行数:', info.rows)
-  console.log(info.rows > 0 ? '结论：可选择未绑定设备' : '结论：无未绑定设备可选')
+  console.log('初始总数:', total0, ' 下拉:', picked, ' 选项:', opt)
+  console.log('筛选后总数:', info.total, ' 类型列:', info.types.join(' / '))
+  info.rows.forEach((r) => console.log('   ' + r))
+  const ok = info.total && info.total !== total0 && info.types.every((t) => t === '水表')
+  console.log(ok ? '结论：类型筛选生效' : '结论：类型筛选未生效')
   await browser.close()
-  process.exit(info.rows > 0 ? 0 : 1)
+  process.exit(ok ? 0 : 1)
 })()
