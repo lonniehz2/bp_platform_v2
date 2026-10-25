@@ -234,14 +234,23 @@ public class DepositRefundServiceImpl implements DepositRefundService {
         if (amt.compareTo(BigDecimal.ZERO) <= 0) {
             throw BizException.paramInvalid("退款金额必须大于 0");
         }
-        // 押金退还：不得超过押金台账余额
+        // 押金退还：原子扣减（条件更新），并发下不会超退
+        //   update ... set refund += amt, balance -= amt where contract_id=? and balance >= amt
+        //   影响行数为 0 说明余额不足或台账不存在
         if ("DEPOSIT".equals(cmd.refundType()) && cmd.contractId() != null) {
-            FinDeposit dep = depositMapper.selectOne(new LambdaQueryWrapper<FinDeposit>()
-                    .eq(FinDeposit::getContractId, cmd.contractId()).last("LIMIT 1"));
-            if (dep == null) {
-                throw BizException.stateConflict("该合同无押金台账，无法退还押金");
-            }
-            if (amt.compareTo(money(dep.getBalanceAmount())) > 0) {
+            int affected = depositMapper.update(null,
+                    new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper
+                            <FinDeposit>()
+                            .eq(FinDeposit::getContractId, cmd.contractId())
+                            .ge(FinDeposit::getBalanceAmount, amt)
+                            .setSql("refund_amount = refund_amount + " + amt
+                                    + ", balance_amount = balance_amount - " + amt));
+            if (affected == 0) {
+                FinDeposit dep = depositMapper.selectOne(new LambdaQueryWrapper<FinDeposit>()
+                        .eq(FinDeposit::getContractId, cmd.contractId()).last("LIMIT 1"));
+                if (dep == null) {
+                    throw BizException.stateConflict("该合同无押金台账，无法退还押金");
+                }
                 throw BizException.paramInvalid(
                         "退款金额超过押金余额 " + money(dep.getBalanceAmount()));
             }
@@ -324,20 +333,6 @@ public class DepositRefundServiceImpl implements DepositRefundService {
                 com.yundao.bp.fin.constant.FlowBizType.REFUND, e.getId(),
                 e.getRefundAmount(), "退款 " + e.getRefundNo());
 
-        // 押金退还：同步扣减押金台账余额
-        if ("DEPOSIT".equals(e.getRefundType()) && e.getContractId() != null) {
-            FinDeposit dep = depositMapper.selectOne(new LambdaQueryWrapper<FinDeposit>()
-                    .eq(FinDeposit::getContractId, e.getContractId()).last("LIMIT 1"));
-            if (dep != null) {
-                dep.setRefundAmount(money(dep.getRefundAmount())
-                        .add(money(e.getRefundAmount())).setScale(2, RoundingMode.HALF_UP));
-                recalcDeposit(dep);
-                dep.setUpdateTime(LocalDateTime.now());
-                depositMapper.updateById(dep);
-                log.info("押金退还：合同 {} 退还 {}，台账余额 {}", e.getContractId(),
-                        e.getRefundAmount(), dep.getBalanceAmount());
-            }
-        }
         return RefundVO.from(e);
     }
 
