@@ -195,3 +195,62 @@ def run_edge_journeys(env):
                           % __import__('urllib.parse').parse.quote(name11), 'GET', None, admin)
             wl = rows((st, rw))
             step('旅程11', '自动进入轮候队列', len(wl) >= 1, '轮候 %d 条' % len(wl))
+
+    # ------------------------------------------------------------ 旅程12
+    print('\n[旅程12] 监管报送：发起报送 → 生成任务 → 明细可查')
+    st, rg = call('/gov/reports?pageNum=1&pageSize=1', 'GET', None, admin)
+    before = (data((st, rg)) or {}).get('total')
+    today12 = str(__import__('datetime').date.today())
+    from12 = str(__import__('datetime').date.today() - __import__('datetime').timedelta(days=90))
+    st, rad = call('/gov/adapters', 'POST', {
+        'adapterCode': 'QA_GOV_' + rid(), 'adapterName': '闭环报送适配器',
+        'systemType': 'HOUSING_BUREAU', 'protocol': 'HTTP',
+        'endpoint': 'http://example.gov/api', 'authType': 'TOKEN',
+        'degradeMode': 'QUEUE'}, admin)
+    step('旅程12', '配置报送适配器', st in (200, 400), (rad or {}).get('message', '')[:60])
+
+    st, rr = call('/gov/reports', 'POST', {
+        'targetSystem': 'HOUSING_BUREAU', 'reportType': 'HOUSE',
+        'dateFrom': from12, 'dateTo': today12}, admin)
+    task = data((st, rr)) or {}
+    tid = task.get('id')
+    step('旅程12', '发起监管报送', st == 200 and tid, (rr or {}).get('message', '')[:70])
+    if tid:
+        st, rl = call('/gov/reports?pageNum=1&pageSize=5', 'GET', None, admin)
+        step('旅程12', '报送任务可查询', st == 200 and int((data((st, rl)) or {}).get('total') or 0) >= 1,
+             '共 %s 条' % (data((st, rl)) or {}).get('total'))
+        st, rd = call('/gov/reports/%s/details' % tid, 'GET', None, admin)
+        details = data((st, rd)) or []
+        step('旅程12', '报送明细已生成', st == 200 and len(details) > 0,
+             '明细 %d 条' % (len(details) if isinstance(details, list) else 0))
+        st, rs = call('/gov/stats', 'GET', None, admin)
+        step('旅程12', '报送统计可查', st == 200, (rs or {}).get('message', '')[:40])
+
+    # ------------------------------------------------------------ 旅程13
+    print('\n[旅程13] 消息通知：模板 → 发送 → 记录可查')
+    code13 = 'QA_TPL_' + rid()
+    st, rt = call('/messages/templates', 'POST', {
+        'templateCode': code13, 'templateName': '闭环模板' + rid(),
+        'channel': 'SMS', 'titleTpl': '缴费提醒',
+        'contentTpl': '尊敬的${name}，您本期应缴 ${amount} 元，请及时缴纳。',
+        'bizType': 'BILL'}, admin)
+    step('旅程13', '新建消息模板', st in (200, 400), (rt or {}).get('message', '')[:60])
+
+    st, rr = call('/messages/templates/%s/render' % code13, 'POST',
+                  {'name': '张三', 'amount': '128.50'}, admin)
+    rendered = data((st, rr))
+    text13 = rendered if isinstance(rendered, str) else str(rendered or '')
+    step('旅程13', '模板渲染成功', st == 200 and ('张三' in text13 or '128.50' in text13),
+         '渲染结果: ' + text13[:60])
+
+    st, rs = call('/messages/send', 'POST', {
+        'templateCode': code13, 'bizType': 'BILL',
+        'channel': 'SMS', 'receiverType': 'PERSON', 'receiverId': '1001',
+        'receiverName': '张三', 'receiverAddr': '13800000000',
+        'variables': {'name': '张三', 'amount': '128.50'}}, admin)
+    msg = data((st, rs)) or {}
+    step('旅程13', '按模板发送消息', st == 200 and msg.get('id'), (rs or {}).get('message', '')[:70])
+
+    st, rrec = call('/messages/records?pageNum=1&pageSize=5', 'GET', None, admin)
+    recs = rows((st, rrec))
+    step('旅程13', '发送记录可查询', st == 200 and len(recs) >= 1, '共 %d 条' % len(recs))
