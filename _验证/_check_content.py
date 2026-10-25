@@ -62,6 +62,8 @@ ALLOW_EMPTY = {
     'transitionStartDate', 'transitionEndDate', 'relocationStartDate', 'relocationEndDate',
     'banReapplyEndDate', 'notaryNo', 'courtCaseNo', 'iouNo', 'contractFileUrl',
     'signFileUrl', 'images2', 'extra', 'payload', 'workorderId',
+    # 抄表可无设备（手工抄表 / 新交付房源尚未装表），设备列允许为空
+    'deviceId',
 }
 
 # 筛选参数 → (接口, 参数名, 取值来源字段)
