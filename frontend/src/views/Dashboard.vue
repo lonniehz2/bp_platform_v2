@@ -126,6 +126,22 @@
       </div>
     </div>
 
+    <!-- 经营趋势 -->
+    <el-row :gutter="12" style="margin-bottom:14px">
+      <el-col :span="12">
+        <div class="bp-card">
+          <div class="head">应收 / 实收趋势（近 6 月）</div>
+          <LineTrend :rows="billTrend" color="#1890ff" :height="190" />
+        </div>
+      </el-col>
+      <el-col :span="12">
+        <div class="bp-card">
+          <div class="head">能耗用量趋势（近 6 月）</div>
+          <LineTrend :rows="energyTrend" color="#faad14" :height="190" />
+        </div>
+      </el-col>
+    </el-row>
+
     <!-- 指标明细 -->
     <div class="bp-card">
       <div class="head">指标明细</div>
@@ -145,6 +161,7 @@ import * as echarts from 'echarts'
 import req from '@/api/request'
 import { rptApi } from '@/api/modules'
 import { metricLabel, metricUnit } from '@/constants/metrics'
+import LineTrend from '@/components/LineTrend.vue'
 
 const HINTS = {
   HOUSE_TOTAL: '组织范围内全部房源',
@@ -163,6 +180,14 @@ const screen = ref(null)
 const metrics = ref({})
 const scope = ref('all')
 const chartRef = ref()
+const billTrendRows = ref([])
+const energyTrendRows = ref([])
+const billTrend = computed(() => billTrendRows.value.map((x) => ({
+  label: String(x.month || '').slice(5), value: Number(x.receivable) || 0
+})))
+const energyTrend = computed(() => energyTrendRows.value.map((x) => ({
+  label: String(x.month || '').slice(5), value: Number(x.usage) || 0
+})))
 let chart = null
 
 /** 指标表为空时的房源状态兜底统计（否则饼图无数据、看起来像「没有文字」） */
@@ -243,6 +268,18 @@ const metricRows = computed(() =>
       hint: HINTS[code] || '-'
     }))
 )
+
+/** 经营趋势数据：账单应收/实收 + 能耗用量 */
+async function loadTrendCharts() {
+  try {
+    const bills = await req.get('/fin/bills/trend', { params: { months: 6 } })
+    billTrendRows.value = bills || []
+  } catch (e) { billTrendRows.value = [] }
+  try {
+    const en = await req.get('/fin/meter-readings/analytics', { params: { months: 6 } })
+    energyTrendRows.value = (en && en.months) || []
+  } catch (e) { energyTrendRows.value = [] }
+}
 
 function renderChart() {
   if (!chart) return
@@ -406,7 +443,7 @@ function openScreen() {
   window.open('./view-screen.html', 'bp-screen', 'width=1600,height=900')
 }
 
-onMounted(load)
+onMounted(async () => { await load(); nextTick(() => loadTrendCharts()) })
 onUnmounted(() => {
   window.removeEventListener('resize', onResize)
   chart && chart.dispose()
