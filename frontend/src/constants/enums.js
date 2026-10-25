@@ -334,6 +334,12 @@ const TYPE_OVERRIDE = {
   visitStatus: { VISIT: '来访', PENDING: '待处理', DONE: '已完成' },
   actionType: { VISIT: '上门', PHONE: '电话', SMS: '短信', LETTER: '律师函' },
   flowType: { IN: '收入', OUT: '支出' },
+  refundChannel: {
+    ORIGINAL: '原路退回',
+    BANK: '银行转账',
+    CASH: '现金',
+    OTHER: '其他'
+  },
   bizType: { RENT: '租金', DEPOSIT: '押金', SUBSIDY: '补贴', PROPERTY: '物业费' },
   deviceType: {
     LOCK: '门锁',
