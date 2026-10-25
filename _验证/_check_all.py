@@ -18,6 +18,7 @@ STEPS = [
     ('ID 字段精度（禁止 Number 转 ID）', '_check_id_number.py', []),
     ('接口路径核对（前后端一致性）', '_check_api_paths.py', STRICT),
     ('查询参数接线（前端传的键后端必须认）', '_audit_params.py', ['--strict']),
+    ('弹窗嵌套扫描（避免遮罩叠加）', '_check_dialog_nesting.py', STRICT),
     ('显示层一致性（字段/枚举/ID/树）', '_check_display.py', STRICT),
     ('列表内容与筛选（列有值/筛选生效）', '_check_content.py', STRICT),
     ('筛选全覆盖（每页至少 1 个筛选生效）', '_check_filter_coverage.py', STRICT),
