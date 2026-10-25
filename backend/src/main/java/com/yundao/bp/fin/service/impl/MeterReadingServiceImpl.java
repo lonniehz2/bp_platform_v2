@@ -295,6 +295,9 @@ public class MeterReadingServiceImpl implements MeterReadingService {
             buildingRows.add(m);
         }
 
+        monthRows.sort((a, b) -> String.valueOf(a.get("month"))
+                .compareTo(String.valueOf(b.get("month"))));
+
         java.util.Map<String, Object> out = new java.util.LinkedHashMap<>();
         out.put("months", monthRows);
         out.put("topHouses", topHouses);
