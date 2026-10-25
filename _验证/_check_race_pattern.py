@@ -13,17 +13,35 @@
   synchronized / ConcurrentHashMap 锁 / for update 行锁 /
   条件更新（UpdateWrapper、setSql）/ INSERT IGNORE / on duplicate key
 """
+import io
+import json
 import os
 import re
 import sys
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+HERE = os.path.dirname(os.path.abspath(__file__))
+REVIEWED_FILE = os.path.join(HERE, '_race_reviewed.json')
+
+
+def load_reviewed():
+    """已人工复核的条目（class.method）。"""
+    if not os.path.exists(REVIEWED_FILE):
+        return set()
+    try:
+        data = json.load(io.open(REVIEWED_FILE, encoding='utf-8'))
+    except Exception:
+        return set()
+    return {x['item'] for x in data.get('reviewed', []) if x.get('item')}
+
+
+ROOT = os.path.abspath(os.path.join(HERE, '..'))
 BACKEND = os.path.join(ROOT, 'backend', 'src', 'main', 'java')
 
 READ = re.compile(r'\.(selectCount|selectOne|selectById|selectList)\s*\(')
 WRITE = re.compile(r'\.(insert|updateById|update)\s*\(')
-GUARD = re.compile(r'synchronized|lockForUpdate|for update|UpdateWrapper|setSql|'
-                   r'computeIfAbsent|INSERT IGNORE|on duplicate key', re.I)
+GUARD = re.compile('synchronized|lockForUpdate|for update|UpdateWrapper|setSql|'
+                   'computeIfAbsent|INSERT IGNORE|on duplicate key|'
+                   'DuplicateKeyException', re.I)
 
 HIGH_HINTS = re.compile(r'refund|deposit|bill|payment|subsid|waive|offset|arrear|'
                         r'allocat|settle|reconcil', re.I)
@@ -71,6 +89,7 @@ def classify(rel, name, body):
 
 
 def main():
+    REVIEWED = load_reviewed()
     buckets = {'HIGH': [], 'MED': [], 'LOW': []}
     checked = 0
     for dirpath, _d, files in os.walk(BACKEND):
@@ -94,6 +113,11 @@ def main():
                 if '// race:ignore' in body:
                     continue
                 level = classify(rel, name, body)
+                key = '%s.%s' % (cls, name)
+                if level == 'HIGH' and key in REVIEWED:
+                    buckets['LOW'].append('%s:%d  %s（已复核）' % (
+                        rel.replace('backend/src/main/java/com/yundao/bp/', ''), line, key))
+                    continue
                 buckets[level].append('%s:%d  %s.%s'
                                       % (rel.replace('backend/src/main/java/com/yundao/bp/', ''),
                                          line, cls, name))
@@ -105,10 +129,9 @@ def main():
                          ('LOW', '低风险（CRUD 新建/更新）')):
         items = buckets[level]
         print('\n[%s] %s：%d 处' % (level, label, len(items)))
-        for it in items[:12]:
+        for it in items[:60]:
             print('    ✗ ' + it)
-        if len(items) > 12:
-            print('    … 另有 %d 处' % (len(items) - 12))
+
     print('\n' + '=' * 72)
     if buckets['HIGH']:
         print('存在 %d 处高风险先查后写，需人工确认是否加锁/条件更新' % len(buckets['HIGH']))

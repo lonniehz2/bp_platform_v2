@@ -194,6 +194,18 @@ public class ArrearsActionServiceImpl implements ArrearsActionService {
     public ArrearsActionVO execute(Long id) {
         FinArrearsAction e = require(id);
         ArrearsActionStatus from = statusOf(e);
+        // 并发保护：用条件更新抢占执行权，避免同一处置单被并发执行两次
+        int claimed = mapper.update(null,
+                new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper
+                        <com.yundao.bp.fin.entity.FinArrearsAction>()
+                        .eq(com.yundao.bp.fin.entity.FinArrearsAction::getId, id)
+                        .ne(com.yundao.bp.fin.entity.FinArrearsAction::getActionStatus,
+                                ArrearsActionStatus.EXECUTED.name())
+                        .set(com.yundao.bp.fin.entity.FinArrearsAction::getActionStatus,
+                                ArrearsActionStatus.EXECUTED.name()));
+        if (claimed == 0) {
+            throw BizException.stateConflict("处置单已执行");
+        }
         if (from == ArrearsActionStatus.EXECUTED) {
             throw BizException.stateConflict("处置单已执行");
         }

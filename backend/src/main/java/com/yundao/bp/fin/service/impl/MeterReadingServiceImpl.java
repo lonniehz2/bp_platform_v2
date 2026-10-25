@@ -172,9 +172,17 @@ public class MeterReadingServiceImpl implements MeterReadingService {
             e.setOrgId(orgId);
         }
         BillVO bill = billingService.createBill(cmd);
-        e.setBillStatus("BILLED");
-        e.setBillId(bill.id());
-        mapper.updateById(e);
+        // 并发保护：仅当仍为未出账时占位，避免同一读数被并发出两份账单
+        int claimed = mapper.update(null,
+                new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper
+                        <FinMeterReading>()
+                        .eq(FinMeterReading::getId, readingId)
+                        .ne(FinMeterReading::getBillStatus, "BILLED")
+                        .set(FinMeterReading::getBillStatus, "BILLED")
+                        .set(FinMeterReading::getBillId, bill.id()));
+        if (claimed == 0) {
+            throw BizException.stateConflict("该抄表记录已出账");
+        }
         return bill;
     }
 
