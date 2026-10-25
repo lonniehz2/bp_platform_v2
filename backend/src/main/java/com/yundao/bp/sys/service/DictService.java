@@ -29,4 +29,8 @@ public interface DictService {
 
     /** 启用/停用。 */
     SysDict setStatus(Long id, boolean enabled);
+
+    /** 按类型取字典项；includeDisabled=true 时含已停用（管理页）。 */
+    java.util.List<com.yundao.bp.sys.entity.SysDict> listByType(String dictType,
+                                                               boolean includeDisabled);
 }

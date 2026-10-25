@@ -33,11 +33,7 @@ public class DictServiceImpl implements DictService {
     @Override
     public List<SysDict> listByType(String dictType) {
         String tenant = TenantContext.get() == null ? null : TenantContext.tenantId();
-        List<SysDict> all = mapper.selectList(new LambdaQueryWrapper<SysDict>()
-                .eq(SysDict::getDictType, dictType)
-                .eq(SysDict::getDictStatus, "ENABLED")
-                .orderByAsc(SysDict::getSortNo)
-                .orderByAsc(SysDict::getId));
+        List<SysDict> all = mapper.selectByTypeIgnoreTenant(dictType);
         // 租户配置优先覆盖系统内置
         Map<String, SysDict> merged = new LinkedHashMap<>();
         for (SysDict d : all) {
@@ -63,6 +59,15 @@ public class DictServiceImpl implements DictService {
     }
 
     @Override
+    public List<SysDict> listByType(String dictType, boolean includeDisabled) {
+        if (!includeDisabled) {
+            return listByType(dictType);
+        }
+        // 管理页：含已停用，便于重新启用
+        return mapper.selectByTypeAll(dictType);
+    }
+
+    @Override
     public Map<String, String> mapByType(String dictType) {
         Map<String, String> m = new LinkedHashMap<>();
         for (SysDict d : listByType(dictType)) {
@@ -83,12 +88,8 @@ public class DictServiceImpl implements DictService {
 
     @Override
     public List<String> types() {
-        List<SysDict> all = mapper.selectList(new LambdaQueryWrapper<SysDict>()
-                .select(SysDict::getDictType)
-                .eq(SysDict::getDictStatus, "ENABLED"));
-        LinkedHashSet<String> set = new LinkedHashSet<>();
-        all.forEach(d -> set.add(d.getDictType()));
-        return new ArrayList<>(set);
+        // 内置字典 tenant_id 为 NULL，必须忽略租户过滤才能查到
+        return mapper.distinctTypes();
     }
 
     @Override

@@ -449,4 +449,22 @@ public class RbacController {
             setter.accept(String.valueOf(v));
         }
     }
+
+    /** 启用 / 停用权限码。 */
+    @PostMapping("/permissions/{permId}/status")
+    @RequirePerm("iam:perm:list")
+    public R<IamPermission> changePermStatus(
+            @PathVariable Long permId, @RequestBody java.util.Map<String, String> body) {
+        IamPermission p = permMapper.selectById(permId);
+        if (p == null) {
+            throw BizException.notFound("权限");
+        }
+        String status = body == null ? null : body.get("status");
+        if (status == null || !java.util.List.of("ENABLED", "DISABLED").contains(status)) {
+            throw BizException.paramInvalid("状态只能是 ENABLED / DISABLED");
+        }
+        p.setStatus(status);
+        permMapper.updateById(p);
+        return R.ok(p);
+    }
 }

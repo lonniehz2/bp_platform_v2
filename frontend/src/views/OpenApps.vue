@@ -26,10 +26,14 @@
       <el-table-column prop="appStatus" label="状态" width="100">
         <template #default="{ row }">{{ row.appStatusLabel || enumLabel('appStatus', row.appStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" :width="ROWACTIONS ? 210 : 110" fixed="right">
+      <el-table-column label="操作" :width="ROWACTIONS ? 300 : 250" fixed="right">
         <template #default="{ row }">
           <el-button link type="warning" @click="resetSecret(row)">重置密钥</el-button>
           <el-button link @click="openDetail(row)">详情</el-button>
+          <el-button link :type="row.appStatus === 'ENABLED' ? 'warning' : 'success'"
+                     @click="toggleAppStatus(row)">
+            {{ row.appStatus === 'ENABLED' ? '停用' : '启用' }}
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -78,6 +82,7 @@ import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { openApi } from '@/api/modules'
+import req from '@/api/request'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -124,6 +129,19 @@ async function load() {
 }
 
 function reload() { pageNum.value = 1; load() }
+
+/** 应用启用 / 停用 */
+async function toggleAppStatus(row) {
+  const next = row.appStatus === 'ENABLED' ? 'DISABLED' : 'ENABLED'
+  try {
+    await req.post(`/open/apps/${row.id}/status`, { status: next })
+    ElMessage.success(next === 'ENABLED' ? '已启用' : '已停用')
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '操作失败')
+  }
+}
+
 function openDetail(row) { detail.value = row; detailVisible.value = true }
 
 function openForm(title, fieldDefs, fn, preset = {}, note = '') {

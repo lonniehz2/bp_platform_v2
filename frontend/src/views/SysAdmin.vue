@@ -56,6 +56,14 @@
           <el-table-column prop="dictStatus" label="状态" width="110">
             <template #default="{ row }">{{ row.dictStatusLabel || enumLabel('dictStatus', row.dictStatus) }}</template>
           </el-table-column>
+          <el-table-column label="操作" width="110" fixed="right">
+            <template #default="{ row }">
+              <el-button link :type="row.dictStatus === 'ENABLED' ? 'warning' : 'success'"
+                         @click="toggleDictStatus(row)">
+                {{ row.dictStatus === 'ENABLED' ? '停用' : '启用' }}
+              </el-button>
+            </template>
+          </el-table-column>
         </el-table>
         <div class="muted" style="margin-top:8px">
           系统内置 dict_type 的 tenant_id 为空；租户新增同名编码会覆盖内置项
@@ -91,6 +99,8 @@ import { enumLabel, dictTypeLabel } from '@/constants/enums'
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { sysApi } from '@/api/modules'
+import req from '@/api/request'
+import { ElMessage } from 'element-plus'
 
 const TABS = ['audit', 'dict', 'config']
 const route = useRoute()
@@ -135,13 +145,28 @@ async function loadAudit() {
   } finally { loading.value = false }
 }
 
+
+/** 字典项启用 / 停用 */
+async function toggleDictStatus(row) {
+  const next = row.dictStatus === 'ENABLED' ? 'DISABLED' : 'ENABLED'
+  try {
+    await req.post(`/sys/dicts/${row.id}/status`, { status: next })
+    ElMessage.success(next === 'ENABLED' ? '已启用' : '已停用')
+    loadDict()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '操作失败')
+  }
+}
+
 async function loadDictTypes() {
   try { dictTypes.value = await sysApi.dictTypes() } catch (e) { dictTypes.value = [] }
 }
 
 async function loadDict() {
   if (!dictType.value) return
-  dicts.value = await sysApi.dicts(dictType.value)
+  // 管理页需要看到已停用项，否则停用后无法再启用
+  dicts.value = await req.get('/sys/dicts/' + dictType.value,
+    { params: { includeDisabled: true } })
 }
 
 async function loadConfigs() {

@@ -67,11 +67,13 @@ public class SysController {
 
     // ---------- 数据字典 ----------
 
-    /** 按类型取字典项（前端下拉用）。 */
+    /** 按类型取字典项（前端下拉用）；includeDisabled=true 时含已停用（管理页）。 */
     @com.yundao.bp.iam.security.RequirePerm("sys:sys:view")
     @GetMapping("/dicts/{dictType}")
-    public R<List<SysDict>> listDict(@PathVariable String dictType) {
-        return R.ok(dictService.listByType(dictType));
+    public R<List<SysDict>> listDict(@PathVariable String dictType,
+                                     @RequestParam(defaultValue = "false")
+                                     boolean includeDisabled) {
+        return R.ok(dictService.listByType(dictType, includeDisabled));
     }
 
     /** 按类型取「编码→标签」映射。 */

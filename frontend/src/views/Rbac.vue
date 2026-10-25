@@ -91,9 +91,13 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="170" fixed="right">
+          <el-table-column label="操作" width="250" fixed="right">
             <template #default="{ row }">
               <el-button link type="primary" @click="openRoleConfig(row)" data-testid="role-config">配置</el-button>
+              <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
+                         @click="toggleRoleStatus(row)">
+                {{ row.status === 'ENABLED' ? '停用' : '启用' }}
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -121,6 +125,14 @@
               <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">
                 {{ enumLabel('status', row.status) }}
               </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120" fixed="right">
+            <template #default="{ row }">
+              <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
+                         @click="togglePermStatus(row)">
+                {{ row.status === 'ENABLED' ? '停用' : '启用' }}
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -675,6 +687,33 @@ function toggleGroup(g, on) {
 
 function checkAllPerms() {
   checkedPerms.value = perms.value.map((p) => String(p.id))
+}
+
+/** 角色启用 / 停用 */
+async function toggleRoleStatus(row) {
+  const next = row.status === 'ENABLED' ? 'DISABLED' : 'ENABLED'
+  try {
+    await req.put(`/rbac/roles/${row.id}`, {
+      roleName: row.roleName, dataScope: row.dataScope, status: next
+    })
+    ElMessage.success(next === 'ENABLED' ? '已启用' : '已停用')
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '操作失败')
+  }
+}
+
+
+/** 权限码启用 / 停用 */
+async function togglePermStatus(row) {
+  const next = row.status === 'ENABLED' ? 'DISABLED' : 'ENABLED'
+  try {
+    await req.post(`/rbac/permissions/${row.id}/status`, { status: next })
+    ElMessage.success(next === 'ENABLED' ? '已启用' : '已停用')
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '操作失败')
+  }
 }
 
 async function openRoleConfig(row) {
