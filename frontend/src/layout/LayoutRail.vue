@@ -37,6 +37,11 @@
         </el-breadcrumb>
         <div class="spacer" />
         <el-tag size="small" type="info">租户 {{ auth.user?.tenantId || '—' }}</el-tag>
+        <el-tooltip content="使用帮助" placement="bottom">
+          <el-button text @click="toHelp">
+            <el-icon><QuestionFilled /></el-icon>
+          </el-button>
+        </el-tooltip>
         <StyleSwitch />
         <el-button text @click="logout">
           <el-icon><SwitchButton /></el-icon>
@@ -55,6 +60,7 @@ import { useAuthStore } from '@/store/auth'
 import { useMenu } from './useMenu'
 import { useTodoStore } from '@/store/todo'
 import StyleSwitch from './StyleSwitch.vue'
+import { QuestionFilled } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -94,6 +100,10 @@ watch(() => groups.value.length, () => {
 
 function openScreen() {
   window.open('./view-screen.html', 'bp-screen', 'width=1600,height=900')
+}
+
+function toHelp() {
+  router.push('/help')
 }
 
 async function logout() {

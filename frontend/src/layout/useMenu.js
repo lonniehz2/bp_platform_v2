@@ -90,7 +90,7 @@ const CLASSIC_GROUP = {
   '/fee-items': '账务收费', '/bills': '账务收费', '/deposits': '账务收费', '/arrears': '账务收费', '/subsidies': '账务收费', '/cashflow': '账务收费', '/reports': '账务收费',
   '/houses': '资产与设备', '/spaces': '资产与设备', '/house-calendar': '资产与设备', '/short-rent': '资产与设备', '/devices': '资产与设备', '/dev-events': '资产与设备', '/access': '资产与设备', '/keyring': '资产与设备', '/grants': '资产与设备',
   '/workorders': '服务与监督', '/alerts': '服务与监督', '/complaints': '服务与监督', '/visits': '服务与监督', '/appeals': '服务与监督', '/credits': '服务与监督',
-  '/orgs': '系统与集成', '/rbac': '系统与集成', '/sys': '系统与集成', '/ops-center': '系统与集成', '/ops-extras': '系统与集成', '/open': '系统与集成', '/gov': '系统与集成',
+  '/orgs': '系统与集成', '/rbac': '系统与集成', '/sys': '系统与集成', '/ops-center': '系统与集成', '/ops-extras': '系统与集成', '/open': '系统与集成', '/gov': '系统与集成', '/help': '系统与集成',
 }
 
 /**

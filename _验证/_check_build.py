@@ -143,6 +143,15 @@ def check_undefined(path, text):
     script = script_of(text)
     tpl = template_of(text)
     defined = defined_names(script)
+    # v-for 的局部变量（如 (item, i) in list）也是合法标识符
+    for m in re.finditer(r'v-for\s*=\s*"[^"]*?\bin\b', tpl):
+        seg = m.group(0)
+        names = re.findall(r'\(([^)]*)\)', seg)
+        if names:
+            for part in names[0].split(','):
+                n = part.strip()
+                if re.fullmatch(r'[A-Za-z_$][\w$]*', n or ''):
+                    defined.add(n)
 
     problems = []
     exprs = []

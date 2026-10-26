@@ -270,6 +270,12 @@ export const menuRoutes = [
     name: 'opscenter',
     component: () => import('@/views/OpsCenter.vue'),
     meta: { title: '运维操作台', icon: 'Tools', group: '系统与集成', perm: 'sys:ops:view' }
+  },
+  {
+    path: '/help',
+    name: 'help',
+    component: () => import('@/views/Help.vue'),
+    meta: { title: '使用帮助', icon: 'QuestionFilled', group: '系统与集成' }
   }
 ]
 

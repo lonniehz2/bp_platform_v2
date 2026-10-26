@@ -36,6 +36,11 @@
         </el-breadcrumb>
         <div class="spacer" />
         <el-tag size="small" type="info">{{ auth.displayName || '管理员' }}</el-tag>
+        <el-tooltip content="使用帮助" placement="bottom">
+          <el-button text @click="toHelp">
+            <el-icon><QuestionFilled /></el-icon>
+          </el-button>
+        </el-tooltip>
         <StyleSwitch />
         <el-button text @click="logout">
           <el-icon><SwitchButton /></el-icon>
@@ -54,6 +59,7 @@ import { useAuthStore } from '@/store/auth'
 import { useMenu } from './useMenu'
 import { useTodoStore } from '@/store/todo'
 import StyleSwitch from './StyleSwitch.vue'
+import { QuestionFilled } from '@element-plus/icons-vue'
 import { defaultOpenGroups, loadOpenGroups, saveOpenGroups } from './menuPrefs'
 
 const router = useRouter()
@@ -122,6 +128,10 @@ watch(() => (auth.permissions || []).length, (n) => {
     initOpenGroups()
   }
 })
+
+function toHelp() {
+  router.push('/help')
+}
 
 async function logout() {
   await ElMessageBox.confirm('确认退出登录？', '提示', { type: 'warning' })
