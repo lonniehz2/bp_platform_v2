@@ -6,6 +6,7 @@
   python _deploy.py --upload <jar>  # 先上传再部署
 """
 import os
+import re
 import sys
 import time
 
@@ -32,6 +33,20 @@ def upload(client, local):
     if remote != size:
         raise RuntimeError('上传不完整：本地 %d 字节，远程 %d 字节（差 %d）；请重试上传'
                            % (size, remote, size - remote))
+
+
+def verify_replaced(client, local):
+    """部署后校验：远端 jar 大小必须与本地一致，否则视为未替换（历史踩坑）。"""
+    sftp = client.open_sftp()
+    try:
+        remote = sftp.stat(JAR_TARGET).st_size
+    finally:
+        sftp.close()
+    local_size = os.path.getsize(local)
+    if remote != local_size:
+        raise RuntimeError('部署未生效：远端 %s 为 %d 字节，本地 %d 字节'
+                           % (JAR_TARGET, remote, local_size))
+    print('部署校验通过：远端 jar %d 字节与本地一致' % remote)
 
 
 class Shell:
@@ -87,6 +102,15 @@ def main():
     try:
         if local_jar:
             upload(client, local_jar)
+        else:
+            sftp = client.open_sftp()
+            try:
+                sftp.stat(JAR_REMOTE)
+            except IOError:
+                print('错误：%s 不存在，请用 --upload <jar> 指定待部署文件' % JAR_REMOTE)
+                return 1
+            finally:
+                sftp.close()
 
         sh = Shell(client)
         out = sh.send('su -', 1.5)
@@ -110,13 +134,30 @@ def main():
             ('替换 jar', 'mv -f %s %s && chown bp:bp %s' % (JAR_REMOTE, JAR_TARGET, JAR_TARGET), 2),
             ('启动服务', 'systemctl start bp-platform', 2),
             ('服务状态', 'systemctl is-active bp-platform', 2),
-            ('健康检查', 'curl -s -o /dev/null -w "%%{http_code}" http://127.0.0.1:8080/actuator/health', 3),
         ]
         for name, cmd, wait in steps:
             outp = sh.send(cmd, wait)
             line = ' '.join(outp.split())
             print('%-8s %s' % (name, line[-160:]))
         sh.close()
+
+        # 轮询健康检查（最多 60 秒）
+        health_code = ''
+        for _i in range(20):
+            time.sleep(3)
+            _in, out, _err = client.exec_command(
+                'curl -s -o /dev/null -w %{http_code} '
+                'http://127.0.0.1:8080/actuator/health', timeout=15)
+            health_code = out.read().decode().strip()
+            if health_code == '200':
+                break
+        print('%-8s %s' % ('健康检查', health_code or '无响应'))
+        if health_code != '200':
+            print('健康检查未通过（%s），请查看服务日志' % (health_code or '无响应'))
+            return 1
+        # 关键：确认 jar 真的被替换（历史上出现过「提权成功但 jar 未换」）
+        if local_jar:
+            verify_replaced(client, local_jar)
         return 0
     finally:
         client.close()

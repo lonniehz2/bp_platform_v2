@@ -95,17 +95,16 @@
     <!-- ================= 催缴通知（历史记录，只读 + 登记） ================= -->
     <div v-show="tab === 'notice'">
       <el-alert type="info" :closable="false" show-icon
-                title="催缴通知 = 已发出的短信/电话/上门/书面通知记录；处置动作请在「欠费处置」页签执行"
+                title="历史催缴通知（只读）：自本版起催缴统一走「欠费处置」，通知类动作请选择「通知催缴」"
                 style="margin-bottom:10px" />
       <div class="toolbar" style="margin-bottom:10px">
         <el-input v-model="keyword" placeholder="关键字" clearable style="width:160px"
                   @keyup.enter="reload" />
         <el-button type="primary" @click="reload">查询</el-button>
         <el-button @click="resetQuery">清空</el-button>
-        <el-button type="success" @click="dunningVisible = true">登记催缴</el-button>
         <el-input v-model.number="overdueDays" placeholder="逾期天数≥" style="width:120px"
                   data-testid="arrears-days" />
-        <el-button @click="scan">扫描生成通知</el-button>
+        <el-button @click="scan">扫描逾期（只读核对）</el-button>
       </div>
 
       <el-table :data="rows" v-loading="loading" border size="small">
@@ -208,27 +207,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="dunningVisible" title="登记催缴通知" width="460px">
-      <el-form :model="df" label-width="110px">
-        <el-form-item label="账单ID"><el-input v-model="df.billId" /></el-form-item>
-        <el-form-item label="人员ID"><PersonPicker v-model="df.personId" width="240px" testid="person-picker" /></el-form-item>
-        <el-form-item label="催缴方式">
-          <el-select v-model="df.dunningType" style="width:100%">
-            <el-option label="短信" value="SMS" />
-            <el-option label="微信" value="WECHAT" />
-            <el-option label="电话" value="PHONE" />
-            <el-option label="上门" value="VISIT" />
-            <el-option label="书面通知" value="NOTICE" />
-            <el-option label="平台推送" value="PLATFORM" />
-          </el-select></el-form-item>
-        <el-form-item label="催缴内容">
-          <el-input v-model="df.dunningContent" type="textarea" :rows="2" /></el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dunningVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doDunning">确认</el-button>
-      </template>
-    </el-dialog>
+    
 
     <el-drawer v-model="show" title="明细（原始数据）" size="520px">
       <DetailView :row="detail || {}" />
@@ -395,9 +374,6 @@ const keyword = ref('')
 const overdueDays = ref(3)
 const show = ref(false)
 const detail = ref(null)
-const dunningVisible = ref(false)
-const df = reactive({ billId: null, personId: null, dunningType: 'SMS',
-  dunningContent: '', operatorId: 1 })
 
 const trendRows = ref([])
 const overdueTrend = computed(() => trendRows.value.map((m) => ({
@@ -427,15 +403,6 @@ async function load() {
 
 function reload() { pageNum.value = 1; load() }
 
-async function doDunning() {
-  if (!df.billId) { ElMessage.warning('请填写账单ID'); return }
-  saving.value = true
-  try {
-    await req.post('/fin/dunnings', { ...df })
-    ElMessage.success('催缴已登记')
-    dunningVisible.value = false; load()
-  } finally { saving.value = false }
-}
 
 async function scan() {
   const r = await financeApi.dunningScan({

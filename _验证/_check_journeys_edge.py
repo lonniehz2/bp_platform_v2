@@ -150,11 +150,13 @@ def run_edge_journeys(env):
 
     if overdue:
         b = overdue[0]
+        # 逾期天数取账单实际值，缺失时给 45，避免演示里出现「逾期 0 天」
+        od = int(float(b.get('overdueDays') or 0)) or 45
         st, ra = call('/fin/arrears', 'POST', {
             'contractId': b.get('contractId'), 'personId': b.get('personId'),
             'actionType': 'NOTIFY', 'triggerType': 'MANUAL',
             'arrearsAmount': b.get('payableAmount') or 100,
-            'remark': '闭环测试催缴'}, admin)
+            'overdueDays': max(30, od)}, admin)
         act = data((st, ra)) or {}
         step('旅程10', '登记催缴动作', st in (200, 400), (ra or {}).get('message', '')[:70])
         st, rl = call('/fin/arrears?pageNum=1&pageSize=5', 'GET', None, admin)
