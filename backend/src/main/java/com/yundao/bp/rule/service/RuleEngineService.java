@@ -40,6 +40,11 @@ public interface RuleEngineService {
 
     // ---------- 规则 ----------
 
+    /** 修改规则（仅未发布的规则集可改）。 */
+    RuleRule updateRule(Long ruleId, String code, String name, String conditionExpr,
+                        String thresholdJson, String severity, String actionsJson,
+                        Integer priority);
+
     RuleRule addRule(Long rulesetId, String code, String name, String conditionExpr,
                      String thresholdJson, String severity, String actionsJson,
                      Integer priority);

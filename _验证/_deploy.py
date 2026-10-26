@@ -5,6 +5,7 @@
   python _deploy.py                 # 只用已上传的 /tmp/bp-platform.jar
   python _deploy.py --upload <jar>  # 先上传再部署
 """
+import hashlib
 import os
 import re
 import sys
@@ -21,6 +22,20 @@ JAR_REMOTE = '/tmp/bp-platform.jar'
 JAR_TARGET = '/opt/bp-platform/bp-platform.jar'
 
 
+def sha256_of(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def remote_sha256(client, path):
+    _i, o, _e = client.exec_command('sha256sum %s' % path, timeout=300)
+    out = o.read().decode('utf-8', 'replace').strip()
+    return out.split()[0] if out else ''
+
+
 def upload(client, local):
     sftp = client.open_sftp()
     size = os.path.getsize(local)
@@ -33,6 +48,13 @@ def upload(client, local):
     if remote != size:
         raise RuntimeError('上传不完整：本地 %d 字节，远程 %d 字节（差 %d）；请重试上传'
                            % (size, remote, size - remote))
+    # 大小一致仍可能内容损坏（曾出现 jar 起不来）：比对 SHA-256
+    local_sha = sha256_of(local)
+    remote_hash = remote_sha256(client, JAR_REMOTE)
+    if remote_hash and local_sha != remote_hash:
+        raise RuntimeError('上传内容校验失败：本地 %s，远程 %s；请重试上传'
+                           % (local_sha[:16], remote_hash[:16]))
+    print('  上传校验通过 sha256=%s' % local_sha[:16])
 
 
 def verify_replaced(client, local):

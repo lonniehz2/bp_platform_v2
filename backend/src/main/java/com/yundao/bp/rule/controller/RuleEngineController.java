@@ -86,6 +86,15 @@ public class RuleEngineController {
                 cmd.thresholdJson(), cmd.severity(), cmd.actionsJson(), cmd.priority()));
     }
 
+    /** 修改规则（仅草稿规则集可改）。 */
+    @org.springframework.web.bind.annotation.PutMapping("/rules/{id}")
+    @RequirePerm("rule:ruleset:manage")
+    @Audit(type = "CONFIG", level = "IMPORTANT", action = "修改规则")
+    public R<RuleRule> updateRule(@PathVariable Long id, @RequestBody RuleCmd cmd) {
+        return R.ok(service.updateRule(id, cmd.code(), cmd.name(), cmd.conditionExpr(),
+                cmd.thresholdJson(), cmd.severity(), cmd.actionsJson(), cmd.priority()));
+    }
+
     @PostMapping("/rules/{id}/status")
     @RequirePerm("rule:ruleset:manage")
     public R<RuleRule> ruleStatus(@PathVariable Long id, @RequestBody StatusCmd cmd) {

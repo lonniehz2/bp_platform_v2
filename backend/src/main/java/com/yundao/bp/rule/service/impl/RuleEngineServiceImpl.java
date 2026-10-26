@@ -218,13 +218,60 @@ public class RuleEngineServiceImpl implements RuleEngineService {
         r.setConditionExpr(conditionExpr);
         r.setThresholdJson(thresholdJson);
         r.setSeverity(severity == null ? "NORMAL" : severity);
-        r.setActionsJson(actionsJson);
+        r.setActionsJson(actionsJson == null || actionsJson.isBlank() ? null : actionsJson);
         r.setPriority(priority == null ? 0 : priority);
         r.setRuleStatus("ENABLED");
         r.setIsDeleted(0);
         r.setCreateTime(now);
         r.setUpdateTime(now);
         ruleMapper.insert(r);
+        return r;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public RuleRule updateRule(Long ruleId, String code, String name, String conditionExpr,
+                               String thresholdJson, String severity, String actionsJson,
+                               Integer priority) {
+        RuleRule r = ruleMapper.selectById(ruleId);
+        if (r == null) {
+            throw BizException.notFound("规则");
+        }
+        RuleRuleset rs = requireRuleset(r.getRulesetId());
+        if ("PUBLISHED".equals(rs.getRulesetStatus())) {
+            throw BizException.stateConflict("已发布的规则集不可直接改规则，请新建版本");
+        }
+        if (code != null && !code.isBlank() && !code.equals(r.getRuleCode())) {
+            Long dup = ruleMapper.selectCount(new LambdaQueryWrapper<RuleRule>()
+                    .eq(RuleRule::getRulesetId, r.getRulesetId())
+                    .eq(RuleRule::getRuleCode, code));
+            if (dup != null && dup > 0) {
+                throw new BizException(ErrorCode.DUPLICATED,
+                        "该规则集内已存在规则编码：" + code);
+            }
+            r.setRuleCode(code);
+        }
+        try {
+            if (thresholdJson != null && !thresholdJson.isBlank()) {
+                JSON.readTree(thresholdJson);
+            }
+        } catch (Exception e) {
+            throw BizException.paramInvalid("阈值配置不是合法 JSON：" + e.getMessage());
+        }
+        if (name != null && !name.isBlank()) {
+            r.setRuleName(name);
+        }
+        r.setConditionExpr(conditionExpr);
+        r.setThresholdJson(thresholdJson);
+        if (severity != null && !severity.isBlank()) {
+            r.setSeverity(severity);
+        }
+        r.setActionsJson(actionsJson == null || actionsJson.isBlank() ? null : actionsJson);
+        if (priority != null) {
+            r.setPriority(priority);
+        }
+        r.setUpdateTime(LocalDateTime.now());
+        ruleMapper.updateById(r);
         return r;
     }
 

@@ -34,17 +34,20 @@ public class MenuBadgeController {
     private final FinArrearsActionMapper arrearsMapper;
     private final OpsAlertMapper alertMapper;
     private final OpsWorkorderMapper workOrderMapper;
+    private final com.yundao.bp.dev.mapper.DevEventMapper devEventMapper;
 
     public MenuBadgeController(MsgTodoMapper todoMapper,
                                FinBillMapper billMapper,
                                FinArrearsActionMapper arrearsMapper,
                                OpsAlertMapper alertMapper,
-                               OpsWorkorderMapper workOrderMapper) {
+                               OpsWorkorderMapper workOrderMapper,
+                               com.yundao.bp.dev.mapper.DevEventMapper devEventMapper) {
         this.todoMapper = todoMapper;
         this.billMapper = billMapper;
         this.arrearsMapper = arrearsMapper;
         this.alertMapper = alertMapper;
         this.workOrderMapper = workOrderMapper;
+        this.devEventMapper = devEventMapper;
     }
 
     /** 五类计数；任一查询失败返回 0，不影响其他角标。 */
@@ -56,6 +59,8 @@ public class MenuBadgeController {
         out.put("pendingArrears", countPendingArrears());
         out.put("pendingAlerts", countPendingAlerts());
         out.put("pendingWorkOrders", countPendingWorkOrders());
+        // 设备告警（IoT 事件）与「告警处理」（平台告警单）是两套数据，分开计数
+        out.put("devAlerts", countDevAlerts());
         return R.ok(out);
     }
 
@@ -98,6 +103,26 @@ public class MenuBadgeController {
         try {
             Long n = alertMapper.selectCount(new LambdaQueryWrapper<OpsAlert>()
                     .eq(OpsAlert::getAlertStatus, "PENDING"));
+            return n == null ? 0 : n;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    /** 设备告警：未处理的告警类 IoT 事件（与设备告警页「未处理」一致）。 */
+    private long countDevAlerts() {
+        try {
+            java.util.List<String> alarms = new java.util.ArrayList<>();
+            for (com.yundao.bp.dev.constant.DevEventType t
+                    : com.yundao.bp.dev.constant.DevEventType.values()) {
+                if (t.alarm()) {
+                    alarms.add(t.name());
+                }
+            }
+            Long n = devEventMapper.selectCount(
+                    new LambdaQueryWrapper<com.yundao.bp.dev.entity.DevEvent>()
+                            .in(com.yundao.bp.dev.entity.DevEvent::getIdentifier, alarms)
+                            .eq(com.yundao.bp.dev.entity.DevEvent::getHandled, 0));
             return n == null ? 0 : n;
         } catch (Exception e) {
             return 0;

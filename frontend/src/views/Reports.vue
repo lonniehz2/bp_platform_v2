@@ -58,7 +58,9 @@
           补跑待执行
         </el-button>
       </div>
-      <el-table :data="filteredTasks" border size="small">
+      <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
+                title="导出文件保存在服务器 /var/lib/bp-export/ 目录；点「下载」可保存到本机「下载」目录。任务列表为空表示还没有导出记录。" />
+      <el-table :data="filteredTasks" border size="small" empty-text="暂无导出任务，请点右上角「导出」生成">
         <el-table-column prop="taskNo" label="任务号" width="160" />
         <el-table-column prop="fileName" label="文件名" min-width="200" />
         <el-table-column prop="rowCount" label="行数" width="80" />
@@ -178,8 +180,9 @@ async function onExport() {
       reportCode: reportCode.value,
       exportFormat: exportFormat.value
     })
-    ElMessage.success(`导出完成：${task.fileName}（${task.rowCount} 行）`)
-    tasks.value.unshift(task)
+    ElMessage.success(`导出完成：${task.fileName}（${task.rowCount} 行），
+      文件已存到服务器，可在下方「导出任务」点下载`)
+    await loadTasks()
   } finally {
     exporting.value = false
   }
@@ -217,6 +220,46 @@ onMounted(async () => {
   await onQuery()
   await loadTasks()
 })
+
+// ---------------- 导出任务：筛选 / 详情 / 补跑 ----------------
+const taskStatusFilter = ref('')
+const taskDetailVisible = ref(false)
+const taskDetail = ref({})
+const runningPending = ref(false)
+
+const filteredTasks = computed(() => taskStatusFilter.value
+  ? tasks.value.filter((t) => t.taskStatus === taskStatusFilter.value)
+  : tasks.value)
+
+function applyTaskFilter() { /* filteredTasks 由 computed 派生 */ }
+
+async function loadTasks() {
+  try {
+    tasks.value = (await rptApi.tasks()) || []
+  } catch (e) {
+    ElMessage.error('导出任务加载失败')
+  }
+}
+
+async function showTask(row) {
+  try {
+    taskDetail.value = (await rptApi.task(row.id)) || row
+  } catch (e) {
+    taskDetail.value = row
+  }
+  taskDetailVisible.value = true
+}
+
+async function runPending() {
+  runningPending.value = true
+  try {
+    const n = await rptApi.runPending()
+    ElMessage.success(`已补跑 ${n} 个待执行任务`)
+    loadTasks()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '补跑失败')
+  } finally { runningPending.value = false }
+}
 </script>
 
 <style scoped>

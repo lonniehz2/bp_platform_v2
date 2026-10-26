@@ -146,7 +146,7 @@ export const MENU_BADGE_KEY = {
   '/todos': 'todo',
   '/bills': 'overdueBills',
   '/arrears': 'pendingArrears',
-  '/dev-events': 'pendingAlerts',
+  '/dev-events': 'devAlerts',
   '/workorders': 'pendingWorkOrders'
 }
 
