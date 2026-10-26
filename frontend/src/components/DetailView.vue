@@ -103,6 +103,11 @@ function build(key, value) {
       'SEVERE', 'EXPIRED', 'OFFLINE'].includes(String(value))
     return { ...base, text, kind: 'tag', tagType: good ? 'success' : (bad ? 'danger' : 'info') }
   }
+  // 兜底：只要枚举表里能翻出中文就显示中文（朝向/租金单位等不在 ENUM_KEY 里的字段）
+  const enumText = enumLabel(key, value)
+  if (typeof value === 'string' && enumText && enumText !== String(value)) {
+    return { ...base, text: enumText, kind: '' }
+  }
   if (MONEY_KEY.test(key) && !Number.isNaN(Number(value))) {
     return { ...base, text: '¥ ' + Number(value).toFixed(2), kind: 'money' }
   }

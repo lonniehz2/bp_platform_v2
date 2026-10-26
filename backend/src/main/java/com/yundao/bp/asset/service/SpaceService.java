@@ -14,6 +14,9 @@ public interface SpaceService {
 
     SpaceVO get(Long id);
 
+    /** 更新空间节点（名称/编码/面积/排序/状态/备注）。 */
+    SpaceVO update(Long id, com.yundao.bp.asset.dto.SpaceUpdateCmd cmd);
+
     /** 查询直接下级。 */
     List<SpaceVO> children(Long parentId);
 

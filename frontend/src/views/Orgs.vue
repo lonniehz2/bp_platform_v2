@@ -102,7 +102,7 @@
             <el-option v-for="c in communityOptions" :key="c" :label="c" :value="c" />
           </el-select>
           <div class="muted" style="font-size:12px;margin-top:4px">
-            第五级（社区/村）允许手填：区划库未收录时直接输入即可
+            区划库为省/市/区县/街道四级；社区/村请从下拉选择已录入社区，或直接输入新名称
           </div>
         </el-form-item>
         <el-form-item label="详细地址">
@@ -151,6 +151,9 @@
                      placeholder="可从下拉选择，也可直接输入" style="width:100%">
             <el-option v-for="c in communityOptions" :key="c" :label="c" :value="c" />
           </el-select>
+          <div class="muted" style="font-size:12px;margin-top:4px">
+            区划库到街道为止；社区/村可选已录入名称，也可直接输入
+          </div>
         </el-form-item>
         <el-form-item label="详细地址"><el-input v-model="editForm.address" /></el-form-item>
         <el-form-item label="排序"><el-input-number v-model="editForm.sortNo" :min="1" /></el-form-item>
@@ -217,10 +220,15 @@ async function loadCommunities(streetCode) {
     const list = await req.get('/sys/regions/children', { params: { parentCode: streetCode } })
     ;(list || []).forEach((r) => r.name && set.add(r.name))
   } catch (e) { /* 区划库未收录第五级时忽略 */ }
-  // 合并历史输入，便于复用
+  // 合并历史输入：优先同街道，其次全部（便于复用已录入社区名）
   try {
-    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 200 } })
-    ;(d.rows || d || []).forEach((o) => o.community && set.add(o.community))
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 500 } })
+    const all = d.rows || d || []
+    const sameStreet = all.filter((o) => !streetCode || o.streetCode === streetCode)
+    sameStreet.forEach((o) => o.community && set.add(o.community))
+    if (!set.size) {
+      all.forEach((o) => o.community && set.add(o.community))
+    }
   } catch (e) { /* 忽略 */ }
   communityOptions.value = Array.from(set)
 }

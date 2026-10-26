@@ -289,19 +289,32 @@ public final class EnumLabels {
     }
 
     /** 少数同名不同义的值，按字段名覆盖 */
-    private static final Map<String, Map<String, String>> OVERRIDE = Map.of(
-            "dunningType", Map.of("VISIT", "上门", "PHONE", "电话"),
-            "visitStatus", Map.of("VISIT", "来访"),
-            "flowType", Map.of("IN", "收入", "OUT", "支出"),
-            "auditLevel", Map.of("INFO", "提示", "WARNING", "警告", "CRITICAL", "严重"),
-            "alertLevel", Map.of("INFO", "提示", "WARNING", "警告", "CRITICAL", "严重"),
-            "creditLevel", Map.of("MINOR", "轻微", "MAJOR", "较重", "SEVERE", "严重"),
-            // 授权：EFFECTIVE 在合同语境是「履约中」，授权语境必须是「已生效」
-            "grantStatus", Map.of("PENDING", "待生效", "EFFECTIVE", "已生效",
-                    "EXPIRED", "已到期", "FROZEN", "已冻结", "REVOKED", "已撤销"),
-            "grantLevel", Map.of("OWNERSHIP", "产权级", "MANAGEMENT", "管理级",
-                    "USAGE", "使用级", "VISIT", "访客级")
-    );
+    private static final Map<String, Map<String, String>> OVERRIDE = new HashMap<>();
+
+    static {
+        // Map.of 最多 10 对键值，字段变多后改用 put 组装
+        OVERRIDE.put("dunningType", Map.of("VISIT", "上门", "PHONE", "电话"));
+        OVERRIDE.put("visitStatus", Map.of("VISIT", "来访"));
+        OVERRIDE.put("flowType", Map.of("IN", "收入", "OUT", "支出"));
+        OVERRIDE.put("auditLevel", Map.of("INFO", "提示", "WARNING", "警告", "CRITICAL", "严重"));
+        OVERRIDE.put("alertLevel", Map.of("INFO", "提示", "WARNING", "警告", "CRITICAL", "严重"));
+        OVERRIDE.put("creditLevel", Map.of("MINOR", "轻微", "MAJOR", "较重", "SEVERE", "严重"));
+        // 授权：EFFECTIVE 在合同语境是「履约中」，授权语境必须是「已生效」
+        OVERRIDE.put("grantStatus", Map.of("PENDING", "待生效", "EFFECTIVE", "已生效",
+                "EXPIRED", "已到期", "FROZEN", "已冻结", "REVOKED", "已撤销"));
+        OVERRIDE.put("grantLevel", Map.of("OWNERSHIP", "产权级", "MANAGEMENT", "管理级",
+                "USAGE", "使用级", "VISIT", "访客级"));
+        // 房源字段：避免详情/列表出现英文原值
+        OVERRIDE.put("orientation", Map.of("SOUTH", "朝南", "NORTH", "朝北", "EAST", "朝东",
+                "WEST", "朝西", "SOUTHEAST", "东南", "SOUTHWEST", "西南",
+                "NORTHEAST", "东北", "NORTHWEST", "西北", "NORTH_SOUTH", "南北通透"));
+        OVERRIDE.put("rentUnit", Map.of("AREA_MONTH", "元/㎡·月", "HOUSE_MONTH", "元/套·月",
+                "BED_MONTH", "元/床·月", "HOUSE_NIGHT", "元/套·夜",
+                "BED_NIGHT", "元/床·夜"));
+        OVERRIDE.put("meterMode", Map.of("INDEPENDENT", "独立表（每间独立计量）",
+                "SHARED", "整户分摊（一表按间分摊）", "MIXED", "独立表 + 公区分摊"));
+    }
+
 
     /**
      * @param field 字段名（用于同名覆盖，可为 null）

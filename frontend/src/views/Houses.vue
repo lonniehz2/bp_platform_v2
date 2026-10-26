@@ -62,8 +62,12 @@
     <el-dialog v-model="createVisible" title="新增房源" width="640px">
       <el-form :model="f" label-width="120px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="空间节点ID" required>
-            <el-input v-model="f.spaceId" placeholder="房间级空间 ID" />
+          <el-col :span="12"><el-form-item label="空间节点" required>
+            <el-tree-select v-model="f.spaceId" :data="spaceTree" check-strictly
+                            filterable :render-after-expand="false"
+                            :props="{ label: 'spaceName', value: 'id', children: 'children' }"
+                            placeholder="输入房间名搜索，如 1101室" style="width:100%"
+                            @change="onSpacePicked" />
           </el-form-item></el-col>
           <el-col :span="12"><el-form-item label="房源编号" required>
             <el-input v-model="f.houseCode" /></el-form-item></el-col>
@@ -103,7 +107,11 @@
           <el-col :span="12"><el-form-item label="楼层">
             <el-input-number v-model="f.floorNo" style="width:100%" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="朝向">
-            <el-input v-model="f.orientation" /></el-form-item></el-col>
+            <el-select v-model="f.orientation" clearable style="width:100%"
+                       placeholder="请选择朝向">
+              <el-option v-for="o in ORIENTATIONS" :key="o.value" :label="o.label"
+                         :value="o.value" />
+            </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="装修标准">
             <el-select v-model="f.decorateLevel" style="width:100%">
               <el-option label="毛坯" value="ROUGH" />
@@ -316,7 +324,10 @@ async function load() {
 }
 function reload() { pageNum.value = 1; load() }
 
-function openCreate() { createVisible.value = true }
+async function openCreate() {
+  ensureSpaceTree()
+  createVisible.value = true
+}
 async function doCreate() {
   if (!f.spaceId || !f.houseCode || !f.houseName || !f.area) {
     ElMessage.warning('空间节点、编号、名称、面积为必填'); return
@@ -401,13 +412,51 @@ async function openBeds() {
   bedVisible.value = true
   bedRows.value = []
   bedRoomId.value = ''
-  if (!spaceTree.value.length) {
+  await ensureSpaceTree()
+}
+
+/**
+ * 确保空间树可用。
+ * 后端 /spaces/tree 必须带 orgId；账号无 orgId 时回退到第一个可选组织，
+ * 否则房间下拉会是空白（本次修复点）。
+ */
+async function ensureSpaceTree() {
+  if (spaceTree.value.length) return spaceTree.value
+  let orgId = auth.user?.orgId
+  if (!orgId) {
     try {
-      const orgId = query.orgId || auth.user?.orgId
-      const tree = await req.get('/spaces/tree', { params: { orgId } })
-      spaceTree.value = tree || []
-    } catch (e) { /* 忽略，用户可手动输入房间 ID */ }
+      const list = await req.get('/orgs/children')
+      const first = (list || [])[0]
+      orgId = first && first.id
+    } catch (e) { /* 忽略 */ }
   }
+  if (!orgId) return []
+  try {
+    const tree = await req.get('/spaces/tree', { params: { orgId } })
+    spaceTree.value = tree || []
+  } catch (e) {
+    ElMessage.error('空间树加载失败：' + (e?.response?.data?.message || e?.message || e))
+  }
+  return spaceTree.value
+}
+
+/** 选中房间后自动带出组织/房号，减少手填 */
+function onSpacePicked(id) {
+  const hit = findNode(spaceTree.value, id)
+  if (!hit) return
+  if (!f.houseName) f.houseName = hit.spaceName
+  if (!f.houseCode) f.houseCode = hit.spaceCode
+  if (!f.orgId && hit.orgId) f.orgId = hit.orgId
+  if (!f.area && hit.area) f.area = Number(hit.area)
+}
+
+function findNode(nodes, id) {
+  for (const n of nodes || []) {
+    if (String(n.id) === String(id)) return n
+    const sub = findNode(n.children, id)
+    if (sub) return sub
+  }
+  return null
 }
 
 async function loadBeds() {

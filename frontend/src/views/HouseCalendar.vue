@@ -8,8 +8,13 @@
                 style="width:170px" @keyup.enter="reload" />
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
-      <el-input v-model="houseId" placeholder="房源ID"
-                style="width:210px" />
+      <el-select v-model="houseId" placeholder="输入房源名称搜索" filterable remote clearable
+                 :remote-method="searchHouses" :loading="houseSearching"
+                 style="width:260px" @change="onHousePicked">
+        <el-option v-for="h in houseOptions" :key="h.id"
+                   :label="(h.houseName || h.houseCode) + ' · ' + (h.houseCode || '')"
+                   :value="h.id" />
+      </el-select>
       <el-button type="primary" @click="reload">按房源查</el-button>
       <el-button type="success" @click="openBook" data-testid="cal-book">预订</el-button>
         <el-button type="warning" plain @click="openRange"
@@ -235,6 +240,31 @@ const REQUIRED = []
 let submitFn = null
 const houseId = ref(null)
 const houseLabel = ref('')
+const houseOptions = ref([])
+const houseSearching = ref(false)
+
+/** 房源名称模糊搜索（下拉候选） */
+async function searchHouses(kw) {
+  houseSearching.value = true
+  try {
+    const d = await req.get('/houses', {
+      params: { pageNum: 1, pageSize: 30, keyword: kw || undefined }
+    })
+    houseOptions.value = (d.rows || d || []).map((h) => ({
+      id: h.id, houseName: h.houseName, houseCode: h.houseCode
+    }))
+  } catch (e) {
+    houseOptions.value = []
+  } finally {
+    houseSearching.value = false
+  }
+}
+
+function onHousePicked(id) {
+  const hit = houseOptions.value.find((h) => String(h.id) === String(id))
+  houseLabel.value = hit ? (hit.houseName || hit.houseCode) : ''
+  reload()
+}
 
 /**
  * 进入页面时自动定位房源并加载当月日历：
@@ -254,6 +284,10 @@ async function autoLoadMonth() {
       if (list.length) {
         houseId.value = String(list[0].id)
         houseLabel.value = list[0].houseName || String(list[0].id)
+        if (!houseOptions.value.some((h) => String(h.id) === String(list[0].id))) {
+          houseOptions.value.unshift({ id: list[0].id, houseName: list[0].houseName,
+            houseCode: list[0].houseCode })
+        }
       }
     } catch (e) { /* 忽略 */ }
   }
@@ -313,7 +347,13 @@ async function doRange() {
   } finally { saving.value = false }
 }
 
-onMounted(autoLoadMonth)
+onMounted(async () => {
+  await searchHouses('')
+  autoLoadMonth()
+})
+
+function pageInit() {
+}
 
 async function load() {
   if (!houseId.value) {

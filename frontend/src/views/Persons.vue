@@ -335,8 +335,9 @@
     <!-- 发起实名核验 VerifyCmd -->
     <el-dialog v-model="verifyVisible" title="发起实名核验" width="560px">
       <el-form :model="vf" label-width="130px">
-        <el-form-item label="人员ID" required>
-          <el-input v-model="vf.personId" /></el-form-item>
+        <el-form-item label="人员" required>
+          <PersonPicker v-model="vf.personId" width="260px" testid="verify-person-picker" />
+        </el-form-item>
         <el-form-item label="核验方式">
           <el-select v-model="vf.verifyType" style="width:100%">
             <el-option label="人脸比对" value="FACE_COMPARE" />
@@ -345,10 +346,34 @@
           </el-select></el-form-item>
         <el-form-item label="姓名">
           <el-input v-model="vf.userName" /></el-form-item>
-        <el-form-item label="人脸图片URL">
-          <el-input v-model="vf.faceImgUrl" /></el-form-item>
-        <el-form-item label="证件图片URL">
-          <el-input v-model="vf.idcardImgUrl" /></el-form-item>
+        <el-form-item label="人脸照片">
+          <div style="width:100%">
+            <el-upload :action="uploadAction" :headers="uploadHeaders" name="file"
+                       :show-file-list="false" accept="image/*"
+                       :on-success="(r) => { vf.faceImgUrl = fileUrlOf(r) }"
+                       :on-error="() => ElMessage.error('上传失败')">
+              <el-button size="small">本地上传</el-button>
+            </el-upload>
+            <div class="muted" style="font-size:12px;margin-top:4px">
+              {{ vf.faceImgUrl || '未上传（也可粘贴外部 URL）' }}
+            </div>
+            <el-input v-model="vf.faceImgUrl" placeholder="或粘贴图片 URL" size="small" />
+          </div>
+        </el-form-item>
+        <el-form-item label="证件照片">
+          <div style="width:100%">
+            <el-upload :action="uploadAction" :headers="uploadHeaders" name="file"
+                       :show-file-list="false" accept="image/*"
+                       :on-success="(r) => { vf.idcardImgUrl = fileUrlOf(r) }"
+                       :on-error="() => ElMessage.error('上传失败')">
+              <el-button size="small">本地上传</el-button>
+            </el-upload>
+            <div class="muted" style="font-size:12px;margin-top:4px">
+              {{ vf.idcardImgUrl || '未上传（也可粘贴外部 URL）' }}
+            </div>
+            <el-input v-model="vf.idcardImgUrl" placeholder="或粘贴图片 URL" size="small" />
+          </div>
+        </el-form-item>
       </el-form>
       <el-alert type="info" :closable="false" show-icon
                 title="未通过实名核验的人员不能提交申请（后端硬校验）" />
@@ -364,7 +389,8 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import req from '@/api/request'
+import req, { getToken, getTenant } from '@/api/request'
+import PersonPicker from '@/components/PersonPicker.vue'
 import { enumLabel } from '@/constants/enums'
 
 const route = useRoute()
@@ -438,6 +464,16 @@ const verifies = ref([])
 const vTotal = ref(0)
 const vQuery = reactive({ pageNum: 1, pageSize: 20, personId: '' })
 const verifyVisible = ref(false)
+// 核验照片上传：走后端 /files/upload，成功回填可访问 URL
+const uploadAction = '/api/v1/files/upload?bizType=PERSON_VERIFY'
+const uploadHeaders = {
+  Authorization: `Bearer ${getToken()}`,
+  'X-Tenant-Id': getTenant()
+}
+function fileUrlOf(r) {
+  const f = (r && r.data) || {}
+  return f.id ? `/api/v1/files/${f.id}/download` : ''
+}
 const verifyPersonId = ref(null)
 const vf = reactive({ personId: null, verifyType: 'FACE_COMPARE', userName: '',
   faceImgUrl: '', idcardImgUrl: '' })

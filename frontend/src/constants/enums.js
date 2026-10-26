@@ -409,6 +409,20 @@ const TYPE_OVERRIDE = {
   freezeScope: {
     ALL: '全部（含大门）', ROOM_LOCK: '仅房间门锁',
     EXCLUDE_MAIN_DOOR: '仅门锁（不停大门）'
+  },
+  // 房源：这几个字段在详情里之前显示英文原值
+  orientation: {
+    SOUTH: '朝南', NORTH: '朝北', EAST: '朝东', WEST: '朝西',
+    SOUTHEAST: '东南', SOUTHWEST: '西南', NORTHEAST: '东北', NORTHWEST: '西北',
+    NORTH_SOUTH: '南北通透'
+  },
+  rentUnit: {
+    AREA_MONTH: '元/㎡·月', HOUSE_MONTH: '元/套·月', BED_MONTH: '元/床·月',
+    HOUSE_NIGHT: '元/套·夜', BED_NIGHT: '元/床·夜'
+  },
+  meterMode: {
+    INDEPENDENT: '独立表（每间独立计量）', SHARED: '整户分摊（一表按间分摊）',
+    MIXED: '独立表 + 公区分摊'
   }
 }
 

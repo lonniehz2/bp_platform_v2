@@ -275,6 +275,7 @@ export const spaceApi = {
   children: (parentId) => req.get('/spaces/children', { params: { parentId } }),
   tree: (params) => req.get('/spaces/tree', { params }),
   create: (data) => req.post('/spaces', data),
+  update: (id, data) => req.put(`/spaces/${id}`, data),
   remove: (id) => req.delete(`/spaces/${id}`)
 }
 

@@ -207,7 +207,48 @@ public class SpaceServiceImpl implements SpaceService {
         }
     }
 
+
+    @Override
+    public SpaceVO update(Long id, com.yundao.bp.asset.dto.SpaceUpdateCmd cmd) {
+        AssetSpace space = spaceMapper.selectById(id);
+        if (space == null) {
+            throw BizException.notFound("空间节点");
+        }
+        // 编码唯一（排除自身）
+        Long dup = spaceMapper.selectCount(new LambdaQueryWrapper<AssetSpace>()
+                .eq(AssetSpace::getSpaceCode, cmd.spaceCode())
+                .ne(AssetSpace::getId, id));
+        if (dup != null && dup > 0) {
+            throw BizException.paramInvalid("空间编码已存在: " + cmd.spaceCode());
+        }
+        space.setSpaceName(cmd.spaceName());
+        space.setSpaceCode(cmd.spaceCode());
+        if (cmd.area() != null) {
+            space.setArea(cmd.area());
+        }
+        if (cmd.sortNo() != null) {
+            space.setSortNo(cmd.sortNo());
+        }
+        if (cmd.status() != null && !cmd.status().isBlank()) {
+            space.setStatus(cmd.status());
+        }
+        space.setRemark(cmd.remark());
+        // fullName 由父级全名 + 本节点名称组成，改名后同步
+        String parentFull = null;
+        if (space.getParentId() != null) {
+            AssetSpace parent = spaceMapper.selectById(space.getParentId());
+            if (parent != null) {
+                parentFull = parent.getFullName();
+            }
+        }
+        space.setFullName((parentFull == null || parentFull.isBlank() ? "" : parentFull)
+                + cmd.spaceName());
+        spaceMapper.updateById(space);
+        return get(id);
+    }
+
     // ---------- 内部 ----------
+
 
     private SpaceType parseType(String t) {
         try {

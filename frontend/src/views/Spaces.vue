@@ -50,17 +50,28 @@
           <el-descriptions-item label="状态">{{ current.status }}</el-descriptions-item>
         </el-descriptions>
         <el-empty v-else description="点击左侧节点查看详情" :image-size="60" />
+        <div v-if="current" class="toolbar" style="margin:8px 0 12px">
+          <el-button type="primary" plain @click="openEdit(current)">编辑</el-button>
+          <el-button type="danger" plain @click="removeSpace">删除</el-button>
+          <el-button plain @click="openCreateChild">在此节点下新增</el-button>
+        </div>
         <DetailView :row="detail || current || row || {}" />
       </el-col>
     </el-row>
 
     <el-dialog v-model="createVisible" title="新增空间节点" width="560px">
       <el-form :model="f" label-width="120px">
-        <el-form-item label="所属组织ID" required>
-          <el-input v-model="f.orgId" /></el-form-item>
+        <el-form-item label="所属组织" required>
+          <el-select v-model="f.orgId" filterable placeholder="选择组织（小区）"
+                     style="width:100%" @change="onOrgChange">
+            <el-option v-for="o in orgs" :key="o.id" :label="o.orgName" :value="o.id" />
+          </el-select></el-form-item>
         <el-form-item label="上级节点">
-          <el-input v-model="f.parentId"
-                    placeholder="留空=顶级（只能是楼栋/片区）" /></el-form-item>
+          <el-tree-select v-model="f.parentId" :data="tree" check-strictly clearable
+                          filterable :render-after-expand="false"
+                          :props="{ label: 'spaceName', value: 'id', children: 'children' }"
+                          placeholder="留空=顶级（只能是楼栋/片区）" style="width:100%" />
+        </el-form-item>
         <el-form-item label="空间编码" required>
           <el-input v-model="f.spaceCode" placeholder="同级唯一，建议用层级前缀" />
         </el-form-item>
@@ -94,6 +105,45 @@
         <el-button type="primary" :loading="saving" @click="doCreate">保存</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="editVisible" title="编辑空间节点" width="520px">
+      <el-form :model="ef" label-width="110px">
+        <el-form-item label="所属组织">
+          <span>{{ editOrgName || '—' }}</span>
+        </el-form-item>
+        <el-form-item label="上级节点">
+          <span>{{ editParentName || '（顶级）' }}</span>
+        </el-form-item>
+        <el-form-item label="空间类型">
+          <span>{{ enumLabel('spaceType', ef.spaceType) }}</span>
+        </el-form-item>
+        <el-form-item label="空间名称" required>
+          <el-input v-model="ef.spaceName" />
+        </el-form-item>
+        <el-form-item label="空间编码" required>
+          <el-input v-model="ef.spaceCode" />
+        </el-form-item>
+        <el-form-item label="面积(㎡)">
+          <el-input-number v-model="ef.area" :min="0" :precision="2" style="width:100%" />
+        </el-form-item>
+        <el-form-item label="排序">
+          <el-input-number v-model="ef.sortNo" :min="1" style="width:100%" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="ef.status" style="width:100%">
+            <el-option label="启用" value="ENABLED" />
+            <el-option label="停用" value="DISABLED" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="ef.remark" type="textarea" :rows="2" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="doEdit">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -101,6 +151,7 @@
 import DetailView from '@/components/DetailView.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { spaceApi, orgApi } from '@/api/modules'
+import { enumLabel } from '@/constants/enums'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const tree = ref([])
@@ -110,6 +161,56 @@ const expandAll = ref(true)
 const treeKey = ref(0)
 const orgs = ref([])
 const treeRef = ref(null)
+const editVisible = ref(false)
+const editOrgName = ref('')
+const editParentName = ref('')
+const ef = reactive({ id: null, spaceName: '', spaceCode: '', area: null,
+  sortNo: 1, status: 'ENABLED', remark: '', spaceType: '' })
+
+function openEdit(node) {
+  Object.assign(ef, {
+    id: node.id, spaceName: node.spaceName, spaceCode: node.spaceCode,
+    area: node.area ? Number(node.area) : null, sortNo: node.sortNo || 1,
+    status: node.status || 'ENABLED', remark: node.remark || '',
+    spaceType: node.spaceType
+  })
+  editOrgName.value = node.orgIdName
+    || (orgs.value.find((o) => String(o.id) === String(node.orgId)) || {}).orgName || ''
+  editParentName.value = findNode(tree.value, node.parentId)?.spaceName || ''
+  editVisible.value = true
+}
+
+async function doEdit() {
+  if (!ef.spaceName || !ef.spaceCode) {
+    ElMessage.warning('名称与编码为必填'); return
+  }
+  saving.value = true
+  try {
+    await spaceApi.update(ef.id, {
+      spaceName: ef.spaceName, spaceCode: ef.spaceCode, area: ef.area,
+      sortNo: ef.sortNo, status: ef.status, remark: ef.remark
+    })
+    ElMessage.success('已保存')
+    editVisible.value = false
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '保存失败')
+  } finally { saving.value = false }
+}
+
+/** 在当前节点下新增子节点 */
+function openCreateChild() {
+  openCreate()
+  f.parentId = current.value ? current.value.id : null
+}
+
+/** 切换组织后刷新空间树，供上级节点下拉使用 */
+async function onOrgChange(id) {
+  if (!id) return
+  orgId.value = id
+  await load()
+}
+
 const createVisible = ref(false)
 const saving = ref(false)
 const f = reactive({ orgId: null, parentId: null, spaceCode: '',
@@ -143,6 +244,16 @@ async function removeSpace() {
   ElMessage.success('已删除')
   current.value = null
   load()
+}
+
+function findNode(nodes, id) {
+  if (!id) return null
+  for (const n of nodes || []) {
+    if (String(n.id) === String(id)) return n
+    const sub = findNode(n.children, id)
+    if (sub) return sub
+  }
+  return null
 }
 
 async function load() {

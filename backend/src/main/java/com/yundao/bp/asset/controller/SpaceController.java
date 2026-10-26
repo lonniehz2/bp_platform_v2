@@ -34,6 +34,14 @@ public class SpaceController {
         return R.ok(spaceService.create(cmd));
     }
 
+    /** 更新空间节点信息（不动层级关系）。 */
+    @com.yundao.bp.iam.security.RequirePerm("asset:space:create")
+    @org.springframework.web.bind.annotation.PutMapping("/{id}")
+    public R<SpaceVO> update(@PathVariable Long id,
+                             @Valid @RequestBody com.yundao.bp.asset.dto.SpaceUpdateCmd cmd) {
+        return R.ok(spaceService.update(id, cmd));
+    }
+
     @com.yundao.bp.iam.security.RequirePerm("asset:space:view")
     @GetMapping("/{id}")
     public R<SpaceVO> get(@PathVariable Long id) {
