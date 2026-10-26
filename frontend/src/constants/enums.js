@@ -423,6 +423,16 @@ const TYPE_OVERRIDE = {
   meterMode: {
     INDEPENDENT: '独立表（每间独立计量）', SHARED: '整户分摊（一表按间分摊）',
     MIXED: '独立表 + 公区分摊'
+  },
+  // 资金：对账与收款
+  payChannel: {
+    WECHAT: '微信', ALIPAY: '支付宝', BANK: '银行转账', CASH: '现金',
+    POS: '刷卡', OTHER: '其他'
+  },
+  reconcileType: { CHANNEL: '渠道对账', DAILY: '日终对账', MANUAL: '手工对账' },
+  reconcileStatus: { MATCHED: '一致', DIFF: '有差异', HANDLED: '已处理' },
+  payStatus: {
+    PENDING: '待支付', SUCCESS: '成功', FAILED: '失败', REFUNDED: '已退款'
   }
 }
 

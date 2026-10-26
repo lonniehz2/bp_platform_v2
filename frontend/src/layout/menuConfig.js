@@ -110,7 +110,7 @@ export const MENU_DESC = {
   '/arrears': '逾期扫描、催缴动作与欠费停权',
   '/deposits': '押金收取、抵扣与退还',
   '/subsidies': '补贴标准、发放与租金抵扣',
-  '/cashflow': '收入支出流水与核账',
+  '/cashflow': '流水 / 对账单 / 收款确认',
   '/fee-items': '收费项、单价与计费规则',
   '/meter-readings': '水/电/燃气读数录入与出账',
   '/energy': '按项目、楼栋、房源的能耗分析',

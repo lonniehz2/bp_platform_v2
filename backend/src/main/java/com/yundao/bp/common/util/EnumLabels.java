@@ -311,6 +311,15 @@ public final class EnumLabels {
         OVERRIDE.put("rentUnit", Map.of("AREA_MONTH", "元/㎡·月", "HOUSE_MONTH", "元/套·月",
                 "BED_MONTH", "元/床·月", "HOUSE_NIGHT", "元/套·夜",
                 "BED_NIGHT", "元/床·夜"));
+        // 资金：收款状态 PENDING 默认是「待处理」，这里应为「待支付」
+        OVERRIDE.put("payStatus", Map.of("PENDING", "待支付", "SUCCESS", "成功",
+                "FAILED", "失败", "REFUNDED", "已退款"));
+        OVERRIDE.put("reconcileStatus", Map.of("MATCHED", "一致", "DIFF", "有差异",
+                "HANDLED", "已处理"));
+        OVERRIDE.put("reconcileType", Map.of("CHANNEL", "渠道对账", "DAILY", "日终对账",
+                "MANUAL", "手工对账"));
+        OVERRIDE.put("payChannel", Map.of("WECHAT", "微信", "ALIPAY", "支付宝",
+                "BANK", "银行转账", "CASH", "现金", "POS", "刷卡"));
         OVERRIDE.put("meterMode", Map.of("INDEPENDENT", "独立表（每间独立计量）",
                 "SHARED", "整户分摊（一表按间分摊）", "MIXED", "独立表 + 公区分摊"));
     }
