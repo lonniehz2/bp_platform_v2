@@ -219,7 +219,7 @@ async function loadEvents() {
 
 async function handleEvent(row) {
   try {
-    await req.post(/dev-events//handle, { remark: '人工确认处理' })
+    await req.post(`/dev-events/${row.id}/handle`, { remark: '人工确认处理' })
     ElMessage.success('已标记处理')
     loadEvents()
   } catch (e) {

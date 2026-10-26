@@ -24,8 +24,10 @@
       </el-table-column>
       <el-table-column prop="amount" label="金额" width="110" />
       <el-table-column prop="flowTime" label="时间" width="170" />
-      <el-table-column label="操作" width="120" fixed="right">
+      <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
+          <el-button link type="success" :disabled="row.verifyStatus === 'VERIFIED'"
+                     @click="doVerify(row)">核验</el-button>
           <el-button link @click="detail = row; show = true">详情</el-button>
         </template>
       </el-table-column>
@@ -40,6 +42,7 @@
 </template>
 
 <script setup>
+import req from '@/api/request'
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, onMounted } from 'vue'
@@ -74,6 +77,14 @@ function resetQuery() {
 }
 
 onMounted(load)
+/** 流水核验：与银行/支付渠道对账后标记 */
+async function doVerify(row) {
+  await ElMessageBox.confirm('确认该笔流水已与渠道核对一致？', '核验流水',
+    { type: 'warning' })
+  await req.post(`/fin/cash-flows/${row.id}/verify`)
+  ElMessage.success('已核验')
+  load()
+}
 </script>
 
 <style scoped>

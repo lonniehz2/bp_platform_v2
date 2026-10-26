@@ -31,6 +31,7 @@
       <el-table-column label="操作" width="210" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="report(row)">登记报告</el-button>
+          <el-button link type="warning" @click="toWorkOrder(row)">转工单</el-button>
           <el-button link @click="openDetail(row)">详情</el-button>
         </template>
       </el-table-column>
@@ -80,6 +81,7 @@ import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { visitApi } from '@/api/modules'
+import req from '@/api/request'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -176,6 +178,14 @@ function resetQuery() {
 }
 
 onMounted(load)
+/** 走访发现问题 → 转工单处理（如违规使用整改、维修） */
+async function toWorkOrder(row) {
+  await ElMessageBox.confirm('确认把该走访转为工单？', '转工单', { type: 'warning' })
+  await req.post(`/visits/${row.id}/to-workorder`,
+    { operatorId: 1, operatorName: '管理员' })
+  ElMessage.success('已转工单')
+  load()
+}
 </script>
 
 <style scoped>

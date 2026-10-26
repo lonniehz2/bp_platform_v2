@@ -253,7 +253,7 @@ function canReview(row) {
 /** 受理：已提交 → 已受理 */
 async function accept(row) {
   try {
-    await req.post(/applications//accept, {})
+    await req.post(`/applications/${row.id}/accept`, {})
     ElMessage.success('已受理')
     load()
   } catch (e) {

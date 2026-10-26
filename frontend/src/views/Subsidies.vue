@@ -42,6 +42,8 @@
         <template #default="{ row }">
           <el-button link type="success" :disabled="row.recordStatus !== 'PENDING'"
                      @click="confirm(row)">确认发放</el-button>
+          <el-button link type="danger" :disabled="row.recordStatus !== 'PENDING'"
+                     @click="doFail(row)">发放失败</el-button>
           <el-button link @click="detail = row; show = true">详情</el-button>
         </template>
       </el-table-column>
@@ -80,8 +82,9 @@
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { subsidyApi } from '@/api/modules'
+import req from '@/api/request'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -130,6 +133,14 @@ function resetQuery() {
 }
 
 onMounted(load)
+/** 发放失败：银行退回/账户异常等，记录原因便于补发 */
+async function doFail(row) {
+  const { value } = await ElMessageBox.prompt('失败原因（如账户异常/银行退回）', '标记发放失败',
+    { inputValidator: (v) => (v && v.trim() ? true : '请填写失败原因') })
+  await req.post(`/fin/subsidies/records/${row.id}/fail`, { reason: value })
+  ElMessage.success('已标记失败')
+  load()
+}
 </script>
 
 <style scoped>

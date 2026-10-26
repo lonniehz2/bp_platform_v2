@@ -52,6 +52,39 @@
     <el-drawer v-model="show" title="变更详情" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
+    <el-dialog v-model="createVisible" title="从合同发起变更" width="520px">
+      <el-form :model="cf" label-width="120px">
+        <el-form-item label="合同ID" required>
+          <el-input v-model.number="cf.contractId" />
+        </el-form-item>
+        <el-form-item label="变更类型" required>
+          <el-select v-model="cf.changeType" style="width:100%">
+            <el-option label="调租" value="RENT_ADJUST" />
+            <el-option label="续租" value="RENEW" />
+            <el-option label="租期调整" value="PERIOD" />
+            <el-option label="变更承租人" value="LESSEE" />
+            <el-option label="其他" value="OTHER" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="cf.changeType === 'RENT_ADJUST' || cf.changeType === 'RENEW'"
+                      label="新月租金">
+          <el-input v-model.number="cf.newMonthlyRent" />
+        </el-form-item>
+        <el-form-item v-if="cf.changeType === 'PERIOD' || cf.changeType === 'RENEW'"
+                      label="新止租日">
+          <el-date-picker v-model="cf.newLeaseEnd" type="date" value-format="YYYY-MM-DD"
+                          style="width:100%" />
+        </el-form-item>
+        <el-form-item label="变更原因">
+          <el-input v-model="cf.changeReason" type="textarea" :rows="2" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="createVisible = false">取消</el-button>
+        <el-button type="primary" @click="doCreateChange">创建</el-button>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -104,4 +137,30 @@ function resetQuery() {
 }
 
 onMounted(load)
+const createVisible = ref(false)
+const cf = reactive({ contractId: null, changeType: 'RENT_ADJUST',
+  newMonthlyRent: null, newLeaseEnd: '', changeReason: '' })
+
+function openCreate() {
+  Object.assign(cf, { contractId: null, changeType: 'RENT_ADJUST',
+    newMonthlyRent: null, newLeaseEnd: '', changeReason: '' })
+  createVisible.value = true
+}
+
+/** 从合同发起变更（统一走 /contracts/{id}/changes） */
+async function doCreateChange() {
+  if (!cf.contractId) { ElMessage.warning('请填写合同ID'); return }
+  if (cf.changeType === 'RENT_ADJUST' && !cf.newMonthlyRent) {
+    ElMessage.warning('调租请填写新租金'); return
+  }
+  await req.post(`/contracts/${cf.contractId}/changes`, {
+    changeType: cf.changeType,
+    changeReason: cf.changeReason,
+    newMonthlyRent: cf.newMonthlyRent || null,
+    newLeaseEnd: cf.newLeaseEnd || null
+  })
+  ElMessage.success('变更单已创建，待审批')
+  createVisible.value = false
+  load()
+}
 </script>

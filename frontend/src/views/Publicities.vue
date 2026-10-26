@@ -56,8 +56,10 @@
       <el-table-column prop="publicityStatus" label="状态" width="110">
         <template #default="{ row }">{{ row.publicityStatusLabel || enumLabel('publicityStatus', row.publicityStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="120" fixed="right">
+      <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
+          <el-button link type="primary" :disabled="row.publicityStatus === 'PUBLISHED'"
+                     @click="doPublish(row)">发布</el-button>
           <el-button link @click="detail = row; show = true">详情</el-button>
         </template>
       </el-table-column>
@@ -76,8 +78,9 @@ import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { publicityApi } from '@/api/modules'
+import req from '@/api/request'
 
 const loading = ref(false)
 const rows = ref([])
@@ -141,6 +144,14 @@ function goSignFromWinner(w) {
 const router = useRouter()
 
 onMounted(load)
+/** 发布公示（发布后对外可见，进入公示期） */
+async function doPublish(row) {
+  await ElMessageBox.confirm(
+    `确认发布「${row.publicityTitle || row.publicityNo}」？发布后进入公示期。`,
+    '发布公示', { type: 'warning' })
+  await req.post(`/publicities/${row.id}/publish`)
+  ElMessage.success('已发布'); load()
+}
 </script>
 
 <style scoped>

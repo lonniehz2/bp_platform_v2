@@ -39,8 +39,9 @@
         </template>
       </el-table-column>
       <el-table-column prop="enterTime" label="入队时间" width="170" />
-      <el-table-column label="操作" width="130" fixed="right">
+      <el-table-column label="操作" width="220" fixed="right">
         <template #default="{ row }">
+          <el-button link type="danger" @click="doExit(row)">候补退出</el-button>
           <el-button link @click="detail = row; show = true">详情</el-button>
         </template>
       </el-table-column>
@@ -91,7 +92,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
 import DetailView from '@/components/DetailView.vue'
@@ -148,4 +149,13 @@ function resetQuery() {
 }
 
 onMounted(load)
+/** 候补退出：放弃轮候资格，需填原因 */
+async function doExit(row) {
+  const { value } = await ElMessageBox.prompt('退出原因（如已购商品房/迁出本市）', '候补退出',
+    { inputValidator: (v) => (v && v.trim() ? true : '请填写退出原因') })
+  await ElMessageBox.confirm('确认该候补家庭退出轮候？退出后需重新申请。', '确认',
+    { type: 'warning' })
+  await req.post(`/allocation/waiting/${row.id}/exit`, { reason: value })
+  ElMessage.success('已退出轮候'); load()
+}
 </script>

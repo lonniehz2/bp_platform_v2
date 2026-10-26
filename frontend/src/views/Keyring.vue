@@ -189,13 +189,13 @@ function resetQuery() {
 
 /** 冻结 / 解冻钥匙 */
 async function freeze(row) {
-  await req.post(/keyring//freeze)
+  await req.post(`/keyring/${row.id}/freeze`)
   ElMessage.success('已冻结')
   load()
 }
 
 async function unfreeze(row) {
-  await req.post(/keyring//unfreeze)
+  await req.post(`/keyring/${row.id}/unfreeze`)
   ElMessage.success('已解冻')
   load()
 }

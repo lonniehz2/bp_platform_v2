@@ -35,6 +35,7 @@
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
           <el-button link type="primary" @click="openReview(row)">复核</el-button>
+          <el-button link type="warning" @click="openRent(row)">调租</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -95,8 +96,9 @@ function openDetail(row) {
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
 import DetailView from '@/components/DetailView.vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { annualReviewApi } from '@/api/modules'
+import req from '@/api/request'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -144,4 +146,26 @@ async function doReview() {
 }
 
 onMounted(load)
+/** 复核后调整租金：生成合同变更单 */
+const rentVisible = ref(false)
+const rentRow = ref({})
+const rentForm = reactive({ newMonthlyRent: null, reason: '年审收入变化调租' })
+
+function openRent(row) {
+  rentRow.value = row
+  rentForm.newMonthlyRent = row.currentRent || row.monthlyRent || null
+  rentVisible.value = true
+}
+
+async function doRentChange() {
+  if (!rentForm.newMonthlyRent) {
+    ElMessage.warning('请填写新租金'); return
+  }
+  await req.post(`/annual-reviews/${rentRow.value.id}/rent-change`, {
+    newMonthlyRent: rentForm.newMonthlyRent, reason: rentForm.reason
+  })
+  ElMessage.success('已生成调租变更单')
+  rentVisible.value = false
+  load()
+}
 </script>
