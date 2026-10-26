@@ -160,6 +160,69 @@ public class FeeItemServiceImpl implements FeeItemService {
         return e;
     }
 
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public FinBillingRule updateRule(Long id, BillingRuleCreateCmd cmd) {
+        FinBillingRule e = requireRule(id);
+        if ("APPROVED".equals(e.getApproveStatus())) {
+            throw BizException.stateConflict("已审批通过的规则不可修改，请新建规则后再审批");
+        }
+        if (cmd.feeItemId() != null && !cmd.feeItemId().equals(e.getFeeItemId())) {
+            FinFeeItem item = feeItemMapper.selectById(cmd.feeItemId());
+            if (item == null) {
+                throw BizException.notFound("收费项目");
+            }
+            e.setFeeItemId(cmd.feeItemId());
+        }
+        if (cmd.effectiveStart() != null && cmd.effectiveEnd() != null
+                && !cmd.effectiveEnd().isAfter(cmd.effectiveStart())) {
+            throw BizException.paramInvalid("生效结束日必须晚于开始日");
+        }
+        if (cmd.ruleCode() != null && !cmd.ruleCode().isBlank()) {
+            e.setRuleCode(cmd.ruleCode());
+        }
+        if (cmd.ruleName() != null && !cmd.ruleName().isBlank()) {
+            e.setRuleName(cmd.ruleName());
+        }
+        e.setOrgId(cmd.orgId());
+        e.setHouseType(cmd.houseType());
+        e.setSecurityType(cmd.securityType());
+        e.setIncomeLevel(cmd.incomeLevel());
+        if (cmd.ruleType() != null && !cmd.ruleType().isBlank()) {
+            e.setRuleType(cmd.ruleType());
+        }
+        e.setPriceConfig(cmd.priceConfig());
+        if (cmd.effectiveStart() != null) {
+            e.setEffectiveStart(cmd.effectiveStart());
+        }
+        e.setEffectiveEnd(cmd.effectiveEnd());
+        if (cmd.priority() != null) {
+            e.setPriority(cmd.priority());
+        }
+        e.setUpdateTime(LocalDateTime.now());
+        ruleMapper.updateById(e);
+        return e;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteRule(Long id) {
+        FinBillingRule e = requireRule(id);
+        if ("APPROVED".equals(e.getApproveStatus())) {
+            throw BizException.stateConflict("已审批通过的规则不可删除，可改为停用");
+        }
+        ruleMapper.deleteById(id);
+    }
+
+    private FinBillingRule requireRule(Long id) {
+        FinBillingRule e = ruleMapper.selectById(id);
+        if (e == null) {
+            throw BizException.notFound("计费规则");
+        }
+        return e;
+    }
+
     @Override
     public FinBillingRule getRule(Long id) {
         FinBillingRule e = ruleMapper.selectById(id);

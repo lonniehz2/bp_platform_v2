@@ -368,6 +368,8 @@ const TYPE_OVERRIDE = {
   },
   generateType: { MANUAL: '手工出账', AUTO: '自动出账', METER: '抄表出账',
                   SHORT_RENT: '短租结算' },
+  rulesetStatus: { DRAFT: '草稿', PUBLISHED: '已发布', DISABLED: '已停用' },
+  ruleStatus: { ENABLED: '启用', DISABLED: '停用' },
   subsidyMode: { FIXED: '定额', RATIO: '按比例' },
   permType: { API: '接口', MENU: '菜单', BUTTON: '按钮', DATA: '数据' },
   valueType: { STRING: '字符串', NUMBER: '数值', JSON: 'JSON' },

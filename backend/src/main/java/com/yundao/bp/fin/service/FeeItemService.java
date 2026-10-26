@@ -25,6 +25,12 @@ public interface FeeItemService {
 
     FinBillingRule createRule(BillingRuleCreateCmd cmd);
 
+    /** 编辑计费规则；已审批通过的规则不允许改动（须新建）。 */
+    FinBillingRule updateRule(Long id, BillingRuleCreateCmd cmd);
+
+    /** 删除（逻辑删）计费规则；已审批通过的规则不可删。 */
+    void deleteRule(Long id);
+
     FinBillingRule getRule(Long id);
 
     List<FinBillingRule> listRules(Long feeItemId, String houseType);

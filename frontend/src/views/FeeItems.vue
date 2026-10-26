@@ -66,30 +66,31 @@
           <el-col :span="12"><el-form-item label="项目名称" required>
             <el-input v-model="f.itemName" data-testid="fee-name" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="费用类型" required>
-            <el-select v-model="f.itemType" style="width:100%">
-              <el-option label="租金" value="RENT" />
-              <el-option label="物业费" value="PROPERTY" />
-              <el-option label="停车费" value="PARKING" />
-              <el-option label="能耗费" value="ENERGY" />
-              <el-option label="押金" value="DEPOSIT" />
-              <el-option label="滞纳金" value="LATE_FEE" />
-              <el-option label="其他" value="OTHER" />
-            </el-select></el-form-item></el-col>
+            <div style="display:flex;gap:6px;width:100%">
+              <el-select v-model="f.itemType" style="flex:1">
+                <el-option v-for="t in feeTypes" :key="t.typeCode"
+                           :label="t.typeName" :value="t.typeCode" />
+              </el-select>
+              <el-button @click="openFeeTypes">管理</el-button>
+            </div></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="计费方式" required>
             <el-select v-model="f.calcMode" style="width:100%">
-              <el-option label="定额 FIXED" value="FIXED" />
-              <el-option label="按面积 BY_AREA" value="BY_AREA" />
-              <el-option label="按套 BY_HOUSE" value="BY_HOUSE" />
-              <el-option label="按人 BY_PERSON" value="BY_PERSON" />
-              <el-option label="按床位 BY_BED" value="BY_BED" />
-              <el-option label="按房晚 BY_NIGHT" value="BY_NIGHT" />
-              <el-option label="抄表 METER" value="METER" />
+              <el-option label="定额" value="FIXED" />
+              <el-option label="按面积" value="BY_AREA" />
+              <el-option label="按套" value="BY_HOUSE" />
+              <el-option label="按人" value="BY_PERSON" />
+              <el-option label="按床位" value="BY_BED" />
+              <el-option label="按房晚" value="BY_NIGHT" />
+              <el-option label="抄表" value="METER" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="单价" required>
             <el-input-number v-model="f.unitPrice" :min="0" :precision="2"
                              data-testid="fee-price" style="width:100%" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="计量单位">
-            <el-input v-model="f.unit" placeholder="元/㎡·月" /></el-form-item></el-col>
+            <el-select v-model="f.unit" filterable allow-create default-first-option
+                       placeholder="选择或输入" style="width:100%">
+              <el-option v-for="u in UNIT_OPTIONS" :key="u" :label="u" :value="u" />
+            </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="保障类型">
             <el-select v-model="f.securityType" style="width:100%" clearable>
               <el-option label="公租房" value="PUBLIC" />
@@ -114,32 +115,52 @@
           </el-form-item></el-col>
           <el-col :span="12"><el-form-item label="规则名称" required>
             <el-input v-model="r.ruleName" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="计费项目ID" required>
-            <el-input v-model="r.feeItemId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="计费项目" required>
+            <el-select v-model="r.feeItemId" filterable style="width:100%">
+              <el-option v-for="it in rows" :key="it.id"
+                         :label="it.itemName + '（' + it.itemCode + '）'" :value="it.id" />
+            </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="规则类型" required>
             <el-select v-model="r.ruleType" style="width:100%">
-              <el-option label="标准价 STANDARD" value="STANDARD" />
-              <el-option label="阶梯价 TIERED" value="TIERED" />
-              <el-option label="折扣 DISCOUNT" value="DISCOUNT" />
-              <el-option label="减免 EXEMPT" value="EXEMPT" />
+              <el-option label="标准价" value="STANDARD" />
+              <el-option label="阶梯价" value="TIERED" />
+              <el-option label="折扣" value="DISCOUNT" />
+              <el-option label="减免" value="EXEMPT" />
             </el-select></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="价格配置" required>
-            <div style="width:100%">
-              <div v-for="(row, i) in kvRows" :key="i"
-                   style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
-                <el-input v-model="row.k" placeholder="键，如 price / tiers"
-                          style="width:200px" :data-testid="'kv-k-' + i" />
-                <el-input v-model="row.v" placeholder="值：数字，或 JSON（对象/数组）"
-                          style="flex:1" :data-testid="'kv-v-' + i" />
-                <el-button link type="danger" @click="kvRows.splice(i, 1)">删除</el-button>
+          <el-col :span="24">
+            <el-form-item label="价格配置" required>
+              <!-- 标准价：单价 -->
+              <div v-if="r.ruleType === 'STANDARD'" style="width:100%;display:flex;gap:8px">
+                <el-input-number v-model="priceValue" :min="0" :precision="2"
+                                 style="flex:1" />
+                <span class="muted" style="line-height:32px">元（按项目计量单位）</span>
               </div>
-              <el-button size="small" @click="kvRows.push({ k: '', v: '' })"
-                         data-testid="kv-add">新增一项</el-button>
-              <div style="font-size:12px;color:#8c8c8c;margin-top:6px">
-                提交时自动组装为 JSON（数字自动识别，其余按字符串/JSON 解析）
+              <!-- 阶梯价：区间上限 + 单价 -->
+              <div v-else-if="r.ruleType === 'TIERED'" style="width:100%">
+                <div v-for="(t, i) in tiers" :key="i"
+                     style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
+                  <el-input-number v-model="t.upTo" :min="0" :precision="2"
+                                   placeholder="用量上限" style="width:170px" />
+                  <el-input-number v-model="t.price" :min="0" :precision="2"
+                                   placeholder="单价" style="width:170px" />
+                  <el-button link type="danger" @click="tiers.splice(i, 1)">删除</el-button>
+                </div>
+                <el-button size="small" @click="tiers.push({ upTo: null, price: null })">
+                  新增一档
+                </el-button>
               </div>
-            </div>
-          </el-form-item></el-col>
+              <!-- 折扣：折扣率 -->
+              <div v-else-if="r.ruleType === 'DISCOUNT'" style="width:100%;display:flex;gap:8px">
+                <el-input-number v-model="discountRatio" :min="0" :max="1" :step="0.05"
+                                 :precision="2" style="flex:1" />
+                <span class="muted" style="line-height:32px">0~1，如 0.8 表示 8 折</span>
+              </div>
+              <!-- 减免 -->
+              <div v-else style="width:100%">
+                <el-tag type="success">全额减免，无需配置价格</el-tag>
+              </div>
+            </el-form-item>
+          </el-col>
           <el-col :span="12"><el-form-item label="生效日期">
             <el-date-picker v-model="r.effectiveStart" type="date"
                             value-format="YYYY-MM-DD" style="width:100%" />
@@ -148,8 +169,12 @@
             <el-date-picker v-model="r.effectiveEnd" type="date"
                             value-format="YYYY-MM-DD" style="width:100%" />
           </el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="组织ID">
-            <el-input v-model="r.orgId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="适用组织">
+            <el-select v-model="r.orgId" filterable clearable style="width:100%"
+                       placeholder="留空=全租户通用">
+              <el-option v-for="o in orgs" :key="o.id"
+                         :label="o.orgName" :value="o.id" />
+            </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="优先级">
             <el-input-number v-model="r.priority" :min="1" style="width:100%" />
           </el-form-item></el-col>
@@ -185,16 +210,34 @@
                   style="width:230px" data-testid="rule-housetype" @keyup.enter="loadRules" />
         <el-button type="primary" @click="loadRules" data-testid="rule-search">查询</el-button>
         <el-button @click="resetRuleQuery" data-testid="rule-reset">清空</el-button>
+        <el-button type="success" @click="openRuleFromList">新增规则</el-button>
       </div>
       <el-table :data="rules" border size="small" max-height="420">
-        <el-table-column prop="ruleName" label="规则名称" min-width="140" />
-        <el-table-column prop="feeItemId" label="项目" width="150" />
-        <el-table-column prop="unitPrice" label="单价" width="100" />
-        <el-table-column prop="effectiveDate" label="生效" width="110" />
-        <el-table-column prop="approveStatus" label="审批" width="110" />
-        <el-table-column label="操作" width="110">
+        <el-table-column prop="ruleCode" label="规则编码" width="140" />
+        <el-table-column prop="ruleName" label="规则名称" min-width="130" />
+        <el-table-column label="计费项目" width="150">
+          <template #default="{ row }">{{ itemNameOf(row.feeItemId) }}</template>
+        </el-table-column>
+        <el-table-column label="价格配置" min-width="150" show-overflow-tooltip>
+          <template #default="{ row }">{{ priceText(row.priceConfig) }}</template>
+        </el-table-column>
+        <el-table-column prop="effectiveStart" label="生效" width="110" />
+        <el-table-column label="审批" width="100">
           <template #default="{ row }">
-            <el-button link type="primary" @click="approveRule(row)">审批</el-button>
+            <el-tag size="small" :type="row.approveStatus === 'APPROVED' ? 'success'
+              : (row.approveStatus === 'PENDING' ? 'warning' : 'info')">
+              {{ approveText(row.approveStatus) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="200" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" :disabled="row.approveStatus === 'APPROVED'"
+                       @click="editRule(row)">编辑</el-button>
+            <el-button link type="danger" :disabled="row.approveStatus === 'APPROVED'"
+                       @click="removeRule(row)">删除</el-button>
+            <el-button link type="success" :disabled="row.approveStatus === 'APPROVED'"
+                       @click="approveRule(row)">审批</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -222,6 +265,41 @@
     </el-dialog>
   </div>
 
+
+    <!-- 费用类型管理 -->
+    <el-dialog v-model="feeTypeVisible" title="费用类型管理" width="560px">
+      <div class="toolbar" style="margin-bottom:10px">
+        <el-input v-model="ftForm.typeCode" placeholder="编码，如 WATER" style="width:150px" />
+        <el-input v-model="ftForm.typeName" placeholder="名称，如 水费" style="width:180px" />
+        <el-button type="success" @click="saveFeeType">
+          {{ ftForm.id ? '保存修改' : '新增' }}
+        </el-button>
+        <el-button v-if="ftForm.id" @click="resetFeeTypeForm">取消编辑</el-button>
+      </div>
+      <el-table :data="feeTypes" border size="small" max-height="360">
+        <el-table-column prop="typeCode" label="编码" width="150" />
+        <el-table-column prop="typeName" label="名称" min-width="140" />
+        <el-table-column label="状态" width="90">
+          <template #default="{ row }">
+            <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">
+              {{ row.status === 'ENABLED' ? '启用' : '停用' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="150">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="editFeeType(row)">编辑</el-button>
+            <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
+                       @click="toggleFeeType(row)">
+              {{ row.status === 'ENABLED' ? '停用' : '启用' }}
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-alert type="info" :closable="false" show-icon style="margin-top:10px"
+                title="停用后新增计费项目时不再出现在下拉里，历史项目不受影响。" />
+    </el-dialog>
+
     <!-- 通用详情 -->
     <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
       <DetailView :row="dvRow" />
@@ -243,6 +321,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
 import FilterBar from '@/components/FilterBar.vue'
+import { useAuthStore } from '@/store/auth'
 
 const loading = ref(false)
 const saving = ref(false)
@@ -334,7 +413,11 @@ async function doCreate() {
   } finally { saving.value = false }
 }
 
-function openRule() { ruleCreateVisible.value = true }
+function openRule() {
+  resetRuleForm()
+  ruleVisible.value = false
+  ruleCreateVisible.value = true
+}
 
 /** 价格配置键值行 → JSON 字符串（数字优先，其次 JSON，最后字符串） */
 const kvRows = ref([{ k: 'price', v: '150.00' }])
@@ -352,18 +435,30 @@ function kvToJson() {
 }
 
 async function doCreateRule() {
-  r.priceConfig = kvToJson()
-  if (!r.ruleCode || !r.ruleName || !r.feeItemId || !r.priceConfig) {
-    ElMessage.warning('规则编码、名称、计费项目、价格配置为必填'); return
+  if (!r.ruleCode || !r.ruleName || !r.feeItemId) {
+    ElMessage.warning('规则编码、名称、计费项目为必填'); return
   }
-  try { JSON.parse(r.priceConfig) } catch (e) {
-    ElMessage.error('价格配置必须是合法 JSON'); return
+  r.priceConfig = buildPriceConfig()
+  if (r.ruleType === 'STANDARD' && (priceValue.value === null || priceValue.value === undefined)) {
+    ElMessage.warning('请填写标准价单价'); return
+  }
+  if (r.ruleType === 'DISCOUNT' && (discountRatio.value === null || discountRatio.value === undefined)) {
+    ElMessage.warning('请填写折扣比例'); return
   }
   saving.value = true
   try {
-    await req.post('/fin/billing-rules', { ...r })
-    ElMessage.success('规则已创建（待审批）')
+    if (r.id) {
+      await req.put(`/fin/billing-rules/${r.id}`, { ...r })
+      ElMessage.success('规则已保存')
+    } else {
+      await req.post('/fin/billing-rules', { ...r })
+      ElMessage.success('规则已创建（租金类需审批）')
+    }
     ruleCreateVisible.value = false
+    resetRuleForm()
+    loadRules()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '保存失败')
   } finally { saving.value = false }
 }
 
@@ -395,5 +490,143 @@ async function doPreview() {
   } finally { saving.value = false }
 }
 
-onMounted(() => { load(); loadRules() })
+onMounted(() => { load(); loadRules(); loadFeeTypes(); loadOrgs() })
+
+// ---------------- 费用类型字典 ----------------
+const feeTypes = ref([])
+const feeTypeVisible = ref(false)
+const ftForm = reactive({ id: null, typeCode: '', typeName: '', sortNo: 100 })
+
+async function loadFeeTypes() {
+  try {
+    feeTypes.value = (await req.get('/fin/fee-types', { params: { enabledOnly: true } })) || []
+  } catch (e) { feeTypes.value = [] }
+}
+
+function openFeeTypes() {
+  resetFeeTypeForm()
+  feeTypeVisible.value = true
+  loadFeeTypes()
+}
+
+function resetFeeTypeForm() {
+  Object.assign(ftForm, { id: null, typeCode: '', typeName: '', sortNo: 100 })
+}
+
+function editFeeType(row) {
+  Object.assign(ftForm, { id: row.id, typeCode: row.typeCode, typeName: row.typeName,
+    sortNo: row.sortNo || 100 })
+}
+
+async function saveFeeType() {
+  if (!ftForm.typeCode || !ftForm.typeName) {
+    ElMessage.warning('编码与名称为必填'); return
+  }
+  if (ftForm.id) {
+    await req.put(`/fin/fee-types/${ftForm.id}`, { ...ftForm })
+    ElMessage.success('已保存')
+  } else {
+    await req.post('/fin/fee-types', { ...ftForm })
+    ElMessage.success('已新增')
+  }
+  resetFeeTypeForm()
+  loadFeeTypes()
+}
+
+async function toggleFeeType(row) {
+  const enabled = row.status !== 'ENABLED'
+  await req.post(`/fin/fee-types/${row.id}/status`, { enabled })
+  ElMessage.success('已更新')
+  loadFeeTypes()
+}
+
+// ---------------- 单位 ----------------
+const UNIT_OPTIONS = ['元/㎡·月', '元/月', '元/吨', '元/度', '元/方', '元/人·月',
+  '元/床位·月', '元/晚', '元/次', '元/个·月', '%']
+
+// ---------------- 规则：项目下拉 / 价格配置 / 组织 ----------------
+const orgs = ref([])
+const priceValue = ref(null)
+const discountRatio = ref(null)
+const tiers = ref([])
+
+const APPROVE_TEXT = { PENDING: '待审批', APPROVED: '已通过', REJECTED: '已驳回' }
+function approveText(s) { return APPROVE_TEXT[s] || s || '—' }
+function itemNameOf(id) {
+  const it = rows.value.find((x) => String(x.id) === String(id))
+  return it ? it.itemName : (id || '—')
+}
+function priceText(cfg) {
+  if (!cfg) return '—'
+  try {
+    const o = JSON.parse(cfg)
+    if (o.price !== undefined) return '单价 ' + o.price
+    if (o.ratio !== undefined) return '比例 ' + o.ratio
+    if (Array.isArray(o.tiers)) return '阶梯 ' + o.tiers.length + ' 档'
+    if (o.exempt) return '全额减免'
+    return JSON.stringify(o)
+  } catch (e) { return cfg }
+}
+
+async function loadOrgs() {
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 200 } })
+    orgs.value = d.rows || []
+  } catch (e) { orgs.value = [] }
+}
+
+/** 默认组织：当前用户所属组织；没有则取第一个 */
+function defaultOrgId() {
+  const auth = useAuthStore()
+  if (auth.user && auth.user.orgId) return auth.user.orgId
+  return orgs.value.length ? orgs.value[0].id : null
+}
+
+function buildPriceConfig() {
+  if (r.ruleType === 'STANDARD') return JSON.stringify({ price: priceValue.value })
+  if (r.ruleType === 'TIERED') {
+    return JSON.stringify({ tiers: tiers.value.filter((t) => t.upTo !== null && t.price !== null) })
+  }
+  if (r.ruleType === 'DISCOUNT') return JSON.stringify({ ratio: discountRatio.value })
+  return JSON.stringify({ exempt: true })
+}
+
+function resetRuleForm() {
+  Object.assign(r, { id: null, ruleCode: '', ruleName: '', feeItemId: null,
+    ruleType: 'STANDARD', effectiveStart: '', effectiveEnd: '',
+    orgId: defaultOrgId(), priority: 10, securityType: '', incomeLevel: '' })
+  priceValue.value = null
+  discountRatio.value = null
+  tiers.value = [{ upTo: null, price: null }]
+}
+
+function openRuleFromList() {
+  resetRuleForm()
+  ruleVisible.value = false
+  ruleCreateVisible.value = true
+}
+
+function editRule(row) {
+  resetRuleForm()
+  Object.assign(r, { id: row.id, ruleCode: row.ruleCode, ruleName: row.ruleName,
+    feeItemId: row.feeItemId, ruleType: row.ruleType || 'STANDARD',
+    effectiveStart: row.effectiveStart || '', effectiveEnd: row.effectiveEnd || '',
+    orgId: row.orgId || defaultOrgId(), priority: row.priority || 10,
+    securityType: row.securityType || '', incomeLevel: row.incomeLevel || '' })
+  try {
+    const o = JSON.parse(row.priceConfig || '{}')
+    if (o.price !== undefined) priceValue.value = o.price
+    if (o.ratio !== undefined) discountRatio.value = o.ratio
+    if (Array.isArray(o.tiers) && o.tiers.length) tiers.value = o.tiers
+  } catch (e) { /* 忽略 */ }
+  ruleVisible.value = false
+  ruleCreateVisible.value = true
+}
+
+async function removeRule(row) {
+  await ElMessageBox.confirm(`确认删除规则「${row.ruleName}」？`, '删除', { type: 'warning' })
+  await req.delete(`/fin/billing-rules/${row.id}`)
+  ElMessage.success('已删除')
+  loadRules()
+}
 </script>

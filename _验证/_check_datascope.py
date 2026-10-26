@@ -33,6 +33,7 @@ IGNORE_CLASSES = {
     'ConfigServiceImpl', 'DictServiceImpl', 'FileServiceImpl',
     'MetricServiceImpl', 'ScreenServiceImpl', 'RuleEngineServiceImpl',
     'WebhookServiceImpl', 'SpaceServiceImpl', 'SyncLogServiceImpl',
+    'FeeTypeServiceImpl',  # 费用类型：租户级字典
 }
 
 SCOPE_CALL = re.compile(r'\bapply\w*Scope\s*\(|dataScopeService\s*\.\s*current\s*\(')

@@ -75,8 +75,12 @@
                 row-key="id" @current-change="onPickRuleset">
         <el-table-column prop="rulesetCode" label="规则集编码" width="170" />
         <el-table-column prop="rulesetName" label="名称" min-width="160" />
-        <el-table-column prop="domain" label="域" width="100" />
-        <el-table-column prop="scenario" label="场景" width="130" />
+        <el-table-column label="域" width="100">
+          <template #default="{ row }">{{ domainText(row.domain) }}</template>
+        </el-table-column>
+        <el-table-column label="场景" width="130">
+          <template #default="{ row }">{{ scenarioText(row.scenario) }}</template>
+        </el-table-column>
         <el-table-column prop="rulesetVersion" label="版本" width="80" />
         <el-table-column prop="rulesetStatus" label="状态" width="110">
           <template #default="{ row }">
@@ -423,6 +427,20 @@ const rsStatus = ref('')
 const rulesetVisible = ref(false)
 const ruleVisible = ref(false)
 const rs = reactive({ code: '', name: '', domain: 'ALERT', scenario: '', description: '' })
+
+// 规则集的域与场景（后端存英文编码，这里展示中文）
+const DOMAIN_LABEL = {
+  ALERT: '告警', BILLING: '计费', FINANCE: '财务', CREDIT: '信用',
+  IOT: '物联', SECURITY: '安全', CONTRACT: '合同'
+}
+const SCENARIO_LABEL = {
+  ARREAR: '欠费', OVERDUE: '逾期', RENEWAL: '续租', CHECKIN: '入住',
+  CHECKOUT: '退租', BILLING: '出账', CREDIT: '信用评估', ALERT: '告警',
+  CONTRACT: '合同', PAYMENT: '缴费', X: '默认'
+}
+function domainText(v) { return DOMAIN_LABEL[v] || v || '—' }
+function scenarioText(v) { return SCENARIO_LABEL[v] || v || '—' }
+
 const RULE_FIELDS = [
   { key: 'overdueDays', label: '逾期天数' },
   { key: 'amount', label: '金额（元）' },
