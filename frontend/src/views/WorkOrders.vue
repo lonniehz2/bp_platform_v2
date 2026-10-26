@@ -117,13 +117,16 @@
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="170" />
-      <el-table-column label="操作" width="270" fixed="right">
+      <el-table-column label="操作" width="420" fixed="right">
         <template #default="{ row }">
           <el-button v-if="row.orderStatus === 'PENDING'" link type="warning"
                      @click="autoAssign(row)" data-testid="wo-autoassign">自动派单</el-button>
           <el-button link type="primary" @click="act(row, 'accept')">接单</el-button>
           <el-button link type="primary" @click="act(row, 'start')">开始</el-button>
           <el-button link type="success" @click="finish(row)">完成</el-button>
+          <el-button link type="success" @click="closeOrder(row)">关单</el-button>
+          <el-button link type="danger" @click="cancelOrder(row)">取消</el-button>
+          <el-button link type="warning" @click="rejectOrder(row)">退回</el-button>
           <el-button link @click="logs(row)">日志</el-button>
         </template>
       </el-table-column>
@@ -148,7 +151,7 @@
 <script setup>
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { workOrderApi } from '@/api/modules'
 import req from '@/api/request'
 
@@ -231,6 +234,21 @@ async function finish(row) {
   ElMessage.success('工单已完成')
   load()
 }
+/** ActionCmd{operatorId, operatorName, content} */
+async function orderAction(row, action, label, placeholder) {
+  const { value } = await ElMessageBox.prompt(placeholder || '处理说明（可空）', label,
+    { inputValue: '' })
+  await workOrderApi[action](row.id, {
+    operatorId: 1, operatorName: '管理员', content: value || label
+  })
+  ElMessage.success(label + '成功')
+  load()
+}
+
+function closeOrder(row) { return orderAction(row, 'close', '关单', '关单说明（可空）') }
+function cancelOrder(row) { return orderAction(row, 'cancel', '取消', '取消原因') }
+function rejectOrder(row) { return orderAction(row, 'reject', '退回', '退回原因') }
+
 async function logs(row) {
   logList.value = await workOrderApi.logs(row.id)
   logVisible.value = true

@@ -1,7 +1,7 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">告警与规则</h3>
+      <h3 style="margin:0">告警处理</h3>
       <div class="spacer" />
       <el-input v-model="keyword" placeholder="关键字" clearable style="width:160px"
                 @keyup.enter="reload" />

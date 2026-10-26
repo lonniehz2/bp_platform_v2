@@ -397,6 +397,18 @@ const TYPE_OVERRIDE = {
   },
   grantLevel: {
     OWNERSHIP: '产权级', MANAGEMENT: '管理级', USAGE: '使用级', VISIT: '访客级'
+  },
+  // 欠费处置：actionType 与催缴通知同名但取值不同，用独立键区分
+  arrearsActionType: {
+    NOTIFY: '通知催缴', FREEZE: '冻结权限', UNFREEZE: '解冻',
+    RESTRICT: '限制续租', EXPIRE: '到期不续', LEGAL: '司法程序'
+  },
+  arrearsActionStatus: {
+    PENDING: '待执行', EXECUTED: '已执行', REVOKED: '已撤销', FAILED: '执行失败'
+  },
+  freezeScope: {
+    ALL: '全部（含大门）', ROOM_LOCK: '仅房间门锁',
+    EXCLUDE_MAIN_DOOR: '仅门锁（不停大门）'
   }
 }
 

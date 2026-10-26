@@ -55,14 +55,18 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="424" fixed="right">
+      <el-table-column label="操作" width="560" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
+          <el-button link type="primary" @click="doSubmit(row)">提交</el-button>
           <el-button link type="primary" @click="approve(row)">审批</el-button>
+          <el-button link type="danger" @click="doReject(row)">驳回</el-button>
+          <el-button link @click="doCancel(row)">取消</el-button>
           <el-button link @click="openInspect(row)">查验</el-button>
           <el-button link type="warning" @click="openSettle(row)">结算</el-button>
           <el-button link type="danger" @click="openEnforce(row)">强制腾退</el-button>
           <el-button link type="success" @click="openRelease(row)">释放房源</el-button>
+          <el-button link type="success" @click="doComplete(row)">办结</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -263,6 +267,33 @@ async function doCreate() {
     ElMessage.success('退租单已创建')
     createVisible.value = false; load()
   } finally { saving.value = false }
+}
+
+async function doSubmit(row) {
+  await ElMessageBox.confirm('确认提交该退租申请进入审批？', '提交', { type: 'warning' })
+  await terminationApi.submit(row.id)
+  ElMessage.success('已提交'); load()
+}
+
+async function doReject(row) {
+  const { value } = await ElMessageBox.prompt('驳回原因', '驳回退租申请',
+    { inputValidator: (v) => (v && v.trim() ? true : '请填写驳回原因') })
+  await terminationApi.reject(row.id, value)
+  ElMessage.success('已驳回'); load()
+}
+
+async function doCancel(row) {
+  const { value } = await ElMessageBox.prompt('取消原因', '取消退租申请',
+    { inputPlaceholder: '必填', inputValidator: (v) => (v && v.trim() ? true : '请填写取消原因') })
+  await terminationApi.cancel(row.id, value)
+  ElMessage.success('已取消'); load()
+}
+
+async function doComplete(row) {
+  const { value } = await ElMessageBox.prompt('实际退房日期（YYYY-MM-DD，可空）', '办结退租单',
+    { inputValue: new Date().toISOString().slice(0, 10) })
+  await terminationApi.complete(row.id, value || null)
+  ElMessage.success('已办结'); load()
 }
 
 async function approve(row) {

@@ -171,6 +171,9 @@ export const workOrderApi = {
   accept: (id) => req.post(`/workorders/${id}/accept`),
   start: (id) => req.post(`/workorders/${id}/start`),
   finish: (id, data) => req.post(`/workorders/${id}/finish`, data),
+  close: (id, data) => req.post(`/workorders/${id}/close`, data),
+  cancel: (id, data) => req.post(`/workorders/${id}/cancel`, data),
+  reject: (id, data) => req.post(`/workorders/${id}/reject`, data),
   logs: (id) => req.get(`/workorders/${id}/logs`)
 }
 
@@ -280,7 +283,12 @@ export const terminationApi = {
   page: (params) => req.get('/terminations', { params }),
   get: (id) => req.get(`/terminations/${id}`),
   create: (data) => req.post('/terminations', data),
-  approve: (id, data) => req.post(`/terminations/${id}/approve`, data)
+  submit: (id) => req.post(`/terminations/${id}/submit`),
+  approve: (id, data) => req.post(`/terminations/${id}/approve`, data),
+  reject: (id, reason) => req.post(`/terminations/${id}/reject`, { reason }),
+  cancel: (id, reason) => req.post(`/terminations/${id}/cancel`, { reason }),
+  complete: (id, actualExitDate) =>
+    req.post(`/terminations/${id}/complete`, { actualExitDate })
 }
 
 export const appealApi = {

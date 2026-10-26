@@ -113,7 +113,7 @@ export const menuRoutes = [
     path: '/alerts',
     name: 'alerts',
     component: () => import('@/views/Alerts.vue'),
-    meta: { title: '告警规则', icon: 'Warning', group: '服务与监督' }
+    meta: { title: '告警处理', icon: 'Warning', group: '服务与监督' }
   },
   {
     path: '/keyring',

@@ -4,6 +4,7 @@
 以模块形式被 _check_journeys.py 导入调用，复用其 call/login/step。
 """
 from datetime import date, timedelta
+import time
 
 
 def run_edge_journeys(env):
@@ -238,9 +239,16 @@ def run_edge_journeys(env):
     tid = task.get('id')
     step('旅程12', '发起监管报送', st == 200 and tid, (rr or {}).get('message', '')[:70])
     if tid:
-        st, rl = call('/gov/reports?pageNum=1&pageSize=5', 'GET', None, admin)
-        step('旅程12', '报送任务可查询', st == 200 and int((data((st, rl)) or {}).get('total') or 0) >= 1,
-             '共 %s 条' % (data((st, rl)) or {}).get('total'))
+        # 刚发起报送时列表偶发读不到（时序/连接复用），最多重试 5 次
+        st, rl, total_n = 0, {}, 0
+        for _attempt in range(5):
+            st, rl = call('/gov/reports?pageNum=1&pageSize=5', 'GET', None, admin)
+            total_n = int((data((st, rl)) or {}).get('total') or 0)
+            if st == 200 and total_n >= 1:
+                break
+            time.sleep(1.5)
+        step('旅程12', '报送任务可查询', st == 200 and total_n >= 1,
+             '共 %s 条' % total_n)
         st, rd = call('/gov/reports/%s/details' % tid, 'GET', None, admin)
         details = data((st, rd)) or []
         step('旅程12', '报送明细已生成', st == 200 and len(details) > 0,

@@ -133,6 +133,36 @@ dup_bill = cur.fetchall()
 report('抄表读数共用同一账单', dup_bill,
        lambda r: '账单 %s 被 %d 条读数引用' % (r[0], r[1]))
 
+# ---------- 6) 悬空引用 ----------
+DANGLING = [
+    ('合同→房源', """select c.id, c.contract_no from bp_biz_contract c
+        left join bp_asset_house h on h.id=c.house_id
+        where c.house_id is not null and h.id is null limit 200"""),
+    ('合同→组织', """select c.id, c.contract_no from bp_biz_contract c
+        left join bp_iam_org o on o.id=c.org_id
+        where c.org_id is not null and o.id is null limit 200"""),
+    ('合同→承租人', """select c.id, c.contract_no from bp_biz_contract c
+        left join bp_person p on p.id=c.lessee_person_id
+        where c.lessee_person_id is not null and p.id is null limit 200"""),
+    ('申请→组织', """select a.id, a.apply_no from bp_biz_application a
+        left join bp_iam_org o on o.id=a.org_id
+        where a.org_id is not null and o.id is null limit 200"""),
+    ('换房→原合同', """select e.id, e.exchange_no from bp_biz_exchange e
+        left join bp_biz_contract c on c.id=e.old_contract_id
+        where e.old_contract_id is not null and c.id is null limit 200"""),
+    ('账单→合同', """select b.id, b.bill_no from bp_fin_bill b
+        left join bp_biz_contract c on c.id=b.contract_id
+        where b.contract_id is not null and c.id is null limit 200"""),
+]
+for label, sql in DANGLING:
+    try:
+        cur.execute(sql)
+        dangling = cur.fetchall()
+    except Exception:
+        continue
+    report('悬空引用 · ' + label, dangling,
+           lambda r: '记录 %s 指向不存在的记录' % (r[1] or r[0]))
+
 # ---------- 汇总 ----------
 total = sum(n for _, n in issues)
 print('\n' + '=' * 52)
