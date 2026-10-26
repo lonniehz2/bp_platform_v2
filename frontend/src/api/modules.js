@@ -200,6 +200,9 @@ export const rptApi = {
   reports: (params) => req.get('/rpt/reports', { params }),
   query: (data) => req.post('/rpt/reports/query', data),
   export: (data) => req.post('/rpt/exports', data),
+  tasks: (params) => req.get('/rpt/exports', { params }),
+  task: (id) => req.get(`/rpt/exports/${id}`),
+  runPending: () => req.post('/rpt/exports/run-pending'),
   taskContent: (id) => req.get(`/rpt/exports/${id}/content`),
   // 下载导出文件：必须以 blob 接收，否则拦截器会把二进制当 JSON 解析
   downloadTask: (id) => req.get(`/rpt/exports/${id}/download`, { responseType: 'blob' }),

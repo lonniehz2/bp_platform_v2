@@ -86,8 +86,8 @@ public class WebhookServiceImpl implements WebhookService {
 
     @Override
     public List<OpenWebhook> list() {
+        // 返回全部（含停用）：停用的订阅仍需在界面可见并可重新启用
         return hookMapper.selectList(new LambdaQueryWrapper<OpenWebhook>()
-                .eq(OpenWebhook::getHookStatus, "ENABLED")
                 .orderByDesc(OpenWebhook::getId));
     }
 
