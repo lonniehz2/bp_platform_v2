@@ -58,10 +58,14 @@ if FIX and dup_sign:
     print('   → 已作废 %d 份重复合同' % fixed)
 
 # ---------- 2) 超收 ----------
+# 超收 = 累计已收 > 应收总额（bill_amount - 减免 + 滞纳金 - 豁免）
+# 注意：不能与 payable_amount（剩余应缴）比较，否则已缴清账单会被误判
 cur.execute("""
     select id, bill_no, payable_amount, paid_amount
     from bp_fin_bill
-    where coalesce(paid_amount,0) > coalesce(payable_amount,0) + 0.01
+    where coalesce(paid_amount,0) > (coalesce(bill_amount,0)
+          - coalesce(discount_amount,0) + coalesce(late_fee,0)
+          - coalesce(waived_amount,0)) + 0.01
       and coalesce(is_deleted,0)=0
 """)
 overpaid = cur.fetchall()

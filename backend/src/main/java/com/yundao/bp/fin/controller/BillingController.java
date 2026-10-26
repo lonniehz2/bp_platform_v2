@@ -128,12 +128,14 @@ public class BillingController {
             java.math.BigDecimal receivable = java.math.BigDecimal.ZERO;
             java.math.BigDecimal received = java.math.BigDecimal.ZERO;
             for (com.yundao.bp.fin.entity.FinBill b : list) {
-                if (b.getPayableAmount() != null) {
-                    receivable = receivable.add(b.getPayableAmount());
-                }
-                if (b.getPaidAmount() != null) {
-                    received = received.add(b.getPaidAmount());
-                }
+                // 应收 = 账单金额 - 减免 + 滞纳金 - 豁免（不能用 payableAmount，
+                // 它是「剩余应缴」，已缴清账单的 payable 为 0，会把应收算成 0）
+                java.math.BigDecimal due = zero(b.getBillAmount())
+                        .subtract(zero(b.getDiscountAmount()))
+                        .add(zero(b.getLateFee()))
+                        .subtract(zero(b.getWaivedAmount()));
+                receivable = receivable.add(due);
+                received = received.add(zero(b.getPaidAmount()));
             }
             java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
             m.put("month", period);
@@ -180,5 +182,9 @@ public class BillingController {
     }
 
     public record AllocateCmd(Long billId, BigDecimal amount) {
+    }
+
+    private static java.math.BigDecimal zero(java.math.BigDecimal v) {
+        return v == null ? java.math.BigDecimal.ZERO : v;
     }
 }
