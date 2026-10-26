@@ -324,8 +324,8 @@ public class HouseServiceImpl implements HouseService {
             int lineNo = 0;
             while ((line = br.readLine()) != null) {
                 lineNo++;
-                if (line.isBlank()) {
-                    continue;
+                if (line.isBlank() || line.startsWith("#") || line.startsWith("\ufeff#")) {
+                    continue;   // 空行 / 以 # 开头的说明行
                 }
                 if (lineNo == 1 && isHeaderLine(line)) {
                     continue;   // 表头（英文或中文）
@@ -378,20 +378,24 @@ public class HouseServiceImpl implements HouseService {
                     e.setSpaceId(sp.getId());
                     e.setHouseCode(houseCode);
                     e.setHouseName(houseName);
-                    e.setHouseType(houseType.isBlank()
-                            ? "PUBLIC_RENTAL" : codeOf("houseType", houseType));
-                    e.setUseType(c.length > 5 && !c[5].isBlank()
-                            ? codeOf("useType", c[5].trim()) : "CIVIL");
+                    String typeCode = houseType.isBlank()
+                            ? "PUBLIC_RENTAL" : requireEnum("houseType", houseType);
+                    String useCode = c.length > 5 && !c[5].isBlank()
+                            ? requireEnum("useType", c[5].trim()) : "CIVIL";
+                    String unitCode = c.length > 8 && !c[8].isBlank()
+                            ? requireEnum("rentUnit", c[8].trim()) : "AREA_MONTH";
+                    String statusCode = c.length > 9 && !c[9].isBlank()
+                            ? requireEnum("houseStatus", c[9].trim()) : "VACANT";
+                    e.setHouseType(typeCode);
+                    e.setUseType(useCode);
                     if (c.length > 6 && !c[6].isBlank()) {
                         e.setArea(new java.math.BigDecimal(c[6].trim()));
                     }
                     if (c.length > 7 && !c[7].isBlank()) {
                         e.setRentStandard(new java.math.BigDecimal(c[7].trim()));
                     }
-                    e.setRentUnit(c.length > 8 && !c[8].isBlank()
-                            ? codeOf("rentUnit", c[8].trim()) : "AREA_MONTH");
-                    e.setHouseStatus(c.length > 9 && !c[9].isBlank()
-                            ? codeOf("houseStatus", c[9].trim()) : "VACANT");
+                    e.setRentUnit(unitCode);
+                    e.setHouseStatus(statusCode);
                     e.setCurrentCapacity(0);
                     e.setIsDeleted(0);
                     e.setCreateTime(java.time.LocalDateTime.now());
@@ -428,6 +432,70 @@ public class HouseServiceImpl implements HouseService {
      * 中文枚举值 → 代码；已是英文码则原样返回（大小写不敏感）。
      * 导入模板给业务人员用中文，接口/历史文件仍兼容英文码。
      */
+
+    /** 各枚举字段的允许值（中文标签 → 代码），用于导入校验与错误提示。 */
+    private static final java.util.Map<String, java.util.Map<String, String>> IMPORT_ENUMS =
+            importEnumTable();
+
+    private static java.util.Map<String, java.util.Map<String, String>> importEnumTable() {
+        java.util.Map<String, java.util.Map<String, String>> all = new java.util.HashMap<>();
+        all.put("houseType", java.util.Map.ofEntries(
+                java.util.Map.entry("公租房", "PUBLIC_RENTAL"),
+                java.util.Map.entry("保障性租赁住房", "AFFORDABLE_RENTAL"),
+                java.util.Map.entry("人才公寓", "TALENT"),
+                java.util.Map.entry("公寓", "APARTMENT"),
+                java.util.Map.entry("宿舍", "DORMITORY"),
+                java.util.Map.entry("酒店民宿", "HOTEL"),
+                java.util.Map.entry("酒店", "HOTEL"),
+                java.util.Map.entry("民宿", "HOTEL"),
+                java.util.Map.entry("出租房", "RENTAL")));
+        all.put("useType", java.util.Map.of(
+                "民用", "CIVIL", "商用", "COMMERCIAL"));
+        all.put("rentUnit", java.util.Map.ofEntries(
+                java.util.Map.entry("元/㎡·月", "AREA_MONTH"),
+                java.util.Map.entry("元/平米·月", "AREA_MONTH"),
+                java.util.Map.entry("元/套·月", "HOUSE_MONTH"),
+                java.util.Map.entry("元/床·月", "BED_MONTH"),
+                java.util.Map.entry("元/套·夜", "HOUSE_NIGHT"),
+                java.util.Map.entry("元/床·夜", "BED_NIGHT")));
+        all.put("houseStatus", java.util.Map.ofEntries(
+                java.util.Map.entry("空置", "VACANT"),
+                java.util.Map.entry("可租", "VACANT"),
+                java.util.Map.entry("待配租", "PENDING_ALLOC"),
+                java.util.Map.entry("已配租", "ALLOCATED"),
+                java.util.Map.entry("已出租", "OCCUPIED"),
+                java.util.Map.entry("维修中", "REPAIR"),
+                java.util.Map.entry("锁定", "LOCKED")));
+        return all;
+    }
+
+    private static final java.util.Map<String, String> FIELD_LABEL = java.util.Map.of(
+            "houseType", "房源类型", "useType", "用途",
+            "rentUnit", "计价单位", "houseStatus", "房源状态");
+
+    /**
+     * 严格解析枚举：中文标签或英文代码均可；非法值直接抛出可读错误。
+     * 错误信息带上可选值，便于用户对照模板修正。
+     */
+    private String requireEnum(String field, String raw) {
+        String v = raw == null ? "" : raw.trim();
+        java.util.Map<String, String> map = IMPORT_ENUMS.get(field);
+        String code = map == null ? null : map.get(v);
+        if (code == null && !v.isBlank()) {
+            String up = v.toUpperCase().replace(' ', '_');
+            if (map != null && map.containsValue(up)) {
+                code = up;
+            }
+        }
+        if (code == null) {
+            String allowed = map == null ? "" : String.join(" / ", map.keySet());
+            throw com.yundao.bp.common.exception.BizException.paramInvalid(
+                    FIELD_LABEL.getOrDefault(field, field) + "不合法：" + v
+                            + "（可选：" + allowed + "）");
+        }
+        return code;
+    }
+
     private String codeOf(String field, String value) {
         if (value == null || value.isBlank()) {
             return value;
