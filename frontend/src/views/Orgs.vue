@@ -88,11 +88,11 @@
           </el-select></el-form-item>
         <el-form-item label="标准地址">
           <el-cascader v-model="regionPath" :props="regionProps" clearable filterable
-                       placeholder="省 / 地市 / 区县 / 街道乡镇（点击逐级选择）"
+                       placeholder="省 / 地市 / 区县 / 街道 / 社区（点击逐级选择）"
                        style="width:100%" @change="onRegionChange" />
           <div class="muted" style="font-size:12px;margin-top:4px">
-            数据来源：国家统计局五级行政区划（已载入省/市/区县/街道共
-            {{ regionCount }} 条）
+            数据来源：国家统计局五级行政区划（省/市/区县/街道/社区，共
+            {{ regionCount }}）
           </div>
         </el-form-item>
         <el-form-item label="社区/村">
@@ -102,7 +102,7 @@
             <el-option v-for="c in communityOptions" :key="c" :label="c" :value="c" />
           </el-select>
           <div class="muted" style="font-size:12px;margin-top:4px">
-            区划库为省/市/区县/街道四级；社区/村请从下拉选择已录入社区，或直接输入新名称
+            在标准地址里选到第五级会自动填入；也可在此手工输入或从历史社区中选择
           </div>
         </el-form-item>
         <el-form-item label="详细地址">
@@ -142,7 +142,7 @@
             当前：{{ editAddrText }}
           </div>
           <el-cascader v-model="editRegionPath" :props="regionProps" clearable filterable
-                       placeholder="如需修改，请重新逐级选择"
+                       placeholder="如需修改，请重新逐级选择（省/市/区县/街道/社区）"
                        style="width:100%" @change="onEditRegionChange" />
         </el-form-item>
         <el-form-item label="社区/村">
@@ -190,7 +190,7 @@ const query = reactive({ pageNum: 1, pageSize: 20 })
 
 /** 五级行政区划级联（懒加载，逐级请求 /sys/regions/children） */
 const regionPath = ref([])
-const regionCount = ref('31 万+')
+const regionCount = ref('约 66 万条')
 const regionProps = {
   lazy: true,
   value: 'code',
@@ -237,18 +237,20 @@ function onRegionChange(codes) {
   if (!codes || !codes.length) {
     f.province = ''; f.city = ''; f.district = ''; f.street = ''
     f.provinceCode = ''; f.cityCode = ''; f.districtCode = ''; f.streetCode = ''
+    f.communityCode = ''
     communityOptions.value = []
     return
   }
-  // 代码逐级落到表单，供后端保存（第五级社区允许手填，故不存代码）
+  // 代码逐级落到表单（第五级社区也有编码，一并保存）
   f.provinceCode = codes[0] || ''
   f.cityCode = codes[1] || ''
   f.districtCode = codes[2] || ''
   f.streetCode = codes[3] || ''
+  f.communityCode = codes[4] || ''
   if (f.streetCode) {
     loadCommunities(f.streetCode)
   }
-  // codes 是逐级代码，按顺序映射到 省/市/区县/街道
+  // codes 是逐级代码，按顺序映射到 省/市/区县/街道/社区
   req.get('/sys/regions/path', { params: { code: codes[codes.length - 1] } })
     .then((path) => {
       const names = (path || []).map((x) => x.name)
@@ -256,6 +258,9 @@ function onRegionChange(codes) {
       f.city = names[1] || ''
       f.district = names[2] || ''
       f.street = names[3] || ''
+      if (names[4]) {
+        f.community = names[4]
+      }
     })
     .catch(() => { /* 忽略，保留已填名称 */ })
 }
