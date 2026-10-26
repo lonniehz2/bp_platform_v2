@@ -408,6 +408,19 @@ const bedRent = ref(300)
 const bedArea = ref(8)
 const spaceTree = ref([])
 
+/** 朝向：与后端枚举一致（EnumLabels 已配中文） */
+const ORIENTATIONS = [
+  { value: 'SOUTH', label: '朝南' },
+  { value: 'NORTH', label: '朝北' },
+  { value: 'EAST', label: '朝东' },
+  { value: 'WEST', label: '朝西' },
+  { value: 'SOUTHEAST', label: '东南' },
+  { value: 'SOUTHWEST', label: '西南' },
+  { value: 'NORTHEAST', label: '东北' },
+  { value: 'NORTHWEST', label: '西北' },
+  { value: 'NORTH_SOUTH', label: '南北通透' }
+]
+
 async function openBeds() {
   bedVisible.value = true
   bedRows.value = []
