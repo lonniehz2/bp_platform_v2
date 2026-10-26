@@ -20,11 +20,21 @@
     <div class="panel">
       <div class="panel-title">{{ activeGroup }}</div>
       <el-menu :default-active="$route.path" router class="panel-menu">
-        <el-menu-item v-for="m in activeItems" :key="m.path" :index="m.path">
-          <span>{{ m.meta.title }}</span>
-          <el-badge v-if="m.path === '/todos' && todo.total > 0" :value="todo.total"
-                    :max="99" style="margin-left:8px" />
-        </el-menu-item>
+        <template v-for="sec in activeSections" :key="sec.title || 'all'">
+          <div v-if="sec.title" class="sub-group">{{ sec.title }}</div>
+          <el-menu-item v-for="m in sec.items" :key="m.path" :index="m.path"
+                        :disabled="m.disabled">
+            <el-tooltip :content="m.disabled ? '未授权：请联系管理员' : (m.desc || m.meta.title)"
+                        placement="right" :show-after="400">
+              <span class="mi-label">
+                {{ m.meta.title }}
+                <el-icon v-if="m.disabled" class="lock"><Lock /></el-icon>
+              </span>
+            </el-tooltip>
+            <el-badge v-if="badgeOf(m) > 0" :value="badgeOf(m)" :max="99"
+                      class="mi-badge" />
+          </el-menu-item>
+        </template>
       </el-menu>
     </div>
 
@@ -60,7 +70,9 @@ import { useAuthStore } from '@/store/auth'
 import { useMenu } from './useMenu'
 import { useTodoStore } from '@/store/todo'
 import StyleSwitch from './StyleSwitch.vue'
-import { QuestionFilled } from '@element-plus/icons-vue'
+import { sectionForRoute } from '@/content/help'
+import { QuestionFilled, Lock } from '@element-plus/icons-vue'
+import { useMenuBadges } from './useMenuBadges'
 
 const route = useRoute()
 const router = useRouter()
@@ -69,9 +81,18 @@ const { groups, titleOf } = useMenu()
 const todo = useTodoStore()
 
 const activeGroup = ref(groups.value[0]?.name || '')
-const activeItems = computed(() =>
-  groups.value.find((g) => g.name === activeGroup.value)?.items
-  || groups.value[0]?.items || [])
+const activeSections = computed(() => {
+  const g = groups.value.find((x) => x.name === activeGroup.value) || groups.value[0]
+  return g?.sections || []
+})
+
+// 角标：待办/逾期账单/待执行催缴/待处理告警/待派单
+const { countOf: badgeCount } = useMenuBadges()
+function badgeOf(m) {
+  const key = m.badgeKey
+  if (!key) return 0
+  return badgeCount(key)
+}
 
 function pickGroup(name) {
   activeGroup.value = name
@@ -103,7 +124,8 @@ function openScreen() {
 }
 
 function toHelp() {
-  router.push('/help')
+  // 带当前页对应的帮助章节，省去用户在大纲里找
+  router.push({ path: '/help', query: { sec: sectionForRoute(route.path) } })
 }
 
 async function logout() {
@@ -114,6 +136,17 @@ async function logout() {
 </script>
 
 <style scoped>
+.sub-group {
+  margin: 10px 0 4px;
+  padding: 0 18px;
+  font-size: 11px;
+  color: #a8abb2;
+  letter-spacing: 0.5px;
+}
+.mi-label { display: inline-flex; align-items: center; gap: 4px; }
+.mi-label .lock { font-size: 12px; color: #c0c4cc; }
+.mi-badge { margin-left: auto; }
+
 .layout { height: 100%; }
 .rail {
   width: 76px; flex: 0 0 76px; background: #fff;

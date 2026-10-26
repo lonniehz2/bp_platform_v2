@@ -44,12 +44,12 @@ export const HELP_SECTIONS = [
           '启用 / 停用：状态可切换的页面，操作列有「停用」或「启用」'
         ]
       },
-      { type: 'note', text: '看不到某个菜单，通常是角色未分配对应权限。联系管理员在「系统与集成 → 用户与权限」中授权。' }
+      { type: 'note', text: '看不到某个菜单，通常是角色未分配对应权限。联系管理员在「系统与数据 → 用户与权限」中授权。' }
     ]
   },
   {
     id: 'overview',
-    title: '二、运营总览',
+    title: '二、工作台',
     blocks: [
       { type: 'h3', text: '2.1 运营驾驶舱' },
       {
@@ -73,12 +73,12 @@ export const HELP_SECTIONS = [
   },
   {
     id: 'person',
-    title: '三、保障对象',
+    title: '三、保障与资格',
     blocks: [
       { type: 'h3', text: '3.1 人员档案' },
       {
         type: 'ol', items: [
-          '进入「保障对象 → 人员档案」。',
+          '进入「保障与资格 → 人员档案」。',
           '点击「新增人员」，填写姓名、身份证号、手机号、所属组织等，保存。',
           '新人员在列表可见，可「编辑」「改状态」「实名核验」「保障档案」「删除」。'
         ]
@@ -105,7 +105,7 @@ export const HELP_SECTIONS = [
   },
   {
     id: 'apply',
-    title: '四、资格准入',
+    title: '四、申请与配租',
     blocks: [
       { type: 'h3', text: '4.1 申请与审核（四级审批）' },
       {
@@ -140,7 +140,7 @@ export const HELP_SECTIONS = [
   },
   {
     id: 'contract',
-    title: '五、合同管理',
+    title: '五、合同与租赁',
     blocks: [
       { type: 'h3', text: '5.1 签订合同' },
       {
@@ -168,7 +168,7 @@ export const HELP_SECTIONS = [
   },
   {
     id: 'finance',
-    title: '六、账务收费',
+    title: '六、收费与账务',
     blocks: [
       { type: 'h3', text: '6.1 计费项目' },
       { type: 'p', text: '维护租金、物业费、水电燃气等收费项与单价；单价用于抄表出账与批量出账计算。' },
@@ -217,7 +217,7 @@ export const HELP_SECTIONS = [
   },
   {
     id: 'asset',
-    title: '七、资产与设备',
+    title: '七、房源与设备',
     blocks: [
       { type: 'h3', text: '7.1 空间层级' },
       { type: 'p', text: '按「小区 → 楼栋 → 单元 → 楼层 → 房间」维护空间树，支持逐级新增、编辑与停用。' },
@@ -270,7 +270,7 @@ export const HELP_SECTIONS = [
   },
   {
     id: 'system',
-    title: '九、系统与集成',
+    title: '九、系统与数据',
     blocks: [
       { type: 'h3', text: '9.1 组织机构' },
       {
@@ -373,3 +373,35 @@ export const HELP_SECTIONS = [
     ]
   }
 ]
+
+/**
+ * 页面路径 → 帮助章节 id。
+ * 顶部「?」会带着当前页的章节跳转，避免用户在大纲里自己找。
+ */
+export const ROUTE_SECTION = {
+  '/dashboard': 'overview', '/todos': 'overview', '/messages': 'overview',
+  '/persons': 'person', '/annual-reviews': 'person',
+  '/applications': 'apply', '/waitlist': 'apply',
+  '/allocations': 'apply', '/publicities': 'apply',
+  '/contracts': 'contract', '/contract-changes': 'contract',
+  '/exchanges': 'contract', '/terminations': 'contract',
+  '/bills': 'finance', '/arrears': 'finance', '/deposits': 'finance',
+  '/subsidies': 'finance', '/cashflow': 'finance', '/fee-items': 'finance',
+  '/reports': 'finance', '/meter-readings': 'finance', '/energy': 'finance',
+  '/houses': 'asset', '/spaces': 'asset', '/house-calendar': 'asset',
+  '/short-rent': 'asset', '/devices': 'asset', '/device-bind': 'asset',
+  '/dev-events': 'asset', '/access': 'asset', '/keyring': 'asset',
+  '/grants': 'asset',
+  '/workorders': 'service', '/alerts': 'service', '/complaints': 'service',
+  '/appeals': 'service', '/credits': 'service', '/visits': 'service',
+  '/orgs': 'system', '/rbac': 'system', '/sys': 'system', '/open': 'system',
+  '/gov': 'system', '/ops-center': 'system', '/ops-extras': 'system',
+  '/help': 'start'
+}
+
+/** 取当前页面对应的帮助章节（未知页面回到「快速开始」） */
+export function sectionForRoute(path) {
+  const p = String(path || '')
+  const base = p.split('/:')[0]
+  return ROUTE_SECTION[base] || 'start'
+}

@@ -6,20 +6,25 @@ const path = require('path')
 
 const SRC = path.join(__dirname, '..', 'frontend', 'src', 'content', 'help.js')
 const OUT = path.join(__dirname, '..', '11_用户操作说明.md')
+const TMP = path.join(__dirname, '_help_tmp.cjs')
 
 const raw = fs.readFileSync(SRC, 'utf8')
-const body = raw.replace(/export const/g, 'const') + '\nmodule.exports = { HELP_SECTIONS, HELP_VERSION }\n'
-const tmp = path.join(__dirname, '_help_tmp.js')
-fs.writeFileSync(tmp, body, 'utf8')
-const { HELP_SECTIONS, HELP_VERSION } = require(tmp)
-fs.unlinkSync(tmp)
+const body = raw
+  .replace(/export const/g, 'const')
+  .replace(/export function/g, 'function')
+  + '\nmodule.exports = { HELP_SECTIONS, HELP_VERSION }\n'
+
+fs.writeFileSync(TMP, body, 'utf8')
+delete require.cache[require.resolve(TMP)]
+const { HELP_SECTIONS, HELP_VERSION } = require(TMP)
+fs.unlinkSync(TMP)
 
 const lines = []
 lines.push('# 租赁性保障用房管理系统 · 用户操作说明')
 lines.push('')
 lines.push(`> 版本：${HELP_VERSION}　|　适用角色：管理员、业务经办、财务、房源管理、服务协同、稽核、租户`)
 lines.push('')
-lines.push('本说明与系统内置「使用帮助」（顶部 ? 图标 / 菜单「系统与集成 → 使用帮助」）内容同源。')
+lines.push('本说明与系统内置「使用帮助」（顶部 ? 图标 / 菜单「系统与数据 → 使用帮助」）内容同源。')
 lines.push('')
 lines.push('## 目录')
 lines.push('')

@@ -437,6 +437,8 @@ async function load() {
       window.addEventListener('resize', onResize)
     }
     renderChart()
+    // 容器在 flex 布局中可能刚拿到高度，补一次 resize 避免圆环只画一角
+    setTimeout(() => chart && chart.resize(), 120)
     await loadCards()
   } catch (e) {
     // 拦截器已提示

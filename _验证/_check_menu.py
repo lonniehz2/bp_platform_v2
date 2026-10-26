@@ -26,8 +26,9 @@ missing = []
 for p in sorted(set(paths)):
     if ("'" + p + "'") in menu:
         continue
-    # 兜底逻辑存在时，meta.group 也会进菜单
-    if 'GROUP_ALIAS[m.meta?.group]' in menu:
+    # 新架构：菜单由路由 meta.group 驱动（无路径白名单），
+    # 只要 useMenu 按 groupNameOf(meta) 分组，所有带 meta.group 的路由都会出现
+    if 'groupNameOf(' in menu and 'm.meta' in menu:
         continue
     missing.append(p)
 

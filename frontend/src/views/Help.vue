@@ -55,11 +55,21 @@
 /**
  * 内置使用帮助：内容来自 content/help.js，左侧目录 + 右侧正文，支持搜索与打印。
  */
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { HELP_SECTIONS, HELP_VERSION } from '@/content/help'
 
+const route = useRoute()
+
 const keyword = ref('')
-const active = ref(HELP_SECTIONS[0]?.id || '')
+const sec0 = String(route.query.sec || '')
+const active = ref(HELP_SECTIONS.some((x) => x.id === sec0)
+  ? sec0 : (HELP_SECTIONS[0]?.id || ''))
+
+// 顶部问号会带 ?sec=xxx：进入后自动滚到对应章节
+onMounted(() => {
+  if (sec0) setTimeout(() => jump(sec0), 120)
+})
 
 const filtered = computed(() => {
   const k = keyword.value.trim()

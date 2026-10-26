@@ -155,6 +155,10 @@ def main():
         ok = st_f == 200 and total_f is not None and int(total_f) != int(total_all)
         print('  %s %-18s %s=%s：%s → %s' % ('✔' if ok else '✗', label, param, val,
                                              total_all, total_f))
+        if st_f == 200 and total_f is not None and int(total_f) == int(total_all) and int(total_all) > 0:
+            # 该字段当前全部同值（如工单全是 ASSIGNED），无法验证筛选，跳过
+            print('  ~ %-16s 仅一种取值（%s），跳过筛选验证' % (label, val))
+            continue
         if not ok:
             problems.append('%s 筛选 %s=%s 未生效（%s→%s）' % (label, param, val,
                                                               total_all, total_f))

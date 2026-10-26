@@ -1,103 +1,30 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { menuRoutes } from '@/router'
 import { useAuthStore } from '@/store/auth'
+import {
+  GROUP_ORDER, GROUP_ICON, GROUP_ALIAS, SUBGROUPS, MENU_RANK,
+  MENU_DESC, MENU_BADGE_KEY, basePathOf
+} from './menuConfig'
 
-/** 一级分组顺序（两种风格共用） */
-export const GROUP_ORDER = [
-  '运营总览', '保障对象', '资格准入', '合同管理', '账务收费',
-  '资产与设备', '服务与监督', '系统与集成'
-]
+export { GROUP_ORDER, GROUP_ICON, MENU_DESC, SUBGROUPS }
 
-/** 旧分组名 → 现行分组名的兼容映射（路由 meta 中仍有历史命名） */
-const GROUP_ALIAS = {
-  仪表盘: '运营总览',
-  会员: '保障对象',
-  线索: '资格准入',
-  合同: '合同管理',
-  财务: '账务收费',
-  房源: '资产与设备',
-  授权与交房: '资产与设备',
-  资产台账: '资产与设备',
-  管理后台: '系统与集成',
-  退出与监督: '服务与监督',
-  更多: '服务与监督'
-}
+/** 旧分组名 → 现行分组名的兼容映射（路由 meta 与本地缓存可能仍是旧名） */
+const GROUP_ALIAS_LOCAL = GROUP_ALIAS
 
 /** 取规范化后的分组名 */
 export function groupNameOf(meta) {
   const g = meta?.group || ''
-  return GROUP_ALIAS[g] || g || '更多'
+  return GROUP_ALIAS_LOCAL[g] || g || '系统与数据'
 }
 
-export const GROUP_ICON = {
-  运营总览: 'DataBoard',
-  保障对象: 'UserFilled',
-  资格准入: 'Tickets',
-  合同管理: 'Document',
-  账务收费: 'Money',
-  资产与设备: 'OfficeBuilding',
-  服务与监督: 'Service',
-  系统与集成: 'Setting'
-}
-
-/** 组内业务顺序 */
-const MENU_RANK = {
-  '/dashboard': 1,
-  '/todos': 2,
-  '/persons': 10,
-  '/applications': 20, '/waitlist': 21, '/publicities': 22, '/annual-reviews': 23,
-  '/houses': 30, '/spaces': 31, '/house-calendar': 32, '/short-rent': 33,
-  '/devices': 34, '/access': 35, '/keyring': 36, '/grants': 37,
-  '/contracts': 40, '/contract-changes': 41, '/exchanges': 42,
-  '/terminations': 43, '/allocations': 44,
-  '/fee-items': 50, '/bills': 51, '/deposits': 52, '/arrears': 53,
-  '/subsidies': 54, '/cashflow': 55, '/reports': 56,
-  '/orgs': 60, '/rbac': 61, '/sys': 62, '/ops-center': 63,
-  '/ops-extras': 64, '/open': 65, '/gov': 66,
-  '/workorders': 70, '/alerts': 71, '/complaints': 72, '/visits': 73,
-  '/messages': 74
-}
-
-
-/**
- * 风格1（宽侧栏）专用分组：按**保障房业务流**划分。
- *
- * 与 meta.group（风格2，参照参考系统的 仪表盘/会员/线索/房源/合同/财务/管理后台/更多）
- * 完全独立，两套并存以便对比两种信息架构。
- */
-export const CLASSIC_ORDER = [
-  '运营总览', '保障对象', '资格准入', '合同管理', '账务收费',
-  '资产与设备', '服务与监督', '系统与集成'
-]
-
-export const CLASSIC_ICON = {
-  运营总览: 'DataBoard',
-  保障对象: 'UserFilled',
-  资格准入: 'Tickets',
-  合同管理: 'Document',
-  账务收费: 'Money',
-  资产与设备: 'OfficeBuilding',
-  服务与监督: 'Service',
-  系统与集成: 'Setting'
-}
-
-/** 路径 → 风格1 分组 */
-const CLASSIC_GROUP = {
-  '/dashboard': '运营总览', '/todos': '运营总览', '/messages': '运营总览',
-  '/persons': '保障对象', '/annual-reviews': '保障对象',
-  '/applications': '资格准入', '/waitlist': '资格准入', '/allocations': '资格准入', '/publicities': '资格准入',
-  '/contracts': '合同管理', '/contract-changes': '合同管理', '/exchanges': '合同管理', '/terminations': '合同管理',
-  '/fee-items': '账务收费', '/bills': '账务收费', '/deposits': '账务收费', '/arrears': '账务收费', '/subsidies': '账务收费', '/cashflow': '账务收费', '/reports': '账务收费',
-  '/houses': '资产与设备', '/spaces': '资产与设备', '/house-calendar': '资产与设备', '/short-rent': '资产与设备', '/devices': '资产与设备', '/dev-events': '资产与设备', '/access': '资产与设备', '/keyring': '资产与设备', '/grants': '资产与设备',
-  '/workorders': '服务与监督', '/alerts': '服务与监督', '/complaints': '服务与监督', '/visits': '服务与监督', '/appeals': '服务与监督', '/credits': '服务与监督',
-  '/orgs': '系统与集成', '/rbac': '系统与集成', '/sys': '系统与集成', '/ops-center': '系统与集成', '/ops-extras': '系统与集成', '/open': '系统与集成', '/gov': '系统与集成', '/help': '系统与集成',
+/** 无权限时仍显示但禁用（避免「菜单消失＝系统坏了」） */
+const showDisabled = ref(true)
+export function setShowDisabled(v) {
+  showDisabled.value = !!v
 }
 
 /**
- * 多 tab 页面的子菜单：**按路由 name 索引**。
- *
- * 早前按 path 索引（'/ops-extras'）在带参数路由上不稳定——OpsExtras 的 6 个 tab
- * 始终不展开（另 3 个页面正常）。name 由路由定义决定、不受 path 参数影响。
+ * 多 tab 页面的子菜单：按路由 name 索引。
  */
 export const TAB_MENU = {
   persons: [
@@ -139,8 +66,7 @@ const NAME_BASE = {
   opscenter: '/ops-center'
 }
 
-
-/** 路由 path → 页面权限码 page:<slug>:view（与 _rbac_bootstrap 生成的编码一致） */
+/** 路由 path → 页面权限码 page:<slug>:view */
 export function pagePermCode(path) {
   const p = String(path || '')
   if (!p || p === '/' || p === '/login') return ''
@@ -151,31 +77,38 @@ export function pagePermCode(path) {
 export function useMenu() {
   const auth = useAuthStore()
 
-  /** 有子菜单的页面本身不再单独出现，避免「父项 + 子项」重复 */
+  /** 全量菜单（含无权限项，标记 disabled） */
   const menus = computed(() => {
-    // 菜单按权限过滤：
-    // 1) 显式 meta.perm 优先（细粒度权限码）
-    // 2) 否则用页面权限 page:<slug>:view（由角色配置页勾选）
-    // 3) 未声明的路由默认放行，避免漏配导致菜单整块消失
-    const base = menuRoutes.filter((m) => {
-      if (m.meta?.perm) return auth.has(m.meta.perm)
-      const code = pagePermCode(m.path)
-      return !code || auth.has(code)
-    })
     const out = []
-    for (const m of base) {
+    for (const m of menuRoutes) {
+      const code = m.meta?.perm || pagePermCode(m.path)
+      const allowed = !code || auth.has(code)
+      if (!allowed && !showDisabled.value) continue
+
       const basePath = NAME_BASE[m.name] || m.path.split('/:')[0]
       const tabs = TAB_MENU[m.name]
+      const desc = MENU_DESC[basePath] || ''
+
       if (!tabs) {
-        out.push(basePath === m.path ? m : { ...m, path: basePath })
+        out.push({
+          path: basePath,
+          name: m.name,
+          meta: m.meta,
+          desc,
+          badgeKey: MENU_BADGE_KEY[basePath] || '',
+          disabled: !allowed
+        })
         continue
       }
+      // 有子页签：父项不单独出现，展开为子项（父项无权限则子项全部禁用）
       for (const t of tabs) {
         out.push({
           path: basePath + '/' + t.tab,
           name: m.name + '-' + t.tab,
           meta: { ...m.meta, title: t.title },
-          // 记下父路径，分组与排序回退到父项
+          desc: desc,
+          badgeKey: MENU_BADGE_KEY[basePath] || '',
+          disabled: !allowed,
           _parent: basePath
         })
       }
@@ -183,42 +116,47 @@ export function useMenu() {
     return out
   })
 
-  /** 按一级分组，组内按 MENU_RANK 排序 */
+  /** 按一级分组，组内按 MENU_RANK 排序，并附分区标题 */
   const groups = computed(() => {
     const out = []
     for (const name of GROUP_ORDER) {
       const items = menus.value
         .filter((m) => groupNameOf(m.meta) === name)
         .sort((a, b) => rankOf(a) - rankOf(b))
-      if (items.length) {
-        out.push({ name, icon: GROUP_ICON[name] || 'Menu', items })
+      if (!items.length) continue
+
+      // 分区：按 SUBGROUPS 分段，未登记的项归入「其他」
+      const spec = SUBGROUPS[name]
+      let sections = []
+      if (spec) {
+        const used = new Set()
+        for (const seg of spec) {
+          const segItems = items.filter((m) => {
+            const base = basePathOf(m.path, m._parent)
+            if (seg.paths.includes(base)) {
+              used.add(m.path)
+              return true
+            }
+            return false
+          })
+          if (segItems.length) sections.push({ title: seg.title, items: segItems })
+        }
+        const rest = items.filter((m) => !used.has(m.path))
+        if (rest.length) sections.push({ title: '其他', items: rest })
+      } else {
+        sections = [{ title: '', items }]
       }
+
+      // items 供路由高亮/跳转逻辑使用，sections 供菜单分区渲染
+      const flat = sections.flatMap((x) => x.items)
+      out.push({ name, icon: GROUP_ICON[name] || 'Menu', title: name, items: flat, sections })
     }
     return out
   })
 
-  /** 风格1：按业务流分组 */
-  const classicGroups = computed(() => {
-    const out = []
-    for (const name of CLASSIC_ORDER) {
-      const items = menus.value
-        .filter((m) => {
-          const key = m.path || m._parent
-          const mapped = CLASSIC_GROUP[key] || CLASSIC_GROUP[m._parent]
-          if (mapped) return mapped === name
-          // 兜底：未登记的路径使用 meta.group（旧名走别名）
-          const g = GROUP_ALIAS[m.meta?.group] || m.meta?.group
-          return g === name
-        })
-        .sort((a, b) => rankOf(a) - rankOf(b))
-      if (items.length) {
-        out.push({ name, icon: CLASSIC_ICON[name] || 'Menu', items })
-      }
-    }
-    return out
-  })
+  /** 风格1 与风格2 统一使用同一信息架构 */
+  const classicGroups = groups
 
-  /** 排序权重：子菜单项排在父项位置后，保持原有顺序 */
   function rankOf(m) {
     const base = MENU_RANK[m._parent || m.path]
     if (base === undefined) return 999
@@ -231,7 +169,6 @@ export function useMenu() {
   function titleOf(path) {
     const hit = menuRoutes.find((m) => m.path === path)
     if (hit) return hit.meta?.title || '页面'
-    // 子菜单路径（/ops-extras/rule）回查 TAB_MENU
     const cut = path.lastIndexOf('/')
     const base = path.slice(0, cut)
     const tab = path.slice(cut + 1)
@@ -241,9 +178,10 @@ export function useMenu() {
 
   function groupOf(path) {
     const hit = menuRoutes.find((m) => m.path === path)
-    if (hit) return hit.meta?.group || '仪表盘'
+    if (hit) return groupNameOf(hit.meta)
     const base = path.slice(0, path.lastIndexOf('/'))
-    return menuRoutes.find((m) => m.path === base)?.meta?.group || '仪表盘'
+    const parent = menuRoutes.find((m) => m.path === base)
+    return groupNameOf(parent?.meta)
   }
 
   return { menus, groups, classicGroups, titleOf, groupOf }

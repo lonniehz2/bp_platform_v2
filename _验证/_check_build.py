@@ -144,14 +144,16 @@ def check_undefined(path, text):
     tpl = template_of(text)
     defined = defined_names(script)
     # v-for 的局部变量（如 (item, i) in list）也是合法标识符
-    for m in re.finditer(r'v-for\s*=\s*"[^"]*?\bin\b', tpl):
-        seg = m.group(0)
-        names = re.findall(r'\(([^)]*)\)', seg)
-        if names:
-            for part in names[0].split(','):
-                n = part.strip()
-                if re.fullmatch(r'[A-Za-z_$][\w$]*', n or ''):
-                    defined.add(n)
+    for m in re.finditer(r'v-for\s*=\s*"([^"]*?)"', tpl):
+        expr = m.group(1)
+        head = expr.split(' in ')[0].strip()
+        # 形式一：(item, i) in list ；形式二：item in list
+        if head.startswith('(') and head.endswith(')'):
+            head = head[1:-1]
+        for part in head.split(','):
+            n = part.strip()
+            if re.fullmatch(r'[A-Za-z_$][\w$]*', n or ''):
+                defined.add(n)
 
     problems = []
     exprs = []
