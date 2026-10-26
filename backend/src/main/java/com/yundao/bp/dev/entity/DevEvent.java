@@ -25,6 +25,9 @@ public class DevEvent {
     /** 设备编号（IoT 侧 did） */
     private String deviceId;
 
+    /** IoT 事件唯一号（幂等键） */
+    private String eventId;
+
     /** 事件类型，见 DevEventType */
     private String identifier;
 
@@ -62,6 +65,9 @@ public class DevEvent {
 
     public String getDeviceId() { return deviceId; }
     public void setDeviceId(String deviceId) { this.deviceId = deviceId; }
+
+    public String getEventId() { return eventId; }
+    public void setEventId(String eventId) { this.eventId = eventId; }
 
     public String getIdentifier() { return identifier; }
     public void setIdentifier(String identifier) { this.identifier = identifier; }

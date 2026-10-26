@@ -57,6 +57,10 @@ public class AuthInterceptor implements HandlerInterceptor {
             return true;
         }
         String path = req.getRequestURI();
+        // 放行：IoT 回调（改用 HMAC 验签 + Nonce 防重放）
+        if (path.startsWith("/api/callback/")) {
+            return true;
+        }
         // 放行：登录、健康检查
         if (path.startsWith("/api/v1/auth/login") || path.startsWith("/actuator/")
                 || path.equals("/") || path.startsWith("/index.html")

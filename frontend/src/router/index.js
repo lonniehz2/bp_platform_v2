@@ -74,6 +74,13 @@ export const menuRoutes = [
     meta: { title: '设备告警', icon: 'Warning', group: '设备与通行' }
   },
   {
+    path: '/dev-commands',
+    name: 'DevCommands',
+    component: () => import('@/views/DevCommands.vue'),
+    meta: { title: '设备指令', icon: 'Promotion', group: '设备与通行',
+      perm: 'page:dev-commands:view' }
+  },
+  {
     path: '/access',
     name: 'access',
     component: () => import('@/views/AccessRecords.vue'),

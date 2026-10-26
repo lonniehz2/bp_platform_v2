@@ -287,3 +287,25 @@ Signature = HMAC-SHA256(appSecret, canonicalRequest)
 | iot.offline.thresholdSeconds | 离线判定阈值 | **180 秒（3 分钟）** |
 | iot.meter.reportPeriod | 表计上报周期 | **ELEC:DAILY,WATER:DAILY（电表每日、水表每日）** |
 | iot.meter.switch.delayMinutes | 拉闸延迟执行 | 10 分钟（窗口内可撤销） |
+
+---
+
+## 十一、实现状态（2026-10-27）
+
+| 能力 | 状态 | 说明 |
+|---|---|---|
+| 回调统一入口 /api/callback/iot/{action} | ✅ 已实现 | 验签、时间戳、Nonce 防重放、幂等、回调日志 |
+| C1 设备事件 | ✅ | 写 p_dev_event，event_id 唯一去重 |
+| C2 开门记录 | ✅ | 单条/批量，写 p_dev_access_record |
+| C3 指令回执 | ✅ | 按 
+equestId 回填指令状态/结果码/耗时 |
+| C4 授权任务结果 | ✅ | 按 serviceId 更新 grant_task 为 SUCCESS/PARTIAL/FAILED |
+| C5 心跳 | ✅ | 更新在线状态/电量/RSSI/最后上报 |
+| C6 表计读数 | ✅（受限于映射） | 需设备已绑空间且存在对应 METER 收费项目，否则跳过并记日志 |
+| C7 上下线 | ✅ | 更新设备状态并生成 ONLINE/OFFLINE 事件 |
+| C8 告警恢复 | ✅ | 按 event_id 置事件已处理 |
+| D10/D13a/D13b 指令 | 🟡 | 指令表 + 状态机 + 超时重试 + 页面已完成；下发走 mock 客户端，真实 HTTP 待 IoT 参数 |
+| D18 拉合闸 | 🟡 | 指令+审批+幂等已实现；安全策略（延迟/窗口/限额/通知）待补 |
+| 契约参数 | ✅ | 系统参数 IOT 分组，14 项可改 |
+
+> 联调验证见 17_IoT联调方案与测试用例.md；本次实测：正确签名 200、错误签名/过期时间戳 401、重复事件不重复入库、指令 mock 下发成功、回执回填成功、心跳与上下线更新设备。

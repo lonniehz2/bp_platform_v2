@@ -20,6 +20,10 @@ public class IotSettings {
 
     static {
         DEFAULTS.put("iot.callback.signAlgorithm", "v2-hmac-sha256");
+        DEFAULTS.put("iot.callback.appId", "bp-test-app");
+        DEFAULTS.put("iot.callback.appSecret", "bp-test-secret");
+        DEFAULTS.put("iot.callback.verify", "true");
+        DEFAULTS.put("iot.callback.defaultTenant", "350600");
         DEFAULTS.put("iot.callback.timestampToleranceSeconds", "300");
         DEFAULTS.put("iot.callback.nonceCacheMinutes", "10");
         DEFAULTS.put("iot.callback.batchLimit", "200");
