@@ -139,6 +139,19 @@ def run_edge_journeys(env):
 
     # ------------------------------------------------------------ 旅程10
     print('\n[旅程10] 欠费催缴：扫描逾期 → 生成催缴动作 → 动作可查')
+    # 先清掉上一轮验证留下的动作，避免演示数据被测试记录淹没（尽力而为）
+    try:
+        import pymysql
+        _c = pymysql.connect(host='192.168.31.153', port=33306, user='root',
+                             password='5677@Mysql', database='bp_platform',
+                             charset='utf8mb4', autocommit=True,
+                             connect_timeout=15, read_timeout=60)
+        _cur = _c.cursor()
+        _cur.execute("delete from bp_fin_arrears_action "
+                     "where arrears_amount = 120.01")
+        _c.close()
+    except Exception:
+        pass
     st, r = call('/fin/arrears/scan', 'GET', None, admin)
     step('旅程10', '逾期扫描可执行', st == 200, (r or {}).get('message', '')[:60])
 
@@ -155,7 +168,7 @@ def run_edge_journeys(env):
         st, ra = call('/fin/arrears', 'POST', {
             'contractId': b.get('contractId'), 'personId': b.get('personId'),
             'actionType': 'NOTIFY', 'triggerType': 'MANUAL',
-            'arrearsAmount': b.get('payableAmount') or 100,
+            'arrearsAmount': 120.01,   # 固定标记值，便于下轮清理
             'overdueDays': max(30, od)}, admin)
         act = data((st, ra)) or {}
         step('旅程10', '登记催缴动作', st in (200, 400), (ra or {}).get('message', '')[:70])
