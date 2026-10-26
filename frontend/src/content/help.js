@@ -8,7 +8,7 @@
  *
  * 维护约定：改这里等于改内置帮助；对外发布的《用户操作说明》与本文保持同源。
  */
-export const HELP_VERSION = 'v1.5（2026-10-26）'
+export const HELP_VERSION = 'v1.6（2026-10-26）'
 
 export const HELP_SECTIONS = [
   {

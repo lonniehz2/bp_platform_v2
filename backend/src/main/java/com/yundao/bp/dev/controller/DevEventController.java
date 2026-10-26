@@ -58,13 +58,25 @@ public class DevEventController {
             @RequestParam(required = false) String eventLevel,
             @RequestParam(required = false) Integer handled,
             @RequestParam(required = false) Boolean alarmOnly) {
-        LambdaQueryWrapper<DevEvent> qw = new LambdaQueryWrapper<DevEvent>()
-                .eq(deviceId != null && !deviceId.isBlank(), DevEvent::getDeviceId, deviceId)
-                .eq(identifier != null && !identifier.isBlank(), DevEvent::getIdentifier, identifier)
-                .eq(eventLevel != null && !eventLevel.isBlank(), DevEvent::getEventLevel, eventLevel)
-                .eq(handled != null, DevEvent::getHandled, handled)
+        LambdaQueryWrapper<DevEvent> qw = buildQuery(deviceId, identifier, eventLevel,
+                handled, alarmOnly)
                 .orderByDesc(DevEvent::getEventTime)
                 .orderByDesc(DevEvent::getId);
+        IPage<DevEvent> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
+        return R.ok(PageResult.of(page.getTotal(), pageNum, pageSize, page.getRecords()));
+    }
+
+    /** 列表与统计共用的筛选条件，避免两处口径不一致。 */
+    private LambdaQueryWrapper<DevEvent> buildQuery(String deviceId, String identifier,
+                                                    String eventLevel, Integer handled,
+                                                    Boolean alarmOnly) {
+        LambdaQueryWrapper<DevEvent> qw = new LambdaQueryWrapper<DevEvent>()
+                .eq(deviceId != null && !deviceId.isBlank(), DevEvent::getDeviceId, deviceId)
+                .eq(identifier != null && !identifier.isBlank(),
+                        DevEvent::getIdentifier, identifier)
+                .eq(eventLevel != null && !eventLevel.isBlank(),
+                        DevEvent::getEventLevel, eventLevel)
+                .eq(handled != null, DevEvent::getHandled, handled);
         if (Boolean.TRUE.equals(alarmOnly)) {
             List<String> alarms = new ArrayList<>();
             for (DevEventType t : DevEventType.values()) {
@@ -74,8 +86,7 @@ public class DevEventController {
             }
             qw.in(DevEvent::getIdentifier, alarms);
         }
-        IPage<DevEvent> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
-        return R.ok(PageResult.of(page.getTotal(), pageNum, pageSize, page.getRecords()));
+        return qw;
     }
 
     /** 事件上报（IoT 回调）。同一 did + identifier + eventTime 幂等。 */
@@ -123,11 +134,18 @@ public class DevEventController {
         return R.ok(e);
     }
 
-    /** 告警统计：按类型与级别。 */
+    /** 告警统计：按类型与级别；筛选条件与列表一致，保证「总数」与列表条数对得上。 */
     @com.yundao.bp.iam.security.RequirePerm("asset:device:view")
     @GetMapping("/stats")
-    public R<Map<String, Object>> stats(@RequestParam(required = false) Boolean unhandledOnly) {
-        LambdaQueryWrapper<DevEvent> qw = new LambdaQueryWrapper<>();
+    public R<Map<String, Object>> stats(
+            @RequestParam(required = false) String deviceId,
+            @RequestParam(required = false) String identifier,
+            @RequestParam(required = false) String eventLevel,
+            @RequestParam(required = false) Integer handled,
+            @RequestParam(required = false) Boolean alarmOnly,
+            @RequestParam(required = false) Boolean unhandledOnly) {
+        LambdaQueryWrapper<DevEvent> qw = buildQuery(deviceId, identifier, eventLevel,
+                handled, alarmOnly);
         if (Boolean.TRUE.equals(unhandledOnly)) {
             qw.eq(DevEvent::getHandled, 0);
         }
@@ -144,6 +162,7 @@ public class DevEventController {
                 || x.getHandled() == 0).count());
         out.put("byType", byType);
         out.put("byLevel", byLevel);
+        out.put("typeCount", byType.size());
         out.put("alarmTypes", java.util.Arrays.stream(DevEventType.values())
                 .filter(DevEventType::alarm)
                 .map(t -> Map.of("code", t.name(), "label", t.label(),
