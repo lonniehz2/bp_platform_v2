@@ -327,10 +327,8 @@ public class HouseServiceImpl implements HouseService {
                 if (line.isBlank()) {
                     continue;
                 }
-                if (lineNo == 1
-                        && line.toLowerCase().replace("_", "").replace("-", "")
-                                .contains("housecode")) {
-                    continue;   // 表头
+                if (lineNo == 1 && isHeaderLine(line)) {
+                    continue;   // 表头（英文或中文）
                 }
                 total++;
                 String[] c = line.split("[,;]");
@@ -380,16 +378,20 @@ public class HouseServiceImpl implements HouseService {
                     e.setSpaceId(sp.getId());
                     e.setHouseCode(houseCode);
                     e.setHouseName(houseName);
-                    e.setHouseType(houseType.isBlank() ? "PUBLIC_RENTAL" : houseType);
-                    e.setUseType(c.length > 5 && !c[5].isBlank() ? c[5].trim() : "CIVIL");
+                    e.setHouseType(houseType.isBlank()
+                            ? "PUBLIC_RENTAL" : codeOf("houseType", houseType));
+                    e.setUseType(c.length > 5 && !c[5].isBlank()
+                            ? codeOf("useType", c[5].trim()) : "CIVIL");
                     if (c.length > 6 && !c[6].isBlank()) {
                         e.setArea(new java.math.BigDecimal(c[6].trim()));
                     }
                     if (c.length > 7 && !c[7].isBlank()) {
                         e.setRentStandard(new java.math.BigDecimal(c[7].trim()));
                     }
-                    e.setRentUnit(c.length > 8 && !c[8].isBlank() ? c[8].trim() : "AREA_MONTH");
-                    e.setHouseStatus(c.length > 9 && !c[9].isBlank() ? c[9].trim() : "VACANT");
+                    e.setRentUnit(c.length > 8 && !c[8].isBlank()
+                            ? codeOf("rentUnit", c[8].trim()) : "AREA_MONTH");
+                    e.setHouseStatus(c.length > 9 && !c[9].isBlank()
+                            ? codeOf("houseStatus", c[9].trim()) : "VACANT");
                     e.setCurrentCapacity(0);
                     e.setIsDeleted(0);
                     e.setCreateTime(java.time.LocalDateTime.now());
@@ -411,6 +413,63 @@ public class HouseServiceImpl implements HouseService {
         out.put("errors", errors.size() > 100 ? errors.subList(0, 100) : errors);
         log.info("房源导入完成：共 {} 行，成功 {}，跳过 {}", total, created, skipped);
         return out;
+    }
+
+
+    /** 表头行判断：兼容英文（HOUSE_CODE）与中文（房源编号/组织编码）。 */
+    private boolean isHeaderLine(String line) {
+        String low = line.toLowerCase().replace("_", "").replace("-", "")
+                .replace("\ufeff", "");
+        return low.contains("housecode") || line.contains("房源编号")
+                || line.contains("组织编码") || line.contains("空间编码");
+    }
+
+    /**
+     * 中文枚举值 → 代码；已是英文码则原样返回（大小写不敏感）。
+     * 导入模板给业务人员用中文，接口/历史文件仍兼容英文码。
+     */
+    private String codeOf(String field, String value) {
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+        String v = value.trim();
+        java.util.Map<String, String> map = switch (field) {
+            case "houseType" -> java.util.Map.ofEntries(
+                    java.util.Map.entry("公租房", "PUBLIC_RENTAL"),
+                    java.util.Map.entry("保障性租赁住房", "AFFORDABLE_RENTAL"),
+                    java.util.Map.entry("人才公寓", "TALENT"),
+                    java.util.Map.entry("公寓", "APARTMENT"),
+                    java.util.Map.entry("宿舍", "DORMITORY"),
+                    java.util.Map.entry("酒店", "HOTEL"),
+                    java.util.Map.entry("民宿", "HOTEL"),
+                    java.util.Map.entry("酒店/民宿", "HOTEL"),
+                    java.util.Map.entry("出租房", "RENTAL"));
+            case "useType" -> java.util.Map.of(
+                    "民用", "CIVIL", "商用", "COMMERCIAL");
+            case "rentUnit" -> java.util.Map.ofEntries(
+                    java.util.Map.entry("元/㎡·月", "AREA_MONTH"),
+                    java.util.Map.entry("元/平米·月", "AREA_MONTH"),
+                    java.util.Map.entry("元/套·月", "HOUSE_MONTH"),
+                    java.util.Map.entry("元/床·月", "BED_MONTH"),
+                    java.util.Map.entry("元/套·夜", "HOUSE_NIGHT"),
+                    java.util.Map.entry("元/床·夜", "BED_NIGHT"));
+            case "houseStatus" -> java.util.Map.ofEntries(
+                    java.util.Map.entry("空置", "VACANT"),
+                    java.util.Map.entry("可租", "VACANT"),
+                    java.util.Map.entry("待配租", "PENDING_ALLOC"),
+                    java.util.Map.entry("已配租", "ALLOCATED"),
+                    java.util.Map.entry("已出租", "OCCUPIED"),
+                    java.util.Map.entry("维修中", "REPAIR"),
+                    java.util.Map.entry("锁定", "LOCKED"));
+            default -> java.util.Map.of();
+        };
+        String hit = map.get(v);
+        if (hit != null) {
+            return hit;
+        }
+        // 已是代码：统一大写（容忍空格/小写）
+        String up = v.toUpperCase().replace(' ', '_');
+        return up;
     }
 
     private java.util.Map<String, Object> err(int line, String message) {

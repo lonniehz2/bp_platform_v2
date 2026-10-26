@@ -370,14 +370,19 @@ function onImportFile(file) {
 }
 
 function downloadTemplate() {
-  const header = 'ORGANIZATION_CODE,SPACE_CODE,HOUSE_CODE,HOUSE_NAME,HOUSE_TYPE,'
-    + 'USE_TYPE,AREA,RENT,RENT_UNIT,STATUS\n'
-  const sample = 'DEMO-P1,P1-R1,HOUSE-001,示例房源1,PUBLIC_RENTAL,CIVIL,55,15,'
-    + 'AREA_MONTH,VACANT\n'
-  const blob = new Blob(['\ufeff' + header + sample], { type: 'text/csv;charset=utf-8' })
+  // 表头与示例值都用中文，业务人员可直接填；后端同时兼容英文码
+  const header = '组织编码,空间编码,房源编号,房源名称,房源类型,用途,建筑面积(㎡),'
+    + '租金标准,计价单位,房源状态\n'
+  const rows = [
+    'DEMO-P1,P1-R1,HOUSE-001,示例房源1,公租房,民用,55,15,元/㎡·月,空置',
+    'DEMO-P1,P1-R2,HOUSE-002,示例房源2,保障性租赁住房,民用,48.5,18.5,元/套·月,空置',
+    'DEMO-P1,P1-R3,HOUSE-003,示例房源3,人才公寓,民用,32,1200,元/套·夜,待配租'
+  ].join('\n')
+  const blob = new Blob(['\ufeff' + header + rows + '\n'],
+    { type: 'text/csv;charset=utf-8' })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = 'house-import-template.csv'
+  a.download = '房源导入模板.csv'
   a.click()
   URL.revokeObjectURL(a.href)
 }
