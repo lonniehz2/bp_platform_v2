@@ -31,3 +31,6 @@ desktop.ini
 .idea/
 .vscode/
 *.iml
+
+# 区划原始数据（35MB，不入库；用脚本按需下载）
+_验证/_data/
