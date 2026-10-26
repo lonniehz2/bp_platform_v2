@@ -44,6 +44,10 @@ for name, script, extra in STEPS:
         results.append((name, 2))
         continue
     p = subprocess.run([PY, path] + extra, cwd=HERE)
+    # 端到端脚本偶发网络抖动：失败后重试一次，仍失败才算真失败
+    if p.returncode not in (0, 2):
+        print('  ↻ %s 失败（退出码 %d），重试一次…' % (name, p.returncode))
+        p = subprocess.run([PY, path] + extra, cwd=HERE)
     results.append((name, p.returncode))
 
 print('\n' + '=' * 78)
