@@ -295,7 +295,7 @@ function openEnforce(row) { current.value = row; enforceVisible.value = true }
 async function doEnforce() {
   saving.value = true
   try {
-    await req.post(`/terminations/${current.value.id}/enforce`, { ...en })
+    await req.post(`/terminations/${current.value.id}/register-enforce`, { ...en })
     ElMessage.success('强制腾退已登记')
     enforceVisible.value = false; load()
   } finally { saving.value = false }
@@ -305,7 +305,7 @@ function openRelease(row) { current.value = row; releaseVisible.value = true }
 async function doRelease() {
   saving.value = true
   try {
-    await req.post(`/terminations/${current.value.id}/release`, { ...rl })
+    await req.post(`/terminations/${current.value.id}/mark-released`, { ...rl })
     ElMessage.success('房源与授权已释放')
     releaseVisible.value = false; load()
   } finally { saving.value = false }

@@ -145,15 +145,14 @@ export const financeApi = {
     req.post(`/fin/payments/${paymentId}/allocate`, { billId, amount }),
   deposits: (params) => req.get('/fin/deposits', { params }),
   depositByContract: (contractId) =>
-    req.get('/fin/deposits/by-contract', { params: { contractId } }),
+    req.get('/fin/deposits/by-contract/' + contractId),
   subsidies: (params) => req.get('/fin/subsidies/records', { params }),
   subsidyCalc: (data) => req.post('/fin/subsidies/calc', data),
   subsidyStandards: (params) => req.get('/fin/subsidies/standards', { params }),
   feeItems: (params) => req.get('/fin/fee-items', { params }),
   // console 使用 /fin/dunnings（催缴），不是 /fin/arrears
   arrears: (params) => req.get('/fin/dunnings', { params }),
-  dunningByBill: (billId) => req.get('/fin/dunnings/by-bill',
-    { params: { billId } }),
+  dunningByBill: (billId) => req.get('/fin/dunnings/by-bill/' + billId),
   // 后端 scan 是 GET（不是 POST）
   dunningScan: (params) => req.get('/fin/dunnings/scan', { params }),
   // console 使用 /fin/cash-flows
