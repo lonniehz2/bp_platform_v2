@@ -275,10 +275,17 @@ async function loadTrendCharts() {
     const bills = await req.get('/fin/bills/trend', { params: { months: 6 } })
     billTrendRows.value = bills || []
   } catch (e) { billTrendRows.value = [] }
-  try {
-    const en = await req.get('/fin/meter-readings/analytics', { params: { months: 6 } })
-    energyTrendRows.value = (en && en.months) || []
-  } catch (e) { energyTrendRows.value = [] }
+  // 首次进入时偶发失败（并发请求过多），重试一次再放弃
+  for (let i = 0; i < 2; i++) {
+    try {
+      const en = await req.get('/fin/meter-readings/analytics', { params: { months: 6 } })
+      energyTrendRows.value = (en && en.months) || []
+      break
+    } catch (e) {
+      energyTrendRows.value = []
+      await new Promise((r) => setTimeout(r, 800))
+    }
+  }
 }
 
 function renderChart() {

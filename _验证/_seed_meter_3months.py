@@ -1,106 +1,96 @@
 # -*- coding: utf-8 -*-
-"""三段式读数：8 月基线 → 9 月 → 10 月，让能耗趋势有三个点。
+"""重建 2026-08/09/10 三个月抄表数据（金额合理）。
 
-口径：每月用量 = 本月读数 − 上月读数；8 月为首月（基线 0，用量 0）。
+每台计量设备（水/电/气）每月一条读数：
+  电 80~260 kWh × 0.65    水 4~18 吨 × 3.5    气 3~14 方 × 2.8
+读数区间：上月 25 日 → 本月 25 日，prev_reading 为累计值基线。
 """
+import datetime
 import random
-import time
 
 import pymysql
 
-DB = dict(host='192.168.31.153', port=33306, user='root',
-          password='5677@Mysql', database='bp_platform', charset='utf8mb4')
-conn = pymysql.connect(**DB)
-cur = conn.cursor()
+TENANT = '350600'
+random.seed(20261027)
 
-cur.execute("""select id, item_code, item_name, unit_price from bp_fin_fee_item
-               where calc_mode='METER'""")
-items = {r[1]: r for r in cur.fetchall()}
-ELEC, WATER, GAS = items.get('ELEC-P1'), items.get('WATER-P1'), items.get('GAS-P1')
-if not (ELEC and WATER and GAS):
-    print('缺计量项')
-    raise SystemExit(1)
+NOW = datetime.datetime(2026, 10, 26, 9, 0, 0)
 
-# 清掉此前种的三类读数（只删我们种的）
-cur.execute("delete from bp_fin_meter_reading where create_by='seed'")
-print('清理旧读数:', cur.rowcount)
+RANGES = {
+    'ELEC_METER': (80, 260),
+    'WATER_METER': (4, 18),
+    'GAS_METER': (3, 14),
+    'HEAT_METER': (2, 8),
+}
+PRICE = {
+    'ELEC_METER': (0.65, 371722116640411648),
+    'WATER_METER': (3.50, 372428940817600512),
+    'GAS_METER': (2.80, 372428941413191680),
+    'HEAT_METER': (3.00, 372428941413191680),
+}
+MONTHS = [(2026, 8), (2026, 9), (2026, 10)]
 
-cur.execute("""select h.id, h.house_code, min(m.device_id) as dev
-               from bp_asset_house h
-               join bp_dev_device m on m.space_id = h.space_id and m.device_type='ELEC_METER'
-               where m.device_id like 'DEMO-ELEC-%'
-               group by h.id, h.house_code limit 120""")
-houses = cur.fetchall()
-print('目标房源:', len(houses))
+conn = pymysql.connect(host='192.168.31.153', port=33306, user='root',
+                       password='5677@Mysql', database='bp_platform',
+                       charset='utf8mb4', autocommit=False)
+cur = conn.cursor(pymysql.cursors.DictCursor)
 
-M8 = '2026-08-25'
-M9 = '2026-09-25'
-M10 = '2026-10-25'
-NOW = time.strftime('%Y-%m-%d %H:%M:%S')
+# 清空既有读数
+cur.execute('delete from bp_fin_meter_reading where tenant_id=%s', (TENANT,))
+print('清空旧读数:', cur.rowcount)
 
-seq = int(time.time() * 1000) % 10 ** 8
+cur.execute("""
+    select d.device_id, d.device_type, d.space_id, h.id house_id, h.org_id
+    from bp_dev_device d
+    join bp_asset_house h on h.space_id = d.space_id
+    where d.device_type in ('WATER_METER','ELEC_METER','GAS_METER')
+      and d.tenant_id = %s
+""", (TENANT,))
+devices = cur.fetchall()
+print('可抄表设备:', len(devices))
+
+_seq = [0]
 
 
 def next_id():
-    global seq
-    seq += 1
-    return 600000000000000000 + seq
+    _seq[0] += 1
+    return int(NOW.timestamp() * 1000) * 1000 + _seq[0]
 
 
-def add(house_id, item, reading, day, device_id):
-    usage, amount = 0.0, 0.0
-    if day != M8:
-        cur.execute('''select reading from bp_fin_meter_reading
-                       where house_id=%s and fee_item_id=%s and read_date < %s
-                       order by read_date desc limit 1''', (house_id, item[0], day))
-        row = cur.fetchone()
-        base = float(row[0]) if row else 0.0
-        usage = max(0.0, float(reading) - base)
-        amount = usage * float(item[3] or 0)
-    cur.execute('''insert into bp_fin_meter_reading
-        (id, tenant_id, house_id, fee_item_id, reading, read_date, device_id,
-         usage_amount, amount, create_time, create_by)
-        values (%s,'350600',%s,%s,%s,%s,%s,%s,%s,%s,'seed')''',
-                (next_id(), house_id, item[0], reading, day, device_id,
-                 round(usage, 2), round(amount, 2), NOW))
-    return usage, amount
-
-
-stat = {'elec': [0, 0, 0], 'water': [0, 0, 0], 'gas': [0, 0, 0]}
-for hi, (house_id, house_code, elec_dev) in enumerate(houses):
-    # 电：8 月基线 0，9 月用量 u1，10 月再增 u2
-    u1 = random.randint(90, 240)
-    u2 = random.randint(90, 240)
-    add(house_id, ELEC, 0, M8, elec_dev)
-    add(house_id, ELEC, u1, M9, elec_dev)
-    add(house_id, ELEC, u1 + u2, M10, elec_dev)
-    stat['elec'][0] += 1 if u1 else 0
-
-    # 水
-    w1 = random.randint(8, 20)
-    w2 = random.randint(8, 20)
-    wdev = elec_dev.replace('ELEC', 'WATER')
-    add(house_id, WATER, 0, M8, wdev)
-    add(house_id, WATER, w1, M9, wdev)
-    add(house_id, WATER, w1 + w2, M10, wdev)
-
-    # 燃气（每 3 套 1 个）
-    if hi % 3 == 0:
-        g1 = random.randint(4, 12)
-        g2 = random.randint(4, 12)
-        gdev = elec_dev.replace('ELEC', 'GAS')
-        add(house_id, GAS, 0, M8, gdev)
-        add(house_id, GAS, g1, M9, gdev)
-        add(house_id, GAS, g1 + g2, M10, gdev)
+made = 0
+for dev in devices:
+    dtype = dev['device_type']
+    lo, hi = RANGES[dtype]
+    price, fee_item = PRICE[dtype]
+    base = random.randint(1000, 5000)
+    for (y, m) in MONTHS:
+        usage = round(random.uniform(lo, hi), 2)
+        prev = round(base, 2)
+        cur_val = round(prev + usage, 2)
+        amount = round(usage * price, 2)
+        read_day = 25
+        read_date = datetime.date(y, m, read_day)
+        cur.execute("""
+            insert into bp_fin_meter_reading
+            (id, tenant_id, org_id, house_id, fee_item_id, read_date, reading,
+             prev_reading, usage_amount, unit_price, amount, bill_status,
+             remark, create_by, create_time, is_deleted, device_id)
+            values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'UNBILLED',%s,'system',%s,0,%s)
+        """, (next_id(), TENANT, dev['org_id'], dev['house_id'], fee_item, read_date,
+              cur_val, prev, usage, price, amount,
+              '%d-%02d 抄表' % (y, m), NOW, dev['device_id']))
+        made += 1
+        base = cur_val
 
 conn.commit()
+print('新增读数:', made)
 
-print('\n按月汇总：')
-cur.execute('''select substring(m.read_date,1,7) as mon, count(*),
-                      round(sum(m.usage_amount),2), round(sum(m.amount),2)
-               from bp_fin_meter_reading m
-               group by mon order by mon''')
-for mon, cnt, usage, amt in cur.fetchall():
-    print('  %s  读数 %3d  用量 %-10s 金额 %s' % (mon, cnt, usage, amt))
-
+cur.execute("""
+    select date_format(read_date,'%%Y-%%m') m, count(*) n,
+           round(sum(amount),2) amt, round(avg(amount),2) avg_amt
+    from bp_fin_meter_reading where tenant_id=%s group by m order by 1
+""", (TENANT,))
+print('按月统计:')
+for r in cur.fetchall():
+    print('  %s %4d 条 合计 %10.2f 均价 %7.2f' % (r['m'], r['n'], float(r['amt']),
+                                               float(r['avg_amt'])))
 conn.close()

@@ -267,10 +267,48 @@ public class MeterReadingServiceImpl implements MeterReadingService {
         ranked.sort((a, b) -> b.getValue().compareTo(a.getValue()));
         java.util.List<java.util.Map<String, Object>> topHouses = new java.util.ArrayList<>();
         java.util.Map<String, java.math.BigDecimal> byBuilding = new java.util.HashMap<>();
+        // 批量预取：房源 + 其上级空间（避免数百次 selectById）
         java.util.Map<Long, com.yundao.bp.asset.entity.AssetHouse> houseCache =
                 new java.util.HashMap<>();
         java.util.Map<Long, com.yundao.bp.asset.entity.AssetSpace> spaceCache =
                 new java.util.HashMap<>();
+        if (!ranked.isEmpty()) {
+            java.util.List<Long> houseIds = new java.util.ArrayList<>();
+            for (java.util.Map.Entry<Long, java.math.BigDecimal> e : ranked) {
+                houseIds.add(e.getKey());
+            }
+            for (com.yundao.bp.asset.entity.AssetHouse h
+                    : anaHouseMapper.selectBatchIds(houseIds)) {
+                houseCache.put(h.getId(), h);
+            }
+            // 逐级收集空间 id（最多 6 层）
+            java.util.Set<Long> spaceIds = new java.util.HashSet<>();
+            for (com.yundao.bp.asset.entity.AssetHouse h : houseCache.values()) {
+                if (h.getSpaceId() != null) {
+                    spaceIds.add(h.getSpaceId());
+                }
+            }
+            for (int depth = 0; depth < 5 && !spaceIds.isEmpty(); depth++) {
+                java.util.List<Long> batch = new java.util.ArrayList<>();
+                for (Long sid : spaceIds) {
+                    if (!spaceCache.containsKey(sid)) {
+                        batch.add(sid);
+                    }
+                }
+                if (batch.isEmpty()) {
+                    break;
+                }
+                java.util.Set<Long> next = new java.util.HashSet<>();
+                for (com.yundao.bp.asset.entity.AssetSpace sp
+                        : anaSpaceMapper.selectBatchIds(batch)) {
+                    spaceCache.put(sp.getId(), sp);
+                    if (sp.getParentId() != null) {
+                        next.add(sp.getParentId());
+                    }
+                }
+                spaceIds = next;
+            }
+        }
         int rank = 0;
         for (java.util.Map.Entry<Long, java.math.BigDecimal> e : ranked) {
             com.yundao.bp.asset.entity.AssetHouse h = houseCache.get(e.getKey());
