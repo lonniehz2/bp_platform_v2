@@ -152,7 +152,7 @@
 | C7 | 上下线事件 | `POST /api/callback/iot/device-status` | `deviceId`、`status`、`time` |
 | C8 | 告警恢复 | `POST /api/callback/iot/alarm-ack` | `eventId`、`recovered`、`recoverTime` |
 
-**回调验签（建议写入契约）**
+**回调验签（建议写入契约，参数可在系统参数配置）**
 
 ```
 POST /api/callback/iot/{action}
@@ -265,3 +265,25 @@ Signature = HMAC-SHA256(appSecret, canonicalRequest)
 ---
 
 *配套文档：`13_泊寓IoT对接参考评估.md`（业务视角）、`_验证/IoT对接规范-定稿.md`（协议算法实测）。*
+
+---
+
+## 十、契约参数（可在系统参数中调整）
+
+> 位置：**系统支撑 → 系统参数 → IoT 对接参数**（分组 IOT），改完立即生效、无需重启。
+> 后端读取组件：iot/config/IotSettings.java（缺失或非法时回落到默认值）。
+
+| 参数键 | 含义 | 当前值 |
+|---|---|---|
+| iot.callback.signAlgorithm | 回调签名算法 | 2-hmac-sha256 |
+| iot.callback.timestampToleranceSeconds | 时间戳容忍窗口 | 300 秒 |
+| iot.callback.nonceCacheMinutes | Nonce 缓存（防重放） | 10 分钟 |
+| iot.callback.batchLimit | 单次批量上限 | 200 条 |
+| iot.callback.qps | 回调限流 | 50 次/秒 |
+| iot.command.timeoutSeconds | 指令超时 | 10 秒 |
+| iot.command.maxRetry | 指令最大重试 | 3 次 |
+| iot.grantTask.timeoutSeconds | 授权任务超时 | **180 秒** |
+| iot.heartbeat.intervalSeconds | 心跳间隔 | **60 秒（1 分钟）** |
+| iot.offline.thresholdSeconds | 离线判定阈值 | **180 秒（3 分钟）** |
+| iot.meter.reportPeriod | 表计上报周期 | **ELEC:DAILY,WATER:DAILY（电表每日、水表每日）** |
+| iot.meter.switch.delayMinutes | 拉闸延迟执行 | 10 分钟（窗口内可撤销） |

@@ -27,6 +27,7 @@ export const sysApi = {
   // 由前端常量提供，避免 400
   dictTypes: () => Promise.resolve(Object.keys(DICT_TYPE_LABEL)),
   configs: (group) => req.get('/sys/configs', { params: { group } }),
+  setConfig: (data) => req.post('/sys/configs', data),
   auditLogs: (params) => req.get('/sys/audit-logs', { params })
 }
 
