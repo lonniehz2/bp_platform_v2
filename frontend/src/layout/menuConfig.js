@@ -60,7 +60,7 @@ export const SUBGROUPS = {
   ],
   设备与通行: [
     { title: '设备', paths: ['/devices', '/device-bind', '/dev-events'] },
-    { title: '门禁通行', paths: ['/access', '/keyring', '/grants'] }
+    { title: '通行与授权', paths: ['/access', '/keyring', '/grants'] }
   ],
   服务与监督: [
     { title: '服务作业', paths: ['/workorders', '/complaints', '/appeals'] },
@@ -123,12 +123,12 @@ export const MENU_DESC = {
   '/dev-events': '低电量、拆机、试错、离线等告警',
   '/access': '开门记录查询',
   '/keyring': '钥匙登记、领用与归还',
-  '/grants': '发卡授权任务与下发对账',
+  '/grants': '通行权限的新建、撤销与对账审计',
   '/workorders': '报修维保工单派单与完工',
   '/complaints': '投诉登记、处理与归档',
   '/appeals': '申诉受理与结果反馈',
   '/credits': '违规扣分与惩戒期限',
-  '/visits': '来访登记与出入记录',
+  '/visits': '入户核查房屋使用情况（转租/空置/违规）',
   '/alerts': '告警阈值、级别与通知规则',
   '/reports': '业务报表查询与导出',
   '/gov': '适配器配置、报送任务与明细',
@@ -154,3 +154,15 @@ export const MENU_BADGE_KEY = {
 export function basePathOf(path, parent) {
   return parent || String(path || '').split('/:')[0]
 }
+
+/**
+ * 菜单中隐藏的路径（路由保留，管理员可直接访问）。
+ *
+ * 运维操作台 / 扩展操作台是早期后台工具，功能与业务页重复：
+ *   人员状态 → 人员档案「改状态」
+ *   房源状态 → 房源台账「改状态」
+ *   工单流程 → 工单维保「派单/流转」
+ *   扩展台 6 个页签 → 消息/告警规则/开放平台/权限/授权/日房态 均已存在
+ * 因此不再占用菜单项，减少「系统与数据」的拥挤。
+ */
+export const HIDDEN_PATHS = ['/ops-center', '/ops-extras']

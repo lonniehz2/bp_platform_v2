@@ -89,6 +89,8 @@ public class GrantServiceImpl implements GrantService {
     private static final int MAX_RETRY = 3;
 
     private final GrantEntitlementMapper entitlementMapper;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.person.mapper.PersonMapper personMapper;
     private final GrantTaskMapper taskMapper;
     private final GrantTaskDetailMapper detailMapper;
     private final SnowflakeIdGenerator idGen;
@@ -248,7 +250,7 @@ public class GrantServiceImpl implements GrantService {
         applyScope(qw, GrantEntitlement::getOrgId, GrantEntitlement::getPersonId);
         IPage<GrantEntitlement> page =
                 entitlementMapper.selectPage(new Page<>(pageNum, pageSize), qw);
-        List<GrantVO> rows = page.getRecords().stream().map(GrantVO::from).toList();
+        List<GrantVO> rows = fillPersonNames(page.getRecords());
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);
     }
 
@@ -648,5 +650,29 @@ public class GrantServiceImpl implements GrantService {
             log.warn("授权任务超时判定：{} 条置为失败", n);
         }
         return n;
+    }
+
+    /** 批量补人员姓名（列表展示用，避免前端显示人员ID）。 */
+    private List<GrantVO> fillPersonNames(List<GrantEntitlement> list) {
+        if (list == null || list.isEmpty() || personMapper == null) {
+            return list == null ? List.of()
+                    : list.stream().map(GrantVO::from).toList();
+        }
+        java.util.Set<Long> ids = new java.util.HashSet<>();
+        for (GrantEntitlement e : list) {
+            if (e.getPersonId() != null) {
+                ids.add(e.getPersonId());
+            }
+        }
+        java.util.Map<Long, String> nameOf = new java.util.HashMap<>();
+        if (!ids.isEmpty()) {
+            for (com.yundao.bp.person.entity.Person p
+                    : personMapper.selectBatchIds(ids)) {
+                nameOf.put(p.getId(), p.getPersonName());
+            }
+        }
+        return list.stream()
+                .map(e -> GrantVO.from(e, nameOf.get(e.getPersonId())))
+                .toList();
     }
 }

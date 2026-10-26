@@ -1,18 +1,18 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">来访登记</h3>
+      <h3 style="margin:0">入户走访</h3>
       <el-tag size="small" type="info"></el-tag>
       <div class="spacer" />
       <el-input v-model="keyword" placeholder="关键字/ID" clearable
                 style="width:170px" @keyup.enter="reload" />
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
-      <el-button type="success" @click="openCreate">登记来访</el-button>
+      <el-button type="success" @click="openCreate">走访登记</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon
-              :title="'来访登记用于园区/小区出入管理，可关联被访人'" style="margin-bottom:12px" />
+              :title="'用于定期入户核查房屋使用情况：是否居住、实际人数、是否转租/空置/违规使用'" style="margin-bottom:12px" />
 
     <el-table :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">
@@ -161,7 +161,7 @@ async function submit() {
 }
 
 function openCreate() {
-  openForm('登记来访', fields, (m) => visitApi.create(m))
+  openForm('走访登记', fields, (m) => visitApi.create(m))
 }
 async function report(row) {
   await visitApi.report(row.id, {})

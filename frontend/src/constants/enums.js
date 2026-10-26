@@ -389,7 +389,15 @@ const TYPE_OVERRIDE = {
   alertLevel: { INFO: '提示', WARNING: '警告', CRITICAL: '严重' },
   creditLevel: { MINOR: '轻微', MAJOR: '较重', SEVERE: '严重' },
   handleStatus: { PENDING: '待处理', HANDLED: '已处理', IGNORED: '已忽略' },
-  dayStatus: { FREE: '空闲', FULL: '满房', LOCKED: '锁定', CLOSED: '关闭' }
+  dayStatus: { FREE: '空闲', FULL: '满房', LOCKED: '锁定', CLOSED: '关闭' },
+  // 授权：EFFECTIVE 在合同里是「履约中」，这里必须是「已生效」
+  grantStatus: {
+    PENDING: '待生效', EFFECTIVE: '已生效', EXPIRED: '已到期',
+    FROZEN: '已冻结', REVOKED: '已撤销'
+  },
+  grantLevel: {
+    OWNERSHIP: '产权级', MANAGEMENT: '管理级', USAGE: '使用级', VISIT: '访客级'
+  }
 }
 
 /**

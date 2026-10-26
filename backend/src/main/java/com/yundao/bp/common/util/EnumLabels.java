@@ -295,7 +295,12 @@ public final class EnumLabels {
             "flowType", Map.of("IN", "收入", "OUT", "支出"),
             "auditLevel", Map.of("INFO", "提示", "WARNING", "警告", "CRITICAL", "严重"),
             "alertLevel", Map.of("INFO", "提示", "WARNING", "警告", "CRITICAL", "严重"),
-            "creditLevel", Map.of("MINOR", "轻微", "MAJOR", "较重", "SEVERE", "严重")
+            "creditLevel", Map.of("MINOR", "轻微", "MAJOR", "较重", "SEVERE", "严重"),
+            // 授权：EFFECTIVE 在合同语境是「履约中」，授权语境必须是「已生效」
+            "grantStatus", Map.of("PENDING", "待生效", "EFFECTIVE", "已生效",
+                    "EXPIRED", "已到期", "FROZEN", "已冻结", "REVOKED", "已撤销"),
+            "grantLevel", Map.of("OWNERSHIP", "产权级", "MANAGEMENT", "管理级",
+                    "USAGE", "使用级", "VISIT", "访客级")
     );
 
     /**

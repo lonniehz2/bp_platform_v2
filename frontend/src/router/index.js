@@ -125,7 +125,7 @@ export const menuRoutes = [
     path: '/grants',
     name: 'grants',
     component: () => import('@/views/Grants.vue'),
-    meta: { title: '授权与对账', icon: 'Link', group: '设备与通行', perm: 'grant:manage' }
+    meta: { title: '通行授权', icon: 'Link', group: '设备与通行', perm: 'grant:manage' }
   },
   {
     path: '/persons/:tab?',
@@ -173,7 +173,7 @@ export const menuRoutes = [
     path: '/visits',
     name: 'visits',
     component: () => import('@/views/Visits.vue'),
-    meta: { title: '来访登记', icon: 'Postcard', group: '服务与监督' }
+    meta: { title: '入户走访', icon: 'Postcard', group: '服务与监督' }
   },
   {
     path: '/short-rent',

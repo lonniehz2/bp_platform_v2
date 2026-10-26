@@ -3,7 +3,7 @@ import { menuRoutes } from '@/router'
 import { useAuthStore } from '@/store/auth'
 import {
   GROUP_ORDER, GROUP_ICON, GROUP_ALIAS, SUBGROUPS, MENU_RANK,
-  MENU_DESC, MENU_BADGE_KEY, basePathOf
+  MENU_DESC, MENU_BADGE_KEY, basePathOf, HIDDEN_PATHS
 } from './menuConfig'
 
 export { GROUP_ORDER, GROUP_ICON, MENU_DESC, SUBGROUPS }
@@ -81,37 +81,28 @@ export function useMenu() {
   const menus = computed(() => {
     const out = []
     for (const m of menuRoutes) {
+      const basePath = NAME_BASE[m.name] || m.path.split('/:')[0]
+      // 运维/扩展操作台与业务页重复，菜单不显示（路由仍可直接访问）
+      if (HIDDEN_PATHS.includes(basePath)) continue
+
       const code = m.meta?.perm || pagePermCode(m.path)
       const allowed = !code || auth.has(code)
       if (!allowed && !showDisabled.value) continue
 
-      const basePath = NAME_BASE[m.name] || m.path.split('/:')[0]
       const tabs = TAB_MENU[m.name]
       const desc = MENU_DESC[basePath] || ''
 
-      if (!tabs) {
-        out.push({
-          path: basePath,
-          name: m.name,
-          meta: m.meta,
-          desc,
-          badgeKey: MENU_BADGE_KEY[basePath] || '',
-          disabled: !allowed
-        })
-        continue
-      }
-      // 有子页签：父项不单独出现，展开为子项（父项无权限则子项全部禁用）
-      for (const t of tabs) {
-        out.push({
-          path: basePath + '/' + t.tab,
-          name: m.name + '-' + t.tab,
-          meta: { ...m.meta, title: t.title },
-          desc: desc,
-          badgeKey: MENU_BADGE_KEY[basePath] || '',
-          disabled: !allowed,
-          _parent: basePath
-        })
-      }
+      // 多页签页面：菜单只占一项，落到默认页签，页内再切换
+      const path = tabs && tabs.length ? basePath + '/' + tabs[0].tab : basePath
+      out.push({
+        path,
+        name: m.name,
+        meta: m.meta,
+        desc,
+        badgeKey: MENU_BADGE_KEY[basePath] || '',
+        disabled: !allowed,
+        _parent: tabs && tabs.length ? basePath : undefined
+      })
     }
     return out
   })
@@ -166,21 +157,31 @@ export function useMenu() {
     return base + (idx < 0 ? 0 : idx / 100)
   }
 
+  /** 按基础路径找父路由（/rbac/user → /rbac/:tab? 那条） */
+  function parentRouteOf(path) {
+    const base = String(path || '').split('/:')[0].replace(/\/[^/]+$/, '')
+    return menuRoutes.find((m) => {
+      const b = NAME_BASE[m.name] || m.path.split('/:')[0]
+      return b === base
+    })
+  }
+
   function titleOf(path) {
     const hit = menuRoutes.find((m) => m.path === path)
     if (hit) return hit.meta?.title || '页面'
-    const cut = path.lastIndexOf('/')
-    const base = path.slice(0, cut)
-    const tab = path.slice(cut + 1)
-    const t = (TAB_MENU[base] || []).find((x) => x.tab === tab)
-    return t ? t.title : '页面'
+    // 子页签：/rbac/user → 父页面「用户与权限」+「用户管理」
+    const parent = parentRouteOf(path)
+    if (!parent) return '页面'
+    const tab = String(path).split('/').pop()
+    const t = (TAB_MENU[parent.name] || []).find((x) => x.tab === tab)
+    const parentTitle = parent.meta?.title || '页面'
+    return t ? parentTitle + ' · ' + t.title : parentTitle
   }
 
   function groupOf(path) {
     const hit = menuRoutes.find((m) => m.path === path)
     if (hit) return groupNameOf(hit.meta)
-    const base = path.slice(0, path.lastIndexOf('/'))
-    const parent = menuRoutes.find((m) => m.path === base)
+    const parent = parentRouteOf(path)
     return groupNameOf(parent?.meta)
   }
 

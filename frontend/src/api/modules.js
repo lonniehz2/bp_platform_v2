@@ -247,6 +247,11 @@ export const keyringApi = {
 
 export const grantApi = {
   page: (params) => req.get('/grants', { params }),
+  get: (id) => req.get(`/grants/${id}`),
+  create: (data) => req.post('/grants', data),
+  revoke: (id, reason) => req.post(`/grants/${id}/revoke`, { reason }),
+  task: (taskId) => req.get(`/grants/tasks/${taskId}`),
+  taskDetails: (taskId) => req.get(`/grants/tasks/${taskId}/details`),
   reconcileRun: (lockId) =>
     req.post('/grant-reconcile/run', null, { params: { lockId } }),
   diffs: (params) => req.get('/grant-reconcile/diffs', { params }),
