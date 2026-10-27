@@ -314,5 +314,6 @@ equestId 回填指令状态/结果码/耗时 |
 | 告警联动 | ✅ | 严重告警自动转 ALERT 工单（同设备 24h 去重） |
 | 真实指令下发 | 🟡 | RealDeviceCommandClient 已实现（p.dev.command-mode=real 启用），参数名待 IoT 确认 |
 | IoT 监控 | ✅ | /iot-monitor：在线率、指令成功率、回调成功率、事件 Top；GET /api/v1/iot/metrics |
+| 日对账 | ✅ | /iot-reconcile：指令、回调矩阵、表计覆盖与缺失；GET /api/v1/iot/reconcile?date=；可导出 CSV |
 
 > 联调验证见 17_IoT联调方案与测试用例.md；本次实测：正确签名 200、错误签名/过期时间戳 401、重复事件不重复入库、指令 mock 下发成功、回执回填成功、心跳与上下线更新设备。

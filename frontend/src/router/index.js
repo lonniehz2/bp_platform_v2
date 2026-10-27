@@ -75,6 +75,13 @@ export const menuRoutes = [
       perm: 'asset:device:view' }
   },
   {
+    path: '/iot-reconcile',
+    name: 'IotReconcile',
+    component: () => import('@/views/IotReconcile.vue'),
+    meta: { title: 'IoT日对账', icon: 'Tickets', group: '设备与通行',
+      perm: 'asset:device:view' }
+  },
+  {
     path: '/iot-monitor',
     name: 'IotMonitor',
     component: () => import('@/views/IotMonitor.vue'),
