@@ -18,9 +18,12 @@
         <el-button @click="expireDue">到期批量处理</el-button>
       </div>
 
-      <el-table :data="rows" v-loading="loading" border size="small" max-height="560">
+      <el-table empty-text="暂无合同，点右上「新建合同」或「快捷签约」" :data="rows" v-loading="loading" border size="small" max-height="560">
         <el-table-column prop="contractNo" label="合同号" width="165" show-overflow-tooltip />
         <el-table-column prop="lesseeName" label="承租人" width="100" />
+        <el-table-column label="组织" width="150" show-overflow-tooltip>
+          <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
+        </el-table-column>
         <el-table-column prop="houseAddress" label="房屋" min-width="170" />
         <el-table-column label="租期" width="190">
           <template #default="{ row }">

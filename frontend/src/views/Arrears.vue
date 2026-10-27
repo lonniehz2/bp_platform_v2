@@ -44,7 +44,7 @@
         <span class="muted">共 {{ actionTotal }} 条</span>
       </div>
 
-      <el-table :data="actions" v-loading="actionLoading" border size="small">
+      <el-table empty-text="暂无欠费记录" :data="actions" v-loading="actionLoading" border size="small">
         <el-table-column prop="actionNo" label="处置号" width="170" />
         <el-table-column prop="contractId" label="合同" width="160">
           <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>

@@ -32,7 +32,7 @@
               title="设备表按空间关联（无 houseId/lockId 列）；门锁与房源关系由绑定记录推导"
               style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table empty-text="暂无设备，可点「同步设备」从 IoT 拉取" :data="rows" v-loading="loading" border size="small">
       <el-table-column prop="deviceId" label="设备ID" width="200">
         <template #default="{ row }">{{ row.deviceIdName || row.deviceId }}</template>
       </el-table-column>
@@ -41,6 +41,9 @@
         <template #default="{ row }">{{ row.deviceTypeLabel || enumLabel('deviceType', row.deviceType) }}</template>
       </el-table-column>
       <el-table-column prop="deviceMac" label="MAC" width="160" />
+      <el-table-column label="组织" width="150" show-overflow-tooltip>
+        <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
+      </el-table-column>
       <el-table-column prop="spaceId" label="空间" width="140">
         <template #default="{ row }">{{ row.spaceIdName || row.spaceId }}</template>
       </el-table-column>

@@ -20,7 +20,7 @@
               title="摇号按总分降序、入队时间升序取前 N 名；优先附加分用于优抚对象加分"
               style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table empty-text="轮候库为空，审核通过后会自动入队" :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>

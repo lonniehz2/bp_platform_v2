@@ -14,7 +14,7 @@
     <el-alert type="info" :closable="false" show-icon :title="'钥匙包绑定人员与通行介质；状态变更与回收需留痕'"
               style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table empty-text="暂无钥匙，先在「人员档案」建档再入包" :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">
         <template #default="{ row }">
           <DetailView :row="row" />

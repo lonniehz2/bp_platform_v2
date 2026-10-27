@@ -11,7 +11,7 @@
     </div>
     <el-alert v-if="'配租公示必须 ≥7 自然日且已结束才能签约'" type="info" :closable="false" show-icon :title="'配租公示必须 ≥7 自然日且已结束才能签约'"
               style="margin-bottom:12px" />
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table empty-text="暂无公示，配租/资格公示从这里发起" :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">
       <template #default="{ row }">
         <div style="padding:8px 12px">

@@ -27,7 +27,7 @@
             <span class="muted">共 {{ grantTotal }} 条</span>
           </div>
 
-          <el-table :data="grants" v-loading="grantLoading" border size="small">
+          <el-table empty-text="暂无授权记录" :data="grants" v-loading="grantLoading" border size="small">
             <el-table-column prop="grantNo" label="授权号" width="180" />
             <el-table-column prop="personIdName" label="人员" width="130">
               <template #default="{ row }">{{ row.personIdName || row.personId }}</template>

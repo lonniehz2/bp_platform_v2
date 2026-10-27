@@ -15,7 +15,7 @@
         </el-button>
       </div>
 
-      <el-table :data="rows" v-loading="loading" border size="small">
+      <el-table empty-text="暂无申请单，点右上「新建申请」" :data="rows" v-loading="loading" border size="small">
         <el-table-column prop="applicationNo" label="申请编号" width="160" />
         <el-table-column prop="personName" label="申请人" width="110">
         <template #default="{ row }">

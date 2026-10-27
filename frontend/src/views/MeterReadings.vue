@@ -24,7 +24,7 @@
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
               title="用量 = 本次读数 − 上次读数；金额 = 用量 × 计费项目单价（单价在「计费项目」中维护）" />
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table empty-text="暂无抄表记录，可人工录入或从 IoT 拉取" :data="rows" v-loading="loading" border size="small">
       <el-table-column prop="readDate" label="抄表日期" width="120" />
       <el-table-column prop="houseId" label="房源" min-width="180">
         <template #default="{ row }">{{ row.houseIdName || houseLabel(row.houseId) }}</template>

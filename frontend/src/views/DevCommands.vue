@@ -26,7 +26,7 @@
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
               title="指令经 IoT 平台下发，回执由 IoT 回调回填；超时（默认 10 秒）会自动重试，最多 3 次。" />
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table empty-text="暂无设备指令" :data="rows" v-loading="loading" border size="small">
       <el-table-column prop="commandNo" label="指令号" width="180" />
       <el-table-column label="类型" width="130">
         <template #default="{ row }">{{ typeLabel(row.commandType) }}</template>

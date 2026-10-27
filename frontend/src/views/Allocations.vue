@@ -31,7 +31,7 @@
         </el-select>
       </FilterBar>
 
-      <el-table :data="batches" v-loading="loading" border size="small"
+      <el-table empty-text="暂无配租单，摇号完成后点「生成配租单」" :data="batches" v-loading="loading" border size="small"
                 highlight-current-row @row-click="(row) => selectBatch(row)">
 
         <el-table-column prop="batchNo" label="批次号" width="170" />

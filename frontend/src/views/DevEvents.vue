@@ -56,7 +56,7 @@
       </el-col>
     </el-row>
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table empty-text="暂无设备事件" :data="rows" v-loading="loading" border size="small">
       <el-table-column prop="eventTime" label="时间" width="170" />
       <el-table-column prop="deviceId" label="设备编号" width="170" />
       <el-table-column prop="identifier" label="类型" width="170">
