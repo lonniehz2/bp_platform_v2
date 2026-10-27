@@ -26,6 +26,8 @@
         <el-button plain @click="openEnergy" data-testid="bill-energy">能耗分析</el-button>
         <el-button @click="openPay">登记收款</el-button>
         <el-button @click="scanOverdue">扫描逾期</el-button>
+        <el-button plain data-testid="bill-export" :loading="exporting"
+                   @click="exportBills">导出 CSV</el-button>
       </div>
 
       <el-row :gutter="12" style="margin-bottom:10px">
@@ -322,6 +324,7 @@ import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { financeApi } from '@/api/modules'
 import req from '@/api/request'
+import { downloadCsv, fetchAllPages } from '@/utils/csv'
 import OrgSelect from '@/components/OrgSelect.vue'
 import LineTrend from '@/components/LineTrend.vue'
 
@@ -406,6 +409,36 @@ const recvTrend = computed(() => trendRows.value.map((m) => ({
 const paidTrend = computed(() => trendRows.value.map((m) => ({
   label: String(m.month || '').slice(5), value: Number(m.received) || 0
 })))
+
+const exporting = ref(false)
+
+/** 按当前筛选导出账单 CSV（分页拉全量） */
+async function exportBills() {
+  exporting.value = true
+  try {
+    const rows = await fetchAllPages((params) => financeApi.bills(params), {
+      orgId: q.orgId || undefined,
+      status: q.billStatus || undefined,
+      billPeriod: q.billPeriod || undefined,
+      houseId: q.houseId || undefined
+    })
+    downloadCsv('账单_' + new Date().toISOString().slice(0, 10), [
+      { key: 'billNo', label: '账单号' },
+      { key: 'payerName', label: '缴费人' },
+      { key: 'billPeriod', label: '账期' },
+      { key: 'billAmount', label: '应收' },
+      { key: 'paidAmount', label: '已缴' },
+      { key: 'waivedAmount', label: '减免' },
+      { key: 'payableAmount', label: '待缴' },
+      { key: 'dueDate', label: '截止日' },
+      { key: 'billStatusLabel', label: '状态' },
+      { key: 'overdueDays', label: '逾期天数' }
+    ], rows)
+    ElMessage.success('已导出 ' + rows.length + ' 条账单')
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '导出失败')
+  } finally { exporting.value = false }
+}
 
 async function loadTrend() {
   try {

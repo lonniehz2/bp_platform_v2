@@ -18,6 +18,8 @@
           <el-button type="primary" plain @click="openQuickSign"
                      data-testid="quick-sign">快捷签约</el-button>
         <el-button @click="expireDue">到期批量处理</el-button>
+        <el-button plain data-testid="contract-export" :loading="exporting"
+                   @click="exportContracts">导出 CSV</el-button>
       </div>
 
       <el-table empty-text="暂无合同，点右上「新建合同」或「快捷签约」" :data="rows" v-loading="loading" border size="small" max-height="560">
@@ -351,6 +353,7 @@ import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { contractApi } from '@/api/modules'
 import req from '@/api/request'
+import { downloadCsv, fetchAllPages } from '@/utils/csv'
 import CohabitantPanel from '@/components/CohabitantPanel.vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import OrgSelect from '@/components/OrgSelect.vue'
@@ -517,6 +520,36 @@ async function expireDue() {
 }
 
 const q0 = JSON.parse(JSON.stringify(q))
+/** 按当前筛选导出 CSV（最多 5000 行） */
+const exporting = ref(false)
+
+async function exportContracts() {
+  exporting.value = true
+  try {
+    const rows = await fetchAllPages((params) => contractApi.page(params), {
+      orgId: q.orgId || undefined,
+      contractStatus: q.contractStatus || undefined,
+      keyword: q.keyword || undefined
+    })
+    downloadCsv('合同台账_' + new Date().toISOString().slice(0, 10), [
+      { key: 'contractNo', label: '合同号' },
+      { key: 'lesseeName', label: '承租人' },
+      { key: 'orgIdName', label: '组织' },
+      { key: 'houseAddress', label: '房屋' },
+      { key: 'leaseStart', label: '起租日' },
+      { key: 'leaseEnd', label: '止租日' },
+      { key: 'monthlyRent', label: '月租' },
+      { key: 'depositAmount', label: '押金' },
+      { key: 'contractTypeLabel', label: '类型' },
+      { key: 'contractStatusLabel', label: '状态' },
+      { key: 'signTime', label: '签约时间' }
+    ], rows)
+    ElMessage.success('已导出 ' + rows.length + ' 条合同')
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '导出失败')
+  } finally { exporting.value = false }
+}
+
 function resetQuery() {
   Object.assign(q, q0)
   reload()
