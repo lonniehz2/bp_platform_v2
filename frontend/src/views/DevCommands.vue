@@ -17,8 +17,7 @@
                  style="width:150px" @change="reload">
         <el-option v-for="t in TYPES" :key="t.value" :label="t.label" :value="t.value" />
       </el-select>
-      <el-input v-model="query.deviceId" placeholder="设备编号" clearable
-                style="width:220px" @keyup.enter="reload" />
+      <DeviceSelect v-model="query.deviceId" width="240px" testid="device-select" />
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
       <el-button type="success" @click="openCreate">新建指令</el-button>
@@ -127,6 +126,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
+import DeviceSelect from '@/components/DeviceSelect.vue'
 
 const TYPES = [
   { value: 'LOCK_OPEN', label: '远程开锁' },

@@ -59,7 +59,8 @@ public class DeviceController {
             @RequestParam(required = false) String deviceId,
             @RequestParam(required = false) String deviceMac,
             @RequestParam(required = false) Integer onlineStatus,
-            @RequestParam(required = false) String deviceType) {
+            @RequestParam(required = false) String deviceType,
+            @RequestParam(required = false) String keyword) {
         LambdaQueryWrapper<DevDevice> qw = new LambdaQueryWrapper<DevDevice>()
                 .eq(spaceId != null, DevDevice::getSpaceId, spaceId)
                 .eq(deviceType != null && !deviceType.isBlank(),
@@ -69,6 +70,10 @@ public class DeviceController {
                 .like(deviceMac != null && !deviceMac.isBlank(),
                         DevDevice::getDeviceMac, deviceMac)
                 .eq(onlineStatus != null, DevDevice::getOnlineStatus, onlineStatus)
+                .and(keyword != null && !keyword.isBlank(),
+                        w -> w.like(DevDevice::getDeviceId, keyword)
+                                .or().like(DevDevice::getDeviceMac, keyword)
+                                .or().like(DevDevice::getDeviceName, keyword))
                 .orderByDesc(DevDevice::getId);
         IPage<DevDevice> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
         return R.ok(PageResult.of(page.getTotal(), pageNum, pageSize, page.getRecords()));

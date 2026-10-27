@@ -74,8 +74,7 @@
         <!-- ============ 对账差异 ============ -->
         <el-tab-pane label="对账差异" name="diff">
           <div class="toolbar" style="margin-bottom:10px">
-            <el-input v-model="lockId" placeholder="门锁ID（可空=全部）"
-                      style="width:200px" />
+            <DeviceSelect v-model="lockId" width="240px" testid="device-select" />
             <el-button type="primary" :loading="running" @click="runReconcile">
               执行对账
             </el-button>
@@ -201,6 +200,7 @@ import { reactive, ref, onMounted } from 'vue'
 import DetailView from '@/components/DetailView.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { grantApi } from '@/api/modules'
+import DeviceSelect from '@/components/DeviceSelect.vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import SpaceSelect from '@/components/SpaceSelect.vue'
 

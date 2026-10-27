@@ -89,7 +89,7 @@
                             style="width:100%" /></el-form-item></el-col>
         </el-row>
         <el-form-item label="计量设备编号">
-          <el-input v-model="rf.deviceId" placeholder="留空表示人工抄表" />
+          <DeviceSelect v-model="rf.deviceId" width="100%" testid="device-select" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -109,6 +109,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import req from '@/api/request'
+import DeviceSelect from '@/components/DeviceSelect.vue'
 
 const rows = ref([])
 const total = ref(0)
