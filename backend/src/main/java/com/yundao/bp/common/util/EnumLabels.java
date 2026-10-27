@@ -242,6 +242,7 @@ public final class EnumLabels {
             new String[]{"MAJOR", "较重"},
             new String[]{"SEVERE", "严重"},
             new String[]{"WARNING", "警告"},
+            new String[]{"WARN", "警告"},
             new String[]{"INFO", "提示"},
             new String[]{"CRITICAL", "严重"},
             new String[]{"OTA", "OTA平台"},

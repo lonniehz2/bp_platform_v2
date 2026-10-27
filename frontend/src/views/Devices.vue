@@ -99,13 +99,14 @@
         </el-table-column>
         <el-table-column prop="eventLevel" label="级别" width="90">
           <template #default="{ row }">
-            <el-tag size="small" :type="row.eventLevel === 'CRITICAL' ? 'danger'
-              : (row.eventLevel === 'WARN' ? 'warning' : 'info')">
-              {{ row.eventLevel }}
+            <el-tag size="small" :type="levelTagType(row.eventLevel)">
+              {{ levelLabel(row.eventLevel) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="body" label="详情" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="body" label="详情" min-width="200" show-overflow-tooltip>
+          <template #default="{ row }">{{ fmtEventBody(row.body) }}</template>
+        </el-table-column>
         <el-table-column prop="handled" label="状态" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="row.handled ? 'success' : 'danger'">
@@ -138,6 +139,7 @@ function openDetail(row) {
 }
 
 import { enumLabel } from '@/constants/enums'
+import { levelLabel, levelTagType, fmtEventBody } from '@/utils/eventDisplay'
 import { ref, reactive, onMounted } from 'vue'
 import req from '@/api/request'
 import SpaceSelect from '@/components/SpaceSelect.vue'
