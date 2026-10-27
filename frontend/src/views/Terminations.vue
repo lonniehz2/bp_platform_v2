@@ -23,7 +23,7 @@
         <el-option label="已撤销" value="CANCELLED" />
       </el-select>
       <template #more>
-        <el-input v-model="tf.contractId" placeholder="合同 ID" clearable style="width:200px" />
+        <ContractSelect v-model="tf.contractId" width="200px" testid="contract-select" />
         <el-select v-model="tf.type" placeholder="退租类型" clearable style="width:160px">
           <el-option label="协商终止" value="AGREEMENT" />
           <el-option label="违约终止" value="BREACH" />
@@ -202,6 +202,7 @@ import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { terminationApi } from '@/api/modules'
 import req from '@/api/request'
+import ContractSelect from '@/components/ContractSelect.vue'
 
 const loading = ref(false)
 const saving = ref(false)

@@ -2,8 +2,7 @@
   <div>
     <div class="page-card">
       <div class="toolbar">
-        <el-input v-model="query.houseId" placeholder="房源ID" clearable
-                  style="width:210px" @keyup.enter="load" />
+        <HouseSelect v-model="query.houseId" width="210px" testid="house-select" />
         <PersonPicker v-model="query.personId" width="240px" testid="person-picker" />
         <el-checkbox v-model="query.abnormalOnly">只看异常</el-checkbox>
         <el-button type="primary" @click="load">查询</el-button>

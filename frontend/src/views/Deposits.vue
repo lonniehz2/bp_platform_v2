@@ -11,8 +11,7 @@
       </div>
 
       <FilterBar @search="load" @reset="resetQuery">
-      <el-input v-model="df.contractId" placeholder="合同 ID" clearable
-                style="width:200px" data-testid="dep-contract" @keyup.enter="load" />
+      <ContractSelect v-model="df.contractId" width="200px" testid="contract-select" />
       <PersonPicker v-model="df.personId" width="240px" testid="person-picker" />
     </FilterBar>
 
@@ -178,6 +177,7 @@ import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { financeApi } from '@/api/modules'
 import req from '@/api/request'
+import ContractSelect from '@/components/ContractSelect.vue'
 import FilterBar from '@/components/FilterBar.vue'
 
 const loading = ref(false)

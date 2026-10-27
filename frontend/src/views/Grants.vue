@@ -14,8 +14,7 @@
         <!-- ============ 授权管理 ============ -->
         <el-tab-pane label="授权管理" name="grant">
           <div class="toolbar" style="margin-bottom:10px">
-            <el-input v-model.number="gq.personId" placeholder="人员ID" clearable
-                      style="width:150px" />
+            <PersonPicker v-model="gq.personId" width="240px" testid="picker" />
             <el-input v-model.number="gq.spaceId" placeholder="空间ID" clearable
                       style="width:150px" />
             <el-select v-model="gq.grantStatus" placeholder="状态" clearable
@@ -153,7 +152,7 @@
     <el-dialog v-model="createVisible" title="新建通行授权" width="560px">
       <el-form :model="gf" label-width="110px">
         <el-form-item label="人员ID" required>
-          <el-input v-model.number="gf.personId" placeholder="人员ID" />
+          <PersonPicker v-model="gf.personId" width="200px" testid="picker" />
         </el-form-item>
         <el-form-item label="空间ID" required>
           <el-input v-model.number="gf.spaceId" placeholder="授权到哪个空间（房间/楼栋）" />

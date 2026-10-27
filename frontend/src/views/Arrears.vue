@@ -27,10 +27,8 @@
                 style="margin-bottom:10px" />
 
       <div class="toolbar" style="margin-bottom:10px">
-        <el-input v-model.number="af.contractId" placeholder="合同ID" clearable
-                  style="width:150px" />
-        <el-input v-model.number="af.personId" placeholder="人员ID" clearable
-                  style="width:150px" />
+        <ContractSelect v-model="af.contractId" width="240px" testid="contract-select" />
+        <PersonPicker v-model="af.personId" width="240px" testid="picker" />
         <el-select v-model="af.actionType" placeholder="动作类型" clearable style="width:140px">
           <el-option v-for="t in ACTION_TYPES" :key="t.value" :label="t.label" :value="t.value" />
         </el-select>
@@ -228,6 +226,7 @@ import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { financeApi } from '@/api/modules'
 import req from '@/api/request'
+import ContractSelect from '@/components/ContractSelect.vue'
 import LineTrend from '@/components/LineTrend.vue'
 
 const tab = ref('action')

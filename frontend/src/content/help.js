@@ -8,7 +8,7 @@
  *
  * 维护约定：改这里等于改内置帮助；对外发布的《用户操作说明》与本文保持同源。
  */
-export const HELP_VERSION = 'v3.2（2026-10-27）'
+export const HELP_VERSION = 'v3.3（2026-10-27）'
 
 export const HELP_SECTIONS = [
   {
@@ -164,6 +164,7 @@ export const HELP_SECTIONS = [
     title: '五、合同与租赁',
     blocks: [
       { type: 'h3', text: '5.1 签订合同' },
+      { type: 'note', text: '合同表单不再填 ID：出租组织/出租方组织按名称选，承租人按姓名搜索并自动带出电话与证件，房源按编号/名称搜索，空间与地址/面积自动带出。' },
       {
         type: 'ol', items: [
           '进入「合同管理」，点击「新增合同」。',

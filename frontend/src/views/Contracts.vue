@@ -94,22 +94,24 @@
               <el-option label="人才公寓" value="TALENT" />
               <el-option label="廉租房" value="LOW_RENT" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="出租组织ID" required>
-            <el-input v-model="c.orgId" data-testid="c-org-id" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="出租方组织ID" required>
-            <el-input v-model="c.lessorOrgId" data-testid="c-lessor-org-id" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="承租人ID" required>
-            <el-input v-model="c.lesseePersonId" data-testid="c-lessee-id" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="出租组织" required>
+            <OrgSelect v-model="c.orgId" testid="c-org-id" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="出租方组织" required>
+            <OrgSelect v-model="c.lessorOrgId" testid="c-lessor-org-id" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="承租人" required>
+            <PersonPicker v-model="c.lesseePersonId" width="100%" testid="c-lessee-id" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="承租人姓名">
             <el-input v-model="c.lesseeName" data-testid="c-lessee-name" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="联系电话">
             <el-input v-model="c.lesseePhone" data-testid="c-lessee-phone" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="证件号">
             <el-input v-model="c.lesseeIdCardMask" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="房源ID" required>
-            <el-input v-model="c.houseId" data-testid="c-house-id" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="空间ID" required>
-            <el-input v-model="c.spaceId" data-testid="c-space-id" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="房源" required>
+            <HouseSelect v-model="c.houseId" :org-id="c.orgId" testid="c-house-id"
+                         @picked="onHousePicked" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="空间">
+            <el-input :model-value="spaceLabel" disabled
+                      placeholder="选择房源后自动带出" data-testid="c-space-id" /></el-form-item></el-col>
           <el-col :span="24"><el-form-item label="房屋地址">
             <el-input v-model="c.houseAddress" data-testid="c-address" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="建筑面积">
@@ -339,13 +341,15 @@
 
 <script setup>
 import { enumLabel } from '@/constants/enums'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { contractApi } from '@/api/modules'
 import req from '@/api/request'
 import CohabitantPanel from '@/components/CohabitantPanel.vue'
 import PersonPicker from '@/components/PersonPicker.vue'
+import OrgSelect from '@/components/OrgSelect.vue'
+import HouseSelect from '@/components/HouseSelect.vue'
 
 const statuses = ['DRAFT', 'PENDING_SIGN', 'EFFECTIVE', 'CHANGING', 'TERMINATED', 'EXPIRED']
 const loading = ref(false)
@@ -365,6 +369,29 @@ const cohabitantContractId = ref(null)
 function openCohabitant(row) {
   cohabitantContractId.value = row.id
   cohabitantVisible.value = true
+}
+
+const spaceLabel = ref('')
+
+/** 选承租人：自动带出姓名/电话/脱敏证件 */
+watch(() => c.lesseePersonId, async (v) => {
+  if (!v) return
+  try {
+    const p = await req.get('/persons/' + v)
+    if (!c.lesseeName) c.lesseeName = p.personName || ''
+    if (!c.lesseePhone) c.lesseePhone = p.phone || ''
+    if (!c.lesseeIdCardMask) c.lesseeIdCardMask = p.idCardMask || ''
+  } catch (e) { /* 忽略 */ }
+})
+
+/** 选房源：带出空间/地址/面积/租金标准 */
+function onHousePicked(h) {
+  if (!h) return
+  c.spaceId = h.spaceId
+  spaceLabel.value = h.spaceName || (h.spaceId ? '空间 ' + h.spaceId : '')
+  if (!c.houseAddress) c.houseAddress = h.houseAddress || h.houseName || ''
+  if (!c.houseArea) c.houseArea = h.area
+  if (!c.rentPrice && h.rentStandard) c.rentPrice = h.rentStandard
 }
 
 const c = reactive({ contractType: 'PUBLIC_RENTAL', orgId: 1, lessorOrgId: 1, lesseePersonId: null,
@@ -395,11 +422,11 @@ function openCreate() { createVisible.value = true }
 async function doCreate() {
   // 必填项与后端 ContractCreateCmd 的 @NotNull 保持一致
   const missing = []
-  if (!c.orgId) missing.push('出租组织ID')
-  if (!c.lessorOrgId) missing.push('出租方组织ID')
-  if (!c.lesseePersonId) missing.push('承租人ID')
-  if (!c.houseId) missing.push('房源ID')
-  if (!c.spaceId) missing.push('空间ID')
+  if (!c.orgId) missing.push('出租组织')
+  if (!c.lessorOrgId) missing.push('出租方组织')
+  if (!c.lesseePersonId) missing.push('承租人')
+  if (!c.houseId) missing.push('房源')
+  if (!c.spaceId) missing.push('空间（选择房源自动带出）')
   if (!c.leaseStart) missing.push('起租日')
   if (!c.leaseEnd) missing.push('止租日')
   if (c.rentPrice == null) missing.push('租金单价')

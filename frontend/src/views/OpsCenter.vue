@@ -15,7 +15,7 @@
       <!-- 人员 -->
       <el-tab-pane label="人员状态" name="person">
         <div class="toolbar" style="margin-bottom:10px">
-          <el-input v-model="pid" placeholder="人员ID" style="width:200px" />
+          <PersonPicker v-model="pid" width="200px" testid="picker" />
           <el-select v-model="pStatus" style="width:160px">
             <el-option label="正常 NORMAL" value="NORMAL" />
             <el-option label="冻结 FROZEN" value="FROZEN" />
@@ -51,7 +51,7 @@
       <!-- 房源 -->
       <el-tab-pane label="房源状态" name="house">
         <div class="toolbar" style="margin-bottom:10px">
-          <el-input v-model="hid" placeholder="房源ID" style="width:200px" />
+          <HouseSelect v-model="hid" width="200px" testid="house-select" />
           <el-select v-model="hStatus" style="width:170px">
             <el-option label="空置 VACANT" value="VACANT" />
             <el-option label="已租 OCCUPIED" value="OCCUPIED" />
@@ -142,6 +142,8 @@ import DetailView from '@/components/DetailView.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
+import PersonPicker from '@/components/PersonPicker.vue'
+import HouseSelect from '@/components/HouseSelect.vue'
 
 const TABS = ['person', 'house', 'order']
 const route = useRoute()

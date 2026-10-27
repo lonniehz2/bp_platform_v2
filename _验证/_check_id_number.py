@@ -59,8 +59,13 @@ def scan():
                         break
                 # ID 输入框过窄：19 位雪花号需要约 200px，否则后几位被藏掉
                 if re.search(r'v-model="[^"]*[Ii]d"', line):
-                    window = line + ' ' + (lines[lineno] if lineno < len(lines) else '')
-                    w = re.search(r'width:(\d+)px', window)
+                    # 只取当前标签块，避免把下一行相邻控件的宽度算进来
+                    block = line
+                    j = lineno
+                    while j < len(lines) and '/>' not in block and '>' not in block:
+                        block += ' ' + lines[j].strip()
+                        j += 1
+                    w = re.search(r'width[:=]"?\s*(\d+)px', block)
                     if w and int(w.group(1)) < 200:
                         narrow.append((os.path.relpath(path, SRC), lineno, stripped))
     return bad, narrow
