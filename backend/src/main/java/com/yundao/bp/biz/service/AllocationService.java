@@ -32,6 +32,9 @@ public interface AllocationService {
 
     WaitingVO getWaiting(Long id);
 
+    /** 该人员是否已在同类保障的轮候队列中（避免重复入队导致唯一键冲突）。 */
+    boolean isQueued(Long personId, String securityType);
+
     PageResult<WaitingVO> pageWaiting(long pageNum, long pageSize, String securityType,
                                       Long orgId, String status, String keyword);
 
@@ -50,6 +53,9 @@ public interface AllocationService {
     BatchVO createBatch(BatchCreateCmd cmd);
 
     BatchVO getBatch(Long id);
+
+    /** 摇号完成后按中签顺序生成配租单。 */
+    int generateAllocations(Long batchId);
 
     PageResult<BatchVO> pageBatch(long pageNum, long pageSize, Long orgId, String status);
 

@@ -9,6 +9,8 @@
         <el-button type="primary" @click="load">刷新</el-button>
       </div>
 
+      <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
+                title="报名即轮候：进入「开始报名」后，同保障类型（同组织）的轮候人员自动参与本批次，无需逐人报名；摇号完成后点「生成配租单」按中签顺序配房。" />
       <FilterBar @search="load" @reset="resetQuery">
         <el-select v-model="af.status" placeholder="批次状态" clearable style="width:160px"
                    data-testid="alloc-status">
@@ -40,6 +42,7 @@
           <template #default="{ row }">{{ row.batchStatusLabel || enumLabel('batchStatus', row.batchStatus) }}</template>
         </el-table-column>
         <el-table-column prop="houseCount" label="房源数" width="90" />
+        <el-table-column prop="applicantCount" label="参与人数" width="100" />
         <el-table-column label="操作" width="240" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
@@ -56,6 +59,9 @@
             <el-button v-if="['DRAFT','PUBLISHED','SIGNUP'].includes(row.batchStatus)"
                        link type="danger" @click="doTransition(row, 'CANCELLED')">取消</el-button>
             <el-button link type="primary" @click="runLottery(row)">摇号</el-button>
+            <el-button v-if="['LOTTERY_DONE','ALLOCATED','SELECTING'].includes(row.batchStatus)"
+                       link type="success" data-testid="batch-gen-alloc"
+                       @click="genAllocations(row)">生成配租单</el-button>
             <el-button link @click="viewResults(row)">结果</el-button>
           </template>
         </el-table-column>
@@ -288,6 +294,7 @@ const bf = reactive({ batchName: '', orgId: '', houseIds: [], securityType: 'PUB
   batchType: 'LOTTERY', signupStart: '', signupEnd: '', lotteryTime: '',
   notaryInfo: '' })
 const orgOptions = ref([])
+const saving = ref(false)
 const batchOrgs = ref([])
 
 
@@ -359,6 +366,8 @@ async function doCreateBatch() {
     ElMessage.success('批次已创建')
     batchCreateVisible.value = false
     load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || e?.message || '创建失败')
   } finally { saving.value = false }
 }
 
@@ -387,6 +396,22 @@ const TRANSITION_TIP = {
   SIGNUP: '开始报名后，本批次按「报名即轮候」处理：该保障类型的轮候人员自动参与本批次摇号',
   LOTTERY: '结束报名并转入摇号，之后不可再报名；摇号对象为当前轮候池',
   CANCELLED: '取消后批次作废，已入池房源释放'
+}
+
+/** 摇号完成 → 按中签顺序生成配租单 */
+async function genAllocations(row) {
+  try {
+    await ElMessageBox.confirm(
+      '将按中签顺序把本批次可用房源配给中签人，生成「待签约」配租单。确认？',
+      '生成配租单', { type: 'warning' })
+  } catch (e) { return }
+  try {
+    const n = await req.post('/allocation/batches/' + row.id + '/generate-allocations')
+    ElMessage.success('已生成配租单 ' + (n || 0) + ' 张，可在下方「配租单」查看')
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '生成失败')
+  }
 }
 
 /** 轮候池人数（按保障类型统计，用于摇号前提示） */

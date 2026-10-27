@@ -120,12 +120,15 @@
                 title="「通过」前系统会按保障档案校验：收入档位、家庭人口一致性、人才认定有效期、名下房产" />
       <el-form :model="reviewForm" label-width="90px" style="margin-top:12px">
         <el-form-item label="审核阶段">
-          <el-select v-model="reviewForm.stage">
+          <el-select v-model="reviewForm.stage" disabled>
             <el-option label="受理初审" value="ACCEPT" />
             <el-option label="形式审查" value="FORM" />
             <el-option label="多部门联审" value="JOINT" />
             <el-option label="终审" value="FINAL" />
           </el-select>
+          <div class="muted" style="font-size:12px;margin-left:8px">
+            必须按 受理初审 → 形式审查 → 联审 → 终审 逐级通过
+          </div>
         </el-form-item>
         <el-form-item label="审核结果">
           <el-radio-group v-model="reviewForm.result">
@@ -176,7 +179,8 @@ import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
 import DetailView from '@/components/DetailView.vue'
 import PersonPicker from '@/components/PersonPicker.vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import req from '@/api/request'
 import { applicationApi } from '@/api/modules'
 import { useDict } from '@/composables/useDict'
 
@@ -267,9 +271,15 @@ async function accept(row) {
 
 function openReview(row) {
   current.value = row
+  reviewForm.stage = stageOfNode(row.currentNode)
   reviewForm.result = 'PASS'
   reviewForm.opinion = ''
   reviewVisible.value = true
+}
+
+/** 当前环节 → 审核阶段（默认值，锁定不可跳级） */
+function stageOfNode(node) {
+  return ['ACCEPT', 'FORM', 'JOINT', 'FINAL'].includes(node) ? node : 'FINAL'
 }
 
 /** 线下受理通过：先受理（如未受理），再做终审通过 */
@@ -301,6 +311,8 @@ async function doReview() {
     ElMessage.success('审核已提交')
     reviewVisible.value = false
     load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '审核提交失败')
   } finally {
     saving.value = false
   }

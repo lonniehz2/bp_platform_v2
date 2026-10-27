@@ -145,7 +145,7 @@ def run_edge_journeys(env):
         _c = pymysql.connect(host='192.168.31.153', port=33306, user='root',
                              password='5677@Mysql', database='bp_platform',
                              charset='utf8mb4', autocommit=True,
-                             connect_timeout=15, read_timeout=60)
+                             connect_timeout=15, read_timeout=180)
         _cur = _c.cursor()
         _cur.execute("delete from bp_fin_arrears_action "
                      "where arrears_amount = 120.01")

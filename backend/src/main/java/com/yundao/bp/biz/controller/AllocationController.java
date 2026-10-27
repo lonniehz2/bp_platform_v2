@@ -126,6 +126,13 @@ public class AllocationController {
         return R.ok(service.listBatchHouses(id, inPoolStatus));
     }
 
+    /** 摇号完成后生成配租单。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
+    @PostMapping("/batches/{id}/generate-allocations")
+    public R<Integer> generateAllocations(@PathVariable Long id) {
+        return R.ok(service.generateAllocations(id));
+    }
+
     /** 状态流转（PUBLISHED / SIGNUP / SELECTING / CLOSED / CANCELLED）。 */
     @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
     @PostMapping("/batches/{id}/status")

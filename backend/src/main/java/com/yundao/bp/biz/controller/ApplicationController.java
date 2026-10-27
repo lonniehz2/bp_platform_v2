@@ -65,6 +65,16 @@ public class ApplicationController {
         return R.ok(applicationService.accept(id, cmd == null ? null : cmd.userId()));
     }
 
+    /** 线下渠道：一次受理并逐级通过（四级留痕）。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:application:create")
+    @PostMapping("/{id}/offline-approve")
+    public R<ApplicationVO> offlineApprove(@PathVariable Long id, @RequestBody(required = false) Cmd cmd) {
+        return R.ok(applicationService.offlineApprove(id,
+                cmd == null ? null : cmd.userId(),
+                "线下受理",
+                cmd == null ? null : cmd.reason()));
+    }
+
     /** 提交审核结果。 */
     @com.yundao.bp.iam.security.RequirePerm("biz:application:view")
     @PostMapping("/{id}/review")

@@ -222,12 +222,11 @@ public class ApplicationServiceImpl implements ApplicationService {
             }
         }
 
-        // ④ 名下有房：不直接拒绝（部分业态允许），但要求档案有备注说明
-        if (profile.getHasHouse() != null && profile.getHasHouse() == 1
-                && (profile.getRemark() == null || profile.getRemark().isBlank())) {
+        // ④ 名下有房：以档案登记的房屋套数为准（hasHouse 与套数不一致时以套数判定）
+        int houses = profile.getHouseCount() == null ? 0 : profile.getHouseCount();
+        if (houses > 0 && (profile.getRemark() == null || profile.getRemark().isBlank())) {
             throw new BizException(com.yundao.bp.common.api.ErrorCode.STATE_CONFLICT,
-                    "申请人名下已有 " + (profile.getHouseCount() == null ? "多"
-                            : profile.getHouseCount()) + " 套住房，"
+                    "申请人名下已有 " + houses + " 套住房，"
                             + "需在档案备注中说明符合例外情形的依据后才能通过审核。");
         }
     }
@@ -366,10 +365,40 @@ public class ApplicationServiceImpl implements ApplicationService {
         e.setAcceptUserId(acceptUserId);
         // 受理即进入审核中
         e.setApplicationStatus(ApplicationStatus.REVIEWING.name());
-        e.setCurrentNode(ReviewStage.FORM.name());
+        e.setCurrentNode(ReviewStage.ACCEPT.name());
         e.setUpdateTime(LocalDateTime.now());
         appMapper.updateById(e);
         return ApplicationVO.from(e);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ApplicationVO offlineApprove(Long id, Long userId, String userName, String opinion) {
+        BizApplication e = require(id);
+        if (ApplicationStatus.SUBMITTED.name().equals(e.getApplicationStatus())) {
+            accept(id, userId);
+            e = require(id);
+        }
+        ApplicationStatus cur = statusOf(e);
+        if (!cur.isInReview()) {
+            throw BizException.stateConflict(
+                    "申请单当前状态（" + cur.label() + "）不可线下通过");
+        }
+        String op = (opinion == null || opinion.isBlank())
+                ? "线下渠道受理，材料齐备，审核通过" : opinion;
+        ReviewStage stage = ReviewStage.valueOf(
+                e.getCurrentNode() == null || e.getCurrentNode().isBlank()
+                        ? ReviewStage.ACCEPT.name() : e.getCurrentNode());
+        ApplicationVO vo = ApplicationVO.from(e);
+        // 从当前阶段一路通过到终审，每个阶段都留一条审核记录
+        for (ReviewStage s : ReviewStage.values()) {
+            if (s.ordinal() < stage.ordinal()) {
+                continue;
+            }
+            vo = review(id, new ReviewCmd(s.name(), "线下受理", "PASS", op,
+                    null, null, null), userId, userName);
+        }
+        return vo;
     }
 
     // ==================== 审核 ====================
@@ -401,6 +430,18 @@ public class ApplicationServiceImpl implements ApplicationService {
             throw BizException.paramInvalid("审核结果不合法: " + cmd.result());
         }
 
+        // 阶段闭环：通过必须严格按 ACCEPT → FORM → JOINT → FINAL 逐级进行，
+        // 驳回/补件允许在当前或之后的阶段提出，避免卡在旧环节。
+        if (result == ReviewResult.PASS) {
+            String expect = e.getCurrentNode();
+            if (expect != null && !expect.isBlank() && !"DONE".equals(expect)
+                    && !expect.equals(stage.name())) {
+                throw BizException.stateConflict(
+                        "当前应审核阶段为 " + stageLabel(expect) + "，不能直接提交 "
+                                + stage.label());
+            }
+        }
+
         int round = reviewMapper.selectCount(new LambdaQueryWrapper<BizReviewRecord>()
                 .eq(BizReviewRecord::getApplicationId, id)).intValue() + 1;
 
@@ -421,9 +462,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         r.setCreateTime(LocalDateTime.now());
         reviewMapper.insert(r);
 
-        // ⭐ 资格判定校验（决策 D33）：审核通过前必须依据保障档案判定资格
-        // 只信任手工勾选"通过"而不看档案，等于审核流于形式
-        if (result == ReviewResult.PASS) {
+        // ⭐ 资格判定校验（决策 D33）：终审通过前必须依据保障档案判定资格。
+        // 受理初审/形式审查只看材料齐备性，不卡收入与人口，避免早期阶段误伤。
+        if (result == ReviewResult.PASS && stage.isLast()) {
             checkQualification(e);
         }
 
@@ -498,6 +539,17 @@ public class ApplicationServiceImpl implements ApplicationService {
         return e;
     }
 
+    private static String stageLabel(String code) {
+        if (code == null) {
+            return "未开始";
+        }
+        try {
+            return ReviewStage.valueOf(code).label();
+        } catch (IllegalArgumentException ex) {
+            return code;
+        }
+    }
+
     private static ApplicationStatus statusOf(BizApplication e) {
         try {
             return ApplicationStatus.valueOf(e.getApplicationStatus());
@@ -534,6 +586,10 @@ public class ApplicationServiceImpl implements ApplicationService {
             return;
         }
         try {
+            if (allocationService.isQueued(app.getPersonId(), app.getSecurityType())) {
+                log.info("申请 {} 人员已在同类轮候队列中，跳过自动入队", app.getId());
+                return;
+            }
             com.yundao.bp.biz.dto.WaitingEnterCmd cmd = new com.yundao.bp.biz.dto.WaitingEnterCmd(
                     app.getPersonId(), app.getId(), app.getSecurityType(), app.getOrgId(),
                     java.math.BigDecimal.ZERO, null);

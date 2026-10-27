@@ -177,6 +177,17 @@ public class AllocationServiceImpl implements AllocationService {
         }
     }
 
+    @Override
+    public boolean isQueued(Long personId, String securityType) {
+        if (personId == null || securityType == null) {
+            return false;
+        }
+        Long n = waitingMapper.selectCount(new LambdaQueryWrapper<BizWaitingQueue>()
+                .eq(BizWaitingQueue::getPersonId, personId)
+                .eq(BizWaitingQueue::getSecurityType, securityType));
+        return n != null && n > 0;
+    }
+
     public PageResult<WaitingVO> pageWaiting(long pageNum, long pageSize, String securityType,
                                              Long orgId, String status, String keyword) {
         LambdaQueryWrapper<BizWaitingQueue> qw = new LambdaQueryWrapper<BizWaitingQueue>()
@@ -402,9 +413,88 @@ public class AllocationServiceImpl implements AllocationService {
                     "批次状态不允许从 " + from.label() + " 变更为 " + target.label());
         }
         b.setBatchStatus(target.name());
+        // 报名即轮候：进入报名/摇号阶段时，按同保障类型（同组织）统计参与人数
+        if (target == BatchStatus.SIGNUP || target == BatchStatus.LOTTERY) {
+            LambdaQueryWrapper<BizWaitingQueue> wq = new LambdaQueryWrapper<BizWaitingQueue>()
+                    .eq(BizWaitingQueue::getSecurityType, b.getSecurityType())
+                    .eq(BizWaitingQueue::getQueueStatus, QueueStatus.WAITING.name());
+            if (b.getOrgId() != null) {
+                wq.eq(BizWaitingQueue::getOrgId, b.getOrgId());
+            }
+            Long pool = waitingMapper.selectCount(wq);
+            b.setApplicantCount(pool == null ? 0 : pool.intValue());
+        }
         b.setUpdateTime(LocalDateTime.now());
         batchMapper.updateById(b);
         return BatchVO.from(b);
+    }
+
+    /**
+     * 摇号完成后生成配租单：按中签顺序把批次房源池里的可用房源依次配给中签人。
+     *
+     * <p>每个中签人一张「待签约」配租单，房源在池内置为已选中；已有配租单的人员跳过。
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int generateAllocations(Long batchId) {
+        BizBatch b = requireBatch(batchId);
+        BatchStatus st = batchStatusOf(b);
+        if (st != BatchStatus.LOTTERY_DONE && st != BatchStatus.ALLOCATED
+                && st != BatchStatus.SELECTING) {
+            throw BizException.stateConflict(
+                    "批次当前为 " + st.label() + "，请先完成摇号再生成配租单");
+        }
+        List<BizLotteryResult> wins = lotteryMapper.selectList(
+                new LambdaQueryWrapper<BizLotteryResult>()
+                        .eq(BizLotteryResult::getBatchId, batchId)
+                        .eq(BizLotteryResult::getResultType, LotteryResultType.WON.name())
+                        .orderByAsc(BizLotteryResult::getSelectSeq)
+                        .orderByAsc(BizLotteryResult::getLotterySeq));
+        List<BizBatchHouse> pool = batchHouseMapper.selectList(
+                new LambdaQueryWrapper<BizBatchHouse>()
+                        .eq(BizBatchHouse::getBatchId, batchId)
+                        .eq(BizBatchHouse::getInPoolStatus, "AVAILABLE")
+                        .orderByAsc(BizBatchHouse::getId));
+        int made = 0;
+        int idx = 0;
+        for (BizLotteryResult r : wins) {
+            Long dup = allocationMapper.selectCount(new LambdaQueryWrapper<BizAllocation>()
+                    .eq(BizAllocation::getBatchId, batchId)
+                    .eq(BizAllocation::getPersonId, r.getPersonId()));
+            if (dup != null && dup > 0) {
+                continue;
+            }
+            if (idx >= pool.size()) {
+                break;
+            }
+            BizBatchHouse house = pool.get(idx++);
+            BizAllocation a = new BizAllocation();
+            a.setId(idGen.nextId());
+            a.setTenantId(TenantContext.tenantId());
+            a.setAllocationNo("BA" + a.getId());
+            a.setBatchId(batchId);
+            a.setPersonId(r.getPersonId());
+            a.setHouseId(house.getHouseId());
+            a.setSpaceId(house.getSpaceId());
+            a.setAllocationType("LOTTERY");
+            a.setAllocationDate(LocalDate.now());
+            a.setAllocationStatus(AllocationStatus.PENDING_SIGN.name());
+            a.setLockExpireTime(LocalDateTime.now().plusHours(DEFAULT_LOCK_HOURS));
+            a.setCreateTime(LocalDateTime.now());
+            a.setUpdateTime(LocalDateTime.now());
+            allocationMapper.insert(a);
+            house.setInPoolStatus("SELECTED");
+            house.setUpdateTime(LocalDateTime.now());
+            batchHouseMapper.updateById(house);
+            made++;
+        }
+        if (made > 0) {
+            b.setUpdateTime(LocalDateTime.now());
+            batchMapper.updateById(b);
+        }
+        log.info("批次 {} 生成配租单 {} 张（中签 {} 人，可用房源 {} 套）",
+                b.getBatchNo(), made, wins.size(), pool.size());
+        return made;
     }
 
     @Override

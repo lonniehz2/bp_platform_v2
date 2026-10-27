@@ -24,6 +24,9 @@ public interface ApplicationService {
     /** 受理：SUBMITTED → ACCEPTED。 */
     ApplicationVO accept(Long id, Long acceptUserId);
 
+    /** 线下渠道：一次走完受理与四级审核（逐级留痕）。 */
+    ApplicationVO offlineApprove(Long id, Long userId, String userName, String opinion);
+
     /** 提交审核结果（按阶段推进状态机）。 */
     ApplicationVO review(Long id, ReviewCmd cmd, Long reviewUserId, String reviewUserName);
 

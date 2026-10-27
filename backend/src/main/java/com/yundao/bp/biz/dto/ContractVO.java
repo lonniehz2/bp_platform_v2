@@ -21,7 +21,6 @@ public record ContractVO(
         String lesseePhone,
         String lesseeIdCardMask,
         Long houseId,
-        Long spaceId,
         String houseAddress,
         BigDecimal houseArea,
         LocalDate leaseStart,
@@ -74,7 +73,7 @@ public record ContractVO(
         }
         return new ContractVO(e.getId(), e.getContractNo(), e.getContractType(), e.getOrgId(),
                 e.getLessorOrgId(), e.getLesseePersonId(), e.getLesseeName(), e.getLesseePhone(),
-                e.getLesseeIdCardMask(), e.getHouseId(), e.getSpaceId(), e.getHouseAddress(),
+                e.getLesseeIdCardMask(), e.getHouseId(), e.getHouseAddress(),
                 e.getHouseArea(), e.getLeaseStart(), e.getLeaseEnd(), e.getLeaseMonths(),
                 e.getRentPrice(), e.getRentUnit(), e.getMonthlyRent(), e.getDepositAmount(),
                 e.getSubsidyAmount(), e.getActualPay(), e.getPayCycle(), e.getPayDay(),

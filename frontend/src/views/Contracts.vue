@@ -343,6 +343,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { contractApi } from '@/api/modules'
+import req from '@/api/request'
 import CohabitantPanel from '@/components/CohabitantPanel.vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 

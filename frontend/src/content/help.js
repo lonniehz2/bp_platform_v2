@@ -8,7 +8,7 @@
  *
  * 维护约定：改这里等于改内置帮助；对外发布的《用户操作说明》与本文保持同源。
  */
-export const HELP_VERSION = 'v2.8（2026-10-27）'
+export const HELP_VERSION = 'v3.0（2026-10-27）'
 
 export const HELP_SECTIONS = [
   {
@@ -128,6 +128,7 @@ export const HELP_SECTIONS = [
         ]
       },
       { type: 'note', text: '非终审节点通过后，状态仍是「审核中」，只有终审通过才算通过；退回补件需先补件并重新提交。' },
+      { type: 'note', text: '四级审批必须逐级通过：受理初审 → 形式审查 → 联审 → 终审，不能跳级；终审通过后自动进入轮候。线下渠道可用「线下通过」一次走完四级并逐级留痕。' },
       { type: 'h3', text: '4.2 公示管理' },
       { type: 'p', text: '对通过审核的名单发起公示，设置公示期；公示期内可查看异议记录。' },
       { type: 'h3', text: '4.3 轮候管理' },

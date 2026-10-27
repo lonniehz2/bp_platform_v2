@@ -30,7 +30,7 @@ def call(path, method='GET', body=None, tok=None):
     if tok:
         r.add_header('Authorization', 'Bearer ' + tok)
     try:
-        with urllib.request.urlopen(r, timeout=60) as x:
+        with urllib.request.urlopen(r, timeout=180) as x:
             return x.status, json.loads(x.read().decode())
     except urllib.error.HTTPError as e:
         try:
