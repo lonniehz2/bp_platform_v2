@@ -368,6 +368,14 @@ const TYPE_OVERRIDE = {
   },
   generateType: { MANUAL: '手工出账', AUTO: '自动出账', METER: '抄表出账',
                   SHORT_RENT: '短租结算' },
+  profileStatus: {
+    DRAFT: '草稿',
+    SUBMITTED: '已提交',
+    APPLICANT: '申请中',
+    QUALIFIED: '已认定',
+    IN_RESIDENCE: '在保',
+    EXITED: '已退出'
+  },
   keyStatus: {
     ACTIVE: '正常',
     FROZEN: '已冻结',

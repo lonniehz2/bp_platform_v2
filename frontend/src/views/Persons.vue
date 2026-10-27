@@ -88,10 +88,10 @@
           <el-input v-model.number="expiringDays" placeholder="天数" style="width:90px"
                     data-testid="expiring-days" @keyup.enter="loadExpiring" />
           <div class="spacer" />
-          <el-input v-model="gQuery.personId" placeholder="人员ID" clearable
-                    style="width:220px" data-testid="profile-personid"
-                    @keyup.enter="loadProfiles" />
-          <el-button @click="loadProfileByPerson">查看</el-button>
+          <PersonPicker v-model="profilePersonId" width="260px"
+                        testid="profile-filter-person" />
+          <el-button type="primary" @click="loadProfileByPerson">查看</el-button>
+          <el-button @click="profilePersonId = null; loadProfiles()">全部</el-button>
         </div>
         <el-table :data="profiles" v-loading="loading" border size="small">
           <el-table-column label="保障对象" width="230">
@@ -143,10 +143,10 @@
           <el-button type="success" @click="verifyVisible = true">发起核验</el-button>
           <el-button @click="loadFailStats">失败统计</el-button>
           <div class="spacer" />
-          <el-input v-model="vQuery.personId" placeholder="人员ID" clearable
-                    style="width:220px" data-testid="verify-personid"
-                    @keyup.enter="loadVerifies" />
-          <el-button @click="loadConclusion">查结论</el-button>
+          <PersonPicker v-model="verifyPersonId" width="260px"
+                        testid="verify-filter-person" />
+          <el-button type="primary" @click="loadConclusion">查结论</el-button>
+          <el-button @click="verifyPersonId = null; loadVerifies()">全部</el-button>
         </div>
         <el-table :data="verifies" v-loading="loading" border size="small">
           <el-table-column label="核验对象" width="240">
