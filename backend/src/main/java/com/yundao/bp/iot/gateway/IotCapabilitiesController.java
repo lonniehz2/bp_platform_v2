@@ -60,6 +60,12 @@ public class IotCapabilitiesController {
         cb.put("defaultTenant", settings.getString("iot.callback.defaultTenant"));
         out.put("callback", cb);
 
+        Map<String, Object> meter = new LinkedHashMap<>();
+        meter.put("reportPeriod", settings.meterReportPeriod());
+        meter.put("elecHourly", settings.meterPeriodHourly("ELEC"));
+        meter.put("waterHourly", settings.meterPeriodHourly("WATER"));
+        out.put("meter", meter);
+
         // 4) 平台已支持的能力
         out.put("commandTypes", List.of("LOCK_OPEN", "DEVICE_REBOOT", "DEVICE_SYNC_TIME",
                 "METER_SWITCH", "LOCK_ALWAYS_OPEN", "LOCK_ALWAYS_CLOSE", "LOCK_MODE_NORMAL"));

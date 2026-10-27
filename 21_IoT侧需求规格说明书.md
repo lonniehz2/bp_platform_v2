@@ -144,6 +144,11 @@ POST /ymd/restful/lock/mode
 平台已落库 multiplier 与 unit，用量按「（本次−上次）×倍率」计算；
 IoT 只需在回调/拉取响应里带上这两个字段（缺省倍率 1、单位 kWh）。
 
+### 周期平台已支持
+
+iot.meter.reportPeriod=ELEC:HOURLY,WATER:DAILY 可配置；HOURLY 时平台每小时拉取，
+DAILY 由每日 06:10 作业拉前一天。IoT 侧采集任务需与配置同频。
+
 ### 需要 IoT 明确的点
 
 1. 倍率是否随读数上报（推荐上报，避免平台配置漂移）；

@@ -131,6 +131,28 @@ public class IotSettings {
         return getInt("iot.offline.thresholdSeconds");
     }
 
+    /**
+     * 某类表计是否按小时上报。配置格式 {@code ELEC:DAILY,WATER:HOURLY}，
+     * 未配置的类型默认 DAILY。
+     */
+    public boolean meterPeriodHourly(String type) {
+        if (type == null) {
+            return false;
+        }
+        String raw = meterReportPeriod();
+        if (raw == null) {
+            return false;
+        }
+        String key = type.trim().toUpperCase();
+        for (String part : raw.split("[,;]")) {
+            String[] kv = part.split(":");
+            if (kv.length == 2 && kv[0].trim().toUpperCase().equals(key)) {
+                return "HOURLY".equalsIgnoreCase(kv[1].trim());
+            }
+        }
+        return "HOURLY".equalsIgnoreCase(raw.trim());
+    }
+
     public String meterReportPeriod() {
         return getString("iot.meter.reportPeriod");
     }
