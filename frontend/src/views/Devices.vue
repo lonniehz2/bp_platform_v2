@@ -24,6 +24,9 @@
       <el-button type="danger" plain @click="openEvents(null)" data-testid="dev-events">
         设备告警
       </el-button>
+      <el-button type="warning" plain :loading="syncing" @click="syncDevices">
+        同步设备
+      </el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon
@@ -142,6 +145,7 @@ const loading = ref(false)
 const rows = ref([])
 const total = ref(0)
 const stats = ref({})
+const syncing = ref(false)
 const query = reactive({ pageNum: 1, pageSize: 20, spaceId: '', onlineStatus: '',
   deviceType: '' })
 
@@ -170,6 +174,18 @@ async function load() {
 }
 
 const query0 = JSON.parse(JSON.stringify(query))
+async function syncDevices() {
+  syncing.value = true
+  try {
+    const r = await req.post('/iot/devices/sync?days=1')
+    ElMessage.success('已同步：拉取 ' + r.fetched + '，新增 ' + r.created
+      + '，更新 ' + r.updated)
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '同步失败')
+  } finally { syncing.value = false }
+}
+
 function resetQuery() {
   Object.assign(query, query0)
   load()

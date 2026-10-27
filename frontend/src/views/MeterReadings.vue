@@ -13,6 +13,9 @@
       </el-select>
       <el-button type="primary" @click="load">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
+      <el-button type="warning" plain :loading="pulling" @click="pullFromIot">
+        从 IoT 拉取
+      </el-button>
       <el-button type="success" plain @click="openRecord" data-testid="meter-new">
         录入读数
       </el-button>
@@ -164,6 +167,20 @@ async function load() {
 function resetQuery() {
   Object.assign(query, { pageNum: 1, houseId: '', feeItemId: '' })
   load()
+}
+
+const pulling = ref(false)
+
+async function pullFromIot() {
+  pulling.value = true
+  try {
+    const r = await req.post('/iot/meter/pull')
+    ElMessage.success('拉取完成：表 ' + r.meters + ' 台，读数 ' + r.fetched
+      + ' 条，入库 ' + r.ingested + ' 条')
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '拉取失败')
+  } finally { pulling.value = false }
 }
 
 function openRecord() {

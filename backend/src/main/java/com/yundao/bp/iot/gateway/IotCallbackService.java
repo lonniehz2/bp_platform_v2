@@ -26,6 +26,8 @@ import com.yundao.bp.iot.config.IotSettings;
 import com.yundao.bp.iot.gateway.entity.IotCallbackLog;
 import com.yundao.bp.iot.gateway.entity.IotNonce;
 import com.yundao.bp.iot.gateway.mapper.IotCallbackLogMapper;
+import com.yundao.bp.dev.iot.MeterIngestService;
+import com.yundao.bp.ops.service.DeviceAlertActionService;
 import com.yundao.bp.iot.gateway.mapper.IotNonceMapper;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -69,6 +71,8 @@ public class IotCallbackService {
     private final FinMeterReadingMapper meterMapper;
     private final AssetHouseMapper houseMapper;
     private final FinFeeItemMapper feeItemMapper;
+    private final MeterIngestService meterIngest;
+    private final DeviceAlertActionService alertAction;
 
     public IotCallbackService(IotSignatureVerifier verifier, IotSettings settings,
                               IotNonceMapper nonceMapper, IotCallbackLogMapper logMapper,
@@ -76,7 +80,8 @@ public class IotCallbackService {
                               DevAccessRecordMapper accessMapper, DevDeviceMapper deviceMapper,
                               DevCommandMapper commandMapper, GrantTaskMapper grantTaskMapper,
                               FinMeterReadingMapper meterMapper, AssetHouseMapper houseMapper,
-                              FinFeeItemMapper feeItemMapper) {
+                              FinFeeItemMapper feeItemMapper, MeterIngestService meterIngest,
+                              DeviceAlertActionService alertAction) {
         this.verifier = verifier;
         this.settings = settings;
         this.nonceMapper = nonceMapper;
@@ -90,6 +95,8 @@ public class IotCallbackService {
         this.meterMapper = meterMapper;
         this.houseMapper = houseMapper;
         this.feeItemMapper = feeItemMapper;
+        this.meterIngest = meterIngest;
+        this.alertAction = alertAction;
     }
 
     /** 处理一次回调；返回 null 表示成功，否则返回错误码 + HTTP 状态。 */
@@ -181,6 +188,7 @@ public class IotCallbackService {
         fillDeviceScope(e, e.getDeviceId());
         try {
             eventMapper.insert(e);
+            alertAction.onDeviceEvent(e);
         } catch (DuplicateKeyException dup) {
             log.info("设备事件重复: {}", e.getEventId());
         }
@@ -306,51 +314,10 @@ public class IotCallbackService {
             items.add(n);
         }
         for (JsonNode x : items) {
-            String meterNo = text(x, "meterNo");
-            String deviceId = text(x, "deviceId");
-            DevDevice d = findDevice(deviceId, null);
-            if (d == null && meterNo != null) {
-                d = deviceMapper.selectOne(new LambdaQueryWrapper<DevDevice>()
-                        .eq(DevDevice::getDeviceId, meterNo).last("LIMIT 1"));
-            }
-            Long houseId = d == null ? null : findHouseId(d.getSpaceId());
-            String meterType = text(x, "meterType");
-            Long feeItemId = houseId == null ? null : findFeeItemId(meterType);
-            if (houseId == null || feeItemId == null) {
-                log.warn("表计读数未入库（缺房源或收费项目） meter={} type={} device={}",
-                        meterNo, meterType, deviceId);
-                continue;
-            }
-            BigDecimal reading = x.path("reading").decimalValue();
-            LocalDate readDate = parseTime(text(x, "readTime")) == null
-                    ? LocalDate.now() : parseTime(text(x, "readTime")).toLocalDate();
-            FinMeterReading prev = meterMapper.selectOne(new LambdaQueryWrapper<FinMeterReading>()
-                    .eq(FinMeterReading::getHouseId, houseId)
-                    .eq(FinMeterReading::getFeeItemId, feeItemId)
-                    .orderByDesc(FinMeterReading::getReadDate).last("LIMIT 1"));
-            BigDecimal prevReading = prev == null ? BigDecimal.ZERO : prev.getReading();
-            BigDecimal usage = reading.subtract(prevReading);
-            if (usage.compareTo(BigDecimal.ZERO) < 0) {
-                usage = BigDecimal.ZERO;
-            }
-            FinMeterReading e = new FinMeterReading();
-            e.setId(idGen.nextId());
-            e.setTenantId(tenantId);
-            e.setOrgId(d.getOrgId());
-            e.setHouseId(houseId);
-            e.setFeeItemId(feeItemId);
-            e.setDeviceId(meterNo != null ? meterNo : deviceId);
-            e.setReadDate(readDate);
-            e.setReading(reading);
-            e.setPrevReading(prevReading);
-            e.setUsageAmount(usage);
-            e.setUnitPrice(BigDecimal.ZERO);
-            e.setAmount(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
-            e.setBillStatus("UNBILLED");
-            e.setRemark("IoT 上报 " + (text(x, "source") == null ? "PUSH" : text(x, "source")));
-            e.setIsDeleted(0);
-            e.setCreateTime(LocalDateTime.now());
-            meterMapper.insert(e);
+            meterIngest.ingest(text(x, "meterNo"), text(x, "deviceId"),
+                    text(x, "meterType"), x.path("reading").decimalValue(),
+                    parseTime(text(x, "readTime")),
+                    text(x, "source") == null ? "PUSH" : text(x, "source"));
         }
     }
 
