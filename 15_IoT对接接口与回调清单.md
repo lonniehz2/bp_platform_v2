@@ -314,6 +314,7 @@ equestId 回填指令状态/结果码/耗时 |
 | 告警联动 | ✅ | 严重告警自动转 ALERT 工单（同设备 24h 去重） |
 | 真实指令下发 | 🟡 | RealDeviceCommandClient 已实现（p.dev.command-mode=real 启用），参数名待 IoT 确认 |
 | IoT 监控 | ✅ | /iot-monitor：在线率、指令成功率、回调成功率、事件 Top；GET /api/v1/iot/metrics |
+| 回调批量重放 | ✅ | POST /iot/callback-logs/replay-range?from&to&status&limit：断线补推/失败重试；工具页「重放近 24h 失败」 |
 | 对接能力自检 | ✅ | GET /api/v1/iot/capabilities：客户端模式、凭证配置、待 IoT 能力；页面在「IoT联调工具 → 对接能力」 |
 | 时延统计 | ✅ | /iot/metrics 的 commands.cost：平均/P95/最大（来自回执 costMs）；指令页展示 耗时(ms) |
 | 日对账 | ✅ | /iot-reconcile：指令、回调矩阵、表计覆盖与缺失；GET /api/v1/iot/reconcile?date=；可导出 CSV |

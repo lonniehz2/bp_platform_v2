@@ -152,6 +152,9 @@
             <el-option label="重复" value="DUPLICATE" />
           </el-select>
           <el-button type="primary" @click="reloadLogs">查询</el-button>
+          <el-button type="warning" plain :loading="replaying" @click="replayRange">
+            重放近 24h 失败
+          </el-button>
           <span class="muted">共 {{ total }} 条</span>
         </div>
         <el-table :data="logs" border size="small">
@@ -221,6 +224,25 @@ async function loadCapabilities() {
 const creds = ref([])
 const credTotal = ref(0)
 const credQuery = reactive({ pageNum: 1, pageSize: 20, status: '' })
+
+const replaying = ref(false)
+
+/** 断线补推/失败重试：批量重放近 24 小时 FAILED 的回调 */
+async function replayRange() {
+  replaying.value = true
+  try {
+    const to = new Date()
+    const from = new Date(to.getTime() - 24 * 3600 * 1000)
+    const fmt = (d) => d.toISOString().slice(0, 19).replace('T', ' ')
+    const r = await req.post('/iot/callback-logs/replay-range', null,
+      { params: { from: fmt(from), to: fmt(to), status: 'FAILED', limit: 100 } })
+    ElMessage.success('重放 ' + (r?.matched || 0) + ' 条：成功 ' + (r?.success || 0)
+      + '，失败 ' + (r?.failed || 0))
+    loadLogs()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '批量重放失败')
+  } finally { replaying.value = false }
+}
 
 const logs = ref([])
 const total = ref(0)
