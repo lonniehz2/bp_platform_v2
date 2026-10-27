@@ -104,6 +104,7 @@ curl -s -H "Authorization: Bearer $TOKEN" -H "X-Tenant-Id: 350600" \
 | 回调重复/乱序 | 事件重复 | 平台已按 `eventId` 唯一 + nonce 去重 |
 | Token 过期时间过短 | 频繁取 Token | 确认有效期与缓存策略 |
 | 批量状态接口限流 | 同步变慢 | 分批 + 夜间窗口 |
+| 回调吞吐不足（演示环境约 10 QPS） | 高峰期回调积压 | 上 SSD / innodb_flush_log_at_trx_commit=2 / 异步日志；压测见 19 号报告四之一 |
 
 ---
 

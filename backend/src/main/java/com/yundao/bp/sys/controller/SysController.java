@@ -32,12 +32,15 @@ public class SysController {
     private final AuditService auditService;
     private final DictService dictService;
     private final ConfigService configService;
+    private final com.yundao.bp.iot.config.IotSettings iotSettings;
 
     public SysController(AuditService auditService, DictService dictService,
-                         ConfigService configService) {
+                         ConfigService configService,
+                         com.yundao.bp.iot.config.IotSettings iotSettings) {
         this.auditService = auditService;
         this.dictService = dictService;
         this.configService = configService;
+        this.iotSettings = iotSettings;
     }
 
     // ---------- 审计日志 ----------
@@ -129,7 +132,10 @@ public class SysController {
     @RequirePerm("sys:config:edit")
     @Audit(type = "DATA", level = "CRITICAL", action = "修改系统参数")
     public R<SysConfig> setConfig(@RequestBody ConfigCmd cmd) {
-        return R.ok(configService.set(cmd.key(), cmd.value(), cmd.description()));
+        SysConfig saved = configService.set(cmd.key(), cmd.value(), cmd.description());
+        // 联调参数改完立即生效，不等缓存过期
+        iotSettings.invalidate();
+        return R.ok(saved);
     }
 
     public record DictCmd(String dictType, String dictCode, String dictLabel, String dictValue,

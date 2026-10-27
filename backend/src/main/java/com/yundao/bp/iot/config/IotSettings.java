@@ -52,11 +52,32 @@ public class IotSettings {
         return new LinkedHashMap<>(DEFAULTS);
     }
 
+    /** 回调热路径上参数读取频繁，加 3 秒缓存，避免每次回调多次查库。 */
+    private final java.util.Map<String, Cached> cache = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final long TTL_MS = 3000;
+
+    private record Cached(String value, long expireAt) {
+    }
+
+    /** 修改参数后调用，立即生效。 */
+    public void invalidate() {
+        cache.clear();
+    }
+
     public String getString(String key) {
         String fallback = DEFAULTS.get(key);
+        Cached c = cache.get(key);
+        long now = System.currentTimeMillis();
+        if (c != null && c.expireAt() > now) {
+            return c.value();
+        }
         try {
             String v = configService.getString(key, fallback);
-            return (v == null || v.isBlank()) ? fallback : v.trim();
+            String value = (v == null || v.isBlank()) ? fallback : v.trim();
+            if (value != null) {
+                cache.put(key, new Cached(value, now + TTL_MS));
+            }
+            return value;
         } catch (Exception e) {
             return fallback;
         }
