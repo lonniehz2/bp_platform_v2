@@ -60,7 +60,7 @@ def scan_backend():
                 brace = src.find('{', pub)
                 sig = src[pub: brace if brace != -1 else pub + 800]
                 params = re.findall(
-                    r'@RequestParam\([^)]*\)\s*(?:final\s+)?[\w<>.\[\]]+\s+(\w+)', sig)
+                    r'@RequestParam\b(?:\([^)]*\))?(?:\s*@\w+(?:\([^)]*\))?)*\s*(?:final\s+)?[\w<>.\[\]]+\s+(\w+)', sig)
                 if params:
                     out.setdefault(full, set()).update(params)
     return out
