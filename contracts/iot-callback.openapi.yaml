@@ -438,3 +438,50 @@ x-iot-downstream:
     method: POST
     status: 待 IoT 提供
     purpose: 电表拉合闸（TRIP/RESTORE）
+
+  - path: /ymd/restful/lock/mode
+    method: POST
+    status: 待 IoT 提供
+    purpose: 常开/常闭/恢复（mode=OPEN|CLOSE|NORMAL，requestId 幂等）
+    request:
+      requestId: string
+      lockId: string
+      mode: string
+    response:
+      code: string
+      message: string
+      costMs: int
+      data:
+        lockId: string
+        mode: string
+        effective: bool
+  - path: /ymd/restful/token
+    method: POST
+    status: 待 IoT 提供
+    purpose: 取 Token / 续期（appId+timestamp+nonce+HMAC-SHA256 sign）
+    request:
+      appId: string
+      timestamp: long
+      nonce: string
+      sign: string
+    response:
+      code: string
+      data:
+        token: string
+        expiresIn: int
+        pwdSeed: string
+  - path: /ymd/restful/device/status
+    method: POST
+    status: 待 IoT 提供
+    purpose: 批量设备状态（lockIds <=200，返回 online/battery/rssi/lastReportTime）
+    request:
+      lockIds: string[]
+    response:
+      code: string
+      data:
+        - lockId: string
+          online: bool
+          battery: int
+          rssi: int
+          lastReportTime: string
+          firmware: string
