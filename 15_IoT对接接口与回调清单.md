@@ -312,5 +312,7 @@ equestId 回填指令状态/结果码/耗时 |
 | 设备台账同步 | ✅ | POST /api/v1/iot/devices/sync（mock 客户端）+ 每日 05:30 定时 |
 | 表计拉取 | ✅ | POST /api/v1/iot/meter/pull（mock 客户端）+ 每日 06:10 定时，与上报共用入库去重 |
 | 告警联动 | ✅ | 严重告警自动转 ALERT 工单（同设备 24h 去重） |
+| 真实指令下发 | 🟡 | RealDeviceCommandClient 已实现（p.dev.command-mode=real 启用），参数名待 IoT 确认 |
+| IoT 监控 | ✅ | /iot-monitor：在线率、指令成功率、回调成功率、事件 Top；GET /api/v1/iot/metrics |
 
 > 联调验证见 17_IoT联调方案与测试用例.md；本次实测：正确签名 200、错误签名/过期时间戳 401、重复事件不重复入库、指令 mock 下发成功、回执回填成功、心跳与上下线更新设备。

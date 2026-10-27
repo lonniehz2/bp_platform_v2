@@ -75,6 +75,13 @@ export const menuRoutes = [
       perm: 'asset:device:view' }
   },
   {
+    path: '/iot-monitor',
+    name: 'IotMonitor',
+    component: () => import('@/views/IotMonitor.vue'),
+    meta: { title: 'IoT监控', icon: 'DataLine', group: '设备与通行',
+      perm: 'asset:device:view' }
+  },
+  {
     path: '/iot-tools',
     name: 'IotTools',
     component: () => import('@/views/IotTools.vue'),
