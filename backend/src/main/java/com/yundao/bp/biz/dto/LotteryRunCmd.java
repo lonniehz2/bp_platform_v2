@@ -9,8 +9,9 @@ import jakarta.validation.constraints.NotNull;
  */
 public record LotteryRunCmd(
 
+        /** 批次 ID：兼容前端传数字/字符串/对象（{id:...}）三种形式 */
         @NotNull(message = "批次不能为空")
-        Long batchId,
+        Object batchId,
 
         String seed,
 

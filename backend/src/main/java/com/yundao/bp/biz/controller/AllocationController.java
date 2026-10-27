@@ -145,8 +145,19 @@ public class AllocationController {
     /** 执行摇号（种子可复现、公证留痕）。 */
     @com.yundao.bp.iam.security.RequirePerm("biz:allocation:create")
     @PostMapping("/lottery")
-    public R<List<LotteryResultVO>> lottery(@Valid @RequestBody LotteryRunCmd cmd) {
-        return R.ok(service.runLottery(cmd));
+    public R<List<LotteryResultVO>> lottery(@RequestBody Object body) {
+        // 兼容三种请求体：{batchId:...} / "batchId" / {batchId:{id:...}}
+        Object bid;
+        String seed = null;
+        String notary = null;
+        if (body instanceof java.util.Map<?, ?> m) {
+            bid = m.get("batchId");
+            seed = m.get("seed") == null ? null : String.valueOf(m.get("seed"));
+            notary = m.get("notaryInfo") == null ? null : String.valueOf(m.get("notaryInfo"));
+        } else {
+            bid = body;
+        }
+        return R.ok(service.runLottery(new LotteryRunCmd(bid, seed, notary)));
     }
 
     @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")

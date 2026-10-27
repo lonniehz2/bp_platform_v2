@@ -509,10 +509,30 @@ public class AllocationServiceImpl implements AllocationService {
 
     // ==================== 摇号 ====================
 
+    private static Long batchIdOf(Object v) {
+        if (v == null) {
+            return null;
+        }
+        if (v instanceof Number n) {
+            return n.longValue();
+        }
+        if (v instanceof java.util.Map<?, ?> m) {
+            Object id = m.containsKey("id") ? m.get("id") : m.get("batchId");
+            return batchIdOf(id);
+        }
+        String s = String.valueOf(v).trim();
+        try {
+            return Long.valueOf(s);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public List<LotteryResultVO> runLottery(LotteryRunCmd cmd) {
-        BizBatch b = requireBatch(cmd.batchId());
+        Long batchId = batchIdOf(cmd.batchId());
+        BizBatch b = requireBatch(batchId);
         BatchStatus bs = batchStatusOf(b);
         if (!bs.canLottery()) {
             throw BizException.stateConflict(
@@ -520,12 +540,12 @@ public class AllocationServiceImpl implements AllocationService {
         }
         // 幂等：已摇过号不再重复
         Long exist = lotteryMapper.selectCount(new LambdaQueryWrapper<BizLotteryResult>()
-                .eq(BizLotteryResult::getBatchId, cmd.batchId()));
+                .eq(BizLotteryResult::getBatchId, batchId));
         if (exist != null && exist > 0) {
             throw BizException.stateConflict("该批次已摇号，不可重复执行");
         }
 
-        List<Long> houses = listBatchHouses(cmd.batchId(), "AVAILABLE");
+        List<Long> houses = listBatchHouses(batchId, "AVAILABLE");
         if (houses.isEmpty()) {
             throw BizException.stateConflict("批次无可配房源，无法摇号");
         }
@@ -574,7 +594,7 @@ public class AllocationServiceImpl implements AllocationService {
             BizLotteryResult r = new BizLotteryResult();
             r.setId(idGen.nextId());
             r.setTenantId(tenantId);
-            r.setBatchId(cmd.batchId());
+            r.setBatchId(batchId);
             r.setPersonId(w.getPersonId());
             r.setApplicationId(w.getApplicationId());
             r.setWaitingId(w.getId());
