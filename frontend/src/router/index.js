@@ -71,7 +71,15 @@ export const menuRoutes = [
     path: '/dev-events',
     name: 'DevEvents',
     component: () => import('@/views/DevEvents.vue'),
-    meta: { title: '设备告警', icon: 'Warning', group: '设备与通行' }
+    meta: { title: '设备告警', icon: 'Warning', group: '设备与通行',
+      perm: 'asset:device:view' }
+  },
+  {
+    path: '/iot-tools',
+    name: 'IotTools',
+    component: () => import('@/views/IotTools.vue'),
+    meta: { title: 'IoT联调工具', icon: 'Guide', group: '设备与通行',
+      perm: 'dev:command:view' }
   },
   {
     path: '/dev-commands',

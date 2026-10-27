@@ -59,7 +59,7 @@ export const SUBGROUPS = {
     { title: '经营', paths: ['/house-calendar', '/short-rent'] }
   ],
   设备与通行: [
-    { title: '设备', paths: ['/devices', '/device-bind', '/dev-events', '/dev-commands'] },
+    { title: '设备', paths: ['/devices', '/device-bind', '/dev-events', '/dev-commands', '/iot-tools'] },
     { title: '通行与授权', paths: ['/access', '/keyring', '/grants'] }
   ],
   服务与监督: [
@@ -83,7 +83,7 @@ export const MENU_RANK = {
   '/cashflow': 34, '/fee-items': 39,
   '/meter-readings': 40, '/energy': 41,
   '/houses': 50, '/house-calendar': 51, '/short-rent': 52, '/spaces': 59,
-  '/devices': 60, '/device-bind': 61, '/dev-events': 62, '/dev-commands': 63,
+  '/devices': 60, '/device-bind': 61, '/dev-events': 62, '/dev-commands': 63, '/iot-tools': 64,
   '/access': 63, '/keyring': 64, '/grants': 65,
   '/workorders': 70, '/complaints': 71, '/appeals': 72,
   '/credits': 73, '/visits': 74, '/alerts': 79,
@@ -122,6 +122,7 @@ export const MENU_DESC = {
   '/device-bind': '房源与设备绑定/解绑',
   '/dev-events': '低电量、拆机、试错、离线等告警',
   '/dev-commands': '远程开锁/重启/校时/拉合闸（经 IoT 下发）',
+  '/iot-tools': '验签自测、回调日志与重放',
   '/access': '开门记录查询',
   '/keyring': '钥匙登记、领用与归还',
   '/grants': '通行权限的新建、撤销与对账审计',

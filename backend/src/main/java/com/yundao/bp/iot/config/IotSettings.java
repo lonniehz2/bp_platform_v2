@@ -35,6 +35,11 @@ public class IotSettings {
         DEFAULTS.put("iot.offline.thresholdSeconds", "180");
         DEFAULTS.put("iot.meter.reportPeriod", "ELEC:DAILY,WATER:DAILY");
         DEFAULTS.put("iot.meter.switch.delayMinutes", "10");
+        DEFAULTS.put("iot.meter.switch.arrearsThreshold", "0.01");
+        DEFAULTS.put("iot.meter.switch.overdueDays", "30");
+        DEFAULTS.put("iot.meter.switch.nightFrom", "22:00");
+        DEFAULTS.put("iot.meter.switch.nightTo", "07:00");
+        DEFAULTS.put("iot.meter.switch.dailyLimit", "3");
     }
 
     private final ConfigService configService;
@@ -67,6 +72,19 @@ public class IotSettings {
                 return Integer.parseInt(fallback);
             } catch (Exception ignored) {
                 return 0;
+            }
+        }
+    }
+
+    public java.math.BigDecimal getDecimal(String key) {
+        String fallback = DEFAULTS.get(key);
+        try {
+            return new java.math.BigDecimal(getString(key));
+        } catch (Exception e) {
+            try {
+                return new java.math.BigDecimal(fallback);
+            } catch (Exception ignored) {
+                return java.math.BigDecimal.ZERO;
             }
         }
     }

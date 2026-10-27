@@ -11,8 +11,16 @@ import com.yundao.bp.dev.entity.DevDevice;
 import com.yundao.bp.dev.iot.DeviceCommandClient;
 import com.yundao.bp.dev.mapper.DevCommandMapper;
 import com.yundao.bp.dev.mapper.DevDeviceMapper;
+import com.yundao.bp.asset.entity.AssetHouse;
+import com.yundao.bp.asset.mapper.AssetHouseMapper;
+import com.yundao.bp.fin.entity.FinBill;
+import com.yundao.bp.fin.mapper.FinBillMapper;
+import com.yundao.bp.msg.entity.MsgSendRecord;
+import com.yundao.bp.msg.mapper.MsgSendRecordMapper;
 import com.yundao.bp.dev.service.DevCommandService;
 import com.yundao.bp.iot.config.IotSettings;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.slf4j.Logger;
@@ -30,15 +38,22 @@ public class DevCommandServiceImpl implements DevCommandService {
     private final DeviceCommandClient client;
     private final IotSettings settings;
     private final SnowflakeIdGenerator idGen;
+    private final AssetHouseMapper houseMapper;
+    private final FinBillMapper billMapper;
+    private final MsgSendRecordMapper msgMapper;
 
     public DevCommandServiceImpl(DevCommandMapper mapper, DevDeviceMapper deviceMapper,
                                  DeviceCommandClient client, IotSettings settings,
-                                 SnowflakeIdGenerator idGen) {
+                                 SnowflakeIdGenerator idGen, AssetHouseMapper houseMapper,
+                                 FinBillMapper billMapper, MsgSendRecordMapper msgMapper) {
         this.mapper = mapper;
         this.deviceMapper = deviceMapper;
         this.client = client;
         this.settings = settings;
         this.idGen = idGen;
+        this.houseMapper = houseMapper;
+        this.billMapper = billMapper;
+        this.msgMapper = msgMapper;
     }
 
     @Override
@@ -80,12 +95,18 @@ public class DevCommandServiceImpl implements DevCommandService {
         c.setReason(reason);
         c.setSource(source == null ? "CONSOLE" : source);
         if ("METER_SWITCH".equals(commandType)) {
+            applySwitchSafety(c, d, now);
             c.setApproveStatus("PENDING");
+            c.setExecuteAfter(now.plusMinutes(settings.getInt("iot.meter.switch.delayMinutes")));
+            c.setCancelDeadline(c.getExecuteAfter());
         }
         c.setIsDeleted(0);
         c.setCreateTime(now);
         c.setUpdateTime(now);
         mapper.insert(c);
+        if ("METER_SWITCH".equals(commandType)) {
+            notifyBeforeTrip(c);
+        }
         // 拉合闸需审批通过后再下发
         if (!"METER_SWITCH".equals(commandType)) {
             dispatch(id);
@@ -167,7 +188,9 @@ public class DevCommandServiceImpl implements DevCommandService {
             return c;
         }
         mapper.updateById(c);
-        dispatch(id);
+        if (c.getExecuteAfter() == null || !c.getExecuteAfter().isAfter(LocalDateTime.now())) {
+            dispatch(id);
+        }
         return mapper.selectById(id);
     }
 
@@ -211,6 +234,129 @@ public class DevCommandServiceImpl implements DevCommandService {
             c.setUpdateTime(LocalDateTime.now());
             mapper.updateById(c);
         }
+    }
+
+
+    // ==================== 拉合闸安全策略 ====================
+
+    private void applySwitchSafety(DevCommand c, DevDevice d, LocalDateTime now) {
+        if (d == null || d.getSpaceId() == null) {
+            throw BizException.stateConflict("设备未绑定空间，无法拉合闸");
+        }
+        AssetHouse house = houseMapper.selectOne(new LambdaQueryWrapper<AssetHouse>()
+                .eq(AssetHouse::getSpaceId, d.getSpaceId()).last("LIMIT 1"));
+        if (house == null) {
+            throw BizException.stateConflict("设备所在空间未对应房源，无法拉合闸");
+        }
+        c.setHouseId(house.getId());
+
+        // 夜间禁止
+        String from = settings.getString("iot.meter.switch.nightFrom");
+        String to = settings.getString("iot.meter.switch.nightTo");
+        if (inNightWindow(now.toLocalTime(), from, to)) {
+            throw BizException.stateConflict("当前处于禁止拉闸时段（" + from + "–" + to + "）");
+        }
+
+        // 欠费与逾期校验
+        List<FinBill> unpaid = billMapper.selectList(new LambdaQueryWrapper<FinBill>()
+                .eq(FinBill::getHouseId, house.getId())
+                .in(FinBill::getBillStatus, List.of("UNPAID", "PARTIAL"))
+                .isNotNull(FinBill::getPayableAmount).gt(FinBill::getPayableAmount, BigDecimal.ZERO));
+        BigDecimal arrears = BigDecimal.ZERO;
+        LocalDate earliestDue = null;
+        for (FinBill b : unpaid) {
+            BigDecimal paid = b.getPaidAmount() == null ? BigDecimal.ZERO : b.getPaidAmount();
+            BigDecimal waive = b.getWaivedAmount() == null ? BigDecimal.ZERO : b.getWaivedAmount();
+            BigDecimal remain = (b.getPayableAmount() == null ? BigDecimal.ZERO : b.getPayableAmount())
+                    .subtract(paid).subtract(waive);
+            if (remain.compareTo(BigDecimal.ZERO) > 0) {
+                arrears = arrears.add(remain);
+                if (b.getDueDate() != null
+                        && (earliestDue == null || b.getDueDate().isBefore(earliestDue))) {
+                    earliestDue = b.getDueDate();
+                }
+            }
+        }
+        c.setArrearsAmount(arrears.setScale(2, java.math.RoundingMode.HALF_UP));
+        BigDecimal threshold = settings.getDecimal("iot.meter.switch.arrearsThreshold");
+        if (arrears.compareTo(threshold) < 0) {
+            throw BizException.stateConflict("欠费 " + c.getArrearsAmount()
+                    + " 元未达拉闸阈值 " + threshold + " 元");
+        }
+        int overdueDays = settings.getInt("iot.meter.switch.overdueDays");
+        if (earliestDue != null
+                && java.time.temporal.ChronoUnit.DAYS.between(earliestDue, LocalDate.now())
+                < overdueDays) {
+            throw BizException.stateConflict("最早欠费账单逾期未满 " + overdueDays + " 天");
+        }
+
+        // 24 小时限额
+        int limit = settings.getInt("iot.meter.switch.dailyLimit");
+        Long today = mapper.selectCount(new LambdaQueryWrapper<DevCommand>()
+                .eq(DevCommand::getCommandType, "METER_SWITCH")
+                .eq(DevCommand::getDeviceId, c.getDeviceId())
+                .ne(DevCommand::getStatus, "CANCELED")
+                .ge(DevCommand::getCreateTime, LocalDate.now().atStartOfDay()));
+        if (today != null && today >= limit) {
+            throw BizException.stateConflict("该表 24 小时内已拉闸 " + today
+                    + " 次，达上限 " + limit + " 次");
+        }
+    }
+
+    private boolean inNightWindow(java.time.LocalTime now, String from, String to) {
+        if (from == null || to == null || from.isBlank() || to.isBlank()) {
+            return false;
+        }
+        try {
+            java.time.LocalTime f = java.time.LocalTime.parse(from);
+            java.time.LocalTime t = java.time.LocalTime.parse(to);
+            if (f.isBefore(t)) {
+                return !now.isBefore(f) && now.isBefore(t);
+            }
+            // 跨零点：22:00–次日 07:00
+            return !now.isBefore(f) || now.isBefore(t);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** 拉闸前通知（提前 30 分钟，站内记录 + 待发）。 */
+    private void notifyBeforeTrip(DevCommand c) {
+        try {
+            MsgSendRecord m = new MsgSendRecord();
+            m.setId(idGen.nextId());
+            m.setTenantId(c.getTenantId());
+            m.setMessageNo("MSG" + m.getId());
+            m.setTemplateCode("IOT_METER_TRIP_NOTICE");
+            m.setChannel("INAPP");
+            m.setBizType("METER_SWITCH");
+            m.setBizId(c.getId());
+            m.setReceiverType("HOUSE");
+            m.setReceiverId(String.valueOf(c.getHouseId()));
+            m.setTitle("电表拉闸预警");
+            m.setContent("因欠费 " + c.getArrearsAmount() + " 元，将按计划执行断电，请尽快缴费。");
+            m.setSendStatus("PENDING");
+            m.setRetryCount(0);
+            m.setPlanTime(c.getExecuteAfter() == null ? LocalDateTime.now()
+                    : c.getExecuteAfter().minusMinutes(30));
+            m.setCreateTime(LocalDateTime.now());
+            msgMapper.insert(m);
+        } catch (Exception e) {
+            log.warn("拉闸通知写入失败: {}", e.getMessage());
+        }
+    }
+
+    /** 到点执行（Job 调用）。 */
+    public int executeDueSwitches() {
+        List<DevCommand> due = mapper.selectList(new LambdaQueryWrapper<DevCommand>()
+                .eq(DevCommand::getCommandType, "METER_SWITCH")
+                .eq(DevCommand::getApproveStatus, "APPROVED")
+                .eq(DevCommand::getStatus, "PENDING")
+                .le(DevCommand::getExecuteAfter, LocalDateTime.now()));
+        for (DevCommand c : due) {
+            dispatch(c.getId());
+        }
+        return due.size();
     }
 
     /** 超时扫描：由 Job 调用。 */

@@ -41,6 +41,11 @@ public class DevCommand {
     private Integer retryCount;
     private Integer maxRetry;
     private LocalDateTime timeoutAt;
+
+    /** 拉合闸：延迟执行时间（到点才下发） */
+    private LocalDateTime executeAfter;
+    /** 拉合闸：可撤销截止时间（= executeAfter） */
+    private LocalDateTime cancelDeadline;
     private LocalDateTime dispatchTime;
     private LocalDateTime ackTime;
     private String resultCode;
@@ -50,6 +55,11 @@ public class DevCommand {
     private Long operatorId;
     private String operatorName;
     private String reason;
+
+    /** 拉合闸：账单欠费金额快照 */
+    private java.math.BigDecimal arrearsAmount;
+    /** 拉合闸：目标房源 */
+    private Long houseId;
     /** CONSOLE / API / SCHEDULE */
     private String source;
 
