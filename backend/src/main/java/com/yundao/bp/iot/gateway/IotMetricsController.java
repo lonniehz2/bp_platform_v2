@@ -80,6 +80,34 @@ public class IotMetricsController {
         command.put("successRate", cmds.isEmpty() ? 0
                 : Math.round(success * 1000.0 / cmds.size()) / 10.0);
         command.put("byStatus", cmdStatus);
+
+        // 端到端时延（IoT 回执 costMs）：平均 / P95 / 最大
+        java.util.List<Integer> costs = new java.util.ArrayList<>();
+        for (DevCommand c : cmds) {
+            if (c.getCostMs() != null && c.getCostMs() >= 0) {
+                costs.add(c.getCostMs());
+            }
+        }
+        Map<String, Object> cost = new LinkedHashMap<>();
+        if (costs.isEmpty()) {
+            cost.put("samples", 0);
+            cost.put("avgMs", null);
+            cost.put("p95Ms", null);
+            cost.put("maxMs", null);
+        } else {
+            java.util.Collections.sort(costs);
+            long sum = 0;
+            for (Integer v : costs) {
+                sum += v;
+            }
+            int p95 = costs.get(Math.min(costs.size() - 1,
+                    (int) Math.ceil(costs.size() * 0.95) - 1));
+            cost.put("samples", costs.size());
+            cost.put("avgMs", Math.round(sum * 10.0 / costs.size()) / 10.0);
+            cost.put("p95Ms", p95);
+            cost.put("maxMs", costs.get(costs.size() - 1));
+        }
+        command.put("cost", cost);
         out.put("commands", command);
 
         // 回调：近 N 小时按处理状态

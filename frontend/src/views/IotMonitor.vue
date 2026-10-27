@@ -43,6 +43,24 @@
       </el-col>
     </el-row>
 
+    <el-row :gutter="12" style="margin-top:12px">
+      <el-col :span="24">
+        <el-card shadow="never">
+          <div class="card-title">指令端到端时延（来自 IoT 回执 costMs）</div>
+          <div style="display:flex;gap:32px;margin-top:6px">
+            <div><div class="muted">平均</div>
+              <div class="num">{{ m.commands?.cost?.avgMs ?? '—' }} ms</div></div>
+            <div><div class="muted">P95</div>
+              <div class="num">{{ m.commands?.cost?.p95Ms ?? '—' }} ms</div></div>
+            <div><div class="muted">最大</div>
+              <div class="num">{{ m.commands?.cost?.maxMs ?? '—' }} ms</div></div>
+            <div><div class="muted">样本</div>
+              <div class="num">{{ m.commands?.cost?.samples ?? 0 }}</div></div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <el-row :gutter="12">
       <el-col :span="8">
         <el-card shadow="never">
