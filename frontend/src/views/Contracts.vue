@@ -56,6 +56,8 @@
           <template #default="{ row }">
             <el-button link type="primary" @click="openContractDetail(row)"
                        data-testid="contract-detail">详情</el-button>
+            <el-button v-if="['EFFECTIVE','RENEWING'].includes(row.contractStatus)"
+                       link type="warning" @click="openSwap(row)">换床</el-button>
             <el-button link type="warning" :disabled="row.contractStatus !== 'DRAFT'"
                        @click="openContractEdit(row)"
                        data-testid="contract-edit">编辑</el-button>
@@ -605,6 +607,31 @@ const quickSignVisible = ref(false)
 const vacantHouses = ref([])
 const houseLoading = ref(false)
 const route = useRoute()
+const swapVisible = ref(false)
+const sw = reactive({ contractId: null, contractNo: '', targetHouseId: '', reason: '' })
+
+function openSwap(row) {
+  sw.contractId = row.id
+  sw.contractNo = row.contractNo
+  sw.targetHouseId = ''
+  sw.reason = ''
+  swapVisible.value = true
+}
+
+async function doSwap() {
+  if (!sw.targetHouseId) { ElMessage.warning('请选择目标房源'); return }
+  saving.value = true
+  try {
+    await req.post('/contracts/' + sw.contractId + '/swap-bed',
+      { targetHouseId: sw.targetHouseId, reason: sw.reason || undefined })
+    ElMessage.success('已换床')
+    swapVisible.value = false
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '换床失败')
+  } finally { saving.value = false }
+}
+
 const qf = reactive({ personId: '', houseId: '', leaseStart: '', leaseEnd: '',
   monthlyRent: 0, depositAmount: 0, securityType: 'PUBLIC', remark: '存量直接签约' })
 

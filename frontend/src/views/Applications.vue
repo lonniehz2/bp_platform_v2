@@ -319,7 +319,12 @@ async function doReview() {
 }
 
 async function openRecords(row) {
-  // 后端真实路径是 /reviews（审核记录）\n  records.value = await applicationApi.reviews(row.id)
+  try {
+    records.value = await applicationApi.reviews(row.id)
+  } catch (e) {
+    records.value = []
+    ElMessage.error(e?.response?.data?.message || '轨迹加载失败')
+  }
   recordsVisible.value = true
 }
 
