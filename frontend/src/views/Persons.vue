@@ -172,10 +172,12 @@
           <el-table-column prop="faceScore" label="人脸分" width="100" />
           <el-table-column prop="responseCode" label="返回码" width="100" />
           <el-table-column prop="verifyTime" label="核验时间" width="170" />
-          <el-table-column label="操作" width="110" fixed="right">
+          <el-table-column label="操作" width="200" fixed="right">
             <template #default="{ row }">
               <el-button v-if="Number(row.verifyPass) !== 1" link type="primary"
                          @click="openVerifyFor(row)">实名核验</el-button>
+              <el-button v-if="Number(row.verifyPass) !== 1" link type="success"
+                         @click="manualPass(row.personId)">核验通过</el-button>
               <span v-else class="muted">已通过</span>
             </template>
           </el-table-column>
@@ -257,8 +259,9 @@
                :title="profileEditMode ? '编辑保障档案' : '保障档案建档'" width="620px">
       <el-form :model="gf" label-width="130px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="人员ID" required>
-            <el-input v-model="gf.personId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="人员" required>
+            <PersonPicker v-model="gf.personId" width="100%"
+                          testid="profile-person-picker" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="保障类型">
             <el-select v-model="gf.securityType" style="width:100%">
               <el-option label="公租房" value="PUBLIC" />
@@ -379,6 +382,9 @@
                 title="未通过实名核验的人员不能提交申请（后端硬校验）" />
       <template #footer>
         <el-button @click="verifyVisible = false">取消</el-button>
+        <el-button type="success" :loading="saving" @click="doManualPass">
+          演示：核验通过
+        </el-button>
         <el-button type="primary" :loading="saving" @click="doVerify">提交核验</el-button>
       </template>
     </el-dialog>
@@ -709,7 +715,24 @@ async function qualify(row) {
     { type: 'warning' })
   const r = await req.post(
     `/guarantee-profiles/person/${row.personId}/qualify`)
-  ElMessageBox.alert(JSON.stringify(r, null, 2).slice(0, 500), '判定结果')
+  // 后端返回保障档案实体，这里转成中文结果，避免直接抛 JSON
+  const lines = [
+    `人员：${r?.personId || row.personId}`,
+    `档案状态：${profileStatusText(r?.profileStatus)}`,
+    `收入档位：${enumLabel('incomeLevel', r?.incomeLevel) || r?.incomeLevel || '—'}`,
+    `家庭人口：${r?.familySize ?? '—'}`,
+    `人均收入：${r?.perCapitaIncome ?? '—'} 元/月`,
+    `资格认定日期：${r?.qualifyDate || '—'}`,
+    `资格有效期至：${r?.qualifyExpire || '—'}`
+  ]
+  ElMessageBox.alert(lines.join('\n'), '资格判定结果',
+    { customStyle: { whiteSpace: 'pre-line' } })
+  loadProfiles()
+}
+
+function profileStatusText(s) {
+  return { DRAFT: '草稿', SUBMITTED: '已提交', QUALIFIED: '已通过', IN_RESIDENCE: '在保',
+    EXITED: '已退出' }[s] || s || '—'
 }
 function exitProfile(row) {
   currentProfile.value = row
@@ -743,6 +766,37 @@ async function doVerify() {
     verifyVisible.value = false; tab.value = 'verify'; loadVerifies()
   } finally { saving.value = false }
 }
+
+/** 演示用：写入一条人工核验通过记录（同时把人员置为已实名） */
+async function manualPass(personId) {
+  const pid = personId || vf.personId
+  if (!pid) { ElMessage.warning('请选择人员'); return }
+  await ElMessageBox.confirm(
+    '将以「人工核验」方式记录一次通过结果，并把人员实名状态置为已通过。确认？',
+    '核验通过', { type: 'warning' })
+  saving.value = true
+  try {
+    await req.post('/verify-records', {
+      personId: pid,
+      verifyType: 'MANUAL',
+      userName: vf.userName || null,
+      faceResult: '1',
+      citizenResult: '0',
+      responseCode: '0',
+      resultCode: '0',
+      faceScore: 100,
+      rawResponse: '{"source":"manual-demo","remark":"演示：人工核验通过"}'
+    })
+    ElMessage.success('已记录核验通过，人员实名状态已更新')
+    verifyVisible.value = false
+    tab.value = 'verify'
+    loadVerifies(); loadPersons()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '操作失败')
+  } finally { saving.value = false }
+}
+
+async function doManualPass() { await manualPass(vf.personId) }
 async function loadFailStats() {
   const r = await req.get('/verify-records/fail-stats')
   ElMessageBox.alert(JSON.stringify(r, null, 2).slice(0, 600), '核验失败统计')

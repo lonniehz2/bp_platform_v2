@@ -90,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
@@ -122,17 +122,41 @@ async function load() {
 }
 function reload() { query.pageNum = 1; load() }
 
-function openEnqueue() { enqueueVisible.value = true }
+function openEnqueue() {
+  Object.assign(ef, { personId: null, applicationId: null, orgId: null,
+    securityType: 'PUBLIC', priorityScore: 0, priorityReason: '' })
+  enqueueVisible.value = true
+}
+
+/** 选择人员后自动带出已通过的申请单与组织，避免手填 ID */
+watch(() => ef.personId, async (v) => {
+  if (!v) return
+  try {
+    const d = await req.get('/applications',
+      { params: { personId: v, status: 'APPROVED', pageNum: 1, pageSize: 5 } })
+    const app = (d.rows || [])[0]
+    if (app) {
+      ef.applicationId = app.id
+      ef.orgId = app.orgId || ef.orgId
+      ef.securityType = app.securityType || ef.securityType
+      ElMessage.success('已带入申请单与组织')
+    } else {
+      ElMessage.warning('该人员暂无「已通过」的申请单，请先完成申请审核')
+    }
+  } catch (e) { /* 忽略，用户可手填 */ }
+})
 
 async function doEnqueue() {
-  if (!ef.personId || !ef.orgId) {
-    ElMessage.warning('人员与组织为必填'); return
-  }
+  if (!ef.personId) { ElMessage.warning('请选择人员'); return }
+  if (!ef.applicationId) { ElMessage.warning('请先带入已通过的申请单'); return }
+  if (!ef.orgId) { ElMessage.warning('组织为必填'); return }
   saving.value = true
   try {
     await req.post('/allocation/waiting', { ...ef })
     ElMessage.success('已入队')
     enqueueVisible.value = false; reload()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || e?.message || '入队失败')
   } finally { saving.value = false }
 }
 

@@ -48,7 +48,7 @@ public class PublicityReviewController {
     }
 
     @com.yundao.bp.iam.security.RequirePerm("biz:publicity:view")
-    @GetMapping("/publicities/{id}")
+    @GetMapping("/publicities/{id:\\d+}")
     public R<PublicityVO> getPublicity(@PathVariable Long id) {
         return R.ok(publicityService.get(id));
     }
@@ -66,7 +66,7 @@ public class PublicityReviewController {
 
 
     /** 公示中签名单（身份证脱敏）。 */
-    @GetMapping("/publicities/{id}/winners")
+    @GetMapping("/publicities/{id:\\d+}/winners")
     @RequirePerm("biz:publicity:view")
     public R<java.util.List<com.yundao.bp.biz.dto.PublicityWinnerVO>> winners(
             @PathVariable Long id) {
@@ -74,13 +74,13 @@ public class PublicityReviewController {
     }
 
     @com.yundao.bp.iam.security.RequirePerm("biz:publicity:publish")
-    @PostMapping("/publicities/{id}/publish")
+    @PostMapping("/publicities/{id:\\d+}/publish")
     public R<PublicityVO> publishPublicity(@PathVariable Long id) {
         return R.ok(publicityService.publish(id));
     }
 
     @com.yundao.bp.iam.security.RequirePerm("biz:publicity:close")
-    @PostMapping("/publicities/{id}/close")
+    @PostMapping("/publicities/{id:\\d+}/close")
     public R<PublicityVO> closePublicity(@PathVariable Long id,
                                          @RequestBody(required = false) RemarkCmd cmd) {
         return R.ok(publicityService.close(id, cmd == null ? null : cmd.remark()));

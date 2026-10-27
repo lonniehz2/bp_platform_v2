@@ -178,6 +178,15 @@ public class VerifyRecordServiceImpl implements VerifyRecordService {
         r.setRawResponse(truncate(rawResponse));
         r.setCreateTime(LocalDateTime.now());
         mapper.insert(r);
+        // 回写人员实名状态：通过 → VERIFIED；不通过 → FAILED
+        if (personId != null) {
+            com.yundao.bp.person.entity.Person p = personMapper.selectById(personId);
+            if (p != null) {
+                p.setVerifyStatus(pass ? "VERIFIED" : "FAILED");
+                p.setUpdateTime(LocalDateTime.now());
+                personMapper.updateById(p);
+            }
+        }
         log.info("实名认证留痕：人员 {} 类型 {} → {}", personId, verifyType,
                 pass ? "通过" : "不通过（" + failReason + "）");
         return r;

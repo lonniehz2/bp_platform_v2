@@ -62,6 +62,13 @@
     <el-dialog v-model="createVisible" title="新增房源" width="640px">
       <el-form :model="f" label-width="120px">
         <el-row :gutter="12">
+          <el-col :span="12"><el-form-item label="所属组织">
+            <el-select v-model="f.orgId" filterable clearable style="width:100%"
+                       placeholder="选择组织后加载空间节点"
+                       @change="onOrgChange">
+              <el-option v-for="o in orgOptions" :key="o.id"
+                         :label="o.orgName" :value="o.id" />
+            </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="空间节点" required>
             <el-tree-select v-model="f.spaceId" :data="spaceTree" check-strictly
                             filterable :render-after-expand="false"
@@ -325,7 +332,22 @@ async function load() {
 function reload() { pageNum.value = 1; load() }
 
 async function openCreate() {
-  ensureSpaceTree()
+  // 先确定组织：优先当前用户组织，否则取组织列表第一个；再加载该组织的空间树
+  let orgId = f.orgId || auth.user?.orgId
+  if (!orgOptions.value.length) {
+    try {
+      const od = await req.get('/orgs', { params: { pageNum: 1, pageSize: 200 } })
+      orgOptions.value = od.rows || od || []
+    } catch (e) { /* 忽略 */ }
+  }
+  if (!orgId) {
+    const first = orgOptions.value[0]
+    orgId = first && first.id
+  }
+  if (orgId) {
+    f.orgId = orgId
+    await onOrgChange(orgId)
+  }
   createVisible.value = true
 }
 async function doCreate() {
@@ -441,18 +463,41 @@ async function openBeds() {
  * 后端 /spaces/tree 必须带 orgId；账号无 orgId 时回退到第一个可选组织，
  * 否则房间下拉会是空白（本次修复点）。
  */
+const orgOptions = ref([])
+
+/** 组织变化时重新加载空间树 */
+async function onOrgChange(orgId) {
+  spaceTree.value = []
+  if (!orgId) return
+  try {
+    const tree = await req.get('/spaces/tree', { params: { orgId } })
+    spaceTree.value = tree || []
+    if (!spaceTree.value.length) {
+      ElMessage.warning('该组织下暂无空间节点，请先在「空间管理」创建楼栋/单元/房间')
+    }
+  } catch (e) {
+    ElMessage.error('空间树加载失败：' + (e?.response?.data?.message || e?.message || e))
+  }
+}
+
 async function ensureSpaceTree() {
   if (spaceTree.value.length) return spaceTree.value
   let orgId = auth.user?.orgId
   if (!orgId) {
     try {
-      const list = await req.get('/orgs/children')
-      const first = (list || [])[0]
+      const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 200 } })
+      const list = d.rows || d || []
+      const first = list[0]
       orgId = first && first.id
     } catch (e) { /* 忽略 */ }
   }
   if (!orgId) return []
   try {
+    if (!orgOptions.value.length) {
+      const od = await req.get('/orgs', { params: { pageNum: 1, pageSize: 200 } })
+      orgOptions.value = od.rows || od || []
+    }
+    if (!f.orgId) f.orgId = orgId
     const tree = await req.get('/spaces/tree', { params: { orgId } })
     spaceTree.value = tree || []
   } catch (e) {
