@@ -55,8 +55,10 @@ public class AllocationController {
                                                 @RequestParam(defaultValue = "20") long pageSize,
                                                 @RequestParam(required = false) String securityType,
                                                 @RequestParam(required = false) Long orgId,
-                                                @RequestParam(required = false) String status) {
-        return R.ok(service.pageWaiting(pageNum, pageSize, securityType, orgId, status));
+                                                @RequestParam(required = false) String status,
+                                                @RequestParam(required = false) String keyword) {
+        return R.ok(service.pageWaiting(pageNum, pageSize, securityType, orgId, status,
+                keyword));
     }
 
     /** 重算轮候排名。 */

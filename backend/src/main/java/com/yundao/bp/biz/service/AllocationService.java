@@ -33,7 +33,7 @@ public interface AllocationService {
     WaitingVO getWaiting(Long id);
 
     PageResult<WaitingVO> pageWaiting(long pageNum, long pageSize, String securityType,
-                                      Long orgId, String status);
+                                      Long orgId, String status, String keyword);
 
     /** 重算轮候排名（总分 = 优先分 + 轮候天数 × 每日分值）。 */
     int recalcRank(String securityType, Long orgId);

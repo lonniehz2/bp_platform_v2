@@ -4,7 +4,11 @@
       <h3 style="margin:0">轮候管理</h3>
       <el-tag size="small" type="info">总分 = 优先附加分 + 轮候天数 × 0.1</el-tag>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字" clearable style="width:150px"
+      <el-select v-model="orgId" placeholder="组织名称" clearable filterable
+                 style="width:200px" data-testid="wait-org" @change="reload">
+        <el-option v-for="o in orgs" :key="o.id" :label="o.orgName" :value="o.id" />
+      </el-select>
+      <el-input v-model="keyword" placeholder="姓名/手机号" clearable style="width:170px"
                 @keyup.enter="reload" />
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
@@ -22,6 +26,9 @@
       </el-table-column>
       <el-table-column prop="personIdName" label="轮候人" width="200">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
+      </el-table-column>
+      <el-table-column label="组织" width="180" show-overflow-tooltip>
+        <template #default="{ row }">{{ row.orgIdName || '—' }}</template>
       </el-table-column>
       <el-table-column prop="priorityScore" label="优先分" width="100" />
       <el-table-column prop="liveWaitDays" label="已轮候天数" width="110" />
@@ -102,6 +109,15 @@ const saving = ref(false)
 const rows = ref([])
 const total = ref(0)
 const keyword = ref('')
+const orgId = ref(null)
+const orgs = ref([])
+
+async function loadOrgs() {
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 200 } })
+    orgs.value = d.rows || d || []
+  } catch (e) { orgs.value = [] }
+}
 const show = ref(false)
 const detail = ref(null)
 const enqueueVisible = ref(false)
@@ -114,7 +130,8 @@ async function load() {
   try {
     const d = await req.get('/allocation/waiting', {
       // 轮候接口暂不支持关键字（需关联人员表），先不传，避免「输入了却不生效」
-      params: { ...query }
+      params: { ...query, keyword: keyword.value || undefined,
+        orgId: orgId.value || undefined }
     })
     rows.value = d.rows || d || []
     total.value = Number(d.total || rows.value.length || 0)
@@ -168,11 +185,12 @@ async function recalc() {
 }
 
 function resetQuery() {
+  orgId.value = null
   keyword.value = ''
   reload()
 }
 
-onMounted(load)
+onMounted(() => { load(); loadOrgs() })
 /** 候补退出：放弃轮候资格，需填原因 */
 async function doExit(row) {
   const { value } = await ElMessageBox.prompt('退出原因（如已购商品房/迁出本市）', '候补退出',

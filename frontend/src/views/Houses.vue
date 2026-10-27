@@ -3,6 +3,12 @@
     <div class="toolbar">
       <h3 style="margin:0">房源台账</h3>
       <div class="spacer" />
+      <el-select v-model="orgFilter" placeholder="组织名称" clearable filterable
+                 style="width:200px" data-testid="house-org-filter"
+                 @change="reload">
+        <el-option v-for="o in orgOptions" :key="o.id"
+                   :label="o.orgName" :value="o.id" />
+      </el-select>
       <el-input v-model="keyword" placeholder="房源编号/名称" clearable
                 style="width:180px" @keyup.enter="reload" />
       <el-select v-model="houseStatus" placeholder="状态" clearable
@@ -316,11 +322,22 @@ function statusType(s) {
     : (s === 'VACANT' ? 'info' : (s === 'REPAIR' ? 'warning' : 'danger'))
 }
 
+const orgFilter = ref(null)
+
+async function loadOrgFilterOptions() {
+  if (orgOptions.value.length) return
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 200 } })
+    orgOptions.value = d.rows || d || []
+  } catch (e) { /* 忽略 */ }
+}
+
 async function load() {
   loading.value = true
   try {
     const d = await houseApi.page({
       pageNum: pageNum.value, pageSize: pageSize.value,
+      orgId: orgFilter.value || undefined,
       keyword: keyword.value || undefined,
       houseStatus: houseStatus.value || undefined,
       houseType: houseTypeFilter.value || undefined
@@ -371,6 +388,7 @@ async function changeStatus(row) {
 }
 
 function resetQuery() {
+  orgFilter.value = null
   houseStatus.value = ''
   houseTypeFilter.value = ''
   keyword.value = ''
@@ -595,5 +613,5 @@ async function doSwapBed() {
   } finally { saving.value = false }
 }
 
-onMounted(load)
+onMounted(() => { load(); loadOrgFilterOptions() })
 </script>

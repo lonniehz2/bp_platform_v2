@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.yundao.bp.asset.entity.AssetHouse;
+import com.yundao.bp.person.entity.Person;
+import com.yundao.bp.person.mapper.PersonMapper;
 import com.yundao.bp.asset.mapper.AssetHouseMapper;
 import com.yundao.bp.biz.constant.AllocationStatus;
 import com.yundao.bp.biz.constant.BatchStatus;
@@ -82,6 +84,7 @@ public class AllocationServiceImpl implements AllocationService {
     private final AssetHouseMapper houseMapper;
     private final SnowflakeIdGenerator idGen;
     private final PublicityService publicityService;
+    private final PersonMapper personMapper;
 
     public AllocationServiceImpl(BizWaitingQueueMapper waitingMapper, BizBatchMapper batchMapper,
                                  BizBatchHouseMapper batchHouseMapper,
@@ -89,7 +92,8 @@ public class AllocationServiceImpl implements AllocationService {
                                  BizAllocationMapper allocationMapper,
                                  AssetHouseMapper houseMapper,
                                  SnowflakeIdGenerator idGen,
-                                 PublicityService publicityService) {
+                                 PublicityService publicityService,
+                                 PersonMapper personMapper) {
         this.waitingMapper = waitingMapper;
         this.batchMapper = batchMapper;
         this.batchHouseMapper = batchHouseMapper;
@@ -98,6 +102,7 @@ public class AllocationServiceImpl implements AllocationService {
         this.houseMapper = houseMapper;
         this.idGen = idGen;
         this.publicityService = publicityService;
+        this.personMapper = personMapper;
     }
 
     // ==================== 轮候 ====================
@@ -173,7 +178,7 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     public PageResult<WaitingVO> pageWaiting(long pageNum, long pageSize, String securityType,
-                                             Long orgId, String status) {
+                                             Long orgId, String status, String keyword) {
         LambdaQueryWrapper<BizWaitingQueue> qw = new LambdaQueryWrapper<BizWaitingQueue>()
                 .eq(securityType != null && !securityType.isBlank(),
                         BizWaitingQueue::getSecurityType, securityType)
@@ -181,6 +186,17 @@ public class AllocationServiceImpl implements AllocationService {
                 .eq(status != null && !status.isBlank(), BizWaitingQueue::getQueueStatus, status)
                 .orderByAsc(BizWaitingQueue::getWaitingRank)
                 .orderByAsc(BizWaitingQueue::getEnterTime);
+        if (keyword != null && !keyword.isBlank()) {
+            List<Long> pids = personMapper.selectList(new LambdaQueryWrapper<Person>()
+                            .and(w -> w.like(Person::getPersonName, keyword)
+                                    .or().like(Person::getPhone, keyword))
+                            .last("LIMIT 500"))
+                    .stream().map(Person::getId).toList();
+            if (pids.isEmpty()) {
+                return PageResult.of(0, pageNum, pageSize, List.of());
+            }
+            qw.in(BizWaitingQueue::getPersonId, pids);
+        }
         applyWaitingScope(qw);
         IPage<BizWaitingQueue> page = waitingMapper.selectPage(new Page<>(pageNum, pageSize), qw);
         List<WaitingVO> rows = page.getRecords().stream().map(WaitingVO::from).toList();
@@ -378,7 +394,8 @@ public class AllocationServiceImpl implements AllocationService {
             throw BizException.paramInvalid("批次状态不合法: " + targetStatus);
         }
         if (from == target) {
-            throw BizException.stateConflict("已处于 " + target.label() + " 状态");
+            // 幂等：重复点击发布等场景直接返回当前状态，避免前端看到“状态变更失败”
+            return BatchVO.from(b);
         }
         if (!BatchStatus.nextOf(from).contains(target)) {
             throw BizException.stateConflict(
@@ -794,7 +811,7 @@ public class AllocationServiceImpl implements AllocationService {
             throw BizException.stateConflict("配租单状态非法: " + a.getAllocationStatus());
         }
         if (from == target) {
-            throw BizException.stateConflict("已处于 " + target.label() + " 状态");
+            throw BizException.stateConflict("配租单已处于 " + target.label() + " 状态");
         }
         if (!AllocationStatus.nextOf(from).contains(target)) {
             throw BizException.stateConflict(

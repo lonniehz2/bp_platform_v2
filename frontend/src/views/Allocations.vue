@@ -22,15 +22,20 @@
           <el-option label="已结束" value="CLOSED" />
           <el-option label="已取消" value="CANCELLED" />
         </el-select>
-        <template #more>
-          <el-input v-model="af.orgId" placeholder="组织 ID" clearable style="width:200px" />
-        </template>
+        <el-select v-model="af.orgId" placeholder="组织名称" clearable filterable
+                   style="width:220px" data-testid="alloc-org">
+          <el-option v-for="o in orgOptions" :key="o.id"
+                     :label="o.orgName" :value="o.id" />
+        </el-select>
       </FilterBar>
 
       <el-table :data="batches" v-loading="loading" border size="small">
         <el-table-column prop="id" label="批次ID" width="140" />
         <el-table-column prop="batchNo" label="批次号" width="160" />
         <el-table-column prop="batchName" label="名称" />
+        <el-table-column label="组织" width="180" show-overflow-tooltip>
+          <template #default="{ row }">{{ row.orgIdName || orgNameOf(row.orgId) }}</template>
+        </el-table-column>
         <el-table-column prop="batchStatus" label="状态" width="110">
           <template #default="{ row }">{{ row.batchStatusLabel || enumLabel('batchStatus', row.batchStatus) }}</template>
         </el-table-column>
@@ -111,7 +116,7 @@
         <el-form-item label="项目组织" required>
           <el-select v-model="bf.orgId" filterable style="width:100%"
                      placeholder="选择所属小区/项目">
-            <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName" :value="String(o.id)" />
+            <el-option v-for="o in batchOrgs" :key="o.id" :label="o.orgName" :value="String(o.id)" />
           </el-select>
         </el-form-item>
         <el-row :gutter="12">
@@ -138,9 +143,19 @@
           <el-col :span="24"><el-form-item label="摇号时间">
             <el-date-picker v-model="bf.lotteryTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="房源 ID">
-            <el-input v-model="bf.houseIdsText" type="textarea" :rows="2"
-                      placeholder="可空；创建后也能用行内「加房源」补充，多个用逗号分隔" />
+          <el-col :span="24"><el-form-item label="房源">
+            <div style="width:100%">
+              <el-select v-model="bf.houseIds" multiple filterable remote
+                         :remote-method="searchHouses" :loading="houseLoading"
+                         placeholder="选择组织后搜索待分配房源（可多选）" style="width:100%">
+                <el-option v-for="h in houseOptions" :key="h.id"
+                           :label="(h.houseName || h.houseCode) + '（' + h.houseCode + '）'"
+                           :value="h.id" />
+              </el-select>
+              <div class="muted" style="font-size:12px;margin-top:4px">
+                已选 {{ (bf.houseIds || []).length }} 套；仅显示所选组织下「待分配」房源
+              </div>
+            </div>
           </el-form-item></el-col>
           <el-col :span="24"><el-form-item label="公证信息">
             <el-input v-model="bf.notaryInfo" placeholder="可空，如公证处与公证号" /></el-form-item></el-col>
@@ -176,10 +191,11 @@ function openDetail(row) {
 }
 
 import { enumLabel } from '@/constants/enums'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import DetailView from '@/components/DetailView.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { allocationApi } from '@/api/modules'
+import req from '@/api/request'
 import FilterBar from '@/components/FilterBar.vue'
 
 const loading = ref(false)
@@ -268,28 +284,65 @@ const batchCreateVisible = ref(false)
 const addHouseVisible = ref(false)
 const addHouseBatch = ref(null)
 const houseIdsText = ref('')
-const bf = reactive({ batchName: '', orgId: '', securityType: 'PUBLIC',
+const bf = reactive({ batchName: '', orgId: '', houseIds: [], securityType: 'PUBLIC',
   batchType: 'LOTTERY', signupStart: '', signupEnd: '', lotteryTime: '',
-  houseIdsText: '', notaryInfo: '' })
+  notaryInfo: '' })
 const orgOptions = ref([])
+const batchOrgs = ref([])
+
+
+/** 组织列表（名称用于筛选与批次下拉） */
+async function loadOrgOptions() {
+  if (orgOptions.value.length) return
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 200 } })
+    const rows = (d && d.rows) || (Array.isArray(d) ? d : [])
+    orgOptions.value = rows.map((o) => ({ id: o.id, orgName: o.orgName }))
+  } catch (e) { /* 忽略 */ }
+}
+
+function orgNameOf(id) {
+  const hit = orgOptions.value.find((o) => String(o.id) === String(id))
+  return hit ? hit.orgName : (id || '—')
+}
+
+const houseOptions = ref([])
+const houseLoading = ref(false)
+
+/** 组织下「待分配」房源，支持关键字搜索 */
+async function searchHouses(keyword) {
+  if (!bf.orgId) return
+  houseLoading.value = true
+  try {
+    const d = await req.get('/houses', {
+      params: { pageNum: 1, pageSize: 100, orgId: bf.orgId,
+        houseStatus: 'PENDING_ALLOC', keyword: keyword || undefined }
+    })
+    houseOptions.value = (d && d.rows) || []
+  } catch (e) { houseOptions.value = [] } finally { houseLoading.value = false }
+}
 
 async function openBatchCreate() {
-  Object.assign(bf, { batchName: '', orgId: '', securityType: 'PUBLIC', batchType: 'LOTTERY',
-    signupStart: '', signupEnd: '', lotteryTime: '', houseIdsText: '', notaryInfo: '' })
+  Object.assign(bf, { batchName: '', orgId: '', houseIds: [], securityType: 'PUBLIC',
+    batchType: 'LOTTERY', signupStart: '', signupEnd: '', lotteryTime: '', notaryInfo: '' })
+  houseOptions.value = []
   batchCreateVisible.value = true
-  if (!orgOptions.value.length) {
-    try {
-      const list = await req.get('/orgs')
-      const rows = (list && list.rows) || (Array.isArray(list) ? list : [])
-      orgOptions.value = rows.map((o) => ({ id: o.id, orgName: o.orgName }))
-    } catch (e) { /* 组织加载失败不阻断 */ }
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 200 } })
+    const rows = (d && d.rows) || (Array.isArray(d) ? d : [])
+    batchOrgs.value = rows.map((o) => ({ id: String(o.id), orgName: o.orgName }))
+    if (!orgOptions.value.length) orgOptions.value = batchOrgs.value
+  } catch (e) { batchOrgs.value = [] }
+  if (!bf.orgId && batchOrgs.value.length) {
+    bf.orgId = batchOrgs.value[0].id
+    searchHouses('')
   }
 }
 
 async function doCreateBatch() {
   if (!bf.batchName) { ElMessage.warning('请填写批次名称'); return }
   if (!bf.orgId) { ElMessage.warning('请选择项目组织'); return }
-  const ids = (bf.houseIdsText || '').split(/[,，\s]+/).map((x) => x.trim()).filter(Boolean)
+  const ids = (bf.houseIds || []).map(String)
   saving.value = true
   try {
     await req.post('/allocation/batches', {
@@ -362,8 +415,15 @@ async function doTransition(row, target) {
     load()
   } catch (e) {
     ElMessage.error(e?.response?.data?.message || '状态变更失败')
+    load()   // 刷新列表，避免前端状态与后端不一致
   }
 }
 
-onMounted(load)
+watch(() => bf.orgId, (v) => {
+  bf.houseIds = []
+  houseOptions.value = []
+  if (v) searchHouses('')
+})
+
+onMounted(() => { load(); loadOrgOptions() })
 </script>

@@ -15,6 +15,11 @@
                    :label="(h.houseName || h.houseCode) + ' · ' + (h.houseCode || '')"
                    :value="h.id" />
       </el-select>
+      <el-button @click="shiftMonth(-1)" data-testid="cal-month-prev">上一月</el-button>
+      <el-date-picker v-model="month" type="month" value-format="YYYY-MM"
+                      placeholder="选择月份" style="width:130px"
+                      data-testid="cal-month" @change="reload" />
+      <el-button @click="shiftMonth(1)" data-testid="cal-month-next">下一月</el-button>
       <el-button type="primary" @click="reload">按房源查</el-button>
       <el-button type="success" @click="openBook" data-testid="cal-book">预订</el-button>
         <el-button type="warning" plain @click="openRange"
@@ -375,6 +380,15 @@ async function load() {
 }
 
 function reload() { pageNum.value = 1; load() }
+
+/** 按月份前后切换（跨年自动处理） */
+function shiftMonth(delta) {
+  const [y, m] = month.value.split('-').map(Number)
+  const d = new Date(y, m - 1 + delta, 1)
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  month.value = d.getFullYear() + '-' + mm
+  reload()
+}
 function openDetail(row) { detail.value = row; detailVisible.value = true }
 
 function openForm(title, fieldDefs, fn, preset = {}, note = '') {

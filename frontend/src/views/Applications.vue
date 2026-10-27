@@ -41,8 +41,12 @@
         <el-table-column label="操作" width="290" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-            <el-button v-if="row.applyStatus === 'SUBMITTED'" link type="success"
+            <el-button v-if="row.applicationStatus === 'SUBMITTED'" link type="success"
                        @click="accept(row)" data-testid="row-accept">受理</el-button>
+            <el-button v-if="row.applyChannel === 'OFFLINE'
+                       && ['SUBMITTED','ACCEPTED','REVIEWING'].includes(row.applicationStatus)"
+                       link type="warning" data-testid="row-offline-pass"
+                       @click="offlinePass(row)">线下通过</el-button>
             <el-button v-if="canReview(row)" link type="primary"
                        @click="openReview(row)">审核</el-button>
             <el-button link @click="openRecords(row)">轨迹</el-button>
@@ -247,7 +251,7 @@ async function save() {
 
 /** 只有已受理/审核中/补件状态可以审核 */
 function canReview(row) {
-  return ['ACCEPTED', 'REVIEWING', 'SUPPLEMENT'].includes(row.applyStatus)
+  return ['ACCEPTED', 'REVIEWING', 'SUPPLEMENT'].includes(row.applicationStatus)
 }
 
 /** 受理：已提交 → 已受理 */
@@ -266,6 +270,28 @@ function openReview(row) {
   reviewForm.result = 'PASS'
   reviewForm.opinion = ''
   reviewVisible.value = true
+}
+
+/** 线下受理通过：先受理（如未受理），再做终审通过 */
+async function offlinePass(row) {
+  await ElMessageBox.confirm(
+    '线下渠道申请将直接受理并终审通过（仍会校验保障档案资格）。确认？',
+    '线下通过', { type: 'warning' })
+  saving.value = true
+  try {
+    if (row.applicationStatus === 'SUBMITTED') {
+      await req.post(`/applications/${row.id}/accept`, {})
+    }
+    await applicationApi.review(row.id, {
+      stage: 'FINAL',
+      result: 'PASS',
+      opinion: row.offlineRemark || '线下渠道受理，材料齐备，审核通过'
+    })
+    ElMessage.success('已线下通过')
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '线下通过失败')
+  } finally { saving.value = false }
 }
 
 async function doReview() {
