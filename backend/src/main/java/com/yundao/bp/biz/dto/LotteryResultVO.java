@@ -21,7 +21,9 @@ public record LotteryResultVO(
         Long spaceId,
         LocalDateTime selectTime,
         String resultStatus,
-        String giveUpReason
+        String giveUpReason,
+        String personName,
+        String phoneMask
 ) {
     public static LotteryResultVO from(BizLotteryResult e) {
         if (e == null) {
@@ -36,6 +38,13 @@ public record LotteryResultVO(
         return new LotteryResultVO(e.getId(), e.getBatchId(), e.getPersonId(),
                 e.getApplicationId(), e.getWaitingId(), e.getResultType(), t.label(),
                 e.getLotterySeq(), e.getSelectSeq(), e.getHouseId(), e.getSpaceId(),
-                e.getSelectTime(), e.getResultStatus(), e.getGiveUpReason());
+                e.getSelectTime(), e.getResultStatus(), e.getGiveUpReason(), null, null);
+    }
+
+    /** 补充人员姓名与脱敏手机号 */
+    public LotteryResultVO withPerson(String name, String phone) {
+        return new LotteryResultVO(id, batchId, personId, applicationId, waitingId, resultType,
+                resultTypeLabel, lotterySeq, selectSeq, houseId, spaceId, selectTime,
+                resultStatus, giveUpReason, name, phone);
     }
 }

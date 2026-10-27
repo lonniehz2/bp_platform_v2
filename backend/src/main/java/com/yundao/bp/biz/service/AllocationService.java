@@ -54,8 +54,8 @@ public interface AllocationService {
 
     BatchVO getBatch(Long id);
 
-    /** 摇号完成后按中签顺序生成配租单。 */
-    int generateAllocations(Long batchId);
+    /** 摇号完成后按中签顺序生成配租单；返回生成/跳过数量。 */
+    java.util.Map<String, Object> generateAllocations(Long batchId);
 
     PageResult<BatchVO> pageBatch(long pageNum, long pageSize, Long orgId, String status);
 

@@ -143,7 +143,7 @@ public class AllocationController {
     /** 摇号完成后生成配租单。 */
     @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
     @PostMapping("/batches/{id}/generate-allocations")
-    public R<Integer> generateAllocations(@PathVariable Long id) {
+    public R<java.util.Map<String, Object>> generateAllocations(@PathVariable Long id) {
         return R.ok(service.generateAllocations(id));
     }
 

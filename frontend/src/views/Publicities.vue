@@ -37,7 +37,7 @@
             </el-table-column>
             <el-table-column prop="resultTypeLabel" label="结果" width="90">
               <template #default="{ row: w }">
-                <el-tag size="small" :type="w.resultType === 'WIN' ? 'success' : 'info'">
+                <el-tag size="small" :type="w.resultType === 'WON' ? 'success' : 'info'">
                   {{ w.resultTypeLabel }}
                 </el-tag>
               </template>

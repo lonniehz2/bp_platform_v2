@@ -66,6 +66,10 @@ public class PublicityServiceImpl implements PublicityService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.asset.mapper.AssetHouseMapper winnerHouseMapper;
 
+    /** 批次房源池（中签结果未写房号时按顺序补） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.biz.mapper.BizBatchHouseMapper rHouseMapper;
+
 
     /** 数据范围（ALL/ORG_SUB/ORG/SELF） */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -305,6 +309,7 @@ public class PublicityServiceImpl implements PublicityService {
                                 <com.yundao.bp.biz.entity.BizLotteryResult>()
                                 .eq(com.yundao.bp.biz.entity.BizLotteryResult::getBatchId,
                                         p.getBatchId())
+                                .eq(com.yundao.bp.biz.entity.BizLotteryResult::getResultType, "WON")
                                 .orderByAsc(com.yundao.bp.biz.entity.BizLotteryResult::getLotterySeq));
         if (results.isEmpty()) {
             return java.util.List.of();
@@ -333,21 +338,45 @@ public class PublicityServiceImpl implements PublicityService {
                 houses.put(house.getId(), house);
             }
         }
+        // 中签结果若未写入具体房号（选房前），按批次房源池顺序补一个用于公示
+        java.util.List<Long> poolHouses = new java.util.ArrayList<>();
+        if (rHouseMapper != null) {
+            poolHouses = rHouseMapper.selectList(
+                            new com.baomidou.mybatisplus.core.conditions.query
+                                    .LambdaQueryWrapper<com.yundao.bp.biz.entity.BizBatchHouse>()
+                                    .eq(com.yundao.bp.biz.entity.BizBatchHouse::getBatchId,
+                                            p.getBatchId())
+                                    .orderByAsc(com.yundao.bp.biz.entity.BizBatchHouse::getId))
+                    .stream()
+                    .map(com.yundao.bp.biz.entity.BizBatchHouse::getHouseId)
+                    .toList();
+        }
         java.util.List<com.yundao.bp.biz.dto.PublicityWinnerVO> out = new java.util.ArrayList<>();
+        int seq = 0;
         for (com.yundao.bp.biz.entity.BizLotteryResult r : results) {
             com.yundao.bp.person.entity.Person person = persons.get(r.getPersonId());
-            com.yundao.bp.asset.entity.AssetHouse house = houses.get(r.getHouseId());
+            Long houseId = r.getHouseId();
+            // 未写房号：按批次房源池顺序补一个（仅用于公示展示）
+            if (houseId == null && seq < poolHouses.size()) {
+                houseId = poolHouses.get(seq);
+            }
+            seq++;
+            com.yundao.bp.asset.entity.AssetHouse house = houseId == null
+                    ? null : winnerHouseMapper.selectById(houseId);
             String type = r.getResultType();
-            String typeLabel = "WIN".equals(type) ? "中签"
-                    : ("WAIT".equals(type) || "BACKUP".equals(type) ? "候补" : "未中签");
+            String typeLabel = "WON".equals(type) ? "中签"
+                    : ("WAITLIST".equals(type) ? "递补" : "未中签");
             out.add(new com.yundao.bp.biz.dto.PublicityWinnerVO(
                     r.getPersonId(),
-                    r.getHouseId(),
-                    person == null ? null : person.getRealName(),
+                    houseId,
+                    person == null ? null
+                            : (person.getPersonName() == null ? person.getRealName()
+                                    : person.getPersonName()),
                     person == null ? null : person.getIdCardMask(),
                     maskPhone(person == null ? null : person.getPhone()),
                     house == null ? null : house.getHouseName(),
-                    r.getLotterySeq(),
+                    r.getSelectSeq() == null ? r.getLotterySeq()
+                            : String.format("%02d", r.getSelectSeq()),
                     r.getSelectSeq(),
                     type,
                     typeLabel));

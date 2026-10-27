@@ -31,7 +31,8 @@
         </el-select>
       </FilterBar>
 
-      <el-table :data="batches" v-loading="loading" border size="small">
+      <el-table :data="batches" v-loading="loading" border size="small"
+                highlight-current-row @row-click="(row) => selectBatch(row)">
 
         <el-table-column prop="batchNo" label="批次号" width="170" />
         <el-table-column prop="batchName" label="名称" />
@@ -72,12 +73,20 @@
     </div>
 
     <div class="page-card">
-      <h3 style="margin:0 0 12px">配租单</h3>
+      <div class="toolbar" style="margin-bottom:12px">
+        <h3 style="margin:0">配租单</h3>
+        <span class="muted" v-if="currentBatch">
+          当前批次：{{ currentBatch.batchNo }} {{ currentBatch.batchName }}
+        </span>
+        <div class="spacer" />
+        <el-button v-if="currentBatch" @click="clearBatch">显示全部配租单</el-button>
+      </div>
       <el-table :data="allocations" v-loading="loading" border size="small">
         <el-table-column prop="allocationNo" label="配租单号" width="170" />
-        <el-table-column prop="personId" label="人员" width="110">
+        <el-table-column prop="personId" label="人员" width="150">
           <template #default="{ row }">{{ row.personName || row.personId }}</template>
         </el-table-column>
+        <el-table-column prop="phoneMask" label="手机号" width="130" />
         <el-table-column prop="houseId" label="房源" width="110">
           <template #default="{ row }">{{ row.houseIdName || row.houseId }}</template>
         </el-table-column>
@@ -99,9 +108,10 @@
         <el-table-column prop="waitingId" label="轮候单" width="140">
           <template #default="{ row }">{{ row.waitingId }}</template>
         </el-table-column>
-        <el-table-column prop="personId" label="人员" width="120">
+        <el-table-column prop="personId" label="人员" width="150">
           <template #default="{ row }">{{ row.personName || row.personId }}</template>
         </el-table-column>
+        <el-table-column prop="phoneMask" label="手机号" width="130" />
         <el-table-column prop="totalScore" label="总分" width="100" />
         <el-table-column prop="selectSeq" label="选房序号" width="90" />
         <el-table-column prop="resultType" label="结果" width="100">
@@ -238,6 +248,7 @@ import FilterBar from '@/components/FilterBar.vue'
 
 const loading = ref(false)
 const batches = ref([])
+const currentBatch = ref(null)
 const allocations = ref([])
 const results = ref([])
 const resultVisible = ref(false)
@@ -252,6 +263,25 @@ function resetQuery() {
   load()
 }
 
+/** 配租单：默认全部，选中批次后按批次过滤 */
+async function loadAllocations() {
+  const a = await allocationApi.allocations({
+    pageNum: 1, pageSize: 100,
+    batchId: currentBatch.value ? currentBatch.value.id : undefined
+  })
+  allocations.value = a.rows || []
+}
+
+function selectBatch(row) {
+  currentBatch.value = row
+  loadAllocations()
+}
+
+function clearBatch() {
+  currentBatch.value = null
+  loadAllocations()
+}
+
 async function load() {
   loading.value = true
   try {
@@ -261,8 +291,7 @@ async function load() {
       orgId: af.orgId || undefined
     })
     batches.value = b.rows || []
-    const a = await allocationApi.allocations({ pageNum: 1, pageSize: 50 })
-    allocations.value = a.rows || []
+    await loadAllocations()
   } finally {
     loading.value = false
   }
@@ -499,9 +528,10 @@ async function genAllocations(row) {
       '生成配租单', { type: 'warning' })
   } catch (e) { return }
   try {
-    const n = await req.post('/allocation/batches/' + row.id + '/generate-allocations')
-    ElMessage.success('已生成配租单 ' + (n || 0) + ' 张，可在下方「配租单」查看')
-    load()
+    const r = await req.post('/allocation/batches/' + row.id + '/generate-allocations')
+    ElMessage.success(r?.message || ('本次生成 ' + (r?.generated || 0) + ' 张配租单'))
+    currentBatch.value = row
+    await loadAllocations(); load()
   } catch (e) {
     ElMessage.error(e?.response?.data?.message || '生成失败')
   }

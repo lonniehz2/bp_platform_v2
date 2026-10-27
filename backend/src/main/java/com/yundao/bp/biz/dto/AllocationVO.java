@@ -28,7 +28,9 @@ public record AllocationVO(
         /** 派生：是否已超过锁定时间未签约 */
         Boolean lockOverdue,
         String giveUpReason,
-        LocalDateTime createTime
+        LocalDateTime createTime,
+        String personName,
+        String phoneMask
 ) {
     public static AllocationVO from(BizAllocation e) {
         if (e == null) {
@@ -49,6 +51,15 @@ public record AllocationVO(
         return new AllocationVO(e.getId(), e.getAllocationNo(), e.getBatchId(), e.getPersonId(),
                 e.getHouseId(), e.getSpaceId(), e.getAllocationType(), e.getAllocationDate(),
                 e.getPlanRentStart(), e.getPlanRentEnd(), e.getAllocationStatus(), st.label(),
-                e.getLockExpireTime(), remain, overdue, e.getGiveUpReason(), e.getCreateTime());
+                e.getLockExpireTime(), remain, overdue, e.getGiveUpReason(), e.getCreateTime(),
+                null, null);
+    }
+
+    /** 补充人员姓名与脱敏手机号 */
+    public AllocationVO withPerson(String name, String phone) {
+        return new AllocationVO(id, allocationNo, batchId, personId, houseId, spaceId,
+                allocationType, allocationDate, planRentStart, planRentEnd, allocationStatus,
+                allocationStatusLabel, lockExpireTime, lockRemainHours, lockOverdue,
+                giveUpReason, createTime, name, phone);
     }
 }

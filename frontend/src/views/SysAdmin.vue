@@ -123,12 +123,43 @@
             <template #default="{ row }">{{ row.valueTypeLabel || enumLabel('valueType', row.valueType) }}</template>
           </el-table-column>
           <el-table-column prop="description" label="说明" min-width="240" />
+          <el-table-column label="操作" width="90" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" data-testid="sys-config-edit"
+                         @click="openConfigEdit(row)">修改</el-button>
+            </template>
+          </el-table-column>
         </el-table>
         <div class="muted" style="margin-top:8px">
           政策参数（公示天数/禁申年限/过渡期/加价倍率）改这里即生效，无需改代码
         </div>
       </el-tab-pane>
     </el-tabs>
+
+    <!-- 修改系统参数 -->
+    <el-dialog v-model="configEditVisible" title="修改系统参数" width="560px">
+      <el-form :model="configForm" label-width="90px">
+        <el-form-item label="参数键">
+          <el-input v-model="configForm.configKey" disabled />
+        </el-form-item>
+        <el-form-item label="当前值">
+          <el-input v-model="configForm.oldValue" disabled />
+        </el-form-item>
+        <el-form-item label="新值" required>
+          <el-input v-model="configForm.value" data-testid="sys-config-value"
+                    placeholder="如 7" />
+        </el-form-item>
+        <el-form-item label="说明">
+          <el-input v-model="configForm.description" type="textarea" :rows="2" />
+        </el-form-item>
+      </el-form>
+      <el-alert type="warning" :closable="false" show-icon
+                title="修改后立即生效；公示天数这类政策参数会影响后续业务校验，请谨慎调整。" />
+      <template #footer>
+        <el-button @click="configEditVisible = false">取消</el-button>
+        <el-button type="primary" :loading="configSaving" @click="saveConfig">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -164,6 +195,34 @@ const dictTypes = ref([])
 const dictType = ref('HOUSE_TYPE')
 const dicts = ref([])
 const configs = ref([])
+const configEditVisible = ref(false)
+const configSaving = ref(false)
+const configForm = reactive({ configKey: '', oldValue: '', value: '', description: '' })
+
+function openConfigEdit(row) {
+  configForm.configKey = row.configKey
+  configForm.oldValue = row.configValue
+  configForm.value = row.configValue
+  configForm.description = row.description || ''
+  configEditVisible.value = true
+}
+
+async function saveConfig() {
+  if (!configForm.value) { ElMessage.warning('请填写新值'); return }
+  configSaving.value = true
+  try {
+    await sysApi.setConfig({
+      key: configForm.configKey,
+      value: String(configForm.value),
+      description: configForm.description || undefined
+    })
+    ElMessage.success('已保存，新值立即生效')
+    configEditVisible.value = false
+    loadConfigs()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '保存失败')
+  } finally { configSaving.value = false }
+}
 /** 系统参数分组筛选（后端 sysApi.configs(group) 支持） */
 const configGroup = ref('')
 function resetConfigQuery() {

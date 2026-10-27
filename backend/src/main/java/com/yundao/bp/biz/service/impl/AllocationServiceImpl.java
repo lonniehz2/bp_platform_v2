@@ -436,7 +436,7 @@ public class AllocationServiceImpl implements AllocationService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int generateAllocations(Long batchId) {
+    public java.util.Map<String, Object> generateAllocations(Long batchId) {
         BizBatch b = requireBatch(batchId);
         BatchStatus st = batchStatusOf(b);
         if (st != BatchStatus.LOTTERY_DONE && st != BatchStatus.ALLOCATED
@@ -486,15 +486,40 @@ public class AllocationServiceImpl implements AllocationService {
             house.setInPoolStatus("SELECTED");
             house.setUpdateTime(LocalDateTime.now());
             batchHouseMapper.updateById(house);
+            // 配租单生成即锁定房源，避免被其他批次重复配租
+            AssetHouse asset = houseMapper.selectById(house.getHouseId());
+            if (asset != null) {
+                asset.setHouseStatus("LOCKED");
+                asset.setUpdateTime(LocalDateTime.now());
+                houseMapper.updateById(asset);
+            }
             made++;
         }
         if (made > 0) {
             b.setUpdateTime(LocalDateTime.now());
             batchMapper.updateById(b);
         }
-        log.info("批次 {} 生成配租单 {} 张（中签 {} 人，可用房源 {} 套）",
-                b.getBatchNo(), made, wins.size(), pool.size());
-        return made;
+        Long existing = allocationMapper.selectCount(new LambdaQueryWrapper<BizAllocation>()
+                .eq(BizAllocation::getBatchId, batchId));
+        java.util.Map<String, Object> out = new java.util.LinkedHashMap<>();
+        out.put("generated", made);
+        out.put("existing", existing == null ? 0 : existing.intValue());
+        out.put("winners", wins.size());
+        out.put("availableHouses", pool.size());
+        String msg;
+        if (made > 0) {
+            msg = "本次生成 " + made + " 张配租单";
+        } else if (existing != null && existing > 0) {
+            msg = "该批次已生成 " + existing + " 张配租单，无需重复生成";
+        } else if (wins.isEmpty()) {
+            msg = "该批次没有中签结果，请先完成摇号";
+        } else {
+            msg = "没有可用房源（房源已全部选中或未加入批次）";
+        }
+        out.put("message", msg);
+        log.info("批次 {} 生成配租单 {}（已有 {}，中签 {}，可用房源 {}）",
+                b.getBatchNo(), made, out.get("existing"), wins.size(), pool.size());
+        return out;
     }
 
 
@@ -686,11 +711,37 @@ public class AllocationServiceImpl implements AllocationService {
 
     @Override
     public List<LotteryResultVO> listLotteryResults(Long batchId) {
-        return lotteryMapper.selectList(new LambdaQueryWrapper<BizLotteryResult>()
-                        .eq(BizLotteryResult::getBatchId, batchId)
-                        .orderByAsc(BizLotteryResult::getSelectSeq)
-                        .orderByAsc(BizLotteryResult::getId))
-                .stream().map(LotteryResultVO::from).toList();
+        List<LotteryResultVO> rows = lotteryMapper.selectList(
+                        new LambdaQueryWrapper<BizLotteryResult>()
+                                .eq(BizLotteryResult::getBatchId, batchId)
+                                .orderByAsc(BizLotteryResult::getSelectSeq)
+                                .orderByAsc(BizLotteryResult::getId))
+                .stream().map(LotteryResultVO::from)
+                .sorted((a, b) -> {
+                    boolean wa = "WON".equals(a.resultType());
+                    boolean wb = "WON".equals(b.resultType());
+                    if (wa != wb) {
+                        return wa ? -1 : 1;
+                    }
+                    Integer sa = a.selectSeq() == null ? Integer.MAX_VALUE : a.selectSeq();
+                    Integer sb = b.selectSeq() == null ? Integer.MAX_VALUE : b.selectSeq();
+                    return Integer.compare(sa, sb);
+                })
+                .toList();
+        java.util.Set<Long> pids = rows.stream().map(LotteryResultVO::personId)
+                .filter(java.util.Objects::nonNull).collect(java.util.stream.Collectors.toSet());
+        if (pids.isEmpty()) {
+            return rows;
+        }
+        java.util.Map<Long, Person> pm = new java.util.HashMap<>();
+        for (Person x : personMapper.selectBatchIds(pids)) {
+            pm.put(x.getId(), x);
+        }
+        return rows.stream().map(v -> {
+            Person x = pm.get(v.personId());
+            return v.withPerson(x == null ? null : x.getPersonName(),
+                    maskPhone(x == null ? null : x.getPhone()));
+        }).toList();
     }
 
     // ==================== 配租 ====================
@@ -819,6 +870,33 @@ public class AllocationServiceImpl implements AllocationService {
         }
     }
 
+    /** 人员姓名/手机号补全（配租单列表） */
+    private java.util.List<AllocationVO> withPersons(java.util.List<AllocationVO> rows) {
+        if (rows.isEmpty()) {
+            return rows;
+        }
+        java.util.Set<Long> pids = rows.stream().map(AllocationVO::personId)
+                .filter(java.util.Objects::nonNull).collect(java.util.stream.Collectors.toSet());
+        java.util.Map<Long, Person> pm = new java.util.HashMap<>();
+        if (!pids.isEmpty()) {
+            for (Person x : personMapper.selectBatchIds(pids)) {
+                pm.put(x.getId(), x);
+            }
+        }
+        return rows.stream().map(v -> {
+            Person x = pm.get(v.personId());
+            return v.withPerson(x == null ? null : x.getPersonName(),
+                    maskPhone(x == null ? null : x.getPhone()));
+        }).toList();
+    }
+
+    private static String maskPhone(String phone) {
+        if (phone == null || phone.length() < 7) {
+            return phone;
+        }
+        return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 4);
+    }
+
     public PageResult<AllocationVO> pageAllocations(long pageNum, long pageSize, Long personId,
                                                     Long batchId, String status) {
         LambdaQueryWrapper<BizAllocation> qw = new LambdaQueryWrapper<BizAllocation>()
@@ -828,7 +906,8 @@ public class AllocationServiceImpl implements AllocationService {
                 .orderByDesc(BizAllocation::getId);
         applyAllocationScope(qw);
         IPage<BizAllocation> page = allocationMapper.selectPage(new Page<>(pageNum, pageSize), qw);
-        List<AllocationVO> rows = page.getRecords().stream().map(AllocationVO::from).toList();
+        List<AllocationVO> rows = withPersons(
+                page.getRecords().stream().map(AllocationVO::from).toList());
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);
     }
 
