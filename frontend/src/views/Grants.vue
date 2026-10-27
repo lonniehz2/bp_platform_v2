@@ -15,8 +15,7 @@
         <el-tab-pane label="授权管理" name="grant">
           <div class="toolbar" style="margin-bottom:10px">
             <PersonPicker v-model="gq.personId" width="240px" testid="picker" />
-            <el-input v-model.number="gq.spaceId" placeholder="空间ID" clearable
-                      style="width:150px" />
+            <SpaceSelect v-model="gq.spaceId" width="240px" testid="spaceselect" />
             <el-select v-model="gq.grantStatus" placeholder="状态" clearable
                        style="width:140px">
               <el-option v-for="s in GRANT_STATUS" :key="s" :label="enumLabel('grantStatus', s)"
@@ -202,6 +201,8 @@ import { reactive, ref, onMounted } from 'vue'
 import DetailView from '@/components/DetailView.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { grantApi } from '@/api/modules'
+import PersonPicker from '@/components/PersonPicker.vue'
+import SpaceSelect from '@/components/SpaceSelect.vue'
 
 const tab = ref('grant')
 

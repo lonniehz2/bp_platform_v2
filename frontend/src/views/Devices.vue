@@ -7,8 +7,7 @@
         （{{ stats.onlineRate ?? 0 }}%）
       </el-tag>
       <div class="spacer" />
-      <el-input v-model="query.spaceId" placeholder="空间ID" clearable
-                style="width:210px" @keyup.enter="load" />
+      <SpaceSelect v-model="query.spaceId" width="210px" testid="spaceselect" />
       <el-select v-model="query.deviceType" placeholder="设备类型" clearable
                  style="width:150px" @change="load">
         <el-option v-for="t in devTypes" :key="t.code" :value="t.code"
@@ -138,6 +137,7 @@ function openDetail(row) {
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
 import req from '@/api/request'
+import SpaceSelect from '@/components/SpaceSelect.vue'
 import DetailView from '@/components/DetailView.vue'
 import { devApi } from '@/api/modules'
 
