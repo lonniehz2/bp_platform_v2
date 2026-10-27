@@ -27,6 +27,8 @@ public class RealDeviceCommandClient implements DeviceCommandClient {
     private static final String PATH_REBOOT = "/ymd/restful/device/reboot";
     private static final String PATH_SYNC_TIME = "/ymd/restful/device/syncTime";
     private static final String PATH_METER_SWITCH = "/ymd/restful/meter/switch";
+    /** 常开/常闭/恢复正常（参数 mode=OPEN/CLOSE/NORMAL） */
+    private static final String PATH_LOCK_MODE = "/ymd/restful/lock/mode";
 
     private final YmdClient client;
     private final ObjectMapper json = new ObjectMapper();
@@ -43,6 +45,9 @@ public class RealDeviceCommandClient implements DeviceCommandClient {
             case "DEVICE_REBOOT" -> PATH_REBOOT;
             case "DEVICE_SYNC_TIME" -> PATH_SYNC_TIME;
             case "METER_SWITCH" -> PATH_METER_SWITCH;
+            case "LOCK_ALWAYS_OPEN" -> PATH_LOCK_MODE;
+            case "LOCK_ALWAYS_CLOSE" -> PATH_LOCK_MODE;
+            case "LOCK_MODE_NORMAL" -> PATH_LOCK_MODE;
             default -> null;
         };
         if (path == null) {
@@ -58,6 +63,13 @@ public class RealDeviceCommandClient implements DeviceCommandClient {
         }
         if (req.paramsJson() != null && !req.paramsJson().isBlank()) {
             params.put("params", req.paramsJson());
+        }
+        // 常开/常闭：把指令类型翻译成 mode 参数（IoT 约定 mode=OPEN/CLOSE/NORMAL）
+        switch (req.commandType()) {
+            case "LOCK_ALWAYS_OPEN" -> params.put("mode", "OPEN");
+            case "LOCK_ALWAYS_CLOSE" -> params.put("mode", "CLOSE");
+            case "LOCK_MODE_NORMAL" -> params.put("mode", "NORMAL");
+            default -> { }
         }
         try {
             String raw = client.callRaw(path, params);

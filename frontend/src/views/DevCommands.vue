@@ -132,6 +132,9 @@ const TYPES = [
   { value: 'LOCK_OPEN', label: '远程开锁' },
   { value: 'DEVICE_REBOOT', label: '远程重启' },
   { value: 'DEVICE_SYNC_TIME', label: '远程校时' },
+  { value: 'LOCK_ALWAYS_OPEN', label: '常开（保持开锁）' },
+  { value: 'LOCK_ALWAYS_CLOSE', label: '常闭（保持锁定）' },
+  { value: 'LOCK_MODE_NORMAL', label: '恢复正常模式' },
   { value: 'METER_SWITCH', label: '电表拉合闸' }
 ]
 
