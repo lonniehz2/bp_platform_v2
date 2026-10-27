@@ -30,6 +30,7 @@
       <el-table-column prop="newHouseId" label="新入住" width="120">
         <template #default="{ row }">{{ row.newHouseIdName || row.newHouseId }}</template>
       </el-table-column>
+      <el-table-column prop="exchangeTimes" label="已换次数" width="100" />
       <el-table-column prop="exchangeStatus" label="状态" width="110">
         <template #default="{ row }">{{ row.exchangeStatusLabel || enumLabel('exchangeStatus', row.exchangeStatus) }}</template>
       </el-table-column>
