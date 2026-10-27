@@ -3,6 +3,8 @@
     <div class="page-card">
       <div class="toolbar">
         <h3 style="margin:0">账单与缴费</h3>
+        <OrgSelect v-model="q.orgId" width="200px" testid="bill-org-filter"
+                   placeholder="组织名称" @update:model-value="reload" />
         <el-select v-model="q.billStatus" placeholder="状态" clearable
                    style="width:140px" @change="reload">
           <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
@@ -320,6 +322,7 @@ import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { financeApi } from '@/api/modules'
 import req from '@/api/request'
+import OrgSelect from '@/components/OrgSelect.vue'
 import LineTrend from '@/components/LineTrend.vue'
 
 const statuses = ['UNPAID', 'PARTIAL', 'PAID', 'OVERDUE', 'WAIVED', 'CANCELLED']
@@ -392,7 +395,7 @@ async function doMeterBill(row) {
 }
 const rows = ref([])
 const total = ref(0)
-const q = reactive({ pageNum: 1, pageSize: 20, billStatus: '', billPeriod: '',
+const q = reactive({ orgId: '', pageNum: 1, pageSize: 20, billStatus: '', billPeriod: '',
   houseId: '' })
 
 /** 账单趋势：应收 / 实收 */
@@ -471,6 +474,7 @@ async function load() {
   try {
     const d = await financeApi.bills({
       pageNum: q.pageNum, pageSize: q.pageSize,
+      orgId: q.orgId || undefined,
       status: q.billStatus || undefined,
       billPeriod: q.billPeriod || undefined,
       houseId: q.houseId || undefined

@@ -17,7 +17,7 @@ public interface ContractService {
 
     ContractVO get(Long id);
 
-    PageResult<ContractVO> page(long pageNum, long pageSize, String contractType,
+    PageResult<ContractVO> page(long pageNum, long pageSize, Long orgId, String contractType,
                                 String status, Long houseId, Long lesseePersonId, String keyword);
 
     /** 提交签约：DRAFT → PENDING_SIGN。 */

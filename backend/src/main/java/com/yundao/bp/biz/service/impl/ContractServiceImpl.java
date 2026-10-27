@@ -197,13 +197,14 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
-    public PageResult<ContractVO> page(long pageNum, long pageSize, String contractType,
-                                       String status, Long houseId, Long lesseePersonId,
-                                       String keyword) {
+    public PageResult<ContractVO> page(long pageNum, long pageSize, Long orgId,
+                                       String contractType, String status, Long houseId,
+                                       Long lesseePersonId, String keyword) {
         LambdaQueryWrapper<BizContract> qw = new LambdaQueryWrapper<BizContract>()
                 .eq(contractType != null && !contractType.isBlank(),
                         BizContract::getContractType, contractType)
                 .eq(status != null && !status.isBlank(), BizContract::getContractStatus, status)
+                .eq(orgId != null, BizContract::getOrgId, orgId)
                 .eq(houseId != null, BizContract::getHouseId, houseId)
                 .eq(lesseePersonId != null, BizContract::getLesseePersonId, lesseePersonId)
                 .orderByDesc(BizContract::getId);

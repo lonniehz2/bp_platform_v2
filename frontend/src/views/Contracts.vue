@@ -5,6 +5,8 @@
         <h3 style="margin:0">合同管理</h3>
         <el-input v-model="q.keyword" placeholder="合同号 / 承租人" clearable
                   style="width:180px" @keyup.enter="reload" />
+        <OrgSelect v-model="q.orgId" width="200px" testid="contract-org-filter"
+                   placeholder="组织名称" @update:model-value="reload" />
         <el-select v-model="q.contractStatus" placeholder="状态" clearable
                    style="width:150px" @change="reload">
           <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
@@ -359,7 +361,7 @@ const loading = ref(false)
 const saving = ref(false)
 const rows = ref([])
 const total = ref(0)
-const q = reactive({ pageNum: 1, pageSize: 20, contractStatus: '', keyword: '' })
+const q = reactive({ orgId: '', pageNum: 1, pageSize: 20, contractStatus: '', keyword: '' })
 
 const createVisible = ref(false)
 const signVisible = ref(false)
@@ -413,6 +415,7 @@ async function load() {
       pageNum: q.pageNum, pageSize: q.pageSize,
       // 后端参数名为 status；contractStatus 会被忽略
       status: q.contractStatus || undefined,
+      orgId: q.orgId || undefined,
       keyword: q.keyword || undefined
     })
     rows.value = d.rows || []

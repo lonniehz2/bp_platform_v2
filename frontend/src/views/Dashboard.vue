@@ -26,7 +26,7 @@
       <div class="stat-card">
         <div class="head">
           <span class="ico blue"><el-icon><PieChart /></el-icon></span>
-          <span class="t">房源结构</span>
+          <el-tooltip content="按房源状态拆分：已出租 / 空置可租 / 待配租 / 其他，总数=房源台账条数" placement="top"><span class="t" style="cursor:help">房源结构 <span class="muted">ⓘ</span></span></el-tooltip>
           <span class="total">{{ n('HOUSE_TOTAL') }}</span>
         </div>
         <div ref="chartRef" class="chart" />
@@ -35,7 +35,7 @@
       <div class="stat-card">
         <div class="head">
           <span class="ico green"><el-icon><OfficeBuilding /></el-icon></span>
-          <span class="t">房源概况</span>
+          <el-tooltip content="已出租=状态 OCCUPIED；空置可租=VACANT；出租率=已出租÷房源总数" placement="top"><span class="t" style="cursor:help">房源概况 <span class="muted">ⓘ</span></span></el-tooltip>
           <span class="total">{{ n('HOUSE_TOTAL') }}</span>
         </div>
         <div class="rows">
@@ -49,7 +49,7 @@
       <div class="stat-card">
         <div class="head">
           <span class="ico orange"><el-icon><Money /></el-icon></span>
-          <span class="t">财务应收</span>
+          <el-tooltip content="欠费金额=应收−已缴的正数部分；收缴率=累计收款÷累计应收" placement="top"><span class="t" style="cursor:help">财务应收 <span class="muted">ⓘ</span></span></el-tooltip>
           <span class="total">{{ money('BILL_UNPAID_AMOUNT') }}</span>
         </div>
         <div class="rows">
@@ -83,7 +83,7 @@
       <div class="stat-card">
         <div class="head">
           <span class="ico blue"><el-icon><Tickets /></el-icon></span>
-          <span class="t">申请与审批</span>
+          <el-tooltip content="待受理=已提交未受理；审核中=受理后未终审；已通过=终审通过" placement="top"><span class="t" style="cursor:help">申请与审批 <span class="muted">ⓘ</span></span></el-tooltip>
           <span class="total">{{ appTotal }}</span>
         </div>
         <div class="rows">
@@ -98,7 +98,7 @@
       <div class="stat-card">
         <div class="head">
           <span class="ico orange"><el-icon><Wallet /></el-icon></span>
-          <span class="t">押金与退款</span>
+          <el-tooltip content="押金按收取/退还/待退三态统计，金额单位元" placement="top"><span class="t" style="cursor:help">押金与退款 <span class="muted">ⓘ</span></span></el-tooltip>
           <span class="total">{{ depositTotal }}</span>
         </div>
         <div class="rows">
@@ -113,7 +113,7 @@
       <div class="stat-card">
         <div class="head">
           <span class="ico green"><el-icon><Bell /></el-icon></span>
-          <span class="t">服务与待办</span>
+          <el-tooltip content="工单与告警按待处理/处理中/已处理统计，含今日新增" placement="top"><span class="t" style="cursor:help">服务与待办 <span class="muted">ⓘ</span></span></el-tooltip>
           <span class="total">{{ serviceTotal }}</span>
         </div>
         <div class="rows">

@@ -52,13 +52,14 @@ public class ContractController {
     @GetMapping
     public R<PageResult<ContractVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                           @RequestParam(defaultValue = "20") long pageSize,
+                                          @RequestParam(required = false) Long orgId,
                                           @RequestParam(required = false) String contractType,
                                           @RequestParam(required = false) String status,
                                           @RequestParam(required = false) Long houseId,
                                           @RequestParam(required = false) Long lesseePersonId,
                                           @RequestParam(required = false) String keyword) {
-        return R.ok(contractService.page(pageNum, pageSize, contractType, status, houseId,
-                lesseePersonId, keyword));
+        return R.ok(contractService.page(pageNum, pageSize, orgId, contractType, status,
+                houseId, lesseePersonId, keyword));
     }
 
     @com.yundao.bp.iam.security.RequirePerm("biz:contract:sign")
