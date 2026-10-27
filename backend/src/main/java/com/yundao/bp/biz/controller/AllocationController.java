@@ -119,6 +119,20 @@ public class AllocationController {
         return R.ok(service.addHouses(id, cmd.houseIds()));
     }
 
+    /** 批次房源明细（编号/名称/状态），用于界面展示。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
+    @GetMapping("/batches/{id}/houses/detail")
+    public R<java.util.List<java.util.Map<String, Object>>> listHouseDetails(@PathVariable Long id) {
+        return R.ok(service.listBatchHouseDetails(id));
+    }
+
+    /** 从批次移除房源。 */
+    @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
+    @PostMapping("/batches/{id}/houses/remove")
+    public R<Integer> removeHouses(@PathVariable Long id, @RequestBody HousesCmd cmd) {
+        return R.ok(service.removeHouses(id, cmd.houseIds()));
+    }
+
     @com.yundao.bp.iam.security.RequirePerm("biz:allocation:batch")
     @GetMapping("/batches/{id}/houses")
     public R<List<Long>> listHouses(@PathVariable Long id,

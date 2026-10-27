@@ -36,6 +36,15 @@ public class DisplayEnrichAdvice implements ResponseBodyAdvice<Object> {
         return true;
     }
 
+    /** 只有对象/Map 才需要补中文名；字符串/数字/布尔等标量列表直接返回 */
+    private static boolean isEnrichable(Object first) {
+        if (first == null) {
+            return false;
+        }
+        return !(first instanceof CharSequence) && !(first instanceof Number)
+                && !(first instanceof Boolean) && !(first instanceof Map<?, ?>);
+    }
+
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType,
                                   MediaType selectedContentType,
@@ -53,7 +62,7 @@ public class DisplayEnrichAdvice implements ResponseBodyAdvice<Object> {
             return new R<>(r.code(), r.message(), enriched, r.timestamp());
         }
         if (data instanceof List<?> list && !list.isEmpty()
-                && !(list.get(0) instanceof Map<?, ?>)) {
+                && isEnrichable(list.get(0))) {
             return new R<>(r.code(), r.message(), enricher.enrichRows(list), r.timestamp());
         }
         return body;

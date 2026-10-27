@@ -68,6 +68,12 @@ public interface AllocationService {
     /** 批次房源池。 */
     List<Long> listBatchHouses(Long batchId, String inPoolStatus);
 
+    /** 批次房源明细（含房源编号/名称/状态）。 */
+    java.util.List<java.util.Map<String, Object>> listBatchHouseDetails(Long batchId);
+
+    /** 从批次移除房源（仅未选中/可用的）。 */
+    int removeHouses(Long batchId, java.util.List<Long> houseIds);
+
     // ---------- 摇号 ----------
     /**
      * 执行摇号。

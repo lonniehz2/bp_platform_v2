@@ -497,6 +497,61 @@ public class AllocationServiceImpl implements AllocationService {
         return made;
     }
 
+
+    @Override
+    public java.util.List<java.util.Map<String, Object>> listBatchHouseDetails(Long batchId) {
+        java.util.List<BizBatchHouse> pool = batchHouseMapper.selectList(
+                new LambdaQueryWrapper<BizBatchHouse>()
+                        .eq(BizBatchHouse::getBatchId, batchId)
+                        .orderByAsc(BizBatchHouse::getId));
+        java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
+        for (BizBatchHouse bh : pool) {
+            AssetHouse h = houseMapper.selectById(bh.getHouseId());
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("houseId", bh.getHouseId());
+            m.put("inPoolStatus", bh.getInPoolStatus());
+            m.put("houseCode", h == null ? null : h.getHouseCode());
+            m.put("houseName", h == null ? null : h.getHouseName());
+            m.put("houseStatus", h == null ? null : h.getHouseStatus());
+            m.put("area", h == null ? null : h.getArea());
+            out.add(m);
+        }
+        return out;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int removeHouses(Long batchId, java.util.List<Long> houseIds) {
+        if (houseIds == null || houseIds.isEmpty()) {
+            return 0;
+        }
+        BizBatch b = requireBatch(batchId);
+        int removed = 0;
+        for (Long hid : houseIds) {
+            BizBatchHouse bh = batchHouseMapper.selectOne(
+                    new LambdaQueryWrapper<BizBatchHouse>()
+                            .eq(BizBatchHouse::getBatchId, batchId)
+                            .eq(BizBatchHouse::getHouseId, hid)
+                            .last("LIMIT 1"));
+            if (bh == null) {
+                continue;
+            }
+            if (!"AVAILABLE".equals(bh.getInPoolStatus())) {
+                throw BizException.stateConflict(
+                        "房源已参与摇号/配租，不能移除（状态：" + bh.getInPoolStatus() + "）");
+            }
+            batchHouseMapper.deleteById(bh.getId());
+            removed++;
+        }
+        Long cnt = batchHouseMapper.selectCount(new LambdaQueryWrapper<BizBatchHouse>()
+                .eq(BizBatchHouse::getBatchId, batchId));
+        b.setHouseCount(cnt == null ? 0 : cnt.intValue());
+        b.setUpdateTime(LocalDateTime.now());
+        batchMapper.updateById(b);
+        log.info("批次 {} 移除房源 {} 套，剩余 {}", b.getBatchNo(), removed, b.getHouseCount());
+        return removed;
+    }
+
     @Override
     public List<Long> listBatchHouses(Long batchId, String inPoolStatus) {
         return batchHouseMapper.selectList(new LambdaQueryWrapper<BizBatchHouse>()

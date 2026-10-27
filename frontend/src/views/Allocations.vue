@@ -32,11 +32,14 @@
       </FilterBar>
 
       <el-table :data="batches" v-loading="loading" border size="small">
-        <el-table-column prop="id" label="批次ID" width="140" />
-        <el-table-column prop="batchNo" label="批次号" width="160" />
+
+        <el-table-column prop="batchNo" label="批次号" width="170" />
         <el-table-column prop="batchName" label="名称" />
         <el-table-column label="组织" width="180" show-overflow-tooltip>
           <template #default="{ row }">{{ row.orgIdName || orgNameOf(row.orgId) }}</template>
+        </el-table-column>
+        <el-table-column label="保障类型" width="110">
+          <template #default="{ row }">{{ enumLabel('securityType', row.securityType) || row.securityType }}</template>
         </el-table-column>
         <el-table-column prop="batchStatus" label="状态" width="110">
           <template #default="{ row }">{{ row.batchStatusLabel || enumLabel('batchStatus', row.batchStatus) }}</template>
@@ -174,15 +177,44 @@
     </el-dialog>
 
     <!-- 批次加房源 -->
-    <el-dialog v-model="addHouseVisible" :title="`向批次「${addHouseBatch?.batchName || ''}」加入房源`"
-               width="560px">
-      <el-alert type="info" :closable="false" show-icon
-                title="输入房源 ID，多个用英文逗号分隔；房源需为「空置可租」状态" />
-      <el-input v-model="houseIdsText" type="textarea" :rows="4" style="margin-top:10px"
-                placeholder="1000000000000012161,1000000000000012159" />
+    <el-dialog v-model="addHouseVisible" title="管理批次房源" width="900px">
+      <div class="toolbar" style="margin-bottom:8px">
+        <span>批次：<b>{{ addHouseBatch?.batchNo }}</b> {{ addHouseBatch?.batchName }}</span>
+        <div class="spacer" />
+        <el-input v-model="houseKeyword" placeholder="房源编号/名称" clearable style="width:200px"
+                  @keyup.enter="loadCandidateHouses" />
+        <el-button type="primary" @click="loadCandidateHouses">搜索可添加房源</el-button>
+      </div>
+
+      <h4 style="margin:8px 0">可添加房源（{{ addHouseBatch?.orgIdName || '本组织' }} · 待分配）</h4>
+      <el-table :data="candidateHouses" v-loading="houseLoading" border size="small"
+                max-height="240" @selection-change="(rows) => selectedHouses = rows">
+        <el-table-column type="selection" width="45" />
+        <el-table-column prop="houseCode" label="房源编号" width="150" />
+        <el-table-column prop="houseName" label="房源名称" show-overflow-tooltip />
+        <el-table-column prop="area" label="面积(㎡)" width="100" />
+        <el-table-column label="状态" width="100">
+          <template #default="{ row }">{{ enumLabel('houseStatus', row.houseStatus) || row.houseStatus }}</template>
+        </el-table-column>
+      </el-table>
+
+      <h4 style="margin:14px 0 8px">已加入本批次（{{ batchHouses.length }} 套）</h4>
+      <el-table :data="batchHouses" border size="small" max-height="220">
+        <el-table-column prop="houseCode" label="房源编号" width="150" />
+        <el-table-column prop="houseName" label="房源名称" show-overflow-tooltip />
+        <el-table-column prop="inPoolStatus" label="池状态" width="110" />
+        <el-table-column label="操作" width="100">
+          <template #default="{ row }">
+            <el-button link type="danger" :disabled="row.inPoolStatus !== 'AVAILABLE'"
+                       @click="removeHouse(row)">移除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
       <template #footer>
-        <el-button @click="addHouseVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doAddHouses">加入</el-button>
+        <el-button @click="addHouseVisible = false">关闭</el-button>
+        <el-button type="primary" :loading="saving" :disabled="!selectedHouses.length"
+                   @click="doAddSelectedHouses">加入所选（{{ selectedHouses.length }}）</el-button>
       </template>
     </el-dialog>
 </template>
@@ -237,10 +269,9 @@ async function load() {
 }
 
 async function runLottery(row) {
-  const [waiting, houses] = await Promise.all([
-    waitingCountOf(row.securityType),
-    batchHouseCount(row.id)
-  ])
+  const houses = await batchHouseCount(row.id)
+  // 参与人数以批次为准（同组织同类型轮候池），没有再回退全局统计
+  const waiting = Number(row.applicantCount || 0) || await waitingCountOf(row.securityType)
   if (!waiting) {
     ElMessage.warning('当前轮候池中没有该保障类型的待配租人员，无法摇号')
     return
@@ -374,7 +405,69 @@ async function doCreateBatch() {
 function openAddHouses(row) {
   addHouseBatch.value = row
   houseIdsText.value = ''
+  houseKeyword.value = ''
+  selectedHouses.value = []
+  candidateHouses.value = []
   addHouseVisible.value = true
+  loadBatchHouses().then(loadCandidateHouses)
+}
+
+const houseKeyword = ref('')
+const candidateHouses = ref([])
+const batchHouses = ref([])
+const selectedHouses = ref([])
+
+/** 可选房源：本批次组织下的待分配房源 */
+async function loadCandidateHouses() {
+  if (!addHouseBatch.value) return
+  houseLoading.value = true
+  try {
+    const d = await req.get('/houses', {
+      params: { pageNum: 1, pageSize: 100, orgId: addHouseBatch.value.orgId,
+        houseStatus: 'PENDING_ALLOC', keyword: houseKeyword.value || undefined }
+    })
+    const inBatch = new Set(batchHouses.value.map((x) => String(x.houseId)))
+    candidateHouses.value = (d.rows || []).filter((h) => !inBatch.has(String(h.id)))
+  } catch (e) { candidateHouses.value = [] } finally { houseLoading.value = false }
+}
+
+/** 已加入本批次的房源明细 */
+async function loadBatchHouses() {
+  if (!addHouseBatch.value) return
+  try {
+    batchHouses.value = await req.get('/allocation/batches/' + addHouseBatch.value.id + '/houses/detail')
+  } catch (e) { batchHouses.value = [] }
+}
+
+/** 加入所选房源 */
+async function doAddSelectedHouses() {
+  const ids = selectedHouses.value.map((h) => String(h.id))
+  if (!ids.length) { ElMessage.warning('请先勾选房源'); return }
+  saving.value = true
+  try {
+    const n = await req.post('/allocation/batches/' + addHouseBatch.value.id + '/houses', { houseIds: ids })
+    ElMessage.success('已加入 ' + (n == null ? ids.length : n) + ' 套')
+    selectedHouses.value = []
+    await loadBatchHouses(); await loadCandidateHouses(); load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '加入失败')
+  } finally { saving.value = false }
+}
+
+/** 移除已加入房源 */
+async function removeHouse(row) {
+  try {
+    await ElMessageBox.confirm('确认从本批次移除房源 ' + (row.houseCode || row.houseId) + '？', '移除房源',
+      { type: 'warning' })
+  } catch (e) { return }
+  try {
+    const n = await req.post('/allocation/batches/' + addHouseBatch.value.id + '/houses/remove',
+      { houseIds: [String(row.houseId)] })
+    ElMessage.success('已移除 ' + (n || 0) + ' 套')
+    await loadBatchHouses(); await loadCandidateHouses(); load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '移除失败')
+  }
 }
 
 async function doAddHouses() {
@@ -425,8 +518,8 @@ async function waitingCountOf(securityType) {
 /** 批次房源套数 */
 async function batchHouseCount(batchId) {
   try {
-    const d = await req.get(`/allocation/batches/${batchId}/houses`, { params: { pageNum: 1, pageSize: 1 } })
-    return Number((d && d.total) || 0)
+    const d = await req.get('/allocation/batches/' + batchId + '/houses')
+    return Array.isArray(d) ? d.length : Number((d && d.total) || 0)
   } catch (e) { return 0 }
 }
 async function doTransition(row, target) {
