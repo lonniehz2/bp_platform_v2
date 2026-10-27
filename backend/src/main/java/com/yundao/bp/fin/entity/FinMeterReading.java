@@ -26,6 +26,10 @@ public class FinMeterReading {
     private LocalDate readDate;
     private BigDecimal reading;
     private BigDecimal prevReading;
+    /** 倍率：用量 =（本次−上次）× 倍率 */
+    private BigDecimal multiplier;
+    /** 单位：kWh / m3 */
+    private String unit;
     private BigDecimal usageAmount;
     private BigDecimal unitPrice;
     private BigDecimal amount;

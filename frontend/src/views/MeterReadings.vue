@@ -33,6 +33,8 @@
         <template #default="{ row }">{{ row.feeItemIdName || itemLabel(row.feeItemId) }}</template>
       </el-table-column>
       <el-table-column prop="reading" label="本次读数" width="110" />
+      <el-table-column prop="multiplier" label="倍率" width="80" />
+      <el-table-column prop="unit" label="单位" width="70" />
       <el-table-column prop="lastReading" label="上次读数" width="110">
         <template #default="{ row }">{{ lastOf(row) }}</template>
       </el-table-column>

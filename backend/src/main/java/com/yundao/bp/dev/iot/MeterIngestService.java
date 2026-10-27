@@ -49,6 +49,13 @@ public class MeterIngestService {
      */
     public boolean ingest(String meterNo, String deviceId, String meterType, BigDecimal reading,
                           LocalDateTime readTime, String source) {
+        return ingest(meterNo, deviceId, meterType, reading, null, null, readTime, source);
+    }
+
+    /** 带倍率/单位的入库；用量 =（本次 − 上次）× 倍率。 */
+    public boolean ingest(String meterNo, String deviceId, String meterType, BigDecimal reading,
+                          BigDecimal multiplier, String unit,
+                          LocalDateTime readTime, String source) {
         DevDevice d = findDevice(deviceId, meterNo);
         Long houseId = d == null ? null : findHouseId(d.getSpaceId());
         Long feeItemId = findFeeItemId(meterType);
@@ -70,10 +77,13 @@ public class MeterIngestService {
                 .eq(FinMeterReading::getFeeItemId, feeItemId)
                 .orderByDesc(FinMeterReading::getReadDate).last("LIMIT 1"));
         BigDecimal prevReading = prev == null ? BigDecimal.ZERO : prev.getReading();
-        BigDecimal usage = reading.subtract(prevReading);
+        BigDecimal m = multiplier == null || multiplier.compareTo(BigDecimal.ZERO) <= 0
+                ? BigDecimal.ONE : multiplier;
+        BigDecimal usage = reading.subtract(prevReading).multiply(m);
         if (usage.compareTo(BigDecimal.ZERO) < 0) {
             usage = BigDecimal.ZERO;
         }
+        usage = usage.setScale(2, RoundingMode.HALF_UP);
         BigDecimal price = BigDecimal.ZERO;
         FinFeeItem item = feeItemMapper.selectById(feeItemId);
         if (item != null && item.getUnitPrice() != null) {
@@ -89,6 +99,8 @@ public class MeterIngestService {
         e.setReadDate(readDate);
         e.setReading(reading);
         e.setPrevReading(prevReading);
+        e.setMultiplier(m);
+        e.setUnit(unit == null || unit.isBlank() ? "kWh" : unit);
         e.setUsageAmount(usage);
         e.setUnitPrice(price);
         e.setAmount(usage.multiply(price).setScale(2, RoundingMode.HALF_UP));

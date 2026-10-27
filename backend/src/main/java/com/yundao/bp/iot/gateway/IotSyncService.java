@@ -116,7 +116,7 @@ public class IotSyncService {
         int ok = 0;
         for (MeterPullClient.Reading r : readings) {
             if (meterIngest.ingest(r.meterNo(), r.deviceId(), r.meterType(), r.reading(),
-                    r.readTime(), "PULL")) {
+                    r.multiplier(), null, r.readTime(), "PULL")) {
                 ok++;
             }
         }

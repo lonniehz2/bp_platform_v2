@@ -316,6 +316,8 @@ public class IotCallbackService {
         for (JsonNode x : items) {
             meterIngest.ingest(text(x, "meterNo"), text(x, "deviceId"),
                     text(x, "meterType"), x.path("reading").decimalValue(),
+                    x.has("multiplier") ? x.path("multiplier").decimalValue() : null,
+                    text(x, "unit"),
                     parseTime(text(x, "readTime")),
                     text(x, "source") == null ? "PUSH" : text(x, "source"));
         }

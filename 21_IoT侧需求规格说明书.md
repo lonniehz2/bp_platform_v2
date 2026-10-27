@@ -139,6 +139,11 @@ POST /ymd/restful/lock/mode
 | `unit` | 否 | kWh / m³ / m³(气)，缺省 kWh |
 | `source` | 否 | `PUSH`（默认）/ `PULL` |
 
+### 平台已支持
+
+平台已落库 multiplier 与 unit，用量按「（本次−上次）×倍率」计算；
+IoT 只需在回调/拉取响应里带上这两个字段（缺省倍率 1、单位 kWh）。
+
 ### 需要 IoT 明确的点
 
 1. 倍率是否随读数上报（推荐上报，避免平台配置漂移）；
