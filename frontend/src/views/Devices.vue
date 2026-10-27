@@ -26,6 +26,7 @@
       <el-button type="warning" plain :loading="syncing" @click="syncDevices">
         同步设备
       </el-button>
+      <el-button plain :loading="statusSyncing" @click="syncStatus">同步状态</el-button>
       <el-button type="warning" plain data-testid="device-import"
                  @click="openImport">批量导入</el-button>
     </div>
@@ -299,6 +300,20 @@ function resetQuery() {
 
 
 /** 设备告警与事件 */
+const statusSyncing = ref(false)
+
+/** 拉取一批设备的在线/电量状态（IoT 批量状态接口） */
+async function syncStatus() {
+  statusSyncing.value = true
+  try {
+    const r = await req.post('/iot/devices/status-sync', null, { params: { limit: 200 } })
+    ElMessage.success('状态已同步：更新 ' + (r?.updated || 0) + ' 台（在线 ' + (r?.online || 0) + '）')
+    load(); loadFreshness()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '状态同步失败')
+  } finally { statusSyncing.value = false }
+}
+
 const fresh = ref(null)
 const freshVisible = ref(false)
 

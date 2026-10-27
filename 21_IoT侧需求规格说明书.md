@@ -25,6 +25,8 @@
 
 **优先级：P0（阻塞 TC-M1-01/02）**
 
+> 平台侧状态：客户端已实现（`bp.iot.token-mode=mock` 可跑通），只待 IoT 端点。
+
 ### 请求
 
 ```
@@ -62,6 +64,8 @@ POST /ymd/restful/token
 ## 2. IOT-DEVICE-STATUS-BATCH　批量设备状态
 
 **优先级：P1（阻塞 TC-M1-05）**
+
+> 平台侧状态：客户端与 `/iot/devices/status-sync` 已实现（mock 2/2 成功）。
 
 ### 请求
 

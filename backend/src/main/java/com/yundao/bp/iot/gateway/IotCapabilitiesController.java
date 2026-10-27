@@ -38,6 +38,8 @@ public class IotCapabilitiesController {
         modes.put("device", mode("bp.dev.device-mode"));
         modes.put("meter", mode("bp.dev.meter-mode"));
         modes.put("credential", mode("bp.credential.mode"));
+        modes.put("token", mode("bp.iot.token-mode"));
+        modes.put("status", mode("bp.iot.status-mode"));
         out.put("modes", modes);
 
         // 2) 平台凭证
@@ -67,9 +69,9 @@ public class IotCapabilitiesController {
         // 5) 仍需 IoT 提供的能力（未完成项）
         List<Map<String, Object>> pending = new ArrayList<>();
         pending.add(item("IOT-TOKEN", "取 Token / 续期接口",
-                "联调用例 TC-M1-01/02；平台已有 YmdTokenManager 可对接"));
+                "TC-M1-01/02；平台客户端已实现（bp.iot.token-mode=mock 可跑），待 IoT 提供端点"));
         pending.add(item("IOT-DEVICE-STATUS-BATCH", "批量设备状态查询",
-                "TC-M1-05；平台设备页目前按单表查询"));
+                "TC-M1-05；平台客户端与同步接口已实现（/iot/devices/status-sync），待 IoT 端点"));
         pending.add(item("IOT-LOCK-MODE", "/ymd/restful/lock/mode（mode=OPEN/CLOSE/NORMAL）",
                 "TC-M4-07；平台指令已支持，缺设备侧实现"));
         pending.add(item("IOT-METER-SPEC", "表计倍率/单位/上报周期字段口径",
