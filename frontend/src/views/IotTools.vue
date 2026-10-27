@@ -55,6 +55,39 @@
         </div>
       </el-tab-pane>
 
+      <el-tab-pane label="凭据同步" name="cred">
+        <div class="toolbar" style="margin-bottom:10px">
+          <el-select v-model="credQuery.status" placeholder="同步状态" clearable
+                     style="width:140px" @change="reloadCred">
+            <el-option label="成功" value="SUCCESS" />
+            <el-option label="失败" value="FAILED" />
+            <el-option label="待同步" value="PENDING" />
+          </el-select>
+          <el-button type="primary" @click="reloadCred">查询</el-button>
+          <span class="muted">共 {{ credTotal }} 条 ｜ 密码/卡/人脸/离线码下发记录</span>
+        </div>
+        <el-table :data="creds" border size="small">
+          <el-table-column prop="createTime" label="时间" width="170" />
+          <el-table-column prop="keyType" label="类型" width="130" />
+          <el-table-column prop="action" label="动作" width="100" />
+          <el-table-column prop="keyringId" label="钥匙ID" width="190" />
+          <el-table-column prop="personId" label="人员ID" width="190" />
+          <el-table-column label="状态" width="100">
+            <template #default="{ row }">
+              <el-tag size="small" :type="row.status === 'SUCCESS' ? 'success'
+                : (row.status === 'FAILED' ? 'danger' : 'info')">
+                {{ row.status === 'SUCCESS' ? '成功' : (row.status === 'FAILED' ? '失败' : '待同步') }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="errorMsg" label="错误" min-width="160" show-overflow-tooltip />
+        </el-table>
+        <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
+                       :total="credTotal" :page-size="credQuery.pageSize"
+                       :current-page="credQuery.pageNum"
+                       @current-change="(p) => { credQuery.pageNum = p; loadCred() }" />
+      </el-tab-pane>
+
       <el-tab-pane label="回调日志" name="logs">
         <div class="toolbar" style="margin-bottom:10px">
           <el-select v-model="query.msgType" placeholder="动作" clearable style="width:160px"
@@ -122,6 +155,10 @@ const signed = ref({})
 const sf = reactive({ action: 'event', appId: '', appSecret: '', timestamp: '', nonce: '',
   body: '{"eventId":"EV-TEST-001","deviceId":"LK00005771","identifier":"LOW_BATTERY","eventLevel":"WARN","eventTime":"2026-10-27 06:00:00","body":"{\\"battery\\":12}"}' })
 
+const creds = ref([])
+const credTotal = ref(0)
+const credQuery = reactive({ pageNum: 1, pageSize: 20, status: '' })
+
 const logs = ref([])
 const total = ref(0)
 const query = reactive({ pageNum: 1, pageSize: 20, msgType: '', processStatus: '' })
@@ -143,6 +180,21 @@ async function doSign() {
     ElMessage.error('签名计算失败')
   } finally { signing.value = false }
 }
+
+async function loadCred() {
+  try {
+    const d = await req.get('/iot/credential-sync', {
+      params: { pageNum: credQuery.pageNum, pageSize: credQuery.pageSize,
+        status: credQuery.status || undefined }
+    })
+    creds.value = d.rows || []
+    credTotal.value = Number(d.total || 0)
+  } catch (e) {
+    creds.value = []; credTotal.value = 0
+  }
+}
+
+function reloadCred() { credQuery.pageNum = 1; loadCred() }
 
 async function loadLogs() {
   try {
@@ -168,7 +220,7 @@ async function replay(row) {
   loadLogs()
 }
 
-onMounted(loadLogs)
+onMounted(() => { loadLogs(); loadCred() })
 </script>
 
 <style scoped>

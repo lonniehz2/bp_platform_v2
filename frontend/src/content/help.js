@@ -8,7 +8,7 @@
  *
  * 维护约定：改这里等于改内置帮助；对外发布的《用户操作说明》与本文保持同源。
  */
-export const HELP_VERSION = 'v2.4（2026-10-27）'
+export const HELP_VERSION = 'v2.5（2026-10-27）'
 
 export const HELP_SECTIONS = [
   {
@@ -297,7 +297,8 @@ export const HELP_SECTIONS = [
         type: 'ul', items: [
           '签名自测：填 appId/时间戳/nonce/body，自动算 canonical 与 signature，与 IoT 方结果对照。',
           '回调日志：按动作与处理状态筛选，查看验签结果、错误原因与原始报文。',
-          '重放：对历史回调按当前密钥重新签名后重放，用于复现问题或补数据。'
+          '重放：对历史回调按当前密钥重新签名后重放，用于复现问题或补数据。',
+          '凭据同步：钥匙包新增/冻结/解冻/删除时自动下发到 IoT，记录同步结果与失败原因。'
         ]
       },
       { type: 'h3', text: '7.8 设备同步、表计拉取与告警转单' },

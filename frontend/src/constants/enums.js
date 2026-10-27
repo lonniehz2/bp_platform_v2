@@ -368,6 +368,18 @@ const TYPE_OVERRIDE = {
   },
   generateType: { MANUAL: '手工出账', AUTO: '自动出账', METER: '抄表出账',
                   SHORT_RENT: '短租结算' },
+  keyStatus: {
+    ACTIVE: '正常',
+    FROZEN: '已冻结',
+    EXPIRED: '已过期',
+    DELETED: '已删除'
+  },
+  keySource: {
+    ADMIN: '管理端录入',
+    SELF: '自助申请',
+    IMPORT: '批量导入',
+    IOT: '设备侧生成'
+  },
   rulesetStatus: { DRAFT: '草稿', PUBLISHED: '已发布', DISABLED: '已停用' },
   ruleStatus: { ENABLED: '启用', DISABLED: '停用' },
   subsidyMode: { FIXED: '定额', RATIO: '按比例' },

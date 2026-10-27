@@ -73,10 +73,13 @@ public class KeyringServiceImpl implements KeyringService {
 
     private final GrantKeyringMapper mapper;
     private final SnowflakeIdGenerator idGen;
+    private final com.yundao.bp.iot.credential.CredentialSyncService credentialSync;
 
-    public KeyringServiceImpl(GrantKeyringMapper mapper, SnowflakeIdGenerator idGen) {
+    public KeyringServiceImpl(GrantKeyringMapper mapper, SnowflakeIdGenerator idGen,
+                              com.yundao.bp.iot.credential.CredentialSyncService credentialSync) {
         this.mapper = mapper;
         this.idGen = idGen;
+        this.credentialSync = credentialSync;
     }
 
     @Override
@@ -154,6 +157,8 @@ public class KeyringServiceImpl implements KeyringService {
         mapper.insert(e);
         log.info("钥匙入包：人员 {} 新增 {}（{}），分类 {}",
                 cmd.personId(), type.name(), type.label(), cls.label());
+        credentialSync.sync(e.getId(), e.getPersonId(), e.getKeyType(), e.getChannelType(),
+                e.getChannelValue(), "ADD");
         return KeyringVO.from(e);
     }
 
@@ -216,6 +221,9 @@ public class KeyringServiceImpl implements KeyringService {
         e.setUpdateTime(LocalDateTime.now());
         mapper.updateById(e);
         log.info("钥匙状态变更：{} → {}", id, status);
+        credentialSync.sync(e.getId(), e.getPersonId(), e.getKeyType(), e.getChannelType(),
+                e.getChannelValue(), "FROZEN".equals(status) ? "FREEZE"
+                        : ("ACTIVE".equals(status) ? "UNFREEZE" : "UPDATE"));
         return KeyringVO.from(e);
     }
 
@@ -228,6 +236,8 @@ public class KeyringServiceImpl implements KeyringService {
         e.setUpdateTime(LocalDateTime.now());
         mapper.updateById(e);
         log.info("钥匙已删除：{}", id);
+        credentialSync.sync(e.getId(), e.getPersonId(), e.getKeyType(), e.getChannelType(),
+                e.getChannelValue(), "REMOVE");
         return KeyringVO.from(e);
     }
 
