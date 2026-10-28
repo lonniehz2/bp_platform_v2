@@ -178,8 +178,8 @@
           <template #default="{ row }">
             <el-select v-if="row.devices && row.devices.length > 1" v-model="row.deviceId"
                        size="small" style="width:100%" @change="pickDevice(row)">
-              <el-option v-for="d in row.devices" :key="d.device_id"
-                         :label="d.device_id" :value="d.device_id" />
+              <el-option v-for="d in row.devices" :key="d.deviceId"
+                         :label="d.deviceId" :value="d.deviceId" />
             </el-select>
             <el-input v-else v-model="row.deviceId" size="small" />
           </template>
@@ -323,23 +323,24 @@ async function fillRowDevice(row) {
   try {
     const list = await req.get('/fin/meter-readings/devices',
       { params: { houseId: row.houseId, feeItemId: row.feeItemId } })
-    row.devices = list || []
-    if (row.devices.length === 1) {
-      row.deviceId = row.devices[0].device_id
-      row.deviceName = row.devices[0].device_name
-      row.deviceType = row.devices[0].device_type
-    } else if (row.devices.length > 1) {
-      row.deviceId = row.devices[0].device_id
-      row.deviceName = row.devices[0].device_name
-      row.deviceType = row.devices[0].device_type
+    row.devices = (list || []).map((d) => ({
+      deviceId: d.device_id,
+      deviceName: d.device_name,
+      deviceType: d.device_type,
+      spaceName: d.space_name
+    }))
+    if (row.devices.length) {
+      row.deviceId = row.devices[0].deviceId
+      row.deviceName = row.devices[0].deviceName
+      row.deviceType = row.devices[0].deviceType
     }
   } catch (e) { /* 忽略 */ }
 }
 
 function pickDevice(row) {
-  const d = (row.devices || []).find((x) => x.device_id === row.deviceId)
-  row.deviceName = d ? d.device_name : ''
-  row.deviceType = d ? d.device_type : ''
+  const d = (row.devices || []).find((x) => x.deviceId === row.deviceId)
+  row.deviceName = d ? d.deviceName : ''
+  row.deviceType = d ? d.deviceType : ''
 }
 
 watch(() => [rf.houseId, rf.feeItemId], () => loadDevices())
@@ -356,8 +357,15 @@ async function loadDevices() {
   try {
     const list = await req.get('/fin/meter-readings/devices',
       { params: { houseId: rf.houseId, feeItemId: rf.feeItemId } })
-    devices.value = list || []
-    deviceRows.value = (list || []).map((d) => ({ ...d, reading: '' }))
+    // 后端返回 snake_case，前端表格用 camelCase
+    const mapped = (list || []).map((d) => ({
+      deviceId: d.device_id,
+      deviceName: d.device_name,
+      deviceType: d.device_type,
+      spaceName: d.space_name
+    }))
+    devices.value = mapped
+    deviceRows.value = mapped.map((d) => ({ ...d, reading: '' }))
   } catch (e) { devices.value = [] }
 }
 
