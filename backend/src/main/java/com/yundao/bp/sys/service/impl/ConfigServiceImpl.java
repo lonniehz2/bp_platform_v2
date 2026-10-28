@@ -89,6 +89,14 @@ public class ConfigServiceImpl implements ConfigService {
                 .eq(SysConfig::getTenantId, tenant)
                 .eq(SysConfig::getConfigKey, key)
                 .last("LIMIT 1"));
+        if (c == null) {
+            // 兼容历史：先有全局默认行（tenant_id 为空），再改时就更新它，不再插一条
+            c = mapper.selectOne(new LambdaQueryWrapper<SysConfig>()
+                    .and(w -> w.isNull(SysConfig::getTenantId)
+                            .or().eq(SysConfig::getTenantId, ""))
+                    .eq(SysConfig::getConfigKey, key)
+                    .last("LIMIT 1"));
+        }
         LocalDateTime now = LocalDateTime.now();
         if (c == null) {
             c = new SysConfig();

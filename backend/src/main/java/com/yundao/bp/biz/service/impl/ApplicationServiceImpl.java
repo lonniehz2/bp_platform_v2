@@ -260,6 +260,17 @@ public class ApplicationServiceImpl implements ApplicationService {
             throw BizException.paramInvalid("意向最小面积不能大于最大面积");
         }
 
+        // 同一人员在同一组织只能有一张在途申请（草稿/受理/审核/补件）
+        Long active = appMapper.selectCount(new LambdaQueryWrapper<BizApplication>()
+                .eq(BizApplication::getPersonId, cmd.personId())
+                .eq(cmd.orgId() != null, BizApplication::getOrgId, cmd.orgId())
+                .in(BizApplication::getApplicationStatus,
+                        "DRAFT", "SUBMITTED", "ACCEPTED", "REVIEWING", "SUPPLEMENT"));
+        if (active != null && active > 0) {
+            throw BizException.stateConflict(
+                    "该人员在本组织已有在途申请，请先在「申请受理」中处理，或撤回后再新建");
+        }
+
         long id = idGen.nextId();
         LocalDateTime now = LocalDateTime.now();
         BizApplication e = new BizApplication();

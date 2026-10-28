@@ -49,6 +49,8 @@
                        @click="offlinePass(row)">线下通过</el-button>
             <el-button v-if="canReview(row)" link type="primary"
                        @click="openReview(row)">审核</el-button>
+            <el-button v-if="row.applicationStatus === 'SUPPLEMENT'" link type="warning"
+                       data-testid="row-supplement" @click="supplement(row)">补件完成</el-button>
             <el-button link @click="openRecords(row)">轨迹</el-button>
           </template>
         </el-table-column>
@@ -63,8 +65,8 @@
     <!-- 新建申请 -->
     <el-dialog v-model="createVisible" title="新建申请" width="560px">
       <el-form :model="form" label-width="110px">
-        <el-form-item label="受理组织ID">
-          <el-input v-model="form.orgId" />
+        <el-form-item label="受理组织">
+          <OrgSelect v-model="form.orgId" width="100%" testid="app-org" />
         </el-form-item>
         <el-form-item label="申请人ID">
           <PersonPicker v-model="form.personId" width="240px" testid="person-picker" />
@@ -179,6 +181,7 @@ import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
 import DetailView from '@/components/DetailView.vue'
 import PersonPicker from '@/components/PersonPicker.vue'
+import OrgSelect from '@/components/OrgSelect.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 import { applicationApi } from '@/api/modules'
@@ -315,6 +318,19 @@ async function doReview() {
     ElMessage.error(e?.response?.data?.message || '审核提交失败')
   } finally {
     saving.value = false
+  }
+}
+
+/** 补件完成：把申请从「需补件」推回「审核中」 */
+async function supplement(row) {
+  const { value } = await ElMessageBox.prompt(
+    '确认材料已补齐？可填写补件说明（可空）', '补件完成', { inputValue: '' })
+  try {
+    await applicationApi.resubmit(row.id, { remark: value || undefined })
+    ElMessage.success('补件已提交，申请回到审核中')
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '补件提交失败')
   }
 }
 

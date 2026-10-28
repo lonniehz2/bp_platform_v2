@@ -114,6 +114,7 @@ function resetQuery() {
 /** 中签名单：按公示 ID 缓存 */
 const winnersMap = reactive({})
 function winnersOf(publicityId) {
+  if (!publicityId) return []
   if (!(publicityId in winnersMap)) {
     winnersMap[publicityId] = []
     req.get(`/publicities/${publicityId}/winners`).then((list) => {

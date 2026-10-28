@@ -111,11 +111,32 @@ public class AllocationServiceImpl implements AllocationService {
     @Transactional(rollbackFor = Exception.class)
     public WaitingVO enterQueue(WaitingEnterCmd cmd) {
         String tenantId = TenantContext.tenantId();
-        // 同一申请单不可重复入轮候
-        Long dup = waitingMapper.selectCount(new LambdaQueryWrapper<BizWaitingQueue>()
-                .eq(BizWaitingQueue::getApplicationId, cmd.applicationId()));
-        if (dup != null && dup > 0) {
-            throw BizException.stateConflict("该申请单已在轮候库中");
+        // 同一申请单重复提交：视为「调整附加分」，更新原记录而不是报错
+        if (cmd.applicationId() != null) {
+            BizWaitingQueue exist = waitingMapper.selectOne(
+                    new LambdaQueryWrapper<BizWaitingQueue>()
+                            .eq(BizWaitingQueue::getApplicationId, cmd.applicationId())
+                            .last("LIMIT 1"));
+            if (exist != null) {
+                if (!QueueStatus.WAITING.name().equals(exist.getQueueStatus())
+                        && !QueueStatus.WON.name().equals(exist.getQueueStatus())) {
+                    throw BizException.stateConflict(
+                            "该申请单当前状态为「" + exist.getQueueStatus() + "」，不能调整");
+                }
+                BigDecimal p2 = cmd.priorityScore() == null
+                        ? exist.getPriorityScore() : cmd.priorityScore();
+                exist.setPriorityScore(p2.setScale(2, RoundingMode.HALF_UP));
+                exist.setTotalScore(p2.setScale(2, RoundingMode.HALF_UP)
+                        .add(BigDecimal.valueOf(exist.getWaitDays() == null ? 0 : exist.getWaitDays())
+                                .multiply(new BigDecimal("0.1"))));
+                if (cmd.validUntil() != null) {
+                    exist.setValidUntil(cmd.validUntil());
+                }
+                exist.setUpdateTime(LocalDateTime.now());
+                waitingMapper.updateById(exist);
+                recalcRank(exist.getSecurityType(), exist.getOrgId());
+                return WaitingVO.from(exist);
+            }
         }
 
         long id = idGen.nextId();
@@ -335,7 +356,25 @@ public class AllocationServiceImpl implements AllocationService {
 
     @Override
     public BatchVO getBatch(Long id) {
-        return BatchVO.from(requireBatch(id));
+        return withLiveCount(requireBatch(id));
+    }
+
+    /** 参与人数取「同组织 + 同保障类型 + 轮候中」的实时人数，避免入队后显示不更新。 */
+    private BatchVO withLiveCount(BizBatch b) {
+        BatchVO vo = BatchVO.from(b);
+        if (vo == null) {
+            return null;
+        }
+        Long n = waitingMapper.selectCount(new LambdaQueryWrapper<BizWaitingQueue>()
+                .eq(BizWaitingQueue::getQueueStatus, QueueStatus.WAITING.name())
+                .eq(b.getSecurityType() != null, BizWaitingQueue::getSecurityType, b.getSecurityType())
+                .eq(b.getOrgId() != null, BizWaitingQueue::getOrgId, b.getOrgId()));
+        int cnt = n == null ? 0 : n.intValue();
+        return new BatchVO(vo.id(), vo.batchNo(), vo.batchName(), vo.orgId(), vo.securityType(),
+                vo.batchType(), vo.houseCount(), cnt, vo.signupStart(), vo.signupEnd(),
+                vo.lotteryTime(), vo.selectStart(), vo.selectEnd(), vo.lotterySeed(),
+                vo.notaryInfo(), vo.batchStatus(), vo.batchStatusLabel(), vo.remark(),
+                vo.createTime());
     }
 
     @Override
@@ -346,7 +385,7 @@ public class AllocationServiceImpl implements AllocationService {
                 .eq(status != null && !status.isBlank(), BizBatch::getBatchStatus, status)
                 .orderByDesc(BizBatch::getId);
         IPage<BizBatch> page = batchMapper.selectPage(new Page<>(pageNum, pageSize), qw);
-        List<BatchVO> rows = page.getRecords().stream().map(BatchVO::from).toList();
+        List<BatchVO> rows = page.getRecords().stream().map(this::withLiveCount).toList();
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);
     }
 
@@ -370,6 +409,23 @@ public class AllocationServiceImpl implements AllocationService {
                     .eq(BizBatchHouse::getHouseId, hid));
             if (dup != null && dup > 0) {
                 continue;
+            }
+            // 同一房源不能同时在另一个未结束批次里
+            List<BizBatchHouse> others = batchHouseMapper.selectList(
+                    new LambdaQueryWrapper<BizBatchHouse>()
+                            .eq(BizBatchHouse::getHouseId, hid)
+                            .ne(BizBatchHouse::getBatchId, batchId));
+            for (BizBatchHouse oh : others) {
+                BizBatch ob = batchMapper.selectById(oh.getBatchId());
+                if (ob == null) {
+                    continue;
+                }
+                BatchStatus obs = batchStatusOf(ob);
+                if (!obs.isTerminal()) {
+                    throw BizException.stateConflict("房源「" + (h.getHouseName() == null
+                            ? h.getHouseCode() : h.getHouseName())
+                            + "」已在批次 " + ob.getBatchNo() + "（" + obs.label() + "）中，不能重复入池");
+                }
             }
             LocalDateTime now = LocalDateTime.now();
             BizBatchHouse bh = new BizBatchHouse();
@@ -686,6 +742,21 @@ public class AllocationServiceImpl implements AllocationService {
             r.setUpdateTime(now);
             lotteryMapper.insert(r);
             out.add(LotteryResultVO.from(r));
+        }
+
+        // 中签人员移出「轮候中」，状态置「已中签」
+        for (BizLotteryResult r : lotteryMapper.selectList(
+                new LambdaQueryWrapper<BizLotteryResult>()
+                        .eq(BizLotteryResult::getBatchId, batchId)
+                        .eq(BizLotteryResult::getResultType, LotteryResultType.WON.name()))) {
+            if (r.getWaitingId() != null) {
+                BizWaitingQueue wq = waitingMapper.selectById(r.getWaitingId());
+                if (wq != null) {
+                    wq.setQueueStatus(QueueStatus.WON.name());
+                    wq.setUpdateTime(now);
+                    waitingMapper.updateById(wq);
+                }
+            }
         }
 
         // 落库种子与公证信息
