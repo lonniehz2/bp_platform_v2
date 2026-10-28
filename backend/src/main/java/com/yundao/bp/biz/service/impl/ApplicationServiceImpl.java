@@ -244,6 +244,18 @@ public class ApplicationServiceImpl implements ApplicationService {
             creditService.checkApplyBan(cmd.personId());
         }
 
+        // 人员状态：黑名单 / 注销 直接拦下，提示可读
+        com.yundao.bp.person.entity.Person applicant = personMapper.selectById(cmd.personId());
+        if (applicant != null) {
+            String ps = applicant.getPersonStatus();
+            if ("BLACKLIST".equals(ps)) {
+                throw BizException.stateConflict("该人员为黑名单人员（限制申请期），不能新建申请");
+            }
+            if ("CANCELLED".equals(ps) || "CANCELED".equals(ps) || "LOGOUT".equals(ps)) {
+                throw BizException.stateConflict("该人员已注销，不能新建申请");
+            }
+        }
+
         // ⭐ 实名认证校验（决策 D32）：未通过实名认证不得申请
         // 同样前置，理由同信用校验：不让申请人白填材料
         checkVerify(cmd.personId());

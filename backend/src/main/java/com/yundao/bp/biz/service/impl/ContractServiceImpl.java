@@ -145,6 +145,16 @@ public class ContractServiceImpl implements ContractService {
         }
         int months = monthCount(cmd.leaseStart(), cmd.leaseEnd());
 
+        Long activeContracts = mapper.selectCount(
+                new LambdaQueryWrapper<BizContract>()
+                        .eq(BizContract::getLesseePersonId, cmd.lesseePersonId())
+                        .eq(BizContract::getHouseId, cmd.houseId())
+                        .in(BizContract::getContractStatus,
+                                "SIGNING", "EFFECTIVE", "RENEWING"));
+        if (activeContracts != null && activeContracts > 0) {
+            throw BizException.stateConflict("该承租人对该房源已有在签/在租合同，不能重复签约");
+        }
+
         long id = idGen.nextId();
         LocalDateTime now = LocalDateTime.now();
         BizContract e = new BizContract();
@@ -309,7 +319,6 @@ public class ContractServiceImpl implements ContractService {
             throw BizException.paramInvalid("新止租日必须晚于原止租日");
         }
         transition(e, ContractStatus.RENEWING);
-        e.setLeaseStart(e.getLeaseEnd());
         e.setLeaseEnd(newLeaseEnd);
         if (newMonthlyRent != null) {
             e.setMonthlyRent(money(newMonthlyRent));

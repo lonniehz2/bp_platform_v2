@@ -110,6 +110,12 @@ public class AllocationServiceImpl implements AllocationService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.person.mapper.PersonGuaranteeProfileMapper guaranteeProfileMapper;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.biz.mapper.BizPublicityMapper publicityMapper;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.sys.service.ConfigService configService;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public WaitingVO enterQueue(WaitingEnterCmd cmd) {
@@ -122,6 +128,16 @@ public class AllocationServiceImpl implements AllocationService {
                                     .last("LIMIT 1"));
             if (gp != null && "EXITED".equals(gp.getProfileStatus())) {
                 throw BizException.stateConflict("该人员已退出保障，不能进入轮候队列");
+            }
+            com.yundao.bp.person.entity.Person person = personMapper.selectById(cmd.personId());
+            if (person != null) {
+                String ps = person.getPersonStatus();
+                if ("BLACKLIST".equals(ps)) {
+                    throw BizException.stateConflict("该人员为黑名单人员（限制申请期），不能进入轮候队列");
+                }
+                if ("CANCELLED".equals(ps) || "CANCELED".equals(ps) || "LOGOUT".equals(ps)) {
+                    throw BizException.stateConflict("该人员已注销，不能进入轮候队列");
+                }
             }
         }
         String tenantId = TenantContext.tenantId();
@@ -379,11 +395,22 @@ public class AllocationServiceImpl implements AllocationService {
         if (vo == null) {
             return null;
         }
-        Long n = waitingMapper.selectCount(new LambdaQueryWrapper<BizWaitingQueue>()
-                .eq(BizWaitingQueue::getQueueStatus, QueueStatus.WAITING.name())
-                .eq(b.getSecurityType() != null, BizWaitingQueue::getSecurityType, b.getSecurityType())
-                .eq(b.getOrgId() != null, BizWaitingQueue::getOrgId, b.getOrgId()));
-        int cnt = n == null ? 0 : n.intValue();
+        int cnt;
+        BatchStatus bs = batchStatusOf(b);
+        if (bs == BatchStatus.LOTTERY_DONE || bs == BatchStatus.SELECTING
+                || bs == BatchStatus.ALLOCATED || bs == BatchStatus.CLOSED) {
+            // 已摇号：参与人数 = 中签 + 未中签（含递补），来自本次摇号结果
+            Long n = lotteryMapper.selectCount(new LambdaQueryWrapper<BizLotteryResult>()
+                    .eq(BizLotteryResult::getBatchId, b.getId()));
+            cnt = n == null ? 0 : n.intValue();
+        } else {
+            Long n = waitingMapper.selectCount(new LambdaQueryWrapper<BizWaitingQueue>()
+                    .eq(BizWaitingQueue::getQueueStatus, QueueStatus.WAITING.name())
+                    .eq(b.getSecurityType() != null, BizWaitingQueue::getSecurityType,
+                            b.getSecurityType())
+                    .eq(b.getOrgId() != null, BizWaitingQueue::getOrgId, b.getOrgId()));
+            cnt = n == null ? 0 : n.intValue();
+        }
         return new BatchVO(vo.id(), vo.batchNo(), vo.batchName(), vo.orgId(), vo.securityType(),
                 vo.batchType(), vo.houseCount(), cnt, vo.signupStart(), vo.signupEnd(),
                 vo.lotteryTime(), vo.selectStart(), vo.selectEnd(), vo.lotterySeed(),
@@ -791,7 +818,76 @@ public class AllocationServiceImpl implements AllocationService {
 
         out.sort(Comparator.comparing(LotteryResultVO::selectSeq,
                 Comparator.nullsLast(Comparator.naturalOrder())));
+        try {
+            autoCreatePublicity(b);
+        } catch (Exception e) {
+            log.warn("摇号后自动生成公示失败（批次 {}）：{}", b.getBatchNo(), e.getMessage());
+        }
         return out;
+    }
+
+    /**
+     * 摇号完成自动生成配租公示（草稿），公示期默认满足系统参数 minDays。
+     *
+     * <p>已存在同批次公示则不重复生成。
+     */
+    private void autoCreatePublicity(BizBatch b) {
+        // race:ignore 公示重复生成可接受（唯一影响是多一条草稿），且已有存在性检查兜底
+        if (publicityMapper == null) {
+            return;
+        }
+        Long exists = publicityMapper.selectCount(
+                new LambdaQueryWrapper<com.yundao.bp.biz.entity.BizPublicity>()
+                        .eq(com.yundao.bp.biz.entity.BizPublicity::getBatchId, b.getId())
+                        .eq(com.yundao.bp.biz.entity.BizPublicity::getPublicityType, "ALLOCATION"));
+        if (exists != null && exists > 0) {
+            return;
+        }
+        int minDays = 7;
+        if (configService != null) {
+            minDays = configService.getInt("biz.publicity.allocation.minDays", 7);
+        }
+        java.time.LocalDate start = java.time.LocalDate.now();
+        java.time.LocalDate end = start.plusDays(Math.max(1, minDays) - 1);
+        long id = idGen.nextId();
+        com.yundao.bp.biz.entity.BizPublicity pb = new com.yundao.bp.biz.entity.BizPublicity();
+        pb.setId(id);
+        pb.setTenantId(TenantContext.tenantId());
+        pb.setPublicityNo("PB" + id);
+        pb.setPublicityType("ALLOCATION");
+        pb.setOrgId(b.getOrgId());
+        pb.setBatchId(b.getId());
+        pb.setTitle(b.getBatchName() + "配租中签公示");
+        pb.setContent("批次 " + b.getBatchNo() + " 摇号完成，中签名单见公示明细。");
+        pb.setStartDate(start);
+        pb.setEndDate(end);
+        pb.setPublicityStatus("DRAFT");
+        pb.setCreateTime(LocalDateTime.now());
+        pb.setUpdateTime(LocalDateTime.now());
+        publicityMapper.insert(pb);
+        log.info("摇号后已自动生成公示 {}（{}~{}）", pb.getPublicityNo(), start, end);
+    }
+
+    /** 结果页补「附加分/轮候天数/总分」，来源是该次摇号对应的轮候记录。 */
+    private LotteryResultVO withScores(LotteryResultVO r) {
+        if (r == null) {
+            return null;
+        }
+        BigDecimal priority = BigDecimal.ZERO;
+        int waitDays = 0;
+        if (r.waitingId() != null) {
+            BizWaitingQueue w = waitingMapper.selectById(r.waitingId());
+            if (w != null) {
+                priority = w.getPriorityScore() == null ? BigDecimal.ZERO : w.getPriorityScore();
+                waitDays = w.getWaitDays() == null ? 0 : w.getWaitDays();
+            }
+        }
+        BigDecimal total = priority.add(BigDecimal.valueOf(waitDays)
+                .multiply(new BigDecimal("0.1"))).setScale(2, java.math.RoundingMode.HALF_UP);
+        return new LotteryResultVO(r.id(), r.batchId(), r.personId(), r.applicationId(),
+                r.waitingId(), r.resultType(), r.resultTypeLabel(), r.lotterySeq(),
+                r.selectSeq(), r.houseId(), r.spaceId(), r.selectTime(), r.resultStatus(),
+                r.giveUpReason(), r.personName(), r.phoneMask(), priority, waitDays, total);
     }
 
     @Override
@@ -801,7 +897,7 @@ public class AllocationServiceImpl implements AllocationService {
                                 .eq(BizLotteryResult::getBatchId, batchId)
                                 .orderByAsc(BizLotteryResult::getSelectSeq)
                                 .orderByAsc(BizLotteryResult::getId))
-                .stream().map(LotteryResultVO::from)
+                .stream().map(LotteryResultVO::from).map(this::withScores)
                 .sorted((a, b) -> {
                     boolean wa = "WON".equals(a.resultType());
                     boolean wb = "WON".equals(b.resultType());

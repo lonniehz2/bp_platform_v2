@@ -70,6 +70,9 @@ public class PublicityServiceImpl implements PublicityService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.biz.mapper.BizBatchHouseMapper rHouseMapper;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
 
     /** 数据范围（ALL/ORG_SUB/ORG/SELF） */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -365,7 +368,31 @@ public class PublicityServiceImpl implements PublicityService {
                     ? null : winnerHouseMapper.selectById(houseId);
             String type = r.getResultType();
             String typeLabel = "WON".equals(type) ? "中签"
-                    : ("WAITLIST".equals(type) ? "递补" : "未中签");
+                    : ("WAITLIST".equals(type) ? "未中签" : "未中签");
+            String orgName = null;
+            String allocStatus = null;
+            if (jdbc != null) {
+                try {
+                    if (house != null && house.getOrgId() != null) {
+                        java.util.List<String> names = jdbc.queryForList(
+                                "select org_name from bp_iam_org where id = ?",
+                                String.class, house.getOrgId());
+                        orgName = names.isEmpty() ? null : names.get(0);
+                    }
+                    if (r.getPersonId() != null && houseId != null) {
+                        java.util.List<String> st = jdbc.queryForList(
+                                "select allocation_status from bp_biz_allocation "
+                                        + "where person_id = ? and house_id = ? "
+                                        + "order by id desc limit 1",
+                                String.class, r.getPersonId(), houseId);
+                        allocStatus = st.isEmpty() ? null : st.get(0);
+                    }
+                } catch (Exception ignore) {
+                    // 展示字段，失败不影响公示
+                }
+            }
+            String allocLabel = "SIGNED".equals(allocStatus) ? "已签约"
+                    : ("PENDING_SIGN".equals(allocStatus) ? "待签约" : null);
             out.add(new com.yundao.bp.biz.dto.PublicityWinnerVO(
                     r.getPersonId(),
                     houseId,
@@ -379,7 +406,10 @@ public class PublicityServiceImpl implements PublicityService {
                             : String.format("%02d", r.getSelectSeq()),
                     r.getSelectSeq(),
                     type,
-                    typeLabel));
+                    typeLabel,
+                    orgName,
+                    allocStatus,
+                    allocLabel));
         }
         return out;
     }

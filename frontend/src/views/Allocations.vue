@@ -94,8 +94,9 @@
         <el-table-column prop="lockRemainHours" label="锁定剩余(小时)" width="130" />
         <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
-            <el-button link type="success" :disabled="!!row.lockOverdue"
-                       @click="sign(row)">签约</el-button>
+            <el-tag v-if="row.allocationStatus === 'SIGNED'" size="small" type="success">已签约</el-tag>
+            <el-button v-else link type="success" :disabled="!!row.lockOverdue"
+                       @click="sign(row)">去签约</el-button>
           </template>
         </el-table-column>
       </el-table>

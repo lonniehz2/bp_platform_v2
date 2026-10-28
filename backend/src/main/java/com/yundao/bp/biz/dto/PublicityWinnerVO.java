@@ -21,6 +21,11 @@ public record PublicityWinnerVO(
         String lotterySeq,
         Integer selectSeq,
         String resultType,
-        String resultTypeLabel
+        String resultTypeLabel,
+        /** 组织名称（公示列表/中签房源前展示） */
+        String orgName,
+        /** 配租单状态：PENDING_SIGN 待签约 / SIGNED 已签约 / 空 无配租单 */
+        String allocationStatus,
+        String allocationStatusLabel
 ) {
 }

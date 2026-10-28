@@ -27,11 +27,15 @@
             <el-table-column prop="personName" label="姓名" width="110" />
             <el-table-column prop="idCardMask" label="身份证（脱敏）" width="190" />
             <el-table-column prop="phoneMask" label="手机（脱敏）" width="140" />
+            <el-table-column prop="orgName" label="组织" width="150" />
             <el-table-column prop="houseName" label="中签房源" min-width="170" />
             <el-table-column prop="selectSeq" label="选房序号" width="100" />
             <el-table-column label="操作" width="110" fixed="right">
               <template #default="{ row: w }">
-                <el-button link type="primary" @click="goSignFromWinner(w)"
+                <el-tag v-if="w.allocationStatus === 'SIGNED'" size="small" type="success">
+                  已签约
+                </el-tag>
+                <el-button v-else link type="primary" @click="goSignFromWinner(w)"
                            data-testid="winner-sign">去签约</el-button>
               </template>
             </el-table-column>
@@ -47,6 +51,9 @@
       </template>
     </el-table-column>
       <el-table-column prop="publicityNo" label="公示号" width="170" />
+      <el-table-column prop="orgId" label="组织" width="150">
+        <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
+      </el-table-column>
       <el-table-column prop="publicityType" label="类型" width="130">
         <template #default="{ row }">{{ row.publicityTypeLabel || enumLabel('publicityType', row.publicityType) }}</template>
       </el-table-column>
@@ -138,6 +145,7 @@ async function loadBatches() {
 /** 从名单一键签约：带人中转合同页的快捷签约 */
 function goSignFromWinner(w) {
   if (!w.personId) { ElMessage.warning('该记录缺少中签人信息'); return }
+  if (w.allocationStatus === 'SIGNED') { ElMessage.info('该中签人已签约'); return }
   router.push({ path: '/contracts',
     query: { personId: String(w.personId), houseId: w.houseId ? String(w.houseId) : '' } })
 }

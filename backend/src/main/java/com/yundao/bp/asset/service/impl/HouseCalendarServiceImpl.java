@@ -315,7 +315,64 @@ public class HouseCalendarServiceImpl implements HouseCalendarService {
     // ==================== 内部 ====================
 
     private List<DayCellVO> cells(Long houseId, LocalDate start, LocalDate end) {
-        return loadRows(houseId, start, end).stream().map(this::toCell).toList();
+        List<DayCellVO> list = loadRows(houseId, start, end).stream()
+                .map(this::toCell).toList();
+        return overlayContracts(houseId, list);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    /**
+     * 长期合同占用覆盖：合同租期内显示「已出租」，同房源其余日期显示「空置」。
+     *
+     * <p>只影响展示，不写入日历表；短租预订时这些日期不可售。
+     */
+    private List<DayCellVO> overlayContracts(Long houseId, List<DayCellVO> list) {
+        if (jdbc == null || list.isEmpty()) {
+            return list;
+        }
+        LocalDate from = list.get(0).date();
+        LocalDate to = list.get(list.size() - 1).date();
+        java.util.List<java.util.Map<String, Object>> rows = jdbc.queryForList(
+                "select lease_start, lease_end from bp_biz_contract "
+                        + "where house_id = ? and is_deleted = 0 "
+                        + "and contract_status in ('SIGNING','EFFECTIVE','RENEWING') "
+                        + "and lease_start <= ? and lease_end >= ?",
+                houseId, to, from);
+        if (rows.isEmpty()) {
+            return list;
+        }
+        java.util.List<LocalDate[]> spans = new java.util.ArrayList<>();
+        for (java.util.Map<String, Object> r : rows) {
+            Object a = r.get("lease_start");
+            Object b = r.get("lease_end");
+            LocalDate s0 = a instanceof java.sql.Date d ? d.toLocalDate()
+                    : (a == null ? null : LocalDate.parse(String.valueOf(a)));
+            LocalDate e0 = b instanceof java.sql.Date d ? d.toLocalDate()
+                    : (b == null ? null : LocalDate.parse(String.valueOf(b)));
+            if (s0 != null && e0 != null) {
+                spans.add(new LocalDate[]{s0, e0});
+            }
+        }
+        List<DayCellVO> out = new java.util.ArrayList<>(list.size());
+        for (DayCellVO c : list) {
+            boolean leased = spans.stream().anyMatch(sp ->
+                    !c.date().isBefore(sp[0]) && !c.date().isAfter(sp[1]));
+            if (leased) {
+                out.add(new DayCellVO(c.date(), "LEASED", "已出租", c.price(),
+                        c.bookingId(), "CONTRACT", "长期合同占用"));
+            } else {
+                // 已有预订/维修等业务状态的日期不覆盖
+                if ("AVAILABLE".equals(c.dayStatus())) {
+                    out.add(new DayCellVO(c.date(), "VACANT", "空置", c.price(),
+                            c.bookingId(), "CONTRACT", "合同区间外空置"));
+                } else {
+                    out.add(c);
+                }
+            }
+        }
+        return out;
     }
 
     private List<AssetHouseCalendar> loadRows(Long houseId, LocalDate start, LocalDate end) {

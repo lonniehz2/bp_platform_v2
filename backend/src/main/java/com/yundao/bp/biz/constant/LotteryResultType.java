@@ -7,7 +7,7 @@ public enum LotteryResultType {
 
     WON("中签"),
     LOST("未中签"),
-    WAITLIST("递补"),
+    WAITLIST("未中签"),
     GIVE_UP("放弃");
 
     private final String label;

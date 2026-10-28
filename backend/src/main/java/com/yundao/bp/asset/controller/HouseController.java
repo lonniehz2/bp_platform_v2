@@ -35,7 +35,55 @@ public class HouseController {
         return R.ok(houseService.create(cmd));
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    /**
+     * 房源入住信息：当前合同、承租人、同住人与已入住人数。
+     *
+     * <p>已出租房源详情用，避免房东只看到房态看不到人。
+     */
     @com.yundao.bp.iam.security.RequirePerm("asset:house:view")
+    @GetMapping("/{id}/occupancy")
+    public R<java.util.Map<String, Object>> occupancy(@PathVariable Long id) {
+        java.util.Map<String, Object> out = new java.util.LinkedHashMap<>();
+        if (jdbcTemplate == null) {
+            return R.ok(out);
+        }
+        java.util.List<java.util.Map<String, Object>> cs = jdbcTemplate.queryForList(
+                "select c.id, c.contract_no, c.lessee_person_id as person_id, c.lease_start, c.lease_end, "
+                        + "c.contract_status, p.person_name, p.phone from bp_biz_contract c "
+                        + "left join bp_person p on p.id = c.lessee_person_id "
+                        + "where c.house_id = ? and c.is_deleted = 0 "
+                        + "and c.contract_status in ('SIGNING','EFFECTIVE','RENEWING') "
+                        + "order by c.id desc limit 1", id);
+        if (cs.isEmpty()) {
+            out.put("occupied", false);
+            out.put("tenantCount", 0);
+            out.put("cohabitants", java.util.List.of());
+            return R.ok(out);
+        }
+        java.util.Map<String, Object> c = cs.get(0);
+        Object contractId = c.get("id");
+        java.util.List<java.util.Map<String, Object>> co = jdbcTemplate.queryForList(
+                "select co.member_name as name, co.relation, co.id_card_mask from bp_biz_contract_cohabitant co "
+                        + "where co.contract_id = ? order by co.id", contractId);
+        int tenantCount = 1 + co.size();
+        out.put("occupied", true);
+        out.put("contractId", contractId);
+        out.put("contractNo", c.get("contract_no"));
+        out.put("contractStatus", c.get("contract_status"));
+        out.put("leaseStart", c.get("lease_start"));
+        out.put("leaseEnd", c.get("lease_end"));
+        out.put("tenantName", c.get("person_name"));
+        out.put("tenantPhone", c.get("phone"));
+        out.put("personId", c.get("person_id"));
+        out.put("tenantCount", tenantCount);
+        out.put("cohabitantCount", co.size());
+        out.put("cohabitants", co);
+        return R.ok(out);
+    }
+
     @GetMapping("/{id}")
     public R<HouseVO> get(@PathVariable Long id) {
         return R.ok(houseService.get(id));

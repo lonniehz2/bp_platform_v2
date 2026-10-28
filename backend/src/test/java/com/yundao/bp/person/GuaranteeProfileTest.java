@@ -52,7 +52,8 @@ class GuaranteeProfileTest {
     @BeforeEach
     void setUp() {
         service = new GuaranteeProfileServiceImpl(mapper, new SnowflakeIdGenerator(1, 1),
-                org.mockito.Mockito.mock(com.yundao.bp.person.mapper.PersonMapper.class));
+                org.mockito.Mockito.mock(com.yundao.bp.person.mapper.PersonMapper.class),
+                org.mockito.Mockito.mock(com.yundao.bp.biz.mapper.BizWaitingQueueMapper.class));
         TenantContext.set(TenantInfo.of("350600", 1001L));
         when(mapper.insert(any(PersonGuaranteeProfile.class))).thenReturn(1);
         when(mapper.updateById(any(PersonGuaranteeProfile.class))).thenReturn(1);

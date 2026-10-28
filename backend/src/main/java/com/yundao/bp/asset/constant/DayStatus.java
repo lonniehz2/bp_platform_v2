@@ -20,6 +20,8 @@ public enum DayStatus {
     AVAILABLE("可售"),
     BOOKED("已预订"),
     OCCUPIED("已入住"),
+    LEASED("已出租"),
+    VACANT("空置"),
     CLOSED("停售"),
     MAINTENANCE("维修");
 
@@ -40,17 +42,18 @@ public enum DayStatus {
 
     /** 是否由业务单据占用（预订/合同），释放时需匹配来源。 */
     public boolean occupied() {
-        return this == BOOKED || this == OCCUPIED;
+        return this == BOOKED || this == OCCUPIED || this == LEASED;
     }
 
     /** 允许的迁移。 */
     public static Set<DayStatus> nextOf(DayStatus from) {
         return switch (from) {
-            case AVAILABLE -> Set.of(BOOKED, OCCUPIED, CLOSED, MAINTENANCE);
+            case AVAILABLE -> Set.of(BOOKED, OCCUPIED, LEASED, CLOSED, MAINTENANCE);
             case BOOKED -> Set.of(OCCUPIED, AVAILABLE, CLOSED);
             case OCCUPIED -> Set.of(AVAILABLE, MAINTENANCE);
             case CLOSED -> Set.of(AVAILABLE);
             case MAINTENANCE -> Set.of(AVAILABLE);
+            case LEASED, VACANT -> Set.of();
         };
     }
 }

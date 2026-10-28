@@ -23,7 +23,13 @@ public record LotteryResultVO(
         String resultStatus,
         String giveUpReason,
         String personName,
-        String phoneMask
+        String phoneMask,
+        /** 优先附加分 */
+        java.math.BigDecimal priorityScore,
+        /** 轮候天数 */
+        Integer waitDays,
+        /** 总分 = 附加分 + 轮候天数 × 0.1 */
+        java.math.BigDecimal totalScore
 ) {
     public static LotteryResultVO from(BizLotteryResult e) {
         if (e == null) {
@@ -38,13 +44,14 @@ public record LotteryResultVO(
         return new LotteryResultVO(e.getId(), e.getBatchId(), e.getPersonId(),
                 e.getApplicationId(), e.getWaitingId(), e.getResultType(), t.label(),
                 e.getLotterySeq(), e.getSelectSeq(), e.getHouseId(), e.getSpaceId(),
-                e.getSelectTime(), e.getResultStatus(), e.getGiveUpReason(), null, null);
+                e.getSelectTime(), e.getResultStatus(), e.getGiveUpReason(), null, null,
+                null, null, null);
     }
 
     /** 补充人员姓名与脱敏手机号 */
     public LotteryResultVO withPerson(String name, String phone) {
         return new LotteryResultVO(id, batchId, personId, applicationId, waitingId, resultType,
                 resultTypeLabel, lotterySeq, selectSeq, houseId, spaceId, selectTime,
-                resultStatus, giveUpReason, name, phone);
+                resultStatus, giveUpReason, name, phone, priorityScore, waitDays, totalScore);
     }
 }

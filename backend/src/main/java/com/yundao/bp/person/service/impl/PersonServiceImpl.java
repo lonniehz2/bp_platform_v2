@@ -303,6 +303,12 @@ public class PersonServiceImpl implements PersonService {
         if ("BLACKLIST".equals(p.getPersonStatus())) {
             throw BizException.stateConflict("黑名单人员不允许删除，请先解除黑名单");
         }
+        String vs = p.getVerifyStatus();
+        if (vs != null && !vs.isBlank() && !"NONE".equals(vs)
+                && !"UNVERIFIED".equals(vs) && !"FAILED".equals(vs)) {
+            throw BizException.stateConflict(
+                    "该人员已完成实名核验，不允许删除；如确需删除请先走注销流程");
+        }
         if (personMapper.deleteById(id) == 0) {
             throw BizException.notFound("人员");
         }
