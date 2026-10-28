@@ -74,6 +74,17 @@ public class MeterReadingController {
                 meterType == null
                         ? new Object[]{houseId}
                         : new Object[]{houseId, meterType});
+        if (rows.isEmpty() && meterType != null) {
+            // 指定类型下没有设备时，退回该房源的全部计量设备，避免页面空白
+            rows = jdbc.queryForList(
+                    "select d.device_id, d.device_name, d.device_type, s.space_name "
+                            + "from bp_dev_device d "
+                            + "join bp_asset_house h on h.space_id = d.space_id "
+                            + "left join bp_asset_space s on s.id = d.space_id "
+                            + "where h.id = ? and d.device_type in "
+                            + "('ELEC_METER','WATER_METER','GAS_METER','HEAT_METER') "
+                            + "order by d.device_type, d.device_id", houseId);
+        }
         out.addAll(rows);
         return R.ok(out);
     }

@@ -74,11 +74,7 @@
     <el-dialog v-model="recordVisible" title="录入抄表读数" width="640px">
       <el-form :model="rf" label-width="100px">
         <el-form-item label="房源" required>
-          <el-select v-model="rf.houseId" filterable style="width:100%" placeholder="选择房源"
-                     @change="loadDevices">
-            <el-option v-for="h in houses" :key="h.id" :value="h.id"
-                       :label="(h.houseName || h.houseCode) + '（' + h.houseCode + '）'" />
-          </el-select>
+          <HouseSelect v-model="rf.houseId" width="100%" testid="meter-house" />
         </el-form-item>
         <el-form-item label="计量项目" required>
           <el-select v-model="rf.feeItemId" style="width:100%" placeholder="水费/电费等"
@@ -95,7 +91,7 @@
       <el-alert v-if="devices.length" type="info" :closable="false" show-icon
                 :title="'该房源在此计量项目下共 ' + devices.length + ' 台设备，逐台录入读数'" />
       <el-table v-if="devices.length" :data="deviceRows" size="small" border style="margin-top:8px">
-        <el-table-column prop="deviceType" label="设备类型" width="120" />
+        <el-table-column prop="deviceType" label="设备类型" width="110" />
         <el-table-column prop="deviceId" label="设备编号" width="170" />
         <el-table-column prop="deviceName" label="设备名称" min-width="140" />
         <el-table-column label="本次读数" width="160">
@@ -109,7 +105,8 @@
         <el-form-item label="本次读数" required>
           <el-input v-model="rf.reading" />
         </el-form-item>
-        <div class="muted" style="font-size:12px">未找到绑定设备，可手工选择设备或留空按人工录入</div>
+        <el-alert type="warning" :closable="false" style="margin-top:4px"
+                  title="该房源在此计量项目下未绑定设备：可手工选择设备或留空按人工录入" />
       </el-form>
       <template #footer>
         <el-button @click="recordVisible = false">取消</el-button>
@@ -121,11 +118,17 @@
     <el-dialog v-model="exportVisible" title="导出抄表 CSV" width="520px">
       <el-form label-width="90px">
         <el-form-item label="组织">
-          <OrgSelect v-model="ex.orgId" width="100%" testid="meter-ex-org" />
+          <el-select v-model="ex.orgId" filterable clearable style="width:100%"
+                     placeholder="选择组织" @change="loadExportSpaces">
+            <el-option v-for="o in exOrgs" :key="o.id" :label="o.orgName"
+                       :value="String(o.id)" />
+          </el-select>
         </el-form-item>
         <el-form-item label="空间">
-          <SpaceSelect v-model="ex.spaceId" :org-id="ex.orgId" width="100%"
-                       testid="meter-ex-space" placeholder="选择空间（含下级）" />
+          <el-select v-model="ex.spaceId" filterable clearable style="width:100%"
+                     placeholder="选择空间（含下级），可空表示整个组织">
+            <el-option v-for="s in exSpaces" :key="s.id" :label="s.label" :value="s.id" />
+          </el-select>
         </el-form-item>
         <el-form-item label="计量项目" required>
           <el-select v-model="ex.feeItemId" style="width:100%">
@@ -143,7 +146,7 @@
     </el-dialog>
 
     <!-- 批量录入 / CSV 导入 -->
-    <el-dialog v-model="batchVisible" title="批量录入 / 导入抄表" width="920px">
+    <el-dialog v-model="batchVisible" title="批量录入 / 导入抄表" width="1180px">
       <div class="toolbar" style="margin-bottom:8px">
         <el-button size="small" type="primary" plain @click="openExport">导出 CSV 模板</el-button>
         <el-button size="small" @click="addBatchRow">添加一行</el-button>
@@ -156,16 +159,13 @@
         </span>
       </div>
       <el-table :data="batchRows" size="small" border max-height="380">
-        <el-table-column label="房源" width="230">
+        <el-table-column label="房源" width="200">
           <template #default="{ row }">
-            <el-select v-model="row.houseId" filterable size="small" style="width:100%"
-                       @change="fillRowDevice(row)">
-              <el-option v-for="h in houses" :key="h.id" :value="h.id"
-                         :label="(h.houseName || h.houseCode) + '（' + h.houseCode + '）'" />
-            </el-select>
+            <HouseSelect :model-value="row.houseId" width="100%"
+                         @update:model-value="(v) => onRowHouse(row, v)" />
           </template>
         </el-table-column>
-        <el-table-column label="计量项目" width="180">
+        <el-table-column label="计量项目" width="150">
           <template #default="{ row }">
             <el-select v-model="row.feeItemId" size="small" style="width:100%"
                        @change="fillRowDevice(row)">
@@ -174,7 +174,7 @@
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column label="设备编号" width="180">
+        <el-table-column label="设备编号" width="160">
           <template #default="{ row }">
             <el-select v-if="row.devices && row.devices.length > 1" v-model="row.deviceId"
                        size="small" style="width:100%" @change="pickDevice(row)">
@@ -184,18 +184,18 @@
             <el-input v-else v-model="row.deviceId" size="small" />
           </template>
         </el-table-column>
-        <el-table-column prop="deviceName" label="设备名称" min-width="150" />
+        <el-table-column prop="deviceName" label="设备名称" width="170" />
         <el-table-column prop="deviceType" label="设备类型" width="120" />
-        <el-table-column label="读数" width="120">
+        <el-table-column label="读数" width="100">
           <template #default="{ row }"><el-input v-model="row.reading" size="small" /></template>
         </el-table-column>
-        <el-table-column label="抄表日期" width="140">
+        <el-table-column label="抄表日期" width="135">
           <template #default="{ row }">
             <el-date-picker v-model="row.readDate" type="date" value-format="YYYY-MM-DD"
                             size="small" style="width:100%" />
           </template>
         </el-table-column>
-        <el-table-column label="" width="70">
+        <el-table-column label="" width="60">
           <template #default="{ $index }">
             <el-button link type="danger" @click="batchRows.splice($index, 1)">删除</el-button>
           </template>
@@ -219,10 +219,11 @@
  *
  * 单价来自「计费项目」（calcMode=METER），本页只负责读数与出账。
  */
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import req from '@/api/request'
 import DeviceSelect from '@/components/DeviceSelect.vue'
+import HouseSelect from '@/components/HouseSelect.vue'
 
 const rows = ref([])
 const total = ref(0)
@@ -240,12 +241,44 @@ const batchRows = ref([])
 const batchResult = ref(null)
 const exportVisible = ref(false)
 const ex = reactive({ orgId: '', spaceId: '', feeItemId: '' })
+const exOrgs = ref([])
+const exSpaces = ref([])
+
+async function loadExportOrgs() {
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 500 } })
+    exOrgs.value = (d && d.rows) || []
+  } catch (e) { exOrgs.value = [] }
+}
+
+function flattenSpaces(list, out) {
+  (list || []).forEach((n) => {
+    if (['ROOM', 'BED'].includes(n.spaceType)) {
+      out.push({ id: n.id, label: n.fullName || n.spaceName })
+    }
+    if (n.children && n.children.length) flattenSpaces(n.children, out)
+  })
+}
+
+async function loadExportSpaces() {
+  ex.spaceId = ''
+  exSpaces.value = []
+  if (!ex.orgId) return
+  try {
+    const tree = await req.get('/spaces/tree', { params: { orgId: ex.orgId } })
+    const out = []
+    flattenSpaces(tree || [], out)
+    exSpaces.value = out
+  } catch (e) { exSpaces.value = [] }
+}
 
 function openExport() {
   ex.feeItemId = query.feeItemId || ''
   ex.orgId = ''
   ex.spaceId = ''
+  exSpaces.value = []
   exportVisible.value = true
+  loadExportOrgs()
 }
 
 function csvCell(v) {
@@ -307,6 +340,13 @@ function pickDevice(row) {
   const d = (row.devices || []).find((x) => x.device_id === row.deviceId)
   row.deviceName = d ? d.device_name : ''
   row.deviceType = d ? d.device_type : ''
+}
+
+watch(() => [rf.houseId, rf.feeItemId], () => loadDevices())
+
+function onRowHouse(row, v) {
+  row.houseId = v
+  fillRowDevice(row)
 }
 
 async function loadDevices() {
