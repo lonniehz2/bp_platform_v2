@@ -118,3 +118,5 @@ curl -s -H "Authorization: Bearer $TOKEN" -H "X-Tenant-Id: 350600" \
 - [ ] 回调验签真实凭证通过
 - [ ] `/iot/metrics` 在线率、指令成功率、回调成功率均 ≥ 95%（观察 30 分钟）
 - [ ] 回滚开关演练 1 次成功
+
+> 总览见 [22_IoT联调交付与验收总表.md](22_IoT联调交付与验收总表.md)。
