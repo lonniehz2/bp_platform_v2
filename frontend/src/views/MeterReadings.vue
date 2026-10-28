@@ -117,23 +117,49 @@
       </template>
     </el-dialog>
 
+    <!-- 导出 CSV 模板 -->
+    <el-dialog v-model="exportVisible" title="导出抄表 CSV" width="520px">
+      <el-form label-width="90px">
+        <el-form-item label="组织">
+          <OrgSelect v-model="ex.orgId" width="100%" testid="meter-ex-org" />
+        </el-form-item>
+        <el-form-item label="空间">
+          <SpaceSelect v-model="ex.spaceId" :org-id="ex.orgId" width="100%"
+                       testid="meter-ex-space" placeholder="选择空间（含下级）" />
+        </el-form-item>
+        <el-form-item label="计量项目" required>
+          <el-select v-model="ex.feeItemId" style="width:100%">
+            <el-option v-for="m in meterItems" :key="m.id" :value="m.id"
+                       :label="m.itemName" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <el-alert type="info" :closable="false" show-icon
+                title="导出的表格含组织/空间/房源/计费项目/设备信息，读数留空；填好后直接导入即可。" />
+      <template #footer>
+        <el-button @click="exportVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="doExport">导出</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 批量录入 / CSV 导入 -->
     <el-dialog v-model="batchVisible" title="批量录入 / 导入抄表" width="920px">
       <div class="toolbar" style="margin-bottom:8px">
-        <el-button size="small" @click="downloadTemplate">下载模板</el-button>
+        <el-button size="small" type="primary" plain @click="openExport">导出 CSV 模板</el-button>
         <el-button size="small" @click="addBatchRow">添加一行</el-button>
         <el-upload :auto-upload="false" :limit="1" accept=".csv" :show-file-list="false"
                    :on-change="onCsv">
           <el-button size="small">导入 CSV</el-button>
         </el-upload>
         <span class="muted" style="font-size:12px">
-          CSV 列：房源编号, 计量项目, 设备编号(可空), 读数, 抄表日期
+          导出 → 填读数 → 原样导入（列：组织,空间,房源编号,房源名称,计费项目,设备编号,设备名称,设备类型,读数,抄表日期）
         </span>
       </div>
       <el-table :data="batchRows" size="small" border max-height="380">
         <el-table-column label="房源" width="230">
           <template #default="{ row }">
-            <el-select v-model="row.houseId" filterable size="small" style="width:100%">
+            <el-select v-model="row.houseId" filterable size="small" style="width:100%"
+                       @change="fillRowDevice(row)">
               <el-option v-for="h in houses" :key="h.id" :value="h.id"
                          :label="(h.houseName || h.houseCode) + '（' + h.houseCode + '）'" />
             </el-select>
@@ -141,15 +167,25 @@
         </el-table-column>
         <el-table-column label="计量项目" width="180">
           <template #default="{ row }">
-            <el-select v-model="row.feeItemId" size="small" style="width:100%">
+            <el-select v-model="row.feeItemId" size="small" style="width:100%"
+                       @change="fillRowDevice(row)">
               <el-option v-for="m in meterItems" :key="m.id" :value="m.id"
                          :label="m.itemName" />
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column label="设备编号" width="170">
-          <template #default="{ row }"><el-input v-model="row.deviceId" size="small" /></template>
+        <el-table-column label="设备编号" width="180">
+          <template #default="{ row }">
+            <el-select v-if="row.devices && row.devices.length > 1" v-model="row.deviceId"
+                       size="small" style="width:100%" @change="pickDevice(row)">
+              <el-option v-for="d in row.devices" :key="d.device_id"
+                         :label="d.device_id" :value="d.device_id" />
+            </el-select>
+            <el-input v-else v-model="row.deviceId" size="small" />
+          </template>
         </el-table-column>
+        <el-table-column prop="deviceName" label="设备名称" min-width="150" />
+        <el-table-column prop="deviceType" label="设备类型" width="120" />
         <el-table-column label="读数" width="120">
           <template #default="{ row }"><el-input v-model="row.reading" size="small" /></template>
         </el-table-column>
@@ -202,6 +238,76 @@ const deviceRows = ref([])
 const batchVisible = ref(false)
 const batchRows = ref([])
 const batchResult = ref(null)
+const exportVisible = ref(false)
+const ex = reactive({ orgId: '', spaceId: '', feeItemId: '' })
+
+function openExport() {
+  ex.feeItemId = query.feeItemId || ''
+  ex.orgId = ''
+  ex.spaceId = ''
+  exportVisible.value = true
+}
+
+function csvCell(v) {
+  const t = v == null ? '' : String(v)
+  return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t
+}
+
+async function doExport() {
+  if (!ex.feeItemId) { ElMessage.warning('请选择计量项目'); return }
+  saving.value = true
+  try {
+    const list = await req.get('/fin/meter-readings/export-template', {
+      params: { orgId: ex.orgId || undefined, spaceId: ex.spaceId || undefined,
+        feeItemId: ex.feeItemId }
+    })
+    if (!list || !list.length) { ElMessage.warning('所选范围没有房源'); return }
+    const heads = ['组织', '空间', '房源编号', '房源名称', '计费项目',
+      '设备编号', '设备名称', '设备类型', '读数', '抄表日期']
+    const lines = [heads.join(',')].concat((list || []).map((r) => [
+      r.orgName, r.spaceName, r.houseCode, r.houseName, r.feeItemName,
+      r.deviceId, r.deviceName, r.deviceType, '', r.readDate].map(csvCell).join(',')))
+    const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = '抄表导入_' + new Date().toISOString().slice(0, 10) + '.csv'
+    a.click()
+    URL.revokeObjectURL(a.href)
+    ElMessage.success('已导出 ' + list.length + ' 行')
+    exportVisible.value = false
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '导出失败')
+  } finally { saving.value = false }
+}
+
+/** 批量行：选房源+项目后自动带出设备 */
+async function fillRowDevice(row) {
+  row.devices = []
+  row.deviceId = ''
+  row.deviceName = ''
+  row.deviceType = ''
+  if (!row.houseId || !row.feeItemId) return
+  try {
+    const list = await req.get('/fin/meter-readings/devices',
+      { params: { houseId: row.houseId, feeItemId: row.feeItemId } })
+    row.devices = list || []
+    if (row.devices.length === 1) {
+      row.deviceId = row.devices[0].device_id
+      row.deviceName = row.devices[0].device_name
+      row.deviceType = row.devices[0].device_type
+    } else if (row.devices.length > 1) {
+      row.deviceId = row.devices[0].device_id
+      row.deviceName = row.devices[0].device_name
+      row.deviceType = row.devices[0].device_type
+    }
+  } catch (e) { /* 忽略 */ }
+}
+
+function pickDevice(row) {
+  const d = (row.devices || []).find((x) => x.device_id === row.deviceId)
+  row.deviceName = d ? d.device_name : ''
+  row.deviceType = d ? d.device_type : ''
+}
 
 async function loadDevices() {
   devices.value = []
@@ -252,14 +358,25 @@ function onCsv(file) {
   reader.onload = (e) => {
     const all = parseCsv(String(e.target.result || ''))
     if (!all.length) { ElMessage.warning('文件为空'); return }
-    const body = /房源编号/.test(all[0].join(',')) ? all.slice(1) : all
+    const head = all[0]
+    const idx = (name) => head.findIndex((h) => h.includes(name))
+    const hasHeader = idx('房源编号') >= 0
+    const body = hasHeader ? all.slice(1) : all
+    const at = (c, name, fallback) => {
+      const i = hasHeader ? idx(name) : fallback
+      return i >= 0 ? (c[i] || '') : ''
+    }
     batchRows.value = body.map((c) => {
-      const house = houses.value.find((h) => String(h.houseCode) === c[0]
-        || String(h.houseName) === c[0])
-      const item = meterItems.value.find((m) => m.itemName === c[1]
-        || String(m.itemCode) === c[1])
+      const houseCode = at(c, '房源编号', 0)
+      const itemName = at(c, '计费项目', 1)
+      const house = houses.value.find((h) => String(h.houseCode) === houseCode
+        || String(h.houseName) === houseCode)
+      const item = meterItems.value.find((m) => m.itemName === itemName
+        || String(m.itemCode) === itemName)
       return { houseId: house ? house.id : '', feeItemId: item ? item.id : '',
-        deviceId: c[2] || '', reading: c[3] || '', readDate: c[4] || '' }
+        deviceId: at(c, '设备编号', 2), deviceName: at(c, '设备名称', 3),
+        deviceType: at(c, '设备类型', 4), devices: [],
+        reading: at(c, '读数', 5), readDate: at(c, '抄表日期', 6) }
     })
     ElMessage.success('已解析 ' + batchRows.value.length + ' 行，请核对后提交')
   }
