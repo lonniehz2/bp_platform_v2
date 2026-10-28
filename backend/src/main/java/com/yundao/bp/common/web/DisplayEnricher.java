@@ -226,6 +226,11 @@ public class DisplayEnricher {
     private String personName(long id) {
         return personCache.computeIfAbsent(id, k -> {
             trim();
+            // 含逻辑删除：人员注销/删除后，历史申请与配租单仍显示姓名
+            String name = personMapper.selectNameIncludeDeleted(k);
+            if (name != null && !name.isBlank()) {
+                return name;
+            }
             Person p = personMapper.selectById(k);
             return p == null ? "" : nullToEmpty(p.getPersonName());
         });

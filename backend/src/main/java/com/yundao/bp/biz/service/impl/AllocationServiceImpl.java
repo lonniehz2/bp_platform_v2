@@ -107,9 +107,23 @@ public class AllocationServiceImpl implements AllocationService {
 
     // ==================== 轮候 ====================
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.person.mapper.PersonGuaranteeProfileMapper guaranteeProfileMapper;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public WaitingVO enterQueue(WaitingEnterCmd cmd) {
+        if (guaranteeProfileMapper != null && cmd.personId() != null) {
+            com.yundao.bp.person.entity.PersonGuaranteeProfile gp =
+                    guaranteeProfileMapper.selectOne(
+                            new LambdaQueryWrapper<com.yundao.bp.person.entity.PersonGuaranteeProfile>()
+                                    .eq(com.yundao.bp.person.entity.PersonGuaranteeProfile::getPersonId,
+                                            cmd.personId())
+                                    .last("LIMIT 1"));
+            if (gp != null && "EXITED".equals(gp.getProfileStatus())) {
+                throw BizException.stateConflict("该人员已退出保障，不能进入轮候队列");
+            }
+        }
         String tenantId = TenantContext.tenantId();
         // 同一申请单重复提交：视为「调整附加分」，更新原记录而不是报错
         if (cmd.applicationId() != null) {

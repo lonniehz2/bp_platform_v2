@@ -93,6 +93,9 @@
           <el-button type="primary" @click="loadProfileByPerson">查看</el-button>
           <el-button @click="profilePersonId = null; loadProfiles()">全部</el-button>
         </div>
+        <el-alert type="info" :closable="false" show-icon
+                  title="资格判定：按档案事实（收入档位、名下房产、人才认定有效期）判定是否具备保障资格，通过后档案置「已通过」并给 1 年有效期；不通过会列出具体原因。退出保障：档案置「已退出」，同时退出轮候队列，且不能再新增申请或入队（记录保留可查）。"
+                  style="margin-bottom:10px" />
         <el-table :data="profiles" v-loading="loading" border size="small">
           <el-table-column label="保障对象" width="230">
             <template #default="{ row }">
@@ -127,7 +130,9 @@
               <el-button link type="primary" @click="openProfileEdit(row)">编辑</el-button>
               <el-button link type="primary" @click="openRecalc(row)">收入重算</el-button>
               <el-button link type="success" @click="qualify(row)">资格判定</el-button>
-              <el-button link type="danger" @click="exitProfile(row)">退出保障</el-button>
+              <el-button link type="danger" :disabled="row.profileStatus === 'EXITED'"
+                         :title="row.profileStatus === 'EXITED' ? '该人员已退出保障' : ''"
+                         @click="exitProfile(row)">退出保障</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -711,8 +716,8 @@ async function doRecalc() {
 }
 async function qualify(row) {
   await ElMessageBox.confirm(
-    '资格判定会综合收入档位、家庭人口、名下房产与车辆，确认执行？', '资格判定',
-    { type: 'warning' })
+    '将按档案事实判定资格：\n· 收入档位不能是「普通」（超中低收入线）\n· 名下有房需在备注说明例外依据\n· 人才认定需在有效期内\n\n通过后档案置「已通过」，有效期 1 年；不通过会逐条提示原因。确认执行？',
+    '资格判定', { type: 'warning', customStyle: { whiteSpace: 'pre-line' } })
   const r = await req.post(
     `/guarantee-profiles/person/${row.personId}/qualify`)
   // 后端返回保障档案实体，这里转成中文结果，避免直接抛 JSON
@@ -735,6 +740,10 @@ function profileStatusText(s) {
     EXITED: '已退出' }[s] || s || '—'
 }
 function exitProfile(row) {
+  if (row.profileStatus === 'EXITED') {
+    ElMessage.info('该人员已退出保障')
+    return
+  }
   currentProfile.value = row
   ex.exitDate = new Date().toISOString().slice(0, 10)
   ex.exitReason = ''
@@ -742,6 +751,9 @@ function exitProfile(row) {
 }
 async function doExit() {
   if (!ex.exitDate) { ElMessage.warning('请选择退出日期'); return }
+  await ElMessageBox.confirm(
+    '退出后：\n· 档案状态置「已退出」\n· 该人员自动退出轮候队列（含已中签未配租）\n· 不能再新增申请或进入轮候\n\n历史记录保留可查，确认退出？',
+    '退出保障', { type: 'warning', customStyle: { whiteSpace: 'pre-line' } })
   saving.value = true
   try {
     await req.post(`/guarantee-profiles/person/${currentProfile.value.personId}/exit`,

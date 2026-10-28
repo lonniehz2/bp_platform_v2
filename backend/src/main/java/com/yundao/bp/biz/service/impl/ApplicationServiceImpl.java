@@ -260,6 +260,22 @@ public class ApplicationServiceImpl implements ApplicationService {
             throw BizException.paramInvalid("意向最小面积不能大于最大面积");
         }
 
+        // 已退出保障的人员不能再申请
+        if (guaranteeProfileService != null) {
+            try {
+                com.yundao.bp.person.entity.PersonGuaranteeProfile gp =
+                        guaranteeProfileService.getByPerson(cmd.personId());
+                if (gp != null && "EXITED".equals(gp.getProfileStatus())) {
+                    throw BizException.stateConflict("该人员已退出保障，不能新增申请");
+                }
+            } catch (BizException be) {
+                if (be.getMessage() != null && be.getMessage().contains("已退出保障")) {
+                    throw be;
+                }
+                // 无档案不在这里拦（审核阶段会校验）
+            }
+        }
+
         // 同一人员在同一组织只能有一张在途申请（草稿/受理/审核/补件）
         Long active = appMapper.selectCount(new LambdaQueryWrapper<BizApplication>()
                 .eq(BizApplication::getPersonId, cmd.personId())

@@ -79,12 +79,16 @@ public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
     /** 列表要带出人员姓名/脱敏手机号与证件号，避免只显示一串 ID */
     private final com.yundao.bp.person.mapper.PersonMapper personMapper;
 
+    private final com.yundao.bp.biz.mapper.BizWaitingQueueMapper waitingQueueMapper;
+
     public GuaranteeProfileServiceImpl(PersonGuaranteeProfileMapper mapper,
                                        SnowflakeIdGenerator idGen,
-                                       com.yundao.bp.person.mapper.PersonMapper personMapper) {
+                                       com.yundao.bp.person.mapper.PersonMapper personMapper,
+                                       com.yundao.bp.biz.mapper.BizWaitingQueueMapper waitingQueueMapper) {
         this.mapper = mapper;
         this.idGen = idGen;
         this.personMapper = personMapper;
+        this.waitingQueueMapper = waitingQueueMapper;
     }
 
 
@@ -262,6 +266,24 @@ public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
         if ("EXITED".equals(e.getProfileStatus())) {
             throw BizException.stateConflict("该档案已退出保障，不可直接通过审核");
         }
+        // 资格判定：把档案事实变成硬性条件，逐条收集不通过原因
+        java.util.List<String> issues = new java.util.ArrayList<>();
+        if ("NORMAL".equals(e.getIncomeLevel())) {
+            issues.add("家庭人均月收入超过中低收入线（档位：普通）");
+        }
+        int houses = e.getHouseCount() == null ? 0 : e.getHouseCount();
+        if (houses > 0 && (e.getRemark() == null || e.getRemark().isBlank())) {
+            issues.add("名下已有 " + houses + " 套住房，需在备注说明例外依据");
+        }
+        if (e.getTalentValidTo() != null
+                && e.getTalentValidTo().isBefore(LocalDate.now())) {
+            issues.add("人才认定已过期（有效期至 " + e.getTalentValidTo() + "）");
+        }
+        if (!issues.isEmpty()) {
+            throw new BizException(com.yundao.bp.common.api.ErrorCode.STATE_CONFLICT,
+                    "资格判定不通过：" + String.join("；", issues));
+        }
+
         int years = qualifyYears == null || qualifyYears <= 0 ? 1 : qualifyYears;
         LocalDate today = LocalDate.now();
         e.setProfileStatus("QUALIFIED");
@@ -286,6 +308,26 @@ public class GuaranteeProfileServiceImpl implements GuaranteeProfileService {
         e.setExitReason(reason);
         e.setUpdateTime(LocalDateTime.now());
         mapper.updateById(e);
+
+        // 退出保障即失效：把该人员仍在轮候/已中签的记录置为「已退出」，
+        // 否则会出现“已退出保障却还在轮候池”的矛盾状态
+        if (waitingQueueMapper != null) {
+            java.util.List<com.yundao.bp.biz.entity.BizWaitingQueue> queues =
+                    waitingQueueMapper.selectList(
+                            new com.baomidou.mybatisplus.core.conditions.query
+                                    .LambdaQueryWrapper<com.yundao.bp.biz.entity.BizWaitingQueue>()
+                                    .eq(com.yundao.bp.biz.entity.BizWaitingQueue::getPersonId, personId)
+                                    .in(com.yundao.bp.biz.entity.BizWaitingQueue::getQueueStatus,
+                                            "WAITING", "WON", "FROZEN"));
+            for (com.yundao.bp.biz.entity.BizWaitingQueue q : queues) {
+                q.setQueueStatus("EXITED");
+                q.setUpdateTime(LocalDateTime.now());
+                waitingQueueMapper.updateById(q);
+            }
+            if (!queues.isEmpty()) {
+                log.info("退出保障联动退出轮候：人员 {} 共 {} 条", personId, queues.size());
+            }
+        }
         log.info("保障档案已退出：人员 {}（{}）", personId, reason);
         return e;
     }
