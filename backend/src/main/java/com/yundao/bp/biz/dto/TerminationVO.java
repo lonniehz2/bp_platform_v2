@@ -49,7 +49,16 @@ public record TerminationVO(
         Boolean readyToComplete,
         /** 派生：是否逾期未退房（计划退房日已过仍无实际退房日） */
         Boolean overdueExit,
-        LocalDateTime createTime
+        LocalDateTime createTime,
+        Long orgId,
+        String orgName,
+        String houseName,
+        String lesseeName,
+        LocalDate leaseStart,
+        LocalDate leaseEnd,
+        java.math.BigDecimal monthlyRent,
+        java.math.BigDecimal depositAmount,
+        String inspectStatusLabel
 ) {
     public static TerminationVO from(BizTermination e) {
         if (e == null) {
@@ -88,6 +97,7 @@ public record TerminationVO(
                 e.getEnforceFlag() != null && e.getEnforceFlag() == 1,
                 e.getEnforceCourt(), e.getItemHandlerName(),
                 e.getNotaryFlag() != null && e.getNotaryFlag() == 1, e.getNotaryNo(),
-                e.getBanReapplyEndDate(), ready, overdue, e.getCreateTime());
+                e.getBanReapplyEndDate(), ready, overdue, e.getCreateTime(),
+                null, null, null, null, null, null, null, null, null);
     }
 }

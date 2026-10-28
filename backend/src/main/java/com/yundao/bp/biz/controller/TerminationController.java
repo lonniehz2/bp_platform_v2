@@ -45,6 +45,12 @@ public class TerminationController {
     }
 
     @com.yundao.bp.iam.security.RequirePerm("biz:termination:view")
+    @GetMapping("/{id}/settle-preview")
+    public R<java.util.Map<String, Object>> settlePreview(@PathVariable Long id) {
+        return R.ok(service.settlePreview(id));
+    }
+
+    @com.yundao.bp.iam.security.RequirePerm("biz:termination:view")
     @GetMapping
     public R<PageResult<TerminationVO>> page(@RequestParam(defaultValue = "1") long pageNum,
                                              @RequestParam(defaultValue = "20") long pageSize,
@@ -52,8 +58,10 @@ public class TerminationController {
                                              @RequestParam(required = false) String status,
                                              @RequestParam(required = false) Long contractId,
                                              @RequestParam(required = false) Long houseId,
-                                             @RequestParam(required = false) String keyword) {
-        return R.ok(service.page(pageNum, pageSize, type, status, contractId, houseId, keyword));
+                                             @RequestParam(required = false) String keyword,
+                                             @RequestParam(required = false) Long orgId) {
+        return R.ok(service.page(pageNum, pageSize, type, status, contractId, houseId, keyword,
+                orgId));
     }
 
     @com.yundao.bp.iam.security.RequirePerm("biz:termination:submit")

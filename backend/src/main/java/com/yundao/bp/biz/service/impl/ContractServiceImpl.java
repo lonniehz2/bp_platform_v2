@@ -311,6 +311,19 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
+    public ContractVO activeByPerson(Long personId) {
+        if (personId == null) {
+            return null;
+        }
+        BizContract c = mapper.selectOne(new LambdaQueryWrapper<BizContract>()
+                .eq(BizContract::getLesseePersonId, personId)
+                .in(BizContract::getContractStatus, "SIGNING", "EFFECTIVE", "RENEWING")
+                .orderByDesc(BizContract::getId)
+                .last("LIMIT 1"));
+        return c == null ? null : ContractVO.from(c);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public ContractVO renew(Long id, LocalDate newLeaseEnd, BigDecimal newMonthlyRent) {
         BizContract e = require(id);

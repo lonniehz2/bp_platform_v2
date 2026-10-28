@@ -17,6 +17,9 @@ public interface ContractService {
 
     ContractVO get(Long id);
 
+    /** 人员当前有效合同（无则返回 null）。 */
+    ContractVO activeByPerson(Long personId);
+
     PageResult<ContractVO> page(long pageNum, long pageSize, Long orgId, String contractType,
                                 String status, Long houseId, Long lesseePersonId, String keyword);
 

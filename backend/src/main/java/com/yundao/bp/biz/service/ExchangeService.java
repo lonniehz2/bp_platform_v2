@@ -26,6 +26,9 @@ public interface ExchangeService {
     PageResult<ExchangeVO> page(long pageNum, long pageSize, Long personId, Long oldContractId,
                                 String status);
 
+    PageResult<ExchangeVO> page(long pageNum, long pageSize, Long personId, Long oldContractId,
+                                String status, String keyword, Long orgId);
+
     /** 提交审批。 */
     ExchangeVO submit(Long id);
 

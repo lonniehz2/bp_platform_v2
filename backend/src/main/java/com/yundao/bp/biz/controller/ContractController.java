@@ -43,6 +43,12 @@ public class ContractController {
     }
 
     @com.yundao.bp.iam.security.RequirePerm("biz:contract:view")
+    @GetMapping("/active-by-person/{personId}")
+    public R<ContractVO> activeByPerson(@PathVariable Long personId) {
+        return R.ok(contractService.activeByPerson(personId));
+    }
+
+    @com.yundao.bp.iam.security.RequirePerm("biz:contract:view")
     @GetMapping("/{id}")
     public R<ContractVO> get(@PathVariable Long id) {
         return R.ok(contractService.get(id));

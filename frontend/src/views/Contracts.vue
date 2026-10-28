@@ -57,7 +57,7 @@
             <el-button link type="primary" @click="openContractDetail(row)"
                        data-testid="contract-detail">详情</el-button>
             <el-button v-if="['EFFECTIVE','RENEWING'].includes(row.contractStatus)"
-                       link type="warning" @click="openSwap(row)">换床</el-button>
+                       link type="warning" @click="openSwap(row)">换房</el-button>
             <el-button link type="warning" :disabled="row.contractStatus !== 'DRAFT'"
                        @click="openContractEdit(row)"
                        data-testid="contract-edit">编辑</el-button>
@@ -346,6 +346,31 @@
         <el-button type="primary" :loading="saving" @click="doQuickSign">生成合同</el-button>
       </template>
     </el-dialog>
+
+    <!-- 换房 -->
+    <el-dialog v-model="swapVisible" title="合同换房" width="600px">
+      <el-alert type="info" :closable="false" show-icon
+                title="换房会把合同迁到目标房源所在空间，原房源释放并留痕；请确认目标房源可租。" />
+      <el-form :model="sw" label-width="100px" style="margin-top:12px">
+        <el-form-item label="合同"><el-input :model-value="sw.contractNo" disabled /></el-form-item>
+        <el-form-item label="承租人"><el-input :model-value="sw.personName" disabled /></el-form-item>
+        <el-form-item label="原房源"><el-input :model-value="sw.oldHouseName" disabled /></el-form-item>
+        <el-form-item label="原租期">
+          <el-input :model-value="(sw.leaseStart || '') + ' ~ ' + (sw.leaseEnd || '')" disabled />
+        </el-form-item>
+        <el-form-item label="目标房源" required>
+          <HouseSelect v-model="sw.targetHouseId" width="100%" testid="swap-house" />
+        </el-form-item>
+        <el-form-item label="换房原因">
+          <el-input v-model="sw.reason" type="textarea" :rows="2"
+                    placeholder="如 家庭人口增加 / 楼层不适" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="swapVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="doSwap">确认换房</el-button>
+      </template>
+    </el-dialog>
 </template>
 
 <script setup>
@@ -608,13 +633,20 @@ const vacantHouses = ref([])
 const houseLoading = ref(false)
 const route = useRoute()
 const swapVisible = ref(false)
-const sw = reactive({ contractId: null, contractNo: '', targetHouseId: '', reason: '' })
+const sw = reactive({ contractId: null, contractNo: '', targetHouseId: '', reason: '',
+  personName: '', oldHouseName: '', leaseStart: '', leaseEnd: '' })
 
 function openSwap(row) {
-  sw.contractId = row.id
-  sw.contractNo = row.contractNo
-  sw.targetHouseId = ''
-  sw.reason = ''
+  Object.assign(sw, {
+    contractId: row.id,
+    contractNo: row.contractNo,
+    targetHouseId: '',
+    reason: '',
+    personName: row.lesseeName || row.personName || row.lesseePersonId,
+    oldHouseName: row.houseIdName || row.houseName || row.houseId,
+    leaseStart: row.leaseStart,
+    leaseEnd: row.leaseEnd
+  })
   swapVisible.value = true
 }
 
@@ -624,11 +656,11 @@ async function doSwap() {
   try {
     await req.post('/contracts/' + sw.contractId + '/swap-bed',
       { targetHouseId: sw.targetHouseId, reason: sw.reason || undefined })
-    ElMessage.success('已换床')
+    ElMessage.success('已换房')
     swapVisible.value = false
     load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '换床失败')
+    ElMessage.error(e?.response?.data?.message || '换房失败')
   } finally { saving.value = false }
 }
 

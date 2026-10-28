@@ -26,7 +26,16 @@ public interface TerminationService {
     TerminationVO get(Long id);
 
     PageResult<TerminationVO> page(long pageNum, long pageSize, String type, String status,
-                                   Long contractId, Long houseId, String keyword);
+                                   Long contractId, Long houseId, String keyword, Long orgId);
+
+    /** 兼容旧调用：不带组织筛选。 */
+    default PageResult<TerminationVO> page(long pageNum, long pageSize, String type, String status,
+                                           Long contractId, Long houseId, String keyword) {
+        return page(pageNum, pageSize, type, status, contractId, houseId, keyword, null);
+    }
+
+    /** 结算预览：押金/欠费/损坏/合计（不落库）。 */
+    java.util.Map<String, Object> settlePreview(Long id);
 
     /** 提交审批：APPLYING → APPROVING。 */
     TerminationVO submit(Long id);

@@ -47,8 +47,11 @@ public class ExchangeController {
                                           @RequestParam(defaultValue = "20") long pageSize,
                                           @RequestParam(required = false) Long personId,
                                           @RequestParam(required = false) Long oldContractId,
-                                          @RequestParam(required = false) String status) {
-        return R.ok(service.page(pageNum, pageSize, personId, oldContractId, status));
+                                          @RequestParam(required = false) String status,
+                                          @RequestParam(required = false) String keyword,
+                                          @RequestParam(required = false) Long orgId) {
+        return R.ok(service.page(pageNum, pageSize, personId, oldContractId, status,
+                keyword, orgId));
     }
 
     @com.yundao.bp.iam.security.RequirePerm("biz:exchange:submit")

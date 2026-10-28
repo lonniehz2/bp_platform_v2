@@ -211,11 +211,25 @@ public class ExchangeServiceImpl implements ExchangeService {
     @Override
     public PageResult<ExchangeVO> page(long pageNum, long pageSize, Long personId,
                                        Long oldContractId, String status) {
+        return page(pageNum, pageSize, personId, oldContractId, status, null, null);
+    }
+
+    @Override
+    public PageResult<ExchangeVO> page(long pageNum, long pageSize, Long personId,
+                                       Long oldContractId, String status,
+                                       String keyword, Long orgId) {
         LambdaQueryWrapper<BizExchange> qw = new LambdaQueryWrapper<BizExchange>()
                 .eq(personId != null, BizExchange::getPersonId, personId)
                 .eq(oldContractId != null, BizExchange::getOldContractId, oldContractId)
                 .eq(status != null && !status.isBlank(), BizExchange::getExchangeStatus, status)
                 .orderByDesc(BizExchange::getId);
+        if (orgId != null) {
+            qw.apply("person_id in (select id from bp_person where org_id = {0})", orgId);
+        }
+        if (keyword != null && !keyword.isBlank()) {
+            qw.apply("person_id in (select id from bp_person "
+                    + "where person_name like concat('%', {0}, '%'))", keyword);
+        }
         applyDataScope(qw, BizExchange::getPersonId, BizExchange::getPersonId, false);
         IPage<BizExchange> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
         List<ExchangeVO> rows = page.getRecords().stream().map(ExchangeVO::from).toList();

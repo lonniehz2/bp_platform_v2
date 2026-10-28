@@ -3,7 +3,8 @@
     <div class="toolbar">
       <h3 style="margin:0">换房管理</h3>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字" clearable style="width:160px"
+      <OrgSelect v-model="orgId" width="200px" testid="ex-org" />
+      <el-input v-model="keyword" placeholder="承租人姓名" clearable style="width:180px"
                 @keyup.enter="reload" />
       <el-button type="primary" @click="reload">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
@@ -64,9 +65,11 @@
               <el-option label="清退安置" value="EXPEL_RELOCATE" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="原合同 ID" required>
-            <el-input v-model="form.oldContractId" data-testid="f-oldContractId" /></el-form-item></el-col>
+            <el-input :model-value="auto.contractNo || form.oldContractId" disabled
+                      data-testid="f-oldContractId" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="原房源 ID" required>
-            <el-input v-model="form.oldHouseId" data-testid="f-oldHouseId" /></el-form-item></el-col>
+            <el-input :model-value="auto.houseName || form.oldHouseId" disabled
+                      data-testid="f-oldHouseId" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="新房源 ID" required>
             <el-input v-model="form.newHouseId" data-testid="f-newHouseId" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="换房原因码">
@@ -117,8 +120,9 @@ function openDetail(row) {
 
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
+import OrgSelect from '@/components/OrgSelect.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 
@@ -132,6 +136,7 @@ const keyword = ref('')
 const show = ref(false)
 const detail = ref(null)
 const createVisible = ref(false)
+watch(() => form.personId, (pid) => fillFromPerson(pid))
 /** 字段名严格对齐后端 ExchangeCreateCmd */
 const form = reactive({
   personId: '',
@@ -146,12 +151,36 @@ const form = reactive({
   forceExchange: false
 })
 
+const orgId = ref('')
+const auto = reactive({ contractNo: '', houseName: '', orgName: '' })
+
+/** 选择人员后自动带出原合同、原房源与原家庭人口 */
+async function fillFromPerson(pid) {
+  Object.assign(auto, { contractNo: '', houseName: '', orgName: '' })
+  form.oldContractId = ''
+  form.oldHouseId = ''
+  if (!pid) return
+  try {
+    const ct = await req.get('/contracts/active-by-person/' + pid)
+    if (ct) {
+      form.oldContractId = ct.id
+      form.oldHouseId = ct.houseId
+      auto.contractNo = ct.contractNo
+      auto.houseName = ct.houseIdName || ct.houseId
+      auto.orgName = ct.orgIdName || ct.orgId
+    }
+    const gp = await req.get('/guarantee-profiles/person/' + pid).catch(() => null)
+    if (gp && gp.familySize != null) form.familySizeBefore = gp.familySize
+  } catch (e) { /* 保持手填 */ }
+}
+
 async function load() {
   loading.value = true
   try {
     const d = await req.get('/exchanges', {
       params: { pageNum: pageNum.value, pageSize: pageSize.value,
-                keyword: keyword.value || undefined }
+                keyword: keyword.value || undefined,
+                orgId: orgId.value || undefined }
     })
     rows.value = d.rows || d || []
     total.value = Number(d.total || rows.value.length || 0)

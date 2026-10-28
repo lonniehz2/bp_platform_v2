@@ -4,7 +4,7 @@
       <h3 style="margin:0">退租管理</h3>
       <el-tag size="small" type="info">过渡期 3 月 / 1.5 倍（可配）</el-tag>
       <div class="spacer" />
-      <el-button type="success" @click="createVisible = true">发起退租</el-button>
+      <el-button type="success" @click="openCreate">发起退租</el-button>
       <el-button @click="load">刷新</el-button>
     </div>
 
@@ -23,6 +23,10 @@
         <el-option label="已撤销" value="CANCELLED" />
       </el-select>
       <template #more>
+        <OrgSelect v-model="tf.orgId" width="200px" testid="term-org" />
+        <HouseSelect v-model="tf.houseId" width="200px" testid="term-house" />
+        <el-input v-model="tf.keyword" placeholder="退租单号/承租人" clearable
+                  style="width:200px" data-testid="term-keyword" />
         <ContractSelect v-model="tf.contractId" width="200px" testid="contract-select" />
         <el-select v-model="tf.type" placeholder="退租类型" clearable style="width:160px">
           <el-option label="协商终止" value="AGREEMENT" />
@@ -42,6 +46,14 @@
       <el-table-column prop="contractId" label="合同" width="130">
         <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
       </el-table-column>
+      <el-table-column prop="orgName" label="组织" width="150" />
+      <el-table-column prop="houseName" label="房源" width="140" />
+      <el-table-column prop="lesseeName" label="承租人" width="110" />
+      <el-table-column label="租期" width="180">
+        <template #default="{ row }">{{ row.leaseStart }} ~ {{ row.leaseEnd }}</template>
+      </el-table-column>
+      <el-table-column prop="monthlyRent" label="月租" width="100" />
+      <el-table-column prop="depositAmount" label="押金" width="100" />
       <el-table-column prop="terminationType" label="类型" width="120">
         <template #default="{ row }">{{ row.terminationTypeLabel || enumLabel('terminationType', row.terminationType) }}</template>
       </el-table-column>
@@ -62,11 +74,15 @@
           <el-button link type="primary" @click="approve(row)">审批</el-button>
           <el-button link type="danger" @click="doReject(row)">驳回</el-button>
           <el-button link @click="doCancel(row)">取消</el-button>
-          <el-button link @click="openInspect(row)">查验</el-button>
-          <el-button link type="warning" @click="openSettle(row)">结算</el-button>
-          <el-button link type="danger" @click="openEnforce(row)">强制腾退</el-button>
-          <el-button link type="success" @click="openRelease(row)">释放房源</el-button>
-          <el-button link type="success" @click="doComplete(row)">办结</el-button>
+          <el-button v-if="row.inspectStatus && row.inspectStatus !== 'PENDING'"
+                     link type="success" @click="openDetail(row)">已查验</el-button>
+          <el-button v-else link @click="openInspect(row)">查验</el-button>
+          <el-button v-if="row.settleStatus === 'SETTLED'" link type="success"
+                     @click="openDetail(row)">结算单</el-button>
+          <el-button v-else link type="warning" :disabled="!row.inspectStatus
+                     || row.inspectStatus === 'PENDING'" @click="openSettle(row)">结算</el-button>
+          <el-button v-if="row.settleStatus === 'SETTLED'" link type="success"
+                     @click="doComplete(row)">办结</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -78,9 +94,29 @@
     <!-- 发起退租 TerminationCreateCmd -->
     <el-dialog v-model="createVisible" title="发起退租" width="560px">
       <el-form :model="c" label-width="120px">
-        <el-form-item label="合同ID"><el-input v-model="c.contractId" /></el-form-item>
-        <el-form-item label="房源ID"><el-input v-model="c.houseId" /></el-form-item>
-        <el-form-item label="人员ID"><PersonPicker v-model="c.personId" width="240px" testid="person-picker" /></el-form-item>
+        <el-form-item label="人员" required>
+          <PersonPicker v-model="c.personId" width="260px" testid="person-picker" />
+        </el-form-item>
+        <el-form-item label="原合同">
+          <el-input :model-value="auto.contractNo || c.contractId" disabled />
+        </el-form-item>
+        <el-form-item label="原房源">
+          <el-input :model-value="auto.houseName || c.houseId" disabled />
+        </el-form-item>
+        <el-form-item label="组织">
+          <el-input :model-value="auto.orgName" disabled />
+        </el-form-item>
+        <el-form-item label="租期">
+          <el-input :model-value="auto.leaseStart + ' ~ ' + auto.leaseEnd" disabled />
+        </el-form-item>
+        <el-row :gutter="12">
+          <el-col :span="12"><el-form-item label="月租">
+            <el-input :model-value="auto.monthlyRent" disabled /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="押金">
+            <el-input :model-value="auto.depositAmount" disabled /></el-form-item></el-col>
+        </el-row>
+        <el-alert v-if="c.personId && !auto.contractNo" type="warning" :closable="false"
+                  title="该人员当前没有生效合同，无法发起退租" style="margin-bottom:8px" />
         <el-form-item label="退租类型">
           <el-select v-model="c.terminationType" style="width:100%">
             <el-option label="正常退租" value="NORMAL" />
@@ -132,12 +168,18 @@
     </el-dialog>
 
     <!-- 结算 SettleCmd -->
-    <el-dialog v-model="settleVisible" title="退租结算" width="460px">
+    <el-dialog v-model="settleVisible" title="退租结算" width="520px">
+      <el-alert type="info" :closable="false" show-icon
+                :title="preview.formula || '应退合计 = 押金 − 欠费 − 损坏赔偿'" style="margin-bottom:10px" />
       <el-form :model="st" label-width="130px">
-        <el-form-item label="押金退还额">
-          <el-input v-model.number="st.depositRefund" /></el-form-item>
-        <el-form-item label="欠费扣缴额">
+        <el-form-item label="押金">
+          <el-input :model-value="preview.depositAmount" disabled /></el-form-item>
+        <el-form-item label="欠费扣缴">
           <el-input v-model.number="st.arrearsAmount" /></el-form-item>
+        <el-form-item label="损坏赔偿">
+          <el-input :model-value="preview.damageAmount" disabled /></el-form-item>
+        <el-form-item label="应退合计">
+          <el-input :model-value="totalPreview" disabled /></el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="settleVisible = false">取消</el-button>
@@ -197,18 +239,21 @@ function openDetail(row) {
 import DetailView from '@/components/DetailView.vue'
 import FilterBar from '@/components/FilterBar.vue'
 import { enumLabel } from '@/constants/enums'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { terminationApi } from '@/api/modules'
 import req from '@/api/request'
 import ContractSelect from '@/components/ContractSelect.vue'
+import OrgSelect from '@/components/OrgSelect.vue'
+import HouseSelect from '@/components/HouseSelect.vue'
 
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref([])
 /** 列表筛选条件（后端 /terminations 支持 status / type / contractId） */
-const tf = reactive({ status: '', type: '', contractId: '' })
+const tf = reactive({ status: '', type: '', contractId: '', orgId: '',
+  houseId: '', keyword: '' })
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(20)
@@ -226,9 +271,49 @@ const c = reactive({ contractId: null, houseId: null, personId: null,
 const ins = reactive({ inspectStatus: 'PASS', inspectResult: '',
   damageAmount: null, inspectImages: '' })
 const st = reactive({ depositRefund: null, arrearsAmount: null })
+const auto = reactive({ contractNo: '', houseName: '', orgName: '', leaseStart: '',
+  leaseEnd: '', monthlyRent: '', depositAmount: '' })
+const preview = reactive({ depositAmount: 0, arrearsAmount: 0, damageAmount: 0,
+  totalAmount: 0, formula: '' })
+const totalPreview = computed(() => {
+  const dep = Number(preview.depositAmount || 0)
+  const arr = Number(st.arrearsAmount || 0)
+  const dmg = Number(preview.damageAmount || 0)
+  return (dep - arr - dmg).toFixed(2)
+})
 const en = reactive({ enforceApplyDate: '', enforceCourt: '', notaryNo: '',
   itemHandlerName: '', itemHandlerPhone: '' })
 const rl = reactive({ houseReleased: true, grantRevoked: true })
+
+watch(() => c.personId, async (pid) => {
+  Object.assign(auto, { contractNo: '', houseName: '', orgName: '', leaseStart: '',
+    leaseEnd: '', monthlyRent: '', depositAmount: '' })
+  c.contractId = null
+  c.houseId = null
+  if (!pid) return
+  try {
+    const ct = await req.get('/contracts/active-by-person/' + pid)
+    if (!ct) return
+    c.contractId = ct.id
+    c.houseId = ct.houseId
+    auto.contractNo = ct.contractNo
+    auto.houseName = ct.houseIdName || ct.houseId
+    auto.orgName = ct.orgIdName || ct.orgId
+    auto.leaseStart = ct.leaseStart
+    auto.leaseEnd = ct.leaseEnd
+    auto.monthlyRent = ct.monthlyRent
+    auto.depositAmount = ct.depositAmount
+  } catch (e) { /* 无合同保持空 */ }
+})
+
+function openCreate() {
+  Object.assign(c, { contractId: null, houseId: null, personId: null,
+    terminationType: 'NORMAL', planExitDate: '', exitReason: '',
+    transitionMonths: 3, transitionRentMultiplier: 1.5, relocationMonths: null })
+  Object.assign(auto, { contractNo: '', houseName: '', orgName: '', leaseStart: '',
+    leaseEnd: '', monthlyRent: '', depositAmount: '' })
+  createVisible.value = true
+}
 
 async function load() {
   loading.value = true
@@ -237,7 +322,10 @@ async function load() {
       pageNum: pageNum.value, pageSize: pageSize.value,
       status: tf.status || undefined,
       type: tf.type || undefined,
-      contractId: tf.contractId || undefined
+      contractId: tf.contractId || undefined,
+      orgId: tf.orgId || undefined,
+      houseId: tf.houseId || undefined,
+      keyword: tf.keyword || undefined
     })
     rows.value = d.rows || []
     total.value = Number(d.total || 0)
@@ -255,6 +343,9 @@ function resetQuery() {
   tf.status = ''
   tf.type = ''
   tf.contractId = ''
+  tf.orgId = ''
+  tf.houseId = ''
+  tf.keyword = ''
   resetAndLoad()
 }
 
@@ -313,11 +404,23 @@ async function doInspect() {
   } finally { saving.value = false }
 }
 
-function openSettle(row) { current.value = row; settleVisible.value = true }
+async function openSettle(row) {
+  current.value = row
+  st.depositRefund = null
+  st.arrearsAmount = null
+  try {
+    const pv = await req.get('/terminations/' + row.id + '/settle-preview')
+    Object.assign(preview, pv || {})
+    st.arrearsAmount = pv?.arrearsAmount ?? 0
+    st.depositRefund = pv?.depositAmount ?? 0
+  } catch (e) { ElMessage.error('结算预览加载失败') }
+  settleVisible.value = true
+}
 async function doSettle() {
   saving.value = true
   try {
-    await req.post(`/terminations/${current.value.id}/settle`, { ...st })
+    await req.post(`/terminations/${current.value.id}/settle`,
+      { depositRefund: st.depositRefund, arrearsAmount: st.arrearsAmount })
     ElMessage.success('结算完成')
     settleVisible.value = false; load()
   } finally { saving.value = false }
