@@ -280,30 +280,50 @@ public class IotCallbackService {
         }
         LocalDateTime now = LocalDateTime.now();
         for (JsonNode x : items) {
-            DevDevice d = findDevice(text(x, "deviceId"), text(x, "lockId"));
-            if (d == null) {
-                continue;
-            }
+            // 单条 UPDATE，避免「查一次 + 改一次」两倍往返
+            String deviceId = text(x, "deviceId");
+            String lockId = text(x, "lockId");
             boolean online = x.path("online").asBoolean(true);
-            d.setOnlineStatus(online ? 1 : 0);
-            if (online) {
-                d.setOnlineTime(now);
-            } else {
-                d.setOfflineTime(now);
-            }
             Integer battery = intVal(x, "battery", null);
-            if (battery != null) {
-                d.setBattery(battery);
+            LocalDateTime reportTime = parseTime(text(x, "reportTime"));
+            int updated = updateHeartbeat(deviceId, lockId, online, battery,
+                    text(x, "rssi"), reportTime == null ? now : reportTime, now);
+            if (updated == 0) {
+                log.debug("心跳设备不存在 device={} lock={}", deviceId, lockId);
             }
-            String rssi = text(x, "rssi");
-            if (rssi != null) {
-                d.setRssi(rssi);
-            }
-            d.setLastReportTime(parseTime(text(x, "reportTime")) == null
-                    ? now : parseTime(text(x, "reportTime")));
-            d.setUpdateTime(now);
-            deviceMapper.updateById(d);
         }
+    }
+
+    private int updateHeartbeat(String deviceId, String lockId, boolean online,
+                                Integer battery, String rssi,
+                                LocalDateTime reportTime, LocalDateTime now) {
+        com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<DevDevice> uw =
+                new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<DevDevice>()
+                        .set(DevDevice::getOnlineStatus, online ? 1 : 0)
+                        .set(DevDevice::getLastReportTime, reportTime)
+                        .set(DevDevice::getUpdateTime, now);
+        if (online) {
+            uw.set(DevDevice::getOnlineTime, now);
+        } else {
+            uw.set(DevDevice::getOfflineTime, now);
+        }
+        if (battery != null) {
+            uw.set(DevDevice::getBattery, battery);
+        }
+        if (rssi != null) {
+            uw.set(DevDevice::getRssi, rssi);
+        }
+        if (deviceId != null && !deviceId.isBlank()) {
+            int n = deviceMapper.update(null, uw.eq(DevDevice::getDeviceId, deviceId));
+            if (n > 0 || lockId == null || lockId.isBlank()) {
+                return n;
+            }
+        }
+        if (lockId != null && !lockId.isBlank()) {
+            return deviceMapper.update(null,
+                    uw.eq(DevDevice::getDeviceId, lockId));
+        }
+        return 0;
     }
 
     private void onMeter(JsonNode n, String tenantId) {
