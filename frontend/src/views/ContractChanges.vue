@@ -40,10 +40,40 @@
                      @click="approve(row)">批准</el-button>
           <el-button link type="danger" :disabled="row.approveStatus === 'REJECTED'"
                      @click="reject(row)">驳回</el-button>
-          <el-button link @click="detail = row; show = true">详情</el-button>
+          <el-button link @click="openChange(row)">详情</el-button>
         </template>
       </el-table-column>
     </el-table>
+    <el-dialog v-model="changeVisible" title="合同变更详情" width="760px">
+      <el-descriptions :column="2" border size="small">
+        <el-descriptions-item label="变更号">{{ current?.changeNo }}</el-descriptions-item>
+        <el-descriptions-item label="合同">{{ current?.contractIdName || current?.contractId }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{ current?.changeTypeLabel || current?.changeType }}</el-descriptions-item>
+        <el-descriptions-item label="生效日">{{ current?.effectiveDate }}</el-descriptions-item>
+        <el-descriptions-item label="状态">{{ current?.approveStatusLabel || current?.approveStatus }}</el-descriptions-item>
+        <el-descriptions-item label="原因">{{ current?.changeReason || '—' }}</el-descriptions-item>
+      </el-descriptions>
+      <el-row :gutter="12" style="margin-top:10px">
+        <el-col :span="12">
+          <div class="card-title">变更前</div>
+          <div class="kv">
+            <div v-for="(v, k) in beforeObj" :key="k"><b>{{ k }}</b>：{{ v }}</div>
+            <div v-if="!Object.keys(beforeObj).length" class="muted">—</div>
+          </div>
+        </el-col>
+        <el-col :span="12">
+          <div class="card-title">变更后</div>
+          <div class="kv">
+            <div v-for="(v, k) in afterObj" :key="k"><b>{{ k }}</b>：{{ v }}</div>
+            <div v-if="!Object.keys(afterObj).length" class="muted">—</div>
+          </div>
+        </el-col>
+      </el-row>
+      <template #footer>
+        <el-button @click="changeVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
     <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
                    :total="total" :page-size="query.pageSize"
                    :current-page="query.pageNum"
@@ -99,6 +129,37 @@ const statuses = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']
 const loading = ref(false)
 const rows = ref([])
 const total = ref(0)
+const changeVisible = ref(false)
+const current = ref(null)
+const beforeObj = ref({})
+const afterObj = ref({})
+
+const FIELD_LABEL = {
+  monthlyRent: '月租金', depositAmount: '押金', leaseStart: '开始日', leaseEnd: '结束日',
+  lesseePersonId: '承租人', lesseeName: '承租人姓名', payCycle: '付款周期',
+  payDay: '账单日', rentPrice: '租金单价', actualPay: '实付', subsidyAmount: '补贴',
+  houseId: '房源', remark: '备注'
+}
+
+function pretty(raw) {
+  if (raw == null || raw === '') return {}
+  let obj = raw
+  if (typeof raw === 'string') {
+    try { obj = JSON.parse(raw) } catch (e) { return { 内容: raw } }
+  }
+  if (Array.isArray(obj)) return { 内容: obj.join('、') }
+  if (typeof obj !== 'object') return { 内容: String(obj) }
+  const out = {}
+  Object.keys(obj).forEach((k) => { out[FIELD_LABEL[k] || k] = obj[k] })
+  return out
+}
+
+function openChange(row) {
+  current.value = row
+  beforeObj.value = pretty(row.beforeJson ?? row.beforeContent ?? row.before)
+  afterObj.value = pretty(row.afterJson ?? row.afterContent ?? row.after)
+  changeVisible.value = true
+}
 const show = ref(false)
 const detail = ref(null)
 const query = reactive({ pageNum: 1, pageSize: 20, changeStatus: '' })

@@ -5,8 +5,12 @@
         <h3 style="margin:0">合同管理</h3>
         <el-input v-model="q.keyword" placeholder="合同号 / 承租人" clearable
                   style="width:180px" @keyup.enter="reload" />
-        <OrgSelect v-model="q.orgId" width="200px" testid="contract-org-filter"
-                   placeholder="组织名称" @update:model-value="reload" />
+        <el-select v-model="q.orgId" placeholder="组织名称" clearable filterable
+                   style="width:200px" data-testid="contract-org-filter"
+                   @change="reload">
+          <el-option v-for="o in orgFilterOptions" :key="o.id"
+                     :label="o.orgName" :value="String(o.id)" />
+        </el-select>
         <el-select v-model="q.contractStatus" placeholder="状态" clearable
                    style="width:150px" @change="reload">
           <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
@@ -391,6 +395,14 @@ const loading = ref(false)
 const saving = ref(false)
 const rows = ref([])
 const total = ref(0)
+const orgFilterOptions = ref([])
+async function loadOrgFilter() {
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 500 } })
+    orgFilterOptions.value = (d && d.rows) || []
+  } catch (e) { orgFilterOptions.value = [] }
+}
+
 const q = reactive({ orgId: '', pageNum: 1, pageSize: 20, contractStatus: '', keyword: '' })
 
 const createVisible = ref(false)
@@ -712,7 +724,7 @@ function prefillQuickSign(query) {
   }
 }
 
-onMounted(() => {
+onMounted(() => { loadOrgFilter(); 
   load()
   prefillQuickSign(route.query)
 })

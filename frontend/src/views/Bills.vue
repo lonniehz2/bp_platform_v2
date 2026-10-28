@@ -22,7 +22,6 @@
         <div class="spacer" />
         <el-button type="success" @click="genVisible = true">批量出账</el-button>
         <el-button type="warning" plain @click="openShared" data-testid="shared-bill">公摊分摊</el-button>
-        <el-button type="primary" plain @click="openMeter" data-testid="meter-reading">抄表录入</el-button>
         <el-button plain @click="openEnergy" data-testid="bill-energy">能耗分析</el-button>
         <el-button @click="openPay">登记收款</el-button>
         <el-button @click="scanOverdue">扫描逾期</el-button>

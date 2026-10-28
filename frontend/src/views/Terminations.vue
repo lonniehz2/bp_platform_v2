@@ -67,13 +67,20 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="560" fixed="right">
+      <el-table-column label="操作" width="320" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-          <el-button link type="primary" @click="doSubmit(row)">提交</el-button>
-          <el-button link type="primary" @click="approve(row)">审批</el-button>
-          <el-button link type="danger" @click="doReject(row)">驳回</el-button>
-          <el-button link @click="doCancel(row)">取消</el-button>
+          <el-dropdown style="margin:0 8px">
+            <el-button link type="primary">更多▾</el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="doSubmit(row)">提交</el-dropdown-item>
+                <el-dropdown-item @click="approve(row)">审批</el-dropdown-item>
+                <el-dropdown-item @click="doReject(row)">驳回</el-dropdown-item>
+                <el-dropdown-item @click="doCancel(row)">取消</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
           <el-button v-if="row.inspectStatus && row.inspectStatus !== 'PENDING'"
                      link type="success" @click="openDetail(row)">已查验</el-button>
           <el-button v-else link @click="openInspect(row)">查验</el-button>
