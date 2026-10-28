@@ -17,7 +17,7 @@ spring:
     password: ${BP_DB_PWD:5677@Mysql}
     hikari:
       minimum-idle: 5
-      maximum-pool-size: 40
+      maximum-pool-size: 80
       connection-timeout: 30000
       # -1 = 启动时不强制建立连接（数据库暂不可达也能启动，便于前端联调与演示）
       # 生产建议改为 30000（快速失败）
