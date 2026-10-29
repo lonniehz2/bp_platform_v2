@@ -53,3 +53,11 @@ html, body, #app {
 .stat-card.ok { border-left-color: #67c23a; }
 
 .muted { color: #909399; font-size: 12px; }
+
+/* 长表单弹窗：内容区限高滚动，底部按钮始终可见 */
+.el-dialog__body {
+  max-height: calc(90vh - 160px);
+  overflow-y: auto;
+  padding-right: 6px;
+}
+.el-dialog__header { position: sticky; top: 0; background: var(--el-bg-color, #fff); z-index: 2; }

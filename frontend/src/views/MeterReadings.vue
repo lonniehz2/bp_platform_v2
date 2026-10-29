@@ -284,6 +284,8 @@ async function loadOrgs() {
 async function batchBill() {
   const ids = meterSelected.value.filter((r) => !r.billId).map((r) => r.id)
   if (!ids.length) { ElMessage.warning('请勾选未出账的记录'); return }
+  await ElMessageBox.confirm('将为已选 ' + ids.length + ' 条读数生成账单，是否继续？',
+    '确认批量出账', { type: 'warning' })
   try {
     const r = await req.post('/fin/meter-readings/bill-batch', ids)
     ElMessage.success('出账完成：成功 ' + r.billed + '，失败 ' + r.failed)

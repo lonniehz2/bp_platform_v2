@@ -275,6 +275,8 @@ async function autoAssign(row) {
 
 /** 批量派单：处理当前所有待派单工单 */
 async function autoAssignPending() {
+  await ElMessageBox.confirm('将为所有待派单工单自动分配责任人，是否继续？',
+    '确认批量派单', { type: 'warning' })
   saving.value = true
   try {
     const n = await req.post('/workorders/auto-assign-pending')

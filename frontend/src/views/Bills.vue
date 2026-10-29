@@ -642,6 +642,11 @@ async function doGenerate() {
   if (!g.feeItemId) { ElMessage.warning('请选择收费项目'); return }
   if (!g.periodStart || !g.periodEnd) { ElMessage.warning('请选择费用起止日'); return }
   if (g.periodEnd <= g.periodStart) { ElMessage.warning('费用截止日必须晚于起始日'); return }
+  if (!g.dryRun) {
+    await ElMessageBox.confirm(
+      '将为该组织/项目/费用区间内符合条件的合同生成账单；已出过账的会自动跳过。是否继续？',
+      '确认批量出账', { type: 'warning' })
+  }
   saving.value = true
   try {
     const r = await financeApi.generate({
@@ -718,6 +723,8 @@ async function dunning(row) {
 async function batchDunning() {
   const picked = selected.value
   if (!picked.length) { ElMessage.warning('请先勾选账单'); return }
+  await ElMessageBox.confirm('将向已选 ' + picked.length + ' 张账单发起催缴，是否继续？',
+    '确认批量催缴', { type: 'warning' })
   let ok = 0
   for (const row of picked) {
     try {

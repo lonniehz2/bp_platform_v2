@@ -123,6 +123,8 @@ async function load() {
 }
 
 async function doBatch() {
+  await ElMessageBox.confirm('将为符合条件的人员批量发起年审，是否继续？',
+    '确认批量年审', { type: 'warning' })
   saving.value = true
   try {
     const res = await annualReviewApi.batch({ ...b })

@@ -230,6 +230,8 @@ function reload() { pageNum.value = 1; load() }
 
 async function doBatch() {
   if (!bf.subsidyPeriod) { ElMessage.warning('请填写补贴周期'); return }
+  await ElMessageBox.confirm('将按所选标准批量发放补贴，涉及资金，是否继续？',
+    '确认批量发放', { type: 'warning' })
   saving.value = true
   try {
     const r = await subsidyApi.batchGrant({ ...bf })

@@ -1,0 +1,48 @@
+const puppeteer = require('puppeteer-core')
+const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+const BASE = 'http://192.168.31.11:8080'
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+;(async () => {
+  const b = await puppeteer.launch({ executablePath: EDGE, headless: 'new', args: ['--no-sandbox'] })
+  const page = await b.newPage()
+  await page.setViewport({ width: 1440, height: 800 })
+  await page.setCacheEnabled(false)
+  await page.goto(BASE + '/#/login', { waitUntil: 'networkidle2' })
+  await sleep(900)
+  await page.evaluate(() => {
+    const el = document.querySelectorAll('input')
+    const set = (i, v) => { el[i].focus(); el[i].value = v
+      el[i].dispatchEvent(new Event('input', { bubbles: true }))
+      el[i].dispatchEvent(new Event('change', { bubbles: true })); el[i].blur() }
+    set(0, '350600'); set(1, 'admin'); set(2, 'admin123')
+  })
+  await sleep(400)
+  await page.evaluate(() => {
+    const x = Array.from(document.querySelectorAll('button')).find((t) => /登\s*录/.test(t.innerText || ''))
+    if (x) x.click()
+  })
+  await page.waitForFunction(() => !!document.querySelector('.rail'), { timeout: 30000 })
+  await sleep(1500)
+  for (const [route, btn] of [['#/contracts', '新建合同'], ['#/houses', '新增房源'], ['#/fee-items', '新增计费规则']]) {
+    await page.evaluate((r) => { location.hash = r }, route)
+    await sleep(2800)
+    await page.evaluate((t) => {
+      const x = Array.from(document.querySelectorAll('button')).find((y) => y.innerText.trim() === t)
+      if (x) x.click()
+    }, btn)
+    await sleep(900)
+    const m = await page.evaluate(() => {
+      const d = Array.from(document.querySelectorAll('.el-dialog')).find((x) => x.offsetParent)
+      if (!d) return null
+      const body = d.querySelector('.el-dialog__body')
+      const footer = d.querySelector('.el-dialog__footer')
+      return { bodyScroll: body ? body.scrollHeight : 0, bodyClient: body ? body.clientHeight : 0,
+        footerBottom: footer ? Math.round(footer.getBoundingClientRect().bottom) : 0,
+        viewport: window.innerHeight }
+    })
+    console.log(route, btn, JSON.stringify(m))
+    await page.keyboard.press('Escape')
+    await sleep(400)
+  }
+  await b.close()
+})()
