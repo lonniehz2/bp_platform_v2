@@ -171,6 +171,10 @@ public class MeterReadingServiceImpl implements MeterReadingService {
                                         "EFFECTIVE", "RENEWING", "SIGNING")
                                 .orderByDesc(com.yundao.bp.biz.entity.BizContract::getId)
                                 .last("LIMIT 1"));
+        // 用量为 0 不生成 0 元账单（避免账单列表出现无意义单据）
+        if (e.getAmount() == null || e.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw BizException.paramInvalid("本次用量为 0，无需出账；请核对读数后再试");
+        }
         BillCreateCmd cmd = new BillCreateCmd(
                 e.getFeeItemId(), orgId,
                 contract == null ? null : contract.getId(), e.getHouseId(),

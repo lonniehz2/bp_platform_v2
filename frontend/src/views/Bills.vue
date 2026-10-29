@@ -345,9 +345,53 @@
     </el-dialog>
   </div>
 
-    <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
-      <DetailView :row="dvRow" />
+    <!-- 账单详情：结构化信息 + 计费说明 -->
+    <el-dialog v-model="dvVisible" title="账单详情" width="780px" top="6vh">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-weight:600">{{ dvRow.billNo }}</span>
+        <el-tag size="small" :type="dvRow.billStatus === 'PAID' ? 'success'
+          : (dvRow.billStatus === 'CANCELLED' ? 'info' : 'warning')">
+          {{ dvRow.billStatusLabel || dvRow.billStatus }}
+        </el-tag>
+        <span class="muted" v-if="dvRow.generateType">
+          生成方式：{{ dvRow.generateType === 'AUTO' ? '自动出账'
+            : (dvRow.generateType === 'METER' ? '抄表出账'
+            : (dvRow.generateType === 'SHARED' ? '公摊分摊'
+            : (dvRow.generateType === 'SHORT_RENT' ? '短租订单' : dvRow.generateType))) }}
+        </span>
+      </div>
+      <el-descriptions :column="2" border size="small">
+        <el-descriptions-item label="缴费人">
+          {{ dvRow.payerName || dvRow.personIdName || '—' }}
+          <span v-if="dvRow.payerPhone" class="muted">（{{ dvRow.payerPhone }}）</span>
+        </el-descriptions-item>
+        <el-descriptions-item label="合同">
+          {{ dvRow.contractIdName || dvRow.contractId || '—' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="房源">
+          {{ dvRow.houseIdName || dvRow.houseId || '—' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="收费项目">
+          {{ dvRow.feeItemIdName || dvRow.feeItemName || dvRow.feeItemId || '—' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="账期">{{ dvRow.billPeriod }}（{{ dvRow.periodStart }} ~ {{ dvRow.periodEnd }}）</el-descriptions-item>
+        <el-descriptions-item label="缴费截止">{{ dvRow.dueDate || '—' }}</el-descriptions-item>
+        <el-descriptions-item label="应收">{{ dvRow.billAmount }}</el-descriptions-item>
+        <el-descriptions-item label="已缴">{{ dvRow.paidAmount }}</el-descriptions-item>
+        <el-descriptions-item label="减免">{{ dvRow.waivedAmount }}</el-descriptions-item>
+        <el-descriptions-item label="待缴">{{ dvRow.payableAmount }}</el-descriptions-item>
+        <el-descriptions-item label="滞纳金">{{ dvRow.lateFee || 0 }}</el-descriptions-item>
+        <el-descriptions-item label="逾期天数">{{ dvRow.overdueDays || 0 }}</el-descriptions-item>
+      </el-descriptions>
+      <el-alert v-if="dvRow.remark" type="info" :closable="false" show-icon
+                style="margin-top:10px" title="计费说明">
+        <div style="white-space:pre-wrap">{{ dvRow.remark }}</div>
+      </el-alert>
+      <el-collapse style="margin-top:8px">
+        <el-collapse-item title="原始字段（排障用）">
+          <DetailView :row="dvRow" />
+        </el-collapse-item>
+      </el-collapse>
     </el-dialog>
 
     <!-- 能耗分析 -->

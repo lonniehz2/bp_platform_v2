@@ -177,11 +177,20 @@ step('旅程3', '存在计量类计费项', len(meters) >= 1, '共 %d 个' % len
 if house and meters:
     item = meters[0]
     prev = date.today() - timedelta(days=30)
+    # 取该房源+项目已有最大读数，避免重复运行导致本次用量为 0
+    st0, r0 = call('/fin/meter-readings?pageNum=1&pageSize=1&houseId=%s&feeItemId=%s'
+                   % (house['id'], item['id']), 'GET', None, admin)
+    base = 5000
+    if st0 == 200 and rows((st0, r0)):
+        try:
+            base = int(float(rows((st0, r0))[0].get('reading') or 5000)) + 100
+        except Exception:
+            base = 5000
     call('/fin/meter-readings', 'POST', {
-        'houseId': house['id'], 'feeItemId': item['id'], 'reading': 5000,
+        'houseId': house['id'], 'feeItemId': item['id'], 'reading': base,
         'readDate': str(prev)}, admin)
     st, r = call('/fin/meter-readings', 'POST', {
-        'houseId': house['id'], 'feeItemId': item['id'], 'reading': 5050,
+        'houseId': house['id'], 'feeItemId': item['id'], 'reading': base + 50,
         'readDate': str(date.today())}, admin)
     reading = data((st, r)) or {}
     step('旅程3', '录本期读数', st == 200 and reading.get('id'),
