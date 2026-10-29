@@ -320,6 +320,8 @@ const GLOBAL = {
 
 /** 同名不同义的覆盖（按字段名） */
 const TYPE_OVERRIDE = {
+  dataScope: { ALL: '全部数据', ORG: '本组织', ORG_SUB: '本组织及下级', SELF: '仅本人' },
+  userType: { STAFF: '工作人员', TENANT: '承租人', GOV: '政府', PLATFORM: '平台' },
   // 实名核验方式（后端 verifyType 是英文编码）
   verifyType: {
     FACE_COMPARE: '人脸比对',

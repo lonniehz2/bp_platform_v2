@@ -301,6 +301,13 @@ export const menuRoutes = [
     meta: { title: '运维操作台', icon: 'Tools', group: '系统与数据', perm: 'sys:ops:view' }
   },
   {
+    path: '/platform-info',
+    name: 'platforminfo',
+    component: () => import('@/views/PlatformInfo.vue'),
+    meta: { title: '平台信息', icon: 'OfficeBuilding', group: '系统与数据',
+            perm: 'platform:info:view' }
+  },
+  {
     path: '/help',
     name: 'help',
     component: () => import('@/views/Help.vue'),
