@@ -18,6 +18,16 @@
       <div class="toolbar" style="margin-bottom:10px">
         <el-input v-model="keyword" placeholder="关键字" clearable style="width:170px"
                   @keyup.enter="reload" />
+        <el-select v-model="flowFilter.flowType" placeholder="收支" clearable style="width:110px">
+          <el-option label="收入" value="INCOME" />
+          <el-option label="支出" value="EXPENSE" />
+        </el-select>
+        <el-select v-model="flowFilter.bizType" placeholder="业务类型" clearable style="width:130px">
+          <el-option v-for="(v, k) in BIZ_LABEL" :key="k" :label="v" :value="k" />
+        </el-select>
+        <el-date-picker v-model="flowFilter.dateRange" type="daterange" unlink-panels
+                        value-format="YYYY-MM-DD" start-placeholder="开始日"
+                        end-placeholder="结束日" style="width:250px" />
         <el-button type="primary" @click="reload">查询</el-button>
         <el-button @click="resetQuery">清空</el-button>
         <span class="muted">共 {{ total }} 条</span>
@@ -33,7 +43,19 @@
         <el-table-column prop="flowType" label="收支" width="100">
           <template #default="{ row }">{{ row.flowTypeLabel || enumLabel('flowType', row.flowType) }}</template>
         </el-table-column>
-        <el-table-column prop="amount" label="金额" width="110" />
+        <el-table-column label="金额" width="120" align="right">
+          <template #default="{ row }">
+            <span :style="Number(row.amount) < 0 ? 'color:#f56c6c' : 'color:#67c23a'">
+              {{ Number(row.amount).toFixed(2) }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="变动后余额" width="130" align="right">
+          <template #default="{ row }">{{ Number(row.balanceAfter || 0).toFixed(2) }}</template>
+        </el-table-column>
+        <el-table-column label="来源单据" width="180" show-overflow-tooltip>
+          <template #default="{ row }">{{ bizKind(row.bizType) }} {{ row.bizId || '' }}</template>
+        </el-table-column>
         <el-table-column prop="flowTime" label="时间" width="170" />
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
@@ -235,17 +257,27 @@ const saving = ref(false)
 // ---------------- 资金流水 ----------------
 const loading = ref(false)
 const rows = ref([])
+const BIZ_LABEL = { PAYMENT: '收款单', REFUND: '退款单', DEPOSIT: '押金', BILL: '账单',
+  SUBSIDY: '补贴', WAIVE: '减免', ADJUST: '调整', OTHER: '其他' }
+function bizKind(t) { return BIZ_LABEL[t] || t || '—' }
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(20)
 const keyword = ref('')
+const flowFilter = reactive({ flowType: '', bizType: '', dateRange: null })
 
 async function load() {
   loading.value = true
   try {
     const d = await financeApi.cashflow({
       pageNum: pageNum.value, pageSize: pageSize.value,
-      keyword: keyword.value || undefined
+      keyword: keyword.value || undefined,
+      flowType: flowFilter.flowType || undefined,
+      bizType: flowFilter.bizType || undefined,
+      dateFrom: flowFilter.dateRange && flowFilter.dateRange.length === 2
+        ? flowFilter.dateRange[0] : undefined,
+      dateTo: flowFilter.dateRange && flowFilter.dateRange.length === 2
+        ? flowFilter.dateRange[1] : undefined
     })
     rows.value = d.rows || d || []
     total.value = Number(d.total || rows.value.length || 0)
@@ -253,7 +285,14 @@ async function load() {
 }
 
 function reload() { pageNum.value = 1; load() }
-function resetQuery() { keyword.value = ''; pageNum.value = 1; load() }
+function resetQuery() {
+  keyword.value = ''
+  flowFilter.flowType = ''
+  flowFilter.bizType = ''
+  flowFilter.dateRange = null
+  pageNum.value = 1
+  load()
+}
 
 /** 流水核验：与渠道核对后标记 */
 async function doVerify(row) {
