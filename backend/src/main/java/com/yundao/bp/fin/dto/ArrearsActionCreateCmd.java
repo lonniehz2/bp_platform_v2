@@ -27,6 +27,9 @@ public record ArrearsActionCreateCmd(
 
         Integer overdueDays,
 
+        /** 组织（为空时按合同补） */
+        Long orgId,
+
         @NotBlank(message = "处置动作不能为空")
         @Pattern(regexp = "NOTIFY|FREEZE|UNFREEZE|RESTRICT|EXPIRE|LEGAL",
                 message = "处置动作不合法")

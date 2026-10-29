@@ -22,6 +22,9 @@ public class FinArrearsAction {
     private String tenantId;
     private String actionNo;
 
+    /** 组织：供按组织筛选 */
+    private Long orgId;
+
     private Long contractId;
     private Long personId;
 

@@ -84,7 +84,12 @@
         <el-form-item label="合同ID"><el-input v-model="dp.contractId"
                      @blur="fillFromContract" />
         </el-form-item>
-        <el-form-item label="人员ID"><PersonPicker v-model="dp.personId" width="240px" testid="person-picker" />
+        <el-form-item label="人员ID">
+          <PersonPicker v-model="dp.personId" width="240px"
+                        testid="person-picker" @update:model-value="fillFromPerson" />
+          <span v-if="dp.personId" class="muted" style="margin-left:8px;font-size:12px">
+            已带出人员ID：{{ dp.personId }}
+          </span>
         </el-form-item>
         <el-form-item label="应收押金"><el-input v-model.number="dp.depositAmount" />
         </el-form-item>
@@ -191,10 +196,28 @@ const depVisible = ref(false)
 const dp = reactive({ contractId: null, personId: null, depositAmount: null,
   paidAmount: 0, capAmount: 1000, isExempt: 0, exemptReason: '' })
 
+/** 选人员：带出其生效合同与应收押金 */
+async function fillFromPerson(pid) {
+  if (!pid) return
+  try {
+    const c = await req.get('/contracts/active-by-person/' + pid)
+    if (c) {
+      dp.contractId = c.id
+      if (c.depositAmount != null) dp.depositAmount = c.depositAmount
+      ElMessage.success('已带出合同 ' + (c.contractNo || c.id) + ' 与应收押金')
+    } else {
+      ElMessage.warning('该人员没有生效中的合同')
+    }
+  } catch (e) {
+    ElMessage.warning('未找到该人员的合同')
+  }
+}
+
 async function fillFromContract() {
   const cid = String(dp.contractId || '').trim()
+  if (!cid) return
   if (!/^\d+$/.test(cid)) {
-    if (cid) ElMessage.warning('合同ID应为数字，请从合同列表复制')
+    ElMessage.warning('合同ID为数字（可在合同列表复制）；也可改选人员，系统会自动带出合同')
     return
   }
   dp.contractId = cid

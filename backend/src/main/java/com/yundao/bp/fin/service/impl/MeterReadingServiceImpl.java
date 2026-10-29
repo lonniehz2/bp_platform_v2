@@ -90,7 +90,9 @@ public class MeterReadingServiceImpl implements MeterReadingService {
         FinMeterReading e = new FinMeterReading();
         e.setId(idGen.nextId());
         e.setTenantId(TenantContext.tenantId());
-        e.setOrgId(null);
+        com.yundao.bp.asset.entity.AssetHouse readingHouse = houseMapper == null
+                ? null : houseMapper.selectById(cmd.houseId());
+        e.setOrgId(readingHouse == null ? null : readingHouse.getOrgId());
         e.setHouseId(cmd.houseId());
         e.setFeeItemId(cmd.feeItemId());
         e.setReadDate(readDate);
@@ -120,7 +122,8 @@ public class MeterReadingServiceImpl implements MeterReadingService {
         LambdaQueryWrapper<FinMeterReading> qw = new LambdaQueryWrapper<FinMeterReading>()
                 .eq(houseId != null, FinMeterReading::getHouseId, houseId)
                 .eq(feeItemId != null, FinMeterReading::getFeeItemId, feeItemId)
-                .eq(orgId != null, FinMeterReading::getOrgId, orgId)
+                .apply(orgId != null, "house_id in (select id from bp_asset_house "
+                        + "where org_id = {0})", orgId)
                 .eq(billed != null, FinMeterReading::getBillStatus,
                         billed == null ? null : (billed ? "BILLED" : "UNBILLED"))
                 .orderByDesc(FinMeterReading::getReadDate);

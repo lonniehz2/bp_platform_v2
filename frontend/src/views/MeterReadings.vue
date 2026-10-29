@@ -185,7 +185,7 @@
         </el-table-column>
         <el-table-column label="房源" width="200">
           <template #default="{ row }">
-            <HouseSelect :model-value="row.houseId" width="100%"
+            <HouseSelect :model-value="row.houseId" :org-id="row.orgId" width="100%"
                          @update:model-value="(v) => onRowHouse(row, v)" />
           </template>
         </el-table-column>

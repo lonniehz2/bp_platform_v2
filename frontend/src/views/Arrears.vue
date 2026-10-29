@@ -170,11 +170,20 @@
     <!-- 新建处置 -->
     <el-dialog v-model="actionVisible" title="新建欠费处置" width="560px">
       <el-form :model="nf" label-width="120px">
-        <el-form-item label="合同ID" required>
-          <el-input v-model.number="nf.contractId" />
+        <el-form-item label="组织">
+          <el-select v-model="nf.orgId" filterable clearable style="width:100%"
+                     placeholder="按名称搜索组织">
+            <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName"
+                       :value="String(o.id)" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="人员ID" required>
-          <el-input v-model.number="nf.personId" />
+        <el-form-item label="合同" required>
+          <ContractSelect v-model="nf.contractId" width="100%"
+                          @update:model-value="() => fillFromArrears('contract')" />
+        </el-form-item>
+        <el-form-item label="人员" required>
+          <PersonPicker v-model="nf.personId" width="100%"
+                        @update:model-value="() => fillFromArrears('person')" />
         </el-form-item>
         <el-form-item label="欠费金额" required>
           <el-input v-model.number="nf.arrearsAmount" />
@@ -322,12 +331,44 @@ async function openScan() {
 }
 
 const actionVisible = ref(false)
-const nf = reactive({ contractId: undefined, personId: undefined,
+const nf = reactive({ orgId: '', contractId: undefined, personId: undefined,
   arrearsAmount: undefined, overdueDays: undefined, actionType: 'NOTIFY',
   freezeScope: 'EXCLUDE_MAIN_DOOR', confirmSafetyRisk: false })
 
+const orgOptions = ref([])
+async function loadOrgs() {
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 500 } })
+    orgOptions.value = (d && d.rows) || []
+  } catch (e) { orgOptions.value = [] }
+}
+
+/** 输入合同或人员后，自动带出欠费金额、逾期天数与另一方 */
+async function fillFromArrears(source) {
+  const params = {}
+  if (source === 'contract') {
+    params.contractId = nf.contractId || undefined
+  } else {
+    params.personId = nf.personId || undefined
+  }
+  if (!params.contractId && !params.personId) return
+  try {
+    const d = await req.get('/fin/arrears/summary', { params })
+    if (!d) return
+    if (source === 'contract') {
+      if (d.person_id) nf.personId = d.person_id
+    } else if (d.contract_id) {
+      nf.contractId = d.contract_id
+    }
+    if (d.org_id) nf.orgId = String(d.org_id)
+    if (d.amount != null) nf.arrearsAmount = Number(d.amount)
+    if (d.days != null) nf.overdueDays = Number(d.days)
+  } catch (e) { /* 保留手填 */ }
+}
+
 function openAction() {
-  Object.assign(nf, { contractId: undefined, personId: undefined,
+  loadOrgs()
+  Object.assign(nf, { orgId: '', contractId: undefined, personId: undefined,
     arrearsAmount: undefined, overdueDays: undefined, actionType: 'NOTIFY',
     freezeScope: 'EXCLUDE_MAIN_DOOR', confirmSafetyRisk: false })
   actionVisible.value = true

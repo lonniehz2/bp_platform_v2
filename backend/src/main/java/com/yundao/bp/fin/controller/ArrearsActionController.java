@@ -43,6 +43,34 @@ public class ArrearsActionController {
         return R.ok(service.scanArrears(minOverdueDays));
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    /** 按合同或人员汇总欠费金额与最长逾期天数（新建处置自动带出）。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:arrear:view")
+    @GetMapping("/summary")
+    public R<java.util.Map<String, Object>> summary(
+            @RequestParam(required = false) Long contractId,
+            @RequestParam(required = false) Long personId) {
+        java.util.Map<String, Object> out = new java.util.LinkedHashMap<>();
+        if (jdbc == null || (contractId == null && personId == null)) {
+            return R.ok(out);
+        }
+        String where = contractId != null ? "contract_id = ?" : "person_id = ?";
+        Long key = contractId != null ? contractId : personId;
+        java.util.List<java.util.Map<String, Object>> rows = jdbc.queryForList(
+                "select coalesce(sum(payable_amount),0) as amount, "
+                        + "coalesce(max(datediff(curdate(), due_date)),0) as days, "
+                        + "count(*) as bills, max(contract_id) as contract_id, "
+                        + "max(person_id) as person_id, max(org_id) as org_id "
+                        + "from bp_fin_bill where " + where + " and is_deleted = 0 "
+                        + "and bill_status in ('UNPAID','PARTIAL','OVERDUE')", key);
+        if (!rows.isEmpty()) {
+            out.putAll(rows.get(0));
+        }
+        return R.ok(out);
+    }
+
     @com.yundao.bp.iam.security.RequirePerm("fin:arrear:create")
     @PostMapping
     public R<ArrearsActionVO> create(@Valid @RequestBody ArrearsActionCreateCmd cmd) {

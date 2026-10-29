@@ -20,7 +20,7 @@
         <el-button type="primary" @click="reload">查询</el-button>
         <el-button @click="resetQuery">清空</el-button>
         <div class="spacer" />
-        <el-button type="success" @click="genVisible = true">批量出账</el-button>
+        <el-button type="success" @click="openGen">批量出账</el-button>
         <el-button type="warning" plain @click="batchDunning">批量催缴</el-button>
         <el-button type="warning" plain @click="openShared" data-testid="shared-bill">公摊分摊</el-button>
         <el-button plain @click="openEnergy" data-testid="bill-energy">能耗分析</el-button>
@@ -41,12 +41,17 @@
         </el-col>
       </el-row>
 
-      <el-table :data="rows" @selection-change="(v) => (selected = v)"
+      <el-table :data="rows" @selection-change="onSelect"
                 v-loading="loading" border size="small">
         <el-table-column type="selection" width="42" />
         <el-table-column prop="billNo" label="账单号" width="165" />
         <el-table-column prop="payerName" label="缴费人" width="95" />
         <el-table-column prop="billPeriod" label="账期" width="95" />
+        <el-table-column label="收费项目" width="140" show-overflow-tooltip>
+          <template #default="{ row }">
+            {{ row.feeItemIdName || row.feeItemName || row.feeItemId || '—' }}
+          </template>
+        </el-table-column>
         <el-table-column prop="billAmount" label="应收" width="90" />
         <el-table-column prop="paidAmount" label="已缴" width="90" />
         <el-table-column prop="waivedAmount" label="减免" width="85" />
@@ -426,6 +431,26 @@ async function doMeterBill(row) {
 }
 const rows = ref([])
 const selected = ref([])
+
+function onSelect(v) { selected.value = v || [] }
+
+async function loadGenOptions() {
+  try {
+    const org = await req.get('/orgs', { params: { pageNum: 1, pageSize: 500 } })
+    orgOptions.value = (org && org.rows) || []
+  } catch (e) { orgOptions.value = [] }
+  try {
+    const fi = await req.get('/fin/fee-items', { params: { pageNum: 1, pageSize: 200 } })
+    feeItems.value = (fi && fi.rows) || []
+  } catch (e) { feeItems.value = [] }
+}
+
+function openGen() {
+  Object.assign(g, { orgId: '', feeItemId: '', periodStart: '', periodEnd: '',
+    billPeriod: '', dryRun: false })
+  loadGenOptions()
+  genVisible.value = true
+}
 const total = ref(0)
 const q = reactive({ orgId: '', pageNum: 1, pageSize: 20, billStatus: '', billPeriod: '',
   houseId: '' })
@@ -627,9 +652,10 @@ async function dunning(row) {
 
 /** 批量催缴 */
 async function batchDunning() {
-  if (!selected.length) { ElMessage.warning('请先勾选账单'); return }
+  const picked = selected.value
+  if (!picked.length) { ElMessage.warning('请先勾选账单'); return }
   let ok = 0
-  for (const row of selected) {
+  for (const row of picked) {
     try {
       await req.post('/fin/dunnings', {
         billId: row.id, personId: row.personId || undefined,

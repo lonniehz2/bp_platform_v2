@@ -252,7 +252,8 @@ public class DisplayEnricher {
         return orgCache.computeIfAbsent(id, k -> {
             trim();
             IamOrg o = orgMapper.selectById(k);
-            return o == null ? "" : nullToEmpty(o.getOrgName());
+            // 组织已删除/历史错误 ID 时给可读兜底，避免列表出现裸 orgId
+            return o == null ? "组织#" + k : nullToEmpty(o.getOrgName());
         });
     }
 

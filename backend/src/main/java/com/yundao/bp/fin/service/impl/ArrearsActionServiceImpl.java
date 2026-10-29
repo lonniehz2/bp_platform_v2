@@ -146,6 +146,7 @@ public class ArrearsActionServiceImpl implements ArrearsActionService {
         e.setActionNo("FA" + id);
         e.setContractId(cmd.contractId());
         e.setPersonId(cmd.personId());
+        e.setOrgId(cmd.orgId());
         e.setArrearsAmount(money(cmd.arrearsAmount()));
         e.setOverdueDays(cmd.overdueDays() == null ? 0 : cmd.overdueDays());
         e.setTriggerType(cmd.triggerType() == null || cmd.triggerType().isBlank()
