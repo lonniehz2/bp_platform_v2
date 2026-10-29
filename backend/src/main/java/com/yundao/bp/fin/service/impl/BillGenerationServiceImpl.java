@@ -238,7 +238,7 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                 b.setBillStatus("UNPAID");
                 b.setOverdueDays(0);
                 b.setGenerateType("AUTO");
-                b.setRemark("批量出账：" + item.getItemName());
+                b.setRemark("批量出账：" + item.getItemName() + "；" + pro.detail());
                 b.setIsDeleted(0);
                 b.setCreateTime(now);
                 billMapper.insert(b);
@@ -415,7 +415,8 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                         .setScale(2, RoundingMode.HALF_UP);
                 b.setPayableAmount(payable.max(BigDecimal.ZERO));
                 b.setRemark((b.getRemark() == null ? "" : b.getRemark() + "；")
-                        + "按新规则重算：" + oldAmount + " → " + newAmount);
+                        + "按新规则重算：" + oldAmount + " → " + newAmount
+                        + "（" + pro.detail() + "）");
                 b.setUpdateTime(now);
                 billMapper.updateById(b);
             }

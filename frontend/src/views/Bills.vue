@@ -48,6 +48,11 @@
         <el-table-column prop="billNo" label="账单号" width="165" />
         <el-table-column prop="payerName" label="缴费人" width="95" />
         <el-table-column prop="billPeriod" label="账期" width="95" />
+        <el-table-column label="费用区间" width="200">
+          <template #default="{ row }">
+            {{ row.periodStart || '—' }} ~ {{ row.periodEnd || '—' }}
+          </template>
+        </el-table-column>
         <el-table-column label="收费项目" width="140" show-overflow-tooltip>
           <template #default="{ row }">
             {{ row.feeItemIdName || row.feeItemName || row.feeItemId || '—' }}
@@ -726,11 +731,18 @@ async function dunning(row) {
 /** 批量催缴 */
 /** 历史账单按新折算规则重算（仅未缴、自动生成，含二次确认） */
 async function recalcBills() {
-  await ElMessageBox.confirm(
-    '将按「逐月天数折算」规则重算未缴、自动生成的账单，并改写金额（已收/已缴账单不动）。是否继续？',
-    '确认重算历史账单', { type: 'warning' })
   saving.value = true
   try {
+    const pre = await req.post('/fin/bills/recalculate', { dryRun: true })
+    if (!pre.changed) {
+      ElMessage.info('没有需要重算的未缴自动账单（扫描 ' + pre.scanned + ' 张）')
+      return
+    }
+    await ElMessageBox.confirm(
+      '试算结果：扫描 ' + pre.scanned + ' 张，需重算 ' + pre.changed + ' 张，合计 '
+        + pre.oldTotal + ' → ' + pre.newTotal
+        + '。将按「逐月天数折算」改写应收/待缴金额（已收/已缴不动）。是否继续？',
+      '确认重算历史账单', { type: 'warning' })
     const r = await req.post('/fin/bills/recalculate', { dryRun: false })
     ElMessage.success('重算完成：扫描 ' + r.scanned + '，变更 ' + r.changed
       + '，合计 ' + r.oldTotal + ' → ' + r.newTotal)
