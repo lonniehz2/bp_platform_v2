@@ -117,17 +117,24 @@
         </template>
       </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="170" />
-      <el-table-column label="操作" width="420" fixed="right">
+      <el-table-column label="操作" width="230" fixed="right">
         <template #default="{ row }">
           <el-button v-if="row.orderStatus === 'PENDING'" link type="warning"
                      @click="autoAssign(row)" data-testid="wo-autoassign">自动派单</el-button>
           <el-button link type="primary" @click="act(row, 'accept')">接单</el-button>
-          <el-button link type="primary" @click="act(row, 'start')">开始</el-button>
           <el-button link type="success" @click="finish(row)">完成</el-button>
-          <el-button link type="success" @click="closeOrder(row)">关单</el-button>
-          <el-button link type="danger" @click="cancelOrder(row)">取消</el-button>
-          <el-button link type="warning" @click="rejectOrder(row)">退回</el-button>
-          <el-button link @click="logs(row)">日志</el-button>
+          <el-dropdown trigger="click" style="margin-left:8px">
+            <el-button link type="primary">更多▾</el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="act(row, 'start')">开始</el-dropdown-item>
+                <el-dropdown-item @click="closeOrder(row)">关单</el-dropdown-item>
+                <el-dropdown-item @click="cancelOrder(row)">取消</el-dropdown-item>
+                <el-dropdown-item @click="rejectOrder(row)">退回</el-dropdown-item>
+                <el-dropdown-item @click="logs(row)">日志</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </template>
       </el-table-column>
     </el-table>

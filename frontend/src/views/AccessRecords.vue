@@ -20,8 +20,14 @@
         <el-table-column prop="houseId" label="房源" width="110">
           <template #default="{ row }">{{ row.houseIdName || row.houseId }}</template>
         </el-table-column>
-        <el-table-column prop="personId" label="人员" width="110">
-          <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
+        <el-table-column label="人员" width="150">
+          <template #default="{ row }">
+            <span v-if="row.personIdName">{{ row.personIdName }}</span>
+            <span v-else-if="row.targetUserMobile" class="muted">
+              {{ row.targetUserMobile }}（未匹配人员）
+            </span>
+            <span v-else class="muted">未匹配</span>
+          </template>
         </el-table-column>
         <el-table-column prop="lockId" label="门锁" width="170">
           <template #default="{ row }">{{ row.lockIdName || row.lockId }}</template>

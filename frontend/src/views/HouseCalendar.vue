@@ -129,7 +129,7 @@
                 style="margin-bottom:12px" />
       <el-form :model="bf" label-width="100px">
         <el-form-item label="房源 ID" required>
-          <el-input v-model="bf.houseId" placeholder="可从列表行点「预订」自动带入" />
+          <HouseSelect v-model="bf.houseId" width="100%" placeholder="输入房源编号/名称搜索" />
         </el-form-item>
         <el-row :gutter="12">
           <el-col :span="12"><el-form-item label="入住日" required>
@@ -161,7 +161,7 @@
     <!-- 释放 -->
     <el-dialog v-model="releaseVisible" title="释放房态" width="520px">
       <el-form :model="rf" label-width="100px">
-        <el-form-item label="房源 ID" required><el-input v-model="rf.houseId" /></el-form-item>
+        <el-form-item label="房源" required><HouseSelect v-model="rf.houseId" width="100%" /></el-form-item>
         <el-row :gutter="12">
           <el-col :span="12"><el-form-item label="起始日" required>
             <el-date-picker v-model="rf.checkIn" type="date" value-format="YYYY-MM-DD"
@@ -183,7 +183,7 @@
                 title="按日期区间批量操作；已预订/已入住的日期不会被改价覆盖" />
       <el-form :model="rf2" label-width="96px" style="margin-top:12px">
         <el-form-item label="房源 ID" required>
-          <el-input v-model="rf2.houseId" placeholder="从列表行点「批量设置」自动带入" />
+          <HouseSelect v-model="rf2.houseId" width="100%" placeholder="输入房源编号/名称搜索" />
         </el-form-item>
         <el-row :gutter="12">
           <el-col :span="12"><el-form-item label="开始日期" required>
@@ -222,6 +222,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { calendarApi } from '@/api/modules'
 import req from '@/api/request'
+import HouseSelect from '@/components/HouseSelect.vue'
 
 const loading = ref(false)
 const saving = ref(false)

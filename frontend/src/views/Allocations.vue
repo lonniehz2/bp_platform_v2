@@ -47,7 +47,7 @@
         </el-table-column>
         <el-table-column prop="houseCount" label="房源数" width="90" />
         <el-table-column prop="applicantCount" label="参与人数" width="100" />
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column label="操作" width="300" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
             <el-button link type="primary" @click="openAddHouses(row)" data-testid="batch-add-house">加房源</el-button>
@@ -60,13 +60,21 @@
             <el-button v-if="row.batchStatus === 'SIGNUP'" link type="warning"
                        @click="doTransition(row, 'LOTTERY')"
                        data-testid="batch-to-lottery">结束报名</el-button>
-            <el-button v-if="['DRAFT','PUBLISHED','SIGNUP'].includes(row.batchStatus)"
-                       link type="danger" @click="doTransition(row, 'CANCELLED')">取消</el-button>
+            <el-dropdown trigger="click" style="margin-left:8px">
+              <el-button link type="primary">更多▾</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item v-if="['DRAFT','PUBLISHED','SIGNUP'].includes(row.batchStatus)"
+                                    @click="doTransition(row, 'CANCELLED')">取消批次</el-dropdown-item>
+                  <el-dropdown-item @click="viewResults(row)">查看结果</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
             <el-button link type="primary" @click="runLottery(row)">摇号</el-button>
             <el-button v-if="['LOTTERY_DONE','ALLOCATED','SELECTING'].includes(row.batchStatus)"
                        link type="success" data-testid="batch-gen-alloc"
                        @click="genAllocations(row)">生成配租单</el-button>
-            <el-button link @click="viewResults(row)">结果</el-button>
+
           </template>
         </el-table-column>
       </el-table>

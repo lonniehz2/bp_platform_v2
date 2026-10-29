@@ -34,7 +34,9 @@
 <el-table :data="persons" border size="small" max-height="380">
           <el-table-column prop="id" label="ID" width="180" />
           <el-table-column prop="personName" label="姓名" width="120" />
-          <el-table-column prop="phone" label="手机" width="140" />
+          <el-table-column label="手机" width="140">
+          <template #default="{ row }">{{ row.phone || '—' }}</template>
+        </el-table-column>
           <el-table-column prop="personStatus" label="状态" width="120">
             <template #default="{ row }">{{ row.personStatusLabel || enumLabel('personStatus', row.personStatus) }}</template>
           </el-table-column>

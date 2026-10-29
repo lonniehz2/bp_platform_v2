@@ -30,14 +30,21 @@
       <el-table-column prop="personIdName" label="申请人" width="120">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="420" fixed="right">
+      <el-table-column label="操作" width="230" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
           <el-button link type="primary" @click="actReason(row, '/api/v1/appeals/{id}/accept', '受理')">受理</el-button>
-          <el-button link type="primary" @click="actReason(row, '/api/v1/appeals/{id}/investigate', '调查')">调查</el-button>
-          <el-button link type="primary" @click="actReason(row, '/api/v1/appeals/{id}/decide', '决定')">决定</el-button>
-          <el-button link @click="actPlain(row, '/api/v1/appeals/{id}/notify', '通知')">通知</el-button>
-          <el-button link type="primary" @click="actReason(row, '/api/v1/appeals/{id}/withdraw', '撤回')">撤回</el-button>
+          <el-dropdown trigger="click" style="margin-left:8px">
+            <el-button link type="primary">更多▾</el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="actReason(row, '/api/v1/appeals/{id}/investigate', '调查')">调查</el-dropdown-item>
+                <el-dropdown-item @click="actReason(row, '/api/v1/appeals/{id}/decide', '决定')">决定</el-dropdown-item>
+                <el-dropdown-item @click="actPlain(row, '/api/v1/appeals/{id}/notify', '通知')">通知</el-dropdown-item>
+                <el-dropdown-item @click="actReason(row, '/api/v1/appeals/{id}/withdraw', '撤回')">撤回</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </template>
       </el-table-column>
     </el-table>

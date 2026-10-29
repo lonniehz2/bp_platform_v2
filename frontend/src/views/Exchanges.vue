@@ -35,14 +35,21 @@
       <el-table-column prop="exchangeStatus" label="状态" width="110">
         <template #default="{ row }">{{ row.exchangeStatusLabel || enumLabel('exchangeStatus', row.exchangeStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="424" fixed="right">
+      <el-table-column label="操作" width="230" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
           <el-button link @click="actPlain(row, '/api/v1/exchanges/{id}/submit', '提交')">提交</el-button>
-          <el-button link type="primary" @click="actReason(row, '/api/v1/exchanges/{id}/approve', '批准')">批准</el-button>
-          <el-button link type="primary" @click="actReason(row, '/api/v1/exchanges/{id}/reject', '驳回')">驳回</el-button>
-          <el-button link @click="actPlain(row, '/api/v1/exchanges/{id}/complete', '完成')">完成</el-button>
-          <el-button link type="primary" @click="actReason(row, '/api/v1/exchanges/{id}/no-exchange', '登记')">应换不换</el-button>
+          <el-dropdown trigger="click" style="margin-left:8px">
+            <el-button link type="primary">更多▾</el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="actReason(row, '/api/v1/exchanges/{id}/approve', '批准')">批准</el-dropdown-item>
+                <el-dropdown-item @click="actReason(row, '/api/v1/exchanges/{id}/reject', '驳回')">驳回</el-dropdown-item>
+                <el-dropdown-item @click="actPlain(row, '/api/v1/exchanges/{id}/complete', '完成')">完成</el-dropdown-item>
+                <el-dropdown-item @click="actReason(row, '/api/v1/exchanges/{id}/no-exchange', '登记')">应换不换</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </template>
       </el-table-column>
     </el-table>

@@ -74,7 +74,7 @@
           <el-col :span="12"><el-form-item label="关联人员 ID">
             <PersonPicker v-model="form.personId" width="240px" testid="person-picker" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="组织 ID">
-            <el-input v-model="form.orgId" /></el-form-item></el-col>
+            <OrgSelect v-model="form.orgId" width="100%" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="提交人姓名">
             <el-input v-model="form.submitterName" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="联系电话">
@@ -113,6 +113,7 @@ import { ref, reactive, onMounted } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
+import OrgSelect from '@/components/OrgSelect.vue'
 
 const loading = ref(false)
 const saving = ref(false)

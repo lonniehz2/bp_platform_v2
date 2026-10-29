@@ -66,7 +66,7 @@
           <el-input v-model="ef.applicationId"
                     placeholder="已通过的申请单，可为空" /></el-form-item>
         <el-form-item label="组织ID" required>
-          <el-input v-model="ef.orgId" /></el-form-item>
+          <OrgSelect v-model="ef.orgId" width="100%" /></el-form-item>
         <el-form-item label="保障类型" required>
           <el-select v-model="ef.securityType" style="width:100%">
             <el-option label="公租房" value="PUBLIC" />
@@ -101,6 +101,7 @@ import { ref, reactive, onMounted, watch } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
+import OrgSelect from '@/components/OrgSelect.vue'
 import { enumLabel } from '@/constants/enums'
 import DetailView from '@/components/DetailView.vue'
 

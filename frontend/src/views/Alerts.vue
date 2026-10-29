@@ -30,14 +30,21 @@
         <template #default="{ row }">{{ row.alertStatusLabel || enumLabel('alertStatus', row.alertStatus) }}</template>
       </el-table-column>
       <el-table-column prop="alertContent" label="内容" width="200" />
-      <el-table-column label="操作" width="424" fixed="right">
+      <el-table-column label="操作" width="210" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
           <el-button link type="warning" @click="actAction(row, '/api/v1/alerts/{id}/handle', '处理')">处理</el-button>
-          <el-button link type="warning" @click="actAction(row, '/api/v1/alerts/{id}/resolve', '解决')">解决</el-button>
-          <el-button link type="warning" @click="actAction(row, '/api/v1/alerts/{id}/ignore', '忽略')">忽略</el-button>
-          <el-button link type="warning" @click="actAction(row, '/api/v1/alerts/{id}/escalate', '升级')">升级</el-button>
-          <el-button link type="warning" @click="actAction(row, '/api/v1/alerts/{id}/to-workorder', '转工单')">转工单</el-button>
+          <el-dropdown trigger="click" style="margin-left:8px">
+            <el-button link type="primary">更多▾</el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="actAction(row, '/api/v1/alerts/{id}/resolve', '解决')">解决</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/api/v1/alerts/{id}/ignore', '忽略')">忽略</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/api/v1/alerts/{id}/escalate', '升级')">升级</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/api/v1/alerts/{id}/to-workorder', '转工单')">转工单</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </template>
       </el-table-column>
     </el-table>
@@ -256,7 +263,7 @@
             <el-input v-model="form.alertType" data-testid="f-alertType"
                       placeholder="如 ARREAR_RATE / DEVICE_OFFLINE" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="组织 ID">
-            <el-input v-model="form.orgId" /></el-form-item></el-col>
+            <OrgSelect v-model="form.orgId" width="100%" /></el-form-item></el-col>
           <el-col :span="24"><el-form-item label="告警标题" required>
             <el-input v-model="form.alertTitle" data-testid="f-alertTitle"
                       placeholder="一句话说明问题，≤255 字符" /></el-form-item></el-col>
@@ -268,7 +275,7 @@
           <el-col :span="12"><el-form-item label="阈值">
             <el-input v-model="form.thresholdValue" placeholder="如 10%" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="关联房源 ID">
-            <el-input v-model="form.houseId" /></el-form-item></el-col>
+            <HouseSelect v-model="form.houseId" width="100%" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="关联人员 ID">
             <PersonPicker v-model="form.personId" width="240px" testid="person-picker" /></el-form-item></el-col>
         </el-row>
@@ -306,6 +313,8 @@ import { ref, reactive, onMounted } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
+import HouseSelect from '@/components/HouseSelect.vue'
+import OrgSelect from '@/components/OrgSelect.vue'
 
 const loading = ref(false)
 const saving = ref(false)

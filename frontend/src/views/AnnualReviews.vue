@@ -47,7 +47,7 @@
       <el-form :model="b" label-width="110px">
         <el-form-item label="复核年度"><el-input v-model="b.reviewYear"
           placeholder="2026" /></el-form-item>
-        <el-form-item label="组织ID"><el-input v-model="b.orgId" /></el-form-item>
+        <el-form-item label="组织"><OrgSelect v-model="b.orgId" width="100%" /></el-form-item>
         <el-form-item label="批次号"><el-input v-model="b.reviewBatch" /></el-form-item>
         <el-form-item label="试算（不落库）">
           <el-switch v-model="b.dryRun" /></el-form-item>
@@ -99,6 +99,7 @@ import DetailView from '@/components/DetailView.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { annualReviewApi } from '@/api/modules'
 import req from '@/api/request'
+import OrgSelect from '@/components/OrgSelect.vue'
 
 const loading = ref(false)
 const saving = ref(false)

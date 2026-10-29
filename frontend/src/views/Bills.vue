@@ -66,13 +66,20 @@
           </template>
         </el-table-column>
         <el-table-column prop="overdueDays" label="逾期" width="70" />
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
             <el-button link type="primary" @click="openAllocate(row)">核销</el-button>
-            <el-button link type="warning" @click="openWaive(row)">减免</el-button>
-            <el-button link type="danger" @click="cancelBill(row)">取消</el-button>
-            <el-button link @click="dunning(row)">催缴</el-button>
+            <el-dropdown trigger="click" style="margin-left:8px">
+              <el-button link type="primary">更多▾</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="openWaive(row)">减免</el-dropdown-item>
+                  <el-dropdown-item @click="cancelBill(row)">取消</el-dropdown-item>
+                  <el-dropdown-item @click="dunning(row)">催缴</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>

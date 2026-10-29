@@ -166,9 +166,24 @@ function openCreate() {
   openForm('走访登记', fields, (m) => visitApi.create(m))
 }
 async function report(row) {
-  await visitApi.report(row.id, {})
-  ElMessage.success('已登记报告')
-  load()
+  const defs = [
+    { key: 'visitStatus', label: '走访状态', type: 'select', default: 'DONE',
+      options: [{ label: '完成', value: 'DONE' }, { label: '拒访', value: 'REFUSED' },
+        { label: '不在家', value: 'ABSENT' }, { label: '取消', value: 'CANCELLED' }] },
+    { key: 'actualDate', label: '实际日期', type: 'date' },
+    { key: 'isOccupied', label: '是否在家', type: 'select', default: 1,
+      options: [{ label: '在家', value: 1 }, { label: '不在', value: 0 }] },
+    { key: 'actualResidents', label: '实际居住人数', type: 'number' },
+    { key: 'matchResult', label: '人房匹配', type: 'select', default: 'MATCH',
+      options: [{ label: '匹配', value: 'MATCH' }, { label: '不匹配', value: 'MISMATCH' },
+        { label: '未知', value: 'UNKNOWN' }] },
+    { key: 'findings', label: '发现问题', type: 'textarea',
+      ph: '如：转租、空置、违规使用，无则留空' },
+    { key: 'nextAction', label: '后续动作', type: 'textarea', ph: '如：转工单整改' }
+  ]
+  openForm('登记走访报告 · ' + (row.houseName || row.houseId), defs,
+    (m) => visitApi.report(row.id, m),
+    { actualDate: new Date().toISOString().slice(0, 10) })
 }
 
 function resetQuery() {

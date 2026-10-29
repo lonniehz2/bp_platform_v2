@@ -173,7 +173,7 @@
       <el-form :model="bf" label-width="110px">
         <el-form-item label="补贴周期">
           <el-input v-model="bf.subsidyPeriod" placeholder="2026-10" /></el-form-item>
-        <el-form-item label="组织ID"><el-input v-model="bf.orgId" /></el-form-item>
+        <el-form-item label="组织"><OrgSelect v-model="bf.orgId" width="100%" /></el-form-item>
         <el-form-item label="发放方式">
           <el-select v-model="bf.payMode" style="width:100%">
             <el-option label="银行代发" value="BANK" />
@@ -201,6 +201,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { subsidyApi } from '@/api/modules'
 import req from '@/api/request'
+import OrgSelect from '@/components/OrgSelect.vue'
 
 const loading = ref(false)
 const saving = ref(false)

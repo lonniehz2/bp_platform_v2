@@ -46,7 +46,7 @@
                 <span v-if="row.visitLimitTimes">
                   {{ row.visitUsedTimes || 0 }}/{{ row.visitLimitTimes }}
                 </span>
-                <span v-else class="muted">—</span>
+                <span v-else class="muted">不限</span>
               </template>
             </el-table-column>
             <el-table-column prop="grantStatus" label="状态" width="110">
