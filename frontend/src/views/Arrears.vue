@@ -216,7 +216,7 @@
 
     
 
-    <el-drawer v-model="show" title="欠费处置详情" size="560px">
+    <el-drawer v-model="show" title="欠费处置详情" size="720px">
       <div v-if="arrearBills.length" style="margin-bottom:12px">
         <div style="font-weight:600;margin-bottom:6px">欠费账单（未缴）</div>
         <el-table :data="arrearBills" size="small" border max-height="240">
@@ -226,11 +226,24 @@
             <template #default="{ row }">{{ row.periodStart }} ~ {{ row.periodEnd }}</template>
           </el-table-column>
           <el-table-column prop="payableAmount" label="待缴" width="85" />
-          <el-table-column prop="dueDate" label="截止日" width="105" />
+          <el-table-column prop="dueDate" label="截止日" width="100" />
+          <el-table-column label="" width="90">
+            <template #default="{ row }">
+              <el-button link type="primary" @click="showExplain(row)">计费明细</el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
       <DetailView :row="detail || {}" />
     </el-drawer>
+
+    <el-dialog v-model="explainVisible" title="计费明细" width="640px" append-to-body>
+      <div style="font-weight:600;margin-bottom:8px">{{ explainBillNo }}</div>
+      <el-table :data="explainRows" size="small" border>
+        <el-table-column prop="label" label="项目" width="130" />
+        <el-table-column prop="value" label="值" />
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -427,6 +440,19 @@ const overdueDays = ref(3)
 const show = ref(false)
 const detail = ref(null)
 const arrearBills = ref([])
+const explainVisible = ref(false)
+const explainRows = ref([])
+const explainBillNo = ref('')
+
+async function showExplain(bill) {
+  explainBillNo.value = bill.billNo
+  explainRows.value = []
+  explainVisible.value = true
+  try {
+    const e = await req.get('/fin/bills/' + bill.id + '/explain')
+    explainRows.value = (e && e.lines) || []
+  } catch (err) { explainRows.value = [] }
+}
 
 async function openArrearsDetail(row) {
   detail.value = row

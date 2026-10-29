@@ -29,6 +29,12 @@
         <template #default="{ row }">{{ row.payModeLabel || enumLabel('payMode', row.payMode) }}</template>
       </el-table-column>
       <el-table-column prop="subsidyPeriod" label="周期" width="100" />
+      <el-table-column label="补贴标准" width="170" show-overflow-tooltip>
+        <template #default="{ row }">{{ row.standardIdName || row.standardId || '—' }}</template>
+      </el-table-column>
+      <el-table-column label="合同" width="160" show-overflow-tooltip>
+        <template #default="{ row }">{{ row.contractIdName || row.contractId || '—' }}</template>
+      </el-table-column>
       <el-table-column prop="subsidyAmount" label="金额" width="100" />
       <el-table-column prop="recordStatus" label="状态" width="110">
         <template #default="{ row }">
