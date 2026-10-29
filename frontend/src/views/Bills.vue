@@ -118,9 +118,45 @@
       </el-form>
       <el-alert type="info" :closable="false" show-icon
                 title="会按计费项目的 7 种计费方式逐户计算；缺面积/抄表数据会明确报错并指明房源" />
+      <el-alert type="info" :closable="false" show-icon style="margin:4px 0 10px"
+                title="同「合同 + 收费项目 + 账期」已生成过账单会自动跳过，可安全重复执行" />
+      <div class="muted" style="font-size:12px;line-height:1.8;margin-bottom:6px">
+        <b>计算公式（按收费项目）：</b>
+        <div v-for="f in FORMULAS" :key="f.mode">
+          <span :style="f.mode === selectedCalcMode ? 'color:#409eff;font-weight:600' : ''">
+            {{ f.label }}：{{ f.text }}
+          </span>
+        </div>
+      </div>
       <template #footer>
         <el-button @click="genVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="doGenerate">开始出账</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 批量出账结果 -->
+    <el-dialog v-model="genResultVisible" title="出账结果" width="760px">
+      <el-alert v-if="genResult" :closable="false" show-icon
+                :type="genResult.skipped ? 'warning' : 'success'"
+                :title="'生成 ' + (genResult.generated || 0) + ' 张' +
+                  (genResult.skipped ? '，跳过 ' + genResult.skipped + ' 张（已出过账或不符合条件）' : '') +
+                  (genResult.totalAmount != null ? '，合计 ' + genResult.totalAmount + ' 元' : '')" />
+      <el-table v-if="genResult && genResult.items" :data="genResult.items" size="small"
+                border max-height="360" style="margin-top:10px">
+        <el-table-column prop="contractNo" label="合同" width="170" />
+        <el-table-column prop="amount" label="金额" width="100" />
+        <el-table-column prop="status" label="结果" width="90">
+          <template #default="{ row }">
+            <el-tag size="small" :type="row.status === 'OK' ? 'success' : 'warning'">
+              {{ row.status === 'OK' ? '已生成' : '跳过' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="explain" label="计算过程" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="reason" label="跳过原因" min-width="160" show-overflow-tooltip />
+      </el-table>
+      <template #footer>
+        <el-button type="primary" @click="genResultVisible = false">知道了</el-button>
       </template>
     </el-dialog>
 
@@ -452,6 +488,22 @@ async function loadGenOptions() {
   } catch (e) { feeItems.value = [] }
 }
 
+const FORMULAS = [
+  { mode: 'FIXED', label: '固定额', text: '固定金额 × 月数' },
+  { mode: 'BY_AREA', label: '按面积', text: '建筑面积 × 单价 × 月数' },
+  { mode: 'BY_HOUSE', label: '按套', text: '单价 × 套数 × 月数' },
+  { mode: 'BY_PERSON', label: '按人', text: '在住人数 × 单价 × 月数' },
+  { mode: 'BY_BED', label: '按床位', text: '床位数 × 单价 × 月数' },
+  { mode: 'BY_NIGHT', label: '按夜', text: '天数 × 单价' },
+  { mode: 'METER', label: '按抄表', text: '(本次读数 − 上次读数) × 单价' }
+]
+const genResultVisible = ref(false)
+const genResult = ref(null)
+const selectedCalcMode = computed(() => {
+  const f = feeItems.value.find((x) => String(x.id) === String(g.feeItemId))
+  return f ? f.calcMode : ''
+})
+
 function openGen() {
   Object.assign(g, { orgId: '', feeItemId: '', periodStart: '', periodEnd: '',
     billPeriod: '', dryRun: false })
@@ -587,16 +639,21 @@ async function load() {
 function reload() { q.pageNum = 1; load() }
 
 async function doGenerate() {
+  if (!g.feeItemId) { ElMessage.warning('请选择收费项目'); return }
+  if (!g.periodStart || !g.periodEnd) { ElMessage.warning('请选择费用起止日'); return }
+  if (g.periodEnd <= g.periodStart) { ElMessage.warning('费用截止日必须晚于起始日'); return }
   saving.value = true
   try {
     const r = await financeApi.generate({
       orgId: g.orgId || undefined, feeItemId: g.feeItemId,
       periodStart: g.periodStart, periodEnd: g.periodEnd,
-      billPeriod: g.periodStart ? g.periodStart.slice(0, 7).replace('-', '') : g.billPeriod,
+      billPeriod: g.periodStart.slice(0, 7).replace('-', ''),
       dryRun: !!g.dryRun
     })
-    ElMessage.success('出账完成：生成 ' + (r?.generated ?? r?.count ?? '-') + ' 张')
-    genVisible.value = false; load()
+    genResult.value = r
+    genResultVisible.value = true
+    genVisible.value = false
+    load()
   } finally { saving.value = false }
 }
 

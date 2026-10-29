@@ -203,11 +203,11 @@ function reload() { pageNum.value = 1; load() }
 async function doCreate() {
   // 必填项与后端 ExchangeCreateCmd 一致
   const missing = []
-  if (!form.personId) missing.push('人员 ID')
+  if (!form.personId) missing.push('换房人员')
   if (!form.exchangeType) missing.push('换房类型')
-  if (!form.oldContractId) missing.push('原合同 ID')
-  if (!form.oldHouseId) missing.push('原房源 ID')
-  if (!form.newHouseId) missing.push('新房源 ID')
+  if (!form.oldContractId) missing.push('原合同')
+  if (!form.oldHouseId) missing.push('原房源')
+  if (!form.newHouseId) missing.push('新房源')
   if (missing.length) { ElMessage.warning('请填写：' + missing.join('、')); return }
   saving.value = true
   try {

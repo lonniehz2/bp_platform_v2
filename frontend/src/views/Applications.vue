@@ -244,6 +244,15 @@ function openCreate() {
 }
 
 async function save() {
+  const missing = []
+  if (!form.personId) missing.push('申请人')
+  if (!form.orgId) missing.push('受理组织')
+  if (!form.houseId) missing.push('意向房源')
+  if (!form.securityType) missing.push('保障类型')
+  if (missing.length) {
+    ElMessage.warning('请填写：' + missing.join('、'))
+    return
+  }
   saving.value = true
   try {
     await applicationApi.create({ ...form })
