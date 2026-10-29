@@ -374,35 +374,36 @@ public class GovReportServiceImpl implements GovReportService {
             com.baomidou.mybatisplus.extension.toolkit.Db.saveBatch(list, 500);
             return;
         }
-        String sql = "insert into bp_gov_report_detail (id, tenant_id, task_id, biz_type, "
-                + "biz_id, external_id, sync_status, error_code, error_msg, request_data, "
-                + "response_data, create_time) values (?,?,?,?,?,?,?,?,?,?,?,?)";
-        jdbc.batchUpdate(sql, new org.springframework.jdbc.core.BatchPreparedStatementSetter() {
-            @Override
-            public void setValues(java.sql.PreparedStatement ps, int i)
-                    throws java.sql.SQLException {
+        final int chunk = 200;
+        for (int from = 0; from < list.size(); from += chunk) {
+            int to = Math.min(from + chunk, list.size());
+            StringBuilder sql = new StringBuilder(
+                    "insert into bp_gov_report_detail (id, tenant_id, task_id, biz_type, "
+                            + "biz_id, external_id, sync_status, error_code, error_msg, "
+                            + "request_data, response_data, create_time) values ");
+            java.util.List<Object> args = new java.util.ArrayList<>();
+            for (int i = from; i < to; i++) {
                 GovReportDetail d = list.get(i);
-                ps.setLong(1, d.getId());
-                ps.setString(2, d.getTenantId());
-                ps.setLong(3, d.getTaskId());
-                ps.setString(4, d.getBizType());
-                ps.setLong(5, d.getBizId() == null ? 0L : d.getBizId());
-                ps.setString(6, d.getExternalId());
-                ps.setString(7, d.getSyncStatus());
-                ps.setString(8, d.getErrorCode());
-                ps.setString(9, d.getErrorMsg());
-                ps.setString(10, d.getRequestData());
-                ps.setObject(11, null);
-                ps.setObject(12, java.sql.Timestamp.valueOf(
-                        d.getCreateTime() == null
-                                ? java.time.LocalDateTime.now() : d.getCreateTime()));
+                if (i > from) {
+                    sql.append(",");
+                }
+                sql.append("(?,?,?,?,?,?,?,?,?,?,?,?)");
+                args.add(d.getId());
+                args.add(d.getTenantId());
+                args.add(d.getTaskId());
+                args.add(d.getBizType());
+                args.add(d.getBizId() == null ? 0L : d.getBizId());
+                args.add(d.getExternalId());
+                args.add(d.getSyncStatus());
+                args.add(d.getErrorCode());
+                args.add(d.getErrorMsg());
+                args.add(d.getRequestData());
+                args.add(null);
+                args.add(java.sql.Timestamp.valueOf(d.getCreateTime() == null
+                        ? java.time.LocalDateTime.now() : d.getCreateTime()));
             }
-
-            @Override
-            public int getBatchSize() {
-                return list.size();
-            }
-        });
+            jdbc.update(sql.toString(), args.toArray());
+        }
     }
 
     private void writeAdapterLog(GovAdapterConfig a, GovReportTask t, int ok, int fail,
