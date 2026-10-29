@@ -12,6 +12,9 @@ public interface MeterReadingService {
 
     PageResult<FinMeterReading> page(long pageNum, long pageSize, Long houseId, Long feeItemId);
 
+    PageResult<FinMeterReading> page(long pageNum, long pageSize, Long houseId, Long feeItemId,
+                                    Long orgId, Boolean billed);
+
     /** 按读数生成账单。 */
     BillVO bill(Long readingId);
 

@@ -234,8 +234,14 @@ public class FeeItemServiceImpl implements FeeItemService {
 
     @Override
     public List<FinBillingRule> listRules(Long feeItemId, String houseType) {
+        return listRules(feeItemId, houseType, null);
+    }
+
+    @Override
+    public List<FinBillingRule> listRules(Long feeItemId, String houseType, Long orgId) {
         return ruleMapper.selectList(new LambdaQueryWrapper<FinBillingRule>()
                 .eq(feeItemId != null, FinBillingRule::getFeeItemId, feeItemId)
+                .eq(orgId != null, FinBillingRule::getOrgId, orgId)
                 .eq(houseType != null && !houseType.isBlank(),
                         FinBillingRule::getHouseType, houseType)
                 .eq(FinBillingRule::getStatus, "ENABLED")

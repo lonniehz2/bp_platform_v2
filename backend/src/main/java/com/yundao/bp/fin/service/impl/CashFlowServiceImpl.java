@@ -65,7 +65,8 @@ public class CashFlowServiceImpl implements CashFlowService {
         e.setBizType(bizType.name());
         e.setBizId(bizId);
         e.setAmount(signed);
-        e.setBalanceAfter(balanceAfter(now));
+        e.setBalanceAfter(balanceAfter(now).add(signed)
+                .setScale(2, RoundingMode.HALF_UP));
         e.setFlowTime(now);
         e.setVerifyStatus(VerifyStatus.UNVERIFIED.name());
         e.setVerifyRemark(remark);

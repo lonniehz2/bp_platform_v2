@@ -204,6 +204,11 @@
     <!-- 规则列表 -->
     <el-dialog v-model="ruleVisible" title="计费规则" width="720px">
       <div class="toolbar" style="margin-bottom:8px">
+        <el-select v-model="rf.orgId" placeholder="组织" clearable filterable
+                   style="width:200px" @change="loadRules" data-testid="rule-org">
+          <el-option v-for="o in ruleOrgOptions" :key="o.id" :label="o.orgName"
+                     :value="String(o.id)" />
+        </el-select>
         <FeeItemSelect v-model="rf.feeItemId" width="210px" testid="feeitemselect" />
         <el-input v-model="rf.houseType" placeholder="房源类型，如 PUBLIC_RENTAL" clearable
                   style="width:230px" data-testid="rule-housetype" @keyup.enter="loadRules" />
@@ -214,6 +219,9 @@
       <el-table :data="rules" border size="small" max-height="420">
         <el-table-column prop="ruleCode" label="规则编码" width="140" />
         <el-table-column prop="ruleName" label="规则名称" min-width="130" />
+        <el-table-column label="组织" width="150">
+          <template #default="{ row }">{{ row.orgIdName || row.orgId || '—' }}</template>
+        </el-table-column>
         <el-table-column label="计费项目" width="150">
           <template #default="{ row }">{{ itemNameOf(row.feeItemId) }}</template>
         </el-table-column>
@@ -330,6 +338,14 @@ const rows = ref([])
  *  命名为 ff 以避开创建表单对象 f */
 const ff = reactive({ keyword: '', itemType: '', calcMode: '' })
 const rules = ref([])
+const ruleOrgOptions = ref([])
+
+async function loadRuleOrgs() {
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 500 } })
+    ruleOrgOptions.value = (d && d.rows) || []
+  } catch (e) { ruleOrgOptions.value = [] }
+}
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(20)
@@ -339,6 +355,8 @@ const ruleVisible = ref(false)
 /** 规则列表筛选（后端 /fin/billing-rules 支持 feeItemId / houseType） */
 const rf = reactive({ feeItemId: '', houseType: '' })
 function resetRuleQuery() {
+  rf.orgId = ''
+  loadRuleOrgs()
   rf.feeItemId = ''
   rf.houseType = ''
   loadRules()
@@ -390,11 +408,13 @@ function resetQuery() {
 }
 
 async function loadRules() {
+  if (!ruleOrgOptions.value.length) loadRuleOrgs()
   const d = await req.get('/fin/billing-rules', {
     params: {
       pageNum: 1, pageSize: 50,
       feeItemId: rf.feeItemId || undefined,
-      houseType: rf.houseType || undefined
+      houseType: rf.houseType || undefined,
+      orgId: rf.orgId || undefined
     }
   })
   rules.value = d.rows || d || []

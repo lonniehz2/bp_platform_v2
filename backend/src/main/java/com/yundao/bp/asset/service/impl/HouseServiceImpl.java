@@ -193,6 +193,8 @@ public class HouseServiceImpl implements HouseService {
                 .orderByDesc(AssetHouse::getId);
         applyDataScope(qw, AssetHouse::getOrgId, AssetHouse::getOwnerPersonId);
         if (keyword != null && !keyword.isBlank()) {
+            // 「105房间」这类口语输入转换为「105室」，与房源名称匹配
+            String roomKeyword = keyword.trim().replace("房间", "室");
             qw.and(w -> w.like(AssetHouse::getHouseCode, keyword)
                     .or().like(AssetHouse::getHouseName, keyword));
         }

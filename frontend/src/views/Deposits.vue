@@ -192,7 +192,12 @@ const dp = reactive({ contractId: null, personId: null, depositAmount: null,
   paidAmount: 0, capAmount: 1000, isExempt: 0, exemptReason: '' })
 
 async function fillFromContract() {
-  if (!dp.contractId) return
+  const cid = String(dp.contractId || '').trim()
+  if (!/^\d+$/.test(cid)) {
+    if (cid) ElMessage.warning('合同ID应为数字，请从合同列表复制')
+    return
+  }
+  dp.contractId = cid
   try {
     const c = await req.get('/contracts/' + dp.contractId)
     if (c) {

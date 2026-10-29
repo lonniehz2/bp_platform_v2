@@ -11,6 +11,16 @@
         <el-option v-for="m in meterItems" :key="m.id" :value="m.id"
                    :label="m.itemName + '（' + m.unitPrice + ' 元/' + (m.unit || '度') + '）'" />
       </el-select>
+      <el-select v-model="query.orgId" placeholder="组织" clearable filterable
+                 style="width:200px" @change="load">
+        <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName"
+                   :value="String(o.id)" />
+      </el-select>
+      <el-select v-model="query.billed" placeholder="出账状态" clearable
+                 style="width:140px" @change="load">
+        <el-option label="未出账" :value="false" />
+        <el-option label="已出账" :value="true" />
+      </el-select>
       <el-button type="primary" @click="load">查询</el-button>
       <el-button @click="resetQuery">清空</el-button>
       <el-button type="warning" plain :loading="pulling" @click="pullFromIot">
@@ -22,12 +32,16 @@
       <el-button type="primary" plain @click="openBatch" data-testid="meter-batch">
         批量录入/导入
       </el-button>
+      <el-button type="warning" plain @click="batchBill">批量出账</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
               title="用量 = 本次读数 − 上次读数；金额 = 用量 × 计费项目单价（单价在「计费项目」中维护）" />
 
-    <el-table empty-text="暂无抄表记录，可人工录入或从 IoT 拉取" :data="rows" v-loading="loading" border size="small">
+    <el-table empty-text="暂无抄表记录，可人工录入或从 IoT 拉取" :data="rows"
+              @selection-change="(v) => (meterSelected = v)"
+              v-loading="loading" border size="small">
+      <el-table-column type="selection" width="42" />
       <el-table-column prop="readDate" label="抄表日期" width="120" />
       <el-table-column prop="houseId" label="房源" min-width="180">
         <template #default="{ row }">{{ row.houseIdName || houseLabel(row.houseId) }}</template>
@@ -159,6 +173,16 @@
         </span>
       </div>
       <el-table :data="batchRows" size="small" border max-height="380">
+        <el-table-column label="组织" width="170">
+          <template #default="{ row }">
+            <el-select v-model="row.orgId" size="small" filterable clearable
+                       style="width:100%" placeholder="按名称搜索"
+                       @change="fillRowDevice(row)">
+              <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName"
+                         :value="String(o.id)" />
+            </el-select>
+          </template>
+        </el-table-column>
         <el-table-column label="房源" width="200">
           <template #default="{ row }">
             <HouseSelect :model-value="row.houseId" width="100%"
@@ -174,14 +198,17 @@
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column label="设备编号" width="160">
+        <el-table-column label="设备编号" width="180">
           <template #default="{ row }">
-            <el-select v-if="row.devices && row.devices.length > 1" v-model="row.deviceId"
-                       size="small" style="width:100%" @change="pickDevice(row)">
-              <el-option v-for="d in row.devices" :key="d.deviceId"
-                         :label="d.deviceId" :value="d.deviceId" />
+            <el-select v-model="row.deviceId" size="small" filterable remote clearable
+                       :remote-method="(kw) => searchDevice(row, kw)"
+                       :loading="row.deviceLoading" style="width:100%"
+                       placeholder="按设备名称/编号搜索"
+                       @change="(v) => pickSearchDevice(row, v)">
+              <el-option v-for="d in (row.deviceOptions || [])" :key="d.device_id"
+                         :label="d.device_id + '（' + (d.device_name || '') + '）'"
+                         :value="d.device_id" />
             </el-select>
-            <el-input v-else v-model="row.deviceId" size="small" />
           </template>
         </el-table-column>
         <el-table-column prop="deviceName" label="设备名称" width="170" />
@@ -232,7 +259,8 @@ const saving = ref(false)
 const houses = ref([])
 const meterItems = ref([])
 const recordVisible = ref(false)
-const query = reactive({ pageNum: 1, pageSize: 20, houseId: '', feeItemId: '' })
+const query = reactive({ pageNum: 1, pageSize: 20, houseId: '', feeItemId: '',
+  orgId: '', billed: '' })
 const rf = reactive({ houseId: '', feeItemId: '', reading: '', readDate: '', deviceId: '' })
 const devices = ref([])
 const deviceRows = ref([])
@@ -243,6 +271,27 @@ const exportVisible = ref(false)
 const ex = reactive({ orgId: '', spaceId: '', feeItemId: '' })
 const exOrgs = ref([])
 const exSpaces = ref([])
+const meterSelected = ref([])
+const orgOptions = ref([])
+
+async function loadOrgs() {
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 500 } })
+    orgOptions.value = (d && d.rows) || []
+  } catch (e) { orgOptions.value = [] }
+}
+
+async function batchBill() {
+  const ids = meterSelected.value.filter((r) => !r.billId).map((r) => r.id)
+  if (!ids.length) { ElMessage.warning('请勾选未出账的记录'); return }
+  try {
+    const r = await req.post('/fin/meter-readings/bill-batch', ids)
+    ElMessage.success('出账完成：成功 ' + r.billed + '，失败 ' + r.failed)
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '批量出账失败')
+  }
+}
 
 async function loadExportOrgs() {
   try {
@@ -348,6 +397,29 @@ watch(() => [rf.houseId, rf.feeItemId], () => loadDevices())
 function onRowHouse(row, v) {
   row.houseId = v
   fillRowDevice(row)
+}
+
+/** 按组织 + 设备名称/编号搜索设备 */
+async function searchDevice(row, keyword) {
+  if (!keyword) return
+  row.deviceLoading = true
+  try {
+    const list = await req.get('/fin/meter-readings/devices-search', {
+      params: { orgId: row.orgId || undefined, keyword }
+    })
+    row.deviceOptions = list || []
+  } catch (e) { row.deviceOptions = [] } finally { row.deviceLoading = false }
+}
+
+/** 选中设备后回填房源、项目、名称、类型 */
+function pickSearchDevice(row, deviceId) {
+  const d = (row.deviceOptions || []).find((x) => x.device_id === deviceId)
+  if (!d) return
+  row.deviceName = d.device_name
+  row.deviceType = d.device_type
+  row.houseId = d.house_id
+  if (d.fee_item_id) row.feeItemId = d.fee_item_id
+  if (!row.orgId && d.org_id) row.orgId = String(d.org_id)
 }
 
 async function loadDevices() {
@@ -484,6 +556,8 @@ async function load() {
     const params = { pageNum: query.pageNum, pageSize: query.pageSize }
     if (query.houseId) params.houseId = query.houseId
     if (query.feeItemId) params.feeItemId = query.feeItemId
+    if (query.orgId) params.orgId = query.orgId
+    if (query.billed !== '' && query.billed != null) params.billed = query.billed
     const r = await req.get('/fin/meter-readings', { params })
     rows.value = (r && r.rows) || []
     total.value = (r && r.total) || 0
@@ -560,6 +634,7 @@ async function doBill(row) {
 
 onMounted(async () => {
   await loadBase()
+  loadOrgs()
   load()
 })
 </script>

@@ -21,6 +21,7 @@
         <el-button @click="resetQuery">清空</el-button>
         <div class="spacer" />
         <el-button type="success" @click="genVisible = true">批量出账</el-button>
+        <el-button type="warning" plain @click="batchDunning">批量催缴</el-button>
         <el-button type="warning" plain @click="openShared" data-testid="shared-bill">公摊分摊</el-button>
         <el-button plain @click="openEnergy" data-testid="bill-energy">能耗分析</el-button>
         <el-button @click="openPay">登记收款</el-button>
@@ -40,7 +41,9 @@
         </el-col>
       </el-row>
 
-      <el-table :data="rows" v-loading="loading" border size="small">
+      <el-table :data="rows" @selection-change="(v) => (selected = v)"
+                v-loading="loading" border size="small">
+        <el-table-column type="selection" width="42" />
         <el-table-column prop="billNo" label="账单号" width="165" />
         <el-table-column prop="payerName" label="缴费人" width="95" />
         <el-table-column prop="billPeriod" label="账期" width="95" />
@@ -76,9 +79,28 @@
     <!-- 批量出账 -->
     <el-dialog v-model="genVisible" title="批量出账" width="500px">
       <el-form :model="g" label-width="120px">
-        <el-form-item label="组织ID"><el-input v-model="g.orgId" /></el-form-item>
-        <el-form-item label="账期">
-          <el-input v-model="g.billPeriod" placeholder="2026-10" /></el-form-item>
+        <el-form-item label="组织">
+          <el-select v-model="g.orgId" filterable clearable style="width:100%"
+                     placeholder="按名称搜索组织">
+            <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName"
+                       :value="String(o.id)" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="收费项目" required>
+          <el-select v-model="g.feeItemId" filterable style="width:100%"
+                     placeholder="选择计费项目">
+            <el-option v-for="f in feeItems" :key="f.id"
+                       :label="f.itemName || f.feeItemName || f.id" :value="String(f.id)" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="费用起始" required>
+          <el-date-picker v-model="g.periodStart" type="date" value-format="YYYY-MM-DD"
+                          style="width:100%" />
+        </el-form-item>
+        <el-form-item label="费用截止" required>
+          <el-date-picker v-model="g.periodEnd" type="date" value-format="YYYY-MM-DD"
+                          style="width:100%" />
+        </el-form-item>
         <el-form-item label="试算（不落库）">
           <el-switch v-model="g.dryRun" /></el-form-item>
       </el-form>
@@ -104,7 +126,8 @@
         <el-form-item label="收费项目" required>
           <el-select v-model="sf.feeItemId" filterable style="width:100%">
             <el-option v-for="f in feeItems" :key="f.id"
-                       :label="f.feeItemName || f.feeItemCode || f.id" :value="String(f.id)" />
+                       :label="f.itemName || f.feeItemName || f.itemCode || f.id"
+                       :value="String(f.id)" />
           </el-select>
         </el-form-item>
         <el-form-item label="总金额" required>
@@ -402,6 +425,7 @@ async function doMeterBill(row) {
   } finally { saving.value = false }
 }
 const rows = ref([])
+const selected = ref([])
 const total = ref(0)
 const q = reactive({ orgId: '', pageNum: 1, pageSize: 20, billStatus: '', billPeriod: '',
   houseId: '' })
@@ -533,7 +557,12 @@ function reload() { q.pageNum = 1; load() }
 async function doGenerate() {
   saving.value = true
   try {
-    const r = await financeApi.generate({ ...g })
+    const r = await financeApi.generate({
+      orgId: g.orgId || undefined, feeItemId: g.feeItemId,
+      periodStart: g.periodStart, periodEnd: g.periodEnd,
+      billPeriod: g.periodStart ? g.periodStart.slice(0, 7).replace('-', '') : g.billPeriod,
+      dryRun: !!g.dryRun
+    })
     ElMessage.success('出账完成：生成 ' + (r?.generated ?? r?.count ?? '-') + ' 张')
     genVisible.value = false; load()
   } finally { saving.value = false }
@@ -588,8 +617,29 @@ async function cancelBill(row) {
 }
 
 async function dunning(row) {
-  await financeApi.arrears({ billId: row.id })
-  ElMessage.success('已发起催缴（可在催缴管理查看）')
+  await req.post('/fin/dunnings', {
+    billId: row.id, personId: row.personId || undefined,
+    dunningType: 'NOTICE', dunningContent: '账单 ' + (row.billNo || '') + ' 催缴'
+  })
+  ElMessage.success('已生成催缴记录（可在催缴管理查看）')
+  load()
+}
+
+/** 批量催缴 */
+async function batchDunning() {
+  if (!selected.length) { ElMessage.warning('请先勾选账单'); return }
+  let ok = 0
+  for (const row of selected) {
+    try {
+      await req.post('/fin/dunnings', {
+        billId: row.id, personId: row.personId || undefined,
+        dunningType: 'NOTICE', dunningContent: '批量催缴'
+      })
+      ok++
+    } catch (e) { /* 忽略单条失败 */ }
+  }
+  ElMessage.success('批量催缴完成：' + ok + ' 张')
+  load()
 }
 
 async function scanOverdue() {

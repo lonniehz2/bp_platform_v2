@@ -83,8 +83,9 @@ public class FeeItemController {
     @com.yundao.bp.iam.security.RequirePerm("fin:billing-rules:view")
     @GetMapping("/billing-rules")
     public R<List<FinBillingRule>> listRules(@RequestParam(required = false) Long feeItemId,
-                                             @RequestParam(required = false) String houseType) {
-        return R.ok(service.listRules(feeItemId, houseType));
+                                             @RequestParam(required = false) String houseType,
+                                             @RequestParam(required = false) Long orgId) {
+        return R.ok(service.listRules(feeItemId, houseType, orgId));
     }
 
     /** 编辑计费规则（已审批通过的不可改）。 */

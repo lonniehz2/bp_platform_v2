@@ -111,9 +111,18 @@ public class MeterReadingServiceImpl implements MeterReadingService {
     @Override
     public PageResult<FinMeterReading> page(long pageNum, long pageSize, Long houseId,
                                             Long feeItemId) {
+        return page(pageNum, pageSize, houseId, feeItemId, null, null);
+    }
+
+    @Override
+    public PageResult<FinMeterReading> page(long pageNum, long pageSize, Long houseId,
+                                            Long feeItemId, Long orgId, Boolean billed) {
         LambdaQueryWrapper<FinMeterReading> qw = new LambdaQueryWrapper<FinMeterReading>()
                 .eq(houseId != null, FinMeterReading::getHouseId, houseId)
                 .eq(feeItemId != null, FinMeterReading::getFeeItemId, feeItemId)
+                .eq(orgId != null, FinMeterReading::getOrgId, orgId)
+                .eq(billed != null, FinMeterReading::getBillStatus,
+                        billed == null ? null : (billed ? "BILLED" : "UNBILLED"))
                 .orderByDesc(FinMeterReading::getReadDate);
         var page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
         return PageResult.of(page.getTotal(), pageNum, pageSize, page.getRecords());

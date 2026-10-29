@@ -35,6 +35,8 @@ public interface FeeItemService {
 
     List<FinBillingRule> listRules(Long feeItemId, String houseType);
 
+    List<FinBillingRule> listRules(Long feeItemId, String houseType, Long orgId);
+
     /** 政府限价审批通过（租金定价管控）。 */
     FinBillingRule approveRule(Long id, Long approveById);
 
