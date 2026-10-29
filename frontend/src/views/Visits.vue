@@ -37,9 +37,9 @@
       </el-table-column>
     </el-table>
 
-    <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                   :total="total" :page-size="pageSize" :current-page="pageNum"
-                   @current-change="(p) => { pageNum = p; load() }" />
+    <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
+                   :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
+                   @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
 
     <!-- 写操作表单（字段按后端 Cmd 定义配置） -->
     <el-dialog v-model="formVisible" :title="formTitle" width="560px">

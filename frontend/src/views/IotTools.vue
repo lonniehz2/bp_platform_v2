@@ -132,10 +132,10 @@
           </el-table-column>
           <el-table-column prop="errorMsg" label="错误" min-width="160" show-overflow-tooltip />
         </el-table>
-        <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                       :total="credTotal" :page-size="credQuery.pageSize"
+        <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
+                       :total="+credTotal || 0" :page-size="credQuery.pageSize"
                        :current-page="credQuery.pageNum"
-                       @current-change="(p) => { credQuery.pageNum = p; loadCred() }" />
+                       @current-change="(p) => { credQuery.pageNum = p; loadCred() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { credQuery.pageSize = s; credQuery.pageNum = 1; loadCred() }" />
       </el-tab-pane>
 
       <el-tab-pane label="回调日志" name="logs">
@@ -184,7 +184,7 @@
           </el-table-column>
         </el-table>
         <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                       :total="total" :page-size="query.pageSize" :current-page="query.pageNum"
+                       :total="+total || 0" :page-size="query.pageSize" :current-page="query.pageNum"
                        @current-change="(p) => { query.pageNum = p; loadLogs() }" />
       </el-tab-pane>
     </el-tabs>

@@ -39,9 +39,9 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                   :total="total" :page-size="q.pageSize" :current-page="q.pageNum"
-                   @current-change="(p) => { q.pageNum = p; load() }" />
+    <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
+                   :total="+total || 0" :page-size="q.pageSize" :current-page="q.pageNum"
+                   @current-change="(p) => { q.pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { q.pageSize = s; q.pageNum = 1; load() }" />
 
     <el-dialog v-model="batchVisible" title="批量发起年审" width="480px">
       <el-form :model="b" label-width="110px">

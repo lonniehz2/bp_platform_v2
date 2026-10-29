@@ -43,9 +43,9 @@
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                     :total="total" :page-size="pageSize" :current-page="pageNum"
-                     @current-change="(p) => { pageNum = p; load() }" />
+      <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
+                     :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
+                     @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
     </div>
 
     <!-- ==================== 对账单 ==================== -->
@@ -107,7 +107,7 @@
       </el-table>
 
       <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                     :total="reconcileTotal" :page-size="rq.pageSize"
+                     :total="+reconcileTotal || 0" :page-size="rq.pageSize"
                      :current-page="rq.pageNum"
                      @current-change="(p) => { rq.pageNum = p; loadReconciles() }" />
     </div>
@@ -160,7 +160,7 @@
       </el-table>
 
       <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                     :total="paymentTotal" :page-size="pq.pageSize"
+                     :total="+paymentTotal || 0" :page-size="pq.pageSize"
                      :current-page="pq.pageNum"
                      @current-change="(p) => { pq.pageNum = p; loadPayments() }" />
     </div>

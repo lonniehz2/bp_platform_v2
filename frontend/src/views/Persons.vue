@@ -74,10 +74,10 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                       :total="pTotal" :page-size="pQuery.pageSize"
+        <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
+                       :total="+pTotal || 0" :page-size="pQuery.pageSize"
                        :current-page="pQuery.pageNum"
-                       @current-change="(p) => { pQuery.pageNum = p; loadPersons() }" />
+                       @current-change="(p) => { pQuery.pageNum = p; loadPersons() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pQuery.pageSize = s; pQuery.pageNum = 1; loadPersons() }" />
       </el-tab-pane>
 
       <!-- ============ 保障档案 ============ -->
@@ -137,7 +137,7 @@
           </el-table-column>
         </el-table>
         <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                       :total="gTotal" :page-size="gQuery.pageSize"
+                       :total="+gTotal || 0" :page-size="gQuery.pageSize"
                        :current-page="gQuery.pageNum"
                        @current-change="(p) => { gQuery.pageNum = p; loadProfiles() }" />
       </el-tab-pane>
@@ -188,7 +188,7 @@
           </el-table-column>
         </el-table>
         <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                       :total="vTotal" :page-size="vQuery.pageSize"
+                       :total="+vTotal || 0" :page-size="vQuery.pageSize"
                        :current-page="vQuery.pageNum"
                        @current-change="(p) => { vQuery.pageNum = p; loadVerifies() }" />
       </el-tab-pane>

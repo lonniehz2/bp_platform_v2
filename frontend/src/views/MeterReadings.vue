@@ -80,9 +80,11 @@
       </el-table-column>
     </el-table>
 
-    <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                   :total="total" :page-size="query.pageSize" :current-page="query.pageNum"
-                   @current-change="(p) => { query.pageNum = p; load() }" />
+    <div class="meter-pager" data-testid="meter-pager">
+    <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
+                   :total="+total || 0" :page-size="query.pageSize" :current-page="query.pageNum"
+                   @current-change="(p) => { query.pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { query.pageSize = s; query.pageNum = 1; load() }" />
+    </div>
 
     <!-- 单条录入：按房源 + 计量项目带出设备，多设备逐台录入 -->
     <el-dialog v-model="recordVisible" title="录入抄表读数" width="640px">

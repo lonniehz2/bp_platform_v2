@@ -65,9 +65,9 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                   :total="total" :page-size="pageSize" :current-page="pageNum"
-                   @current-change="(p) => { pageNum = p; load() }" />
+    <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
+                   :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
+                   @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
 
     <el-dialog v-model="occVisible" title="入住信息" width="560px">
       <el-descriptions v-if="occ && occ.occupied" :column="1" border size="small">

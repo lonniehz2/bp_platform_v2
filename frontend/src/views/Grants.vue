@@ -65,10 +65,10 @@
             </el-table-column>
           </el-table>
 
-          <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                         :total="grantTotal" :page-size="gq.pageSize"
+          <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
+                         :total="+grantTotal || 0" :page-size="gq.pageSize"
                          :current-page="gq.pageNum"
-                         @current-change="(p) => { gq.pageNum = p; loadGrants() }" />
+                         @current-change="(p) => { gq.pageNum = p; loadGrants() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { gq.pageSize = s; gq.pageNum = 1; loadGrants() }" />
         </el-tab-pane>
 
         <!-- ============ 对账差异 ============ -->
@@ -119,7 +119,7 @@
             </el-table-column>
           </el-table>
           <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                         :total="total" :page-size="query.pageSize"
+                         :total="+total || 0" :page-size="query.pageSize"
                          :current-page="query.pageNum"
                          @current-change="(p) => { query.pageNum = p; loadDiffs() }" />
         </el-tab-pane>

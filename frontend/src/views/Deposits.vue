@@ -45,7 +45,7 @@
         </el-table-column>
       </el-table>
       <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
-                     :total="depositTotal" :page-size="depositSize"
+                     :total="+depositTotal || 0" :page-size="depositSize"
                      :current-page="depositPage" :page-sizes="[10, 20, 50, 100]"
                      @current-change="(p) => { depositPage = p; load() }"
                      @size-change="(sz) => { depositSize = sz; depositPage = 1; load() }" />

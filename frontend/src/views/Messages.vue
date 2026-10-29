@@ -45,10 +45,10 @@
         </el-table-column>
       </el-table>
 
-      <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                     :total="total" :page-size="query.pageSize"
+      <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
+                     :total="+total || 0" :page-size="query.pageSize"
                      :current-page="query.pageNum"
-                     @current-change="(p) => { query.pageNum = p; load() }" />
+                     @current-change="(p) => { query.pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { query.pageSize = s; query.pageNum = 1; load() }" />
     </div>
 
     <div class="page-card">

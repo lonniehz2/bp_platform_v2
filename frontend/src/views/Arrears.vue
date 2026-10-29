@@ -84,10 +84,10 @@
         </el-table-column>
       </el-table>
 
-      <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                     :total="actionTotal" :page-size="ap.pageSize"
+      <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
+                     :total="+actionTotal || 0" :page-size="ap.pageSize"
                      :current-page="ap.pageNum"
-                     @current-change="(p) => { ap.pageNum = p; loadActions() }" />
+                     @current-change="(p) => { ap.pageNum = p; loadActions() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { ap.pageSize = s; ap.pageNum = 1; loadActions() }" />
     </div>
 
     <!-- ================= 催缴通知（历史记录，只读 + 登记） ================= -->
@@ -131,7 +131,7 @@
       </el-table>
 
       <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
-                     :total="total" :page-size="pageSize" :current-page="pageNum"
+                     :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
                      @current-change="(p) => { pageNum = p; load() }" />
     </div>
 

@@ -32,7 +32,7 @@
       <el-pagination
         v-model:current-page="pageNum"
         v-model:page-size="pageSize"
-        :total="total"
+        :total="+total || 0"
         :page-sizes="[20, 50, 100, 200]"
         layout="total, sizes, prev, pager, next, jumper"
         style="margin-top:12px;justify-content:flex-end"
