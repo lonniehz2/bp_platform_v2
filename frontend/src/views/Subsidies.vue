@@ -100,8 +100,12 @@
             {{ row.subsidyModeLabel || enumLabel('subsidyMode', row.subsidyMode) }}
           </template>
         </el-table-column>
-        <el-table-column prop="subsidyValue" label="补贴值" width="110" />
-        <el-table-column prop="maxAmount" label="封顶金额" width="110" />
+        <el-table-column label="补贴值" width="110" >
+          <template #default="{ row }">{{ $money(row.subsidyValue) }}</template>
+        </el-table-column>
+        <el-table-column label="封顶金额" width="110" >
+          <template #default="{ row }">{{ $money(row.maxAmount) }}</template>
+        </el-table-column>
         <el-table-column label="有效期" min-width="200">
           <template #default="{ row }">
             {{ row.effectiveStart || '—' }} ~ {{ row.effectiveEnd || '长期' }}

@@ -52,8 +52,12 @@
       <el-table-column label="租期" width="180">
         <template #default="{ row }">{{ row.leaseStart }} ~ {{ row.leaseEnd }}</template>
       </el-table-column>
-      <el-table-column prop="monthlyRent" label="月租" width="100" />
-      <el-table-column prop="depositAmount" label="押金" width="100" />
+      <el-table-column label="月租" width="100" >
+          <template #default="{ row }">{{ $money(row.monthlyRent) }}</template>
+        </el-table-column>
+      <el-table-column label="押金" width="100" >
+          <template #default="{ row }">{{ $money(row.depositAmount) }}</template>
+        </el-table-column>
       <el-table-column prop="terminationType" label="类型" width="120">
         <template #default="{ row }">{{ row.terminationTypeLabel || enumLabel('terminationType', row.terminationType) }}</template>
       </el-table-column>

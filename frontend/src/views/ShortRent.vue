@@ -111,7 +111,9 @@
         <el-table-column prop="checkInTime" label="入住" width="150" />
         <el-table-column prop="checkOutTime" label="退房" width="150" />
         <el-table-column prop="orderStatusLabel" label="状态" width="110" />
-        <el-table-column prop="totalAmount" label="金额" width="100" />
+        <el-table-column label="金额" width="100" >
+          <template #default="{ row }">{{ $money(row.totalAmount) }}</template>
+        </el-table-column>
       </el-table>
       <template #footer>
         <el-button @click="byHouseVisible = false">关闭</el-button>

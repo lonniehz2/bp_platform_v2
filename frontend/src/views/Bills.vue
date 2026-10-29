@@ -161,7 +161,9 @@
       <el-table v-if="genResult && genResult.items" :data="genResult.items" size="small"
                 border max-height="360" style="margin-top:10px">
         <el-table-column prop="contractNo" label="合同" width="170" />
-        <el-table-column prop="amount" label="金额" width="100" />
+        <el-table-column label="金额" width="100" >
+          <template #default="{ row }">{{ $money(row.amount) }}</template>
+        </el-table-column>
         <el-table-column prop="status" label="结果" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="row.status === 'OK' ? 'success' : 'warning'">
@@ -260,8 +262,12 @@
         <el-table-column prop="prevReading" label="上次读数" width="100" />
         <el-table-column prop="reading" label="本次读数" width="100" />
         <el-table-column prop="usageAmount" label="用量" width="90" />
-        <el-table-column prop="unitPrice" label="单价" width="80" />
-        <el-table-column prop="amount" label="金额" width="100" />
+        <el-table-column label="单价" width="80" >
+          <template #default="{ row }">{{ $money(row.unitPrice) }}</template>
+        </el-table-column>
+        <el-table-column label="金额" width="100" >
+          <template #default="{ row }">{{ $money(row.amount) }}</template>
+        </el-table-column>
         <el-table-column prop="billStatus" label="状态" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="row.billStatus === 'BILLED' ? 'success' : 'warning'">
@@ -428,7 +434,9 @@
             <el-table-column prop="month" label="月份" width="100" />
             <el-table-column prop="reading" label="读数次数" width="90" />
             <el-table-column prop="usage" label="用量" />
-            <el-table-column prop="amount" label="金额" />
+            <el-table-column label="金额" >
+          <template #default="{ row }">{{ $money(row.amount) }}</template>
+        </el-table-column>
           </el-table>
         </el-col>
         <el-col :span="12">

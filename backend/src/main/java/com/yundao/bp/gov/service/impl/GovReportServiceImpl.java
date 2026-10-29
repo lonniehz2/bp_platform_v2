@@ -50,6 +50,9 @@ public class GovReportServiceImpl implements GovReportService {
     private final GovAdapterLogMapper adapterLogMapper;
     private final GovReportTaskMapper taskMapper;
     private final GovReportDetailMapper detailMapper;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
     private final AssetHouseMapper houseMapper;
     private final BizContractMapper contractMapper;
     private final SnowflakeIdGenerator idGen;
@@ -170,10 +173,18 @@ public class GovReportServiceImpl implements GovReportService {
         }
 
         List<Map<String, Object>> records = collect(reportType, dateFrom, dateTo);
+        // 单次报文上限：数千条同步生成会让页面等待数分钟，这里限制并明确提示
+        final int maxRecords = 500;
+        int totalRecords = records.size();
+        boolean truncated = totalRecords > maxRecords;
+        if (truncated) {
+            records = new ArrayList<>(records.subList(0, maxRecords));
+        }
         t.setRecordCount(records.size());
         int ok = 0;
         int fail = 0;
         List<String> errors = new ArrayList<>();
+        List<GovReportDetail> pending = new ArrayList<>();
         for (Map<String, Object> rec : records) {
             GovReportDetail d = new GovReportDetail();
             d.setId(idGen.nextId());
@@ -198,14 +209,22 @@ public class GovReportServiceImpl implements GovReportService {
                 d.setExternalId(targetSystem + "-" + d.getBizId());
                 ok++;
             }
-            detailMapper.insert(d);
+            pending.add(d);
         }
 
+        if (!pending.isEmpty()) {
+            jdbcBatch(pending);
+        }
         t.setSuccessCount(ok);
         t.setFailCount(fail);
         t.setTaskStatus(ok == 0 && fail > 0 ? "FAILED"
                 : (fail > 0 ? "PARTIAL" : "SUCCESS"));
-        t.setFailDetail(errors.isEmpty() ? null : String.join("；", errors));
+        String note = truncated
+                ? "数据总量 " + totalRecords + " 条，单次最多报送 " + maxRecords
+                  + " 条（前 " + maxRecords + " 条），请按日期/范围分批"
+                : null;
+        t.setFailDetail(note != null ? note
+                : (errors.isEmpty() ? null : String.join("；", errors)));
         t.setReportTime(LocalDateTime.now());
         t.setReportTime(LocalDateTime.now());
         t.setUpdateTime(LocalDateTime.now());
@@ -347,6 +366,43 @@ public class GovReportServiceImpl implements GovReportService {
             }
         }
         return out;
+    }
+
+    /** 明细批量写入（JDBC batch，数千条也能在秒级完成）。 */
+    private void jdbcBatch(List<GovReportDetail> list) {
+        if (jdbc == null) {
+            com.baomidou.mybatisplus.extension.toolkit.Db.saveBatch(list, 500);
+            return;
+        }
+        String sql = "insert into bp_gov_report_detail (id, tenant_id, task_id, biz_type, "
+                + "biz_id, external_id, sync_status, error_code, error_msg, request_data, "
+                + "response_data, create_time) values (?,?,?,?,?,?,?,?,?,?,?,?)";
+        jdbc.batchUpdate(sql, new org.springframework.jdbc.core.BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(java.sql.PreparedStatement ps, int i)
+                    throws java.sql.SQLException {
+                GovReportDetail d = list.get(i);
+                ps.setLong(1, d.getId());
+                ps.setString(2, d.getTenantId());
+                ps.setLong(3, d.getTaskId());
+                ps.setString(4, d.getBizType());
+                ps.setLong(5, d.getBizId() == null ? 0L : d.getBizId());
+                ps.setString(6, d.getExternalId());
+                ps.setString(7, d.getSyncStatus());
+                ps.setString(8, d.getErrorCode());
+                ps.setString(9, d.getErrorMsg());
+                ps.setString(10, d.getRequestData());
+                ps.setObject(11, null);
+                ps.setObject(12, java.sql.Timestamp.valueOf(
+                        d.getCreateTime() == null
+                                ? java.time.LocalDateTime.now() : d.getCreateTime()));
+            }
+
+            @Override
+            public int getBatchSize() {
+                return list.size();
+            }
+        });
     }
 
     private void writeAdapterLog(GovAdapterConfig a, GovReportTask t, int ok, int fail,

@@ -229,7 +229,9 @@
           <el-table-column label="费用区间" width="185">
             <template #default="{ row }">{{ row.periodStart }} ~ {{ row.periodEnd }}</template>
           </el-table-column>
-          <el-table-column prop="payableAmount" label="待缴" width="85" />
+          <el-table-column label="待缴" width="85" >
+          <template #default="{ row }">{{ $money(row.payableAmount) }}</template>
+        </el-table-column>
           <el-table-column prop="dueDate" label="截止日" width="100" />
           <el-table-column label="" width="90">
             <template #default="{ row }">

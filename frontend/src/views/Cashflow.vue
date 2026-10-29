@@ -103,8 +103,12 @@
         <el-table-column prop="payChannel" label="渠道" width="110">
           <template #default="{ row }">{{ row.payChannel ? enumLabel('payChannel', row.payChannel) : '全部' }}</template>
         </el-table-column>
-        <el-table-column prop="systemAmount" label="系统金额" width="120" />
-        <el-table-column prop="channelAmount" label="渠道金额" width="120" />
+        <el-table-column label="系统金额" width="120" >
+          <template #default="{ row }">{{ $money(row.systemAmount) }}</template>
+        </el-table-column>
+        <el-table-column label="渠道金额" width="120" >
+          <template #default="{ row }">{{ $money(row.channelAmount) }}</template>
+        </el-table-column>
         <el-table-column prop="diffAmount" label="差异金额" width="120">
           <template #default="{ row }">
             <span :class="{ danger: Number(row.diffAmount) !== 0 }">{{ row.diffAmount }}</span>
@@ -157,7 +161,9 @@
         <el-table-column prop="payerName" label="缴费人" width="120">
           <template #default="{ row }">{{ row.payerName || row.personIdName || row.personId }}</template>
         </el-table-column>
-        <el-table-column prop="payAmount" label="收款金额" width="110" />
+        <el-table-column label="收款金额" width="110" >
+          <template #default="{ row }">{{ $money(row.payAmount) }}</template>
+        </el-table-column>
         <el-table-column prop="payChannel" label="渠道" width="110">
           <template #default="{ row }">{{ enumLabel('payChannel', row.payChannel) }}</template>
         </el-table-column>
@@ -171,7 +177,9 @@
           </template>
         </el-table-column>
         <el-table-column prop="reconciledAmount" label="已核销" width="110" />
-        <el-table-column prop="remainAmount" label="可核销余额" width="120" />
+        <el-table-column label="可核销余额" width="120" >
+          <template #default="{ row }">{{ $money(row.remainAmount) }}</template>
+        </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button link type="success" :disabled="row.payStatus !== 'PENDING'"
