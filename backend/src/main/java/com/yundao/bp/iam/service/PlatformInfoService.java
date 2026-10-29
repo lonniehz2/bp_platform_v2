@@ -34,14 +34,8 @@ public class PlatformInfoService {
         IamTenant t = requireCurrent();
         String before = t.getTenantName() + "/" + t.getTenantType() + "/" + t.getRegionCode()
                 + "/" + t.getStatus();
+        // 平台侧仅允许修改名称；区域/类型/状态由运营超管控制
         t.setTenantName(cmd.tenantName());
-        if (cmd.tenantType() != null && !cmd.tenantType().isBlank()) {
-            t.setTenantType(cmd.tenantType());
-        }
-        t.setRegionCode(cmd.regionCode());
-        if (cmd.status() != null && !cmd.status().isBlank()) {
-            t.setStatus(cmd.status());
-        }
         t.setUpdateTime(LocalDateTime.now());
         tenantMapper.updateById(t);
         log.info("平台信息修改：{} -> {}/{}/{}/{}", before, t.getTenantName(), t.getTenantType(),

@@ -24,25 +24,25 @@
                       placeholder="如：漳州市住房保障中心" />
           </el-form-item>
           <el-form-item label="平台类型">
-            <el-select v-model="form.tenantType" style="width:100%">
+            <el-select v-model="form.tenantType" style="width:100%" disabled>
               <el-option label="政府" value="GOV" />
               <el-option label="运营机构" value="ORG" />
               <el-option label="企业" value="ENTERPRISE" />
             </el-select>
           </el-form-item>
           <el-form-item label="所属区域">
-            <el-input v-model="form.regionCode" placeholder="行政区划编码，如 350600" />
+            <el-input :model-value="form.regionCode" disabled />
           </el-form-item>
           <el-form-item label="隔离模式">
-            <el-input :model-value="form.isolationMode" disabled />
+            <el-input :model-value="form.isolationMode === 'ROW' ? '行级隔离' : (form.isolationMode || '—')" disabled />
           </el-form-item>
           <el-form-item label="状态">
-            <el-radio-group v-model="form.status">
+            <el-radio-group v-model="form.status" disabled>
               <el-radio-button value="ENABLED">启用</el-radio-button>
               <el-radio-button value="DISABLED">停用</el-radio-button>
             </el-radio-group>
             <div class="muted" style="font-size:12px;margin-top:4px">
-              停用后新登录会被拒绝；已登录会话到期后失效。
+              状态由平台运营设置，平台管理员不可修改。
             </div>
           </el-form-item>
         </el-form>
@@ -95,12 +95,8 @@ async function save() {
   }
   saving.value = true
   try {
-    await req.put('/platform/info', {
-      tenantName: form.tenantName,
-      tenantType: form.tenantType,
-      regionCode: form.regionCode,
-      status: form.status
-    })
+    // 平台侧仅允许修改名称
+    await req.put('/platform/info', { tenantName: form.tenantName })
     ElMessage.success('平台信息已保存')
     await auth.loadMe()
     load()
@@ -117,5 +113,5 @@ onMounted(load)
   padding: 16px;
 }
 .side-title { font-weight: 600; margin-bottom: 8px; }
-.side-card ul { margin: 0; padding-left: 18px; line-height: 2; font-size: 13px; color: #606266; }
+.side-card ul { margin: 0; padding-left: 18px; line-height: 2; font-size: 13px; color: var(--el-text-color-regular); }
 </style>

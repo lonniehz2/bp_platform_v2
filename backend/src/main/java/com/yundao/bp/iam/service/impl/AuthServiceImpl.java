@@ -91,6 +91,21 @@ public class AuthServiceImpl implements AuthService {
             log.warn("登录失败：username={} ip={}", cmd.username(), ip);
             throw new BizException(ErrorCode.PARAM_INVALID, "登录名或密码错误");
         }
+        if (tenantMapper != null) {
+            com.yundao.bp.iam.entity.IamTenant tenantRow = tenantMapper.selectOne(
+                    new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                            <com.yundao.bp.iam.entity.IamTenant>()
+                            .eq(com.yundao.bp.iam.entity.IamTenant::getTenantCode,
+                                    user.getTenantId())
+                            .last("LIMIT 1"));
+            if (tenantRow == null
+                    || (tenantRow.getDeleted() != null && tenantRow.getDeleted() == 1)) {
+                throw new BizException(ErrorCode.FORBIDDEN, "平台不存在或已归档");
+            }
+            if (!"ENABLED".equals(tenantRow.getStatus())) {
+                throw new BizException(ErrorCode.FORBIDDEN, "平台已停用，请联系平台运营");
+            }
+        }
         if (!"ENABLED".equals(user.getStatus())) {
             throw BizException.stateConflict("账号已" + ("LOCKED".equals(user.getStatus())
                     ? "锁定" : "停用") + "，请联系管理员");
@@ -183,7 +198,8 @@ public class AuthServiceImpl implements AuthService {
         return new MeVO(user.getId(), user.getUsername(), user.getRealName(),
                 user.getTenantId(), user.getOrgId(), tenantName,
                 orgName == null ? "平台" : orgName, user.getUserType(), admin,
-                new ArrayList<>(perms), roleIds);
+                new ArrayList<>(perms), roleIds,
+                user.getMustChangePassword() != null && user.getMustChangePassword() == 1);
     }
 
     @Override
@@ -261,5 +277,24 @@ public class AuthServiceImpl implements AuthService {
         }
         // 绕过租户过滤：认证时尚无租户上下文，且令牌全局唯一
         return sessionMapper.selectByTokenIgnoreTenant(token);
+    }
+
+    @Override
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        IamUser u = userMapper.selectById(userId);
+        if (u == null) {
+            throw BizException.notFound("用户");
+        }
+        if (!hasher.verify(oldPassword, u.getPasswordHash())) {
+            throw new BizException(ErrorCode.PARAM_INVALID, "原密码不正确");
+        }
+        if (newPassword == null || newPassword.length() < 10) {
+            throw new BizException(ErrorCode.PARAM_INVALID, "新密码至少 10 位");
+        }
+        u.setPasswordHash(hasher.hash(newPassword));
+        u.setMustChangePassword(0);
+        u.setPwdUpdateTime(LocalDateTime.now());
+        u.setUpdateTime(LocalDateTime.now());
+        userMapper.updateById(u);
     }
 }

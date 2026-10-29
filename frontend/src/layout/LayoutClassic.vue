@@ -171,24 +171,24 @@ async function logout() {
   margin: 10px 0 4px;
   padding: 0 18px;
   font-size: 11px;
-  color: #a8abb2;
+  color: var(--el-text-color-secondary);
   letter-spacing: 0.5px;
 }
 .mi-label { display: inline-flex; align-items: center; gap: 4px; }
-.mi-label .lock { font-size: 12px; color: #c0c4cc; }
+.mi-label .lock { font-size: 12px; color: var(--el-text-color-secondary); }
 .mi-badge { margin-left: auto; }
 
 .layout { height: 100%; }
 .aside {
-  background: #fff;
+  background: var(--bp-sider-bg);
   border-right: 1px solid #f0f0f0;
   display: flex; flex-direction: column; height: 100%; overflow: hidden;
   transition: width 0.2s;
 }
 .brand {
   height: 56px; line-height: 56px; padding: 0 16px;
-  color: #1890ff; font-weight: 600; font-size: 15px;
-  border-bottom: 1px solid #f0f0f0; flex: 0 0 56px;
+  color: var(--el-color-primary); font-weight: 600; font-size: 15px;
+  border-bottom: 1px solid var(--el-border-color-light); flex: 0 0 56px;
   white-space: nowrap; overflow: hidden;
 }
 .menu {
@@ -201,14 +201,14 @@ async function logout() {
   font-size: 14px;
 }
 .menu :deep(.el-menu-item.is-active) {
-  background: #e6f7ff !important; color: #1890ff !important; font-weight: 500;
+  background: var(--bp-sider-active-bg) !important; color: var(--el-color-primary) !important; font-weight: 500;
 }
 .header {
   display: flex; align-items: center; gap: 12px;
-  background: #fff; border-bottom: 1px solid #f0f0f0;
+  background: var(--bp-sider-bg); border-bottom: 1px solid var(--el-border-color-light);
   height: 56px; padding: 0 16px;
 }
 .crumb { font-size: 13px; }
 .header .spacer { flex: 1; }
-.main { background: #f0f2f5; padding: 16px; overflow-y: auto; }
+.main { background: var(--bp-page-bg); padding: 16px; overflow-y: auto; }
 </style>

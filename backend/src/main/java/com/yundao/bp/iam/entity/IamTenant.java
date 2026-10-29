@@ -22,6 +22,11 @@ public class IamTenant {
     /** GOV 政府 / ORG 运营机构 / ENTERPRISE 企业 */
     private String tenantType;
     private String regionCode;
+    private String contactName;
+    private String contactPhone;
+    private String businessTypeCode;
+    private Integer deleted;
+    private LocalDateTime archiveTime;
     /** ROW 行级 / SCHEMA 独立Schema / DATABASE 独立库（一期只用 ROW） */
     private String isolationMode;
     /** ENABLED / DISABLED */
@@ -64,4 +69,26 @@ public class IamTenant {
 
     public LocalDateTime getUpdateTime() { return updateTime; }
     public void setUpdateTime(LocalDateTime updateTime) { this.updateTime = updateTime; }
+
+    public String getContactName() { return contactName; }
+
+    public void setContactName(String contactName) { this.contactName = contactName; }
+
+    public String getContactPhone() { return contactPhone; }
+
+    public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
+
+    public String getBusinessTypeCode() { return businessTypeCode; }
+
+    public void setBusinessTypeCode(String businessTypeCode) {
+        this.businessTypeCode = businessTypeCode;
+    }
+
+    public Integer getDeleted() { return deleted; }
+
+    public void setDeleted(Integer deleted) { this.deleted = deleted; }
+
+    public LocalDateTime getArchiveTime() { return archiveTime; }
+
+    public void setArchiveTime(LocalDateTime archiveTime) { this.archiveTime = archiveTime; }
 }

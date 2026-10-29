@@ -336,7 +336,7 @@ onMounted(loadAll)
 .ov-card {
   border: 1px solid #e8e8e8;
   border-radius: 2px;
-  background: #fff;
+  background: var(--bp-card-bg, #fff);
   padding: 14px 16px;
   cursor: pointer;
   transition: box-shadow 0.15s;
@@ -361,7 +361,7 @@ onMounted(loadAll)
 .cat-card {
   border: 1px solid #e8e8e8;
   border-radius: 2px;
-  background: #fff;
+  background: var(--bp-card-bg, #fff);
   padding: 12px 14px;
   cursor: pointer;
   transition: box-shadow 0.15s;

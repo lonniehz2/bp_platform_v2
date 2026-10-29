@@ -28,6 +28,13 @@ public class AuthController {
     }
 
     /** 登录（唯一免鉴权接口）。 */
+    @PostMapping("/change-password")
+    public R<Void> changePassword(@Valid @RequestBody com.yundao.bp.iam.dto.ChangePasswordCmd cmd) {
+        com.yundao.bp.iam.security.LoginUser u = com.yundao.bp.iam.security.LoginUser.get();
+        authService.changePassword(u.userId(), cmd.oldPassword(), cmd.newPassword());
+        return R.ok(null);
+    }
+
     @PostMapping("/login")
     public R<LoginVO> login(@Valid @RequestBody LoginCmd cmd, HttpServletRequest req) {
         return R.ok(authService.login(cmd, clientIp(req)));

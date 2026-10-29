@@ -106,7 +106,7 @@ function printDoc() {
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
-  color: #303133;
+  color: var(--el-text-color-primary);
 }
 .toc-item:hover { background: #f5f7fa; }
 .toc-item.active { background: #ecf5ff; color: #409eff; font-weight: 600; }
@@ -118,7 +118,7 @@ function printDoc() {
   padding-left: 8px;
   border-left: 3px solid #409eff;
 }
-.sec h3 { font-size: 14px; margin: 14px 0 6px; color: #303133; }
+.sec h3 { font-size: 14px; margin: 14px 0 6px; color: var(--el-text-color-primary); }
 .sec p { margin: 6px 0; line-height: 1.8; color: #444; font-size: 13px; }
 .steps, .bullets { margin: 6px 0 6px 20px; font-size: 13px; line-height: 1.9; color: #444; }
 .note { margin: 8px 0; }

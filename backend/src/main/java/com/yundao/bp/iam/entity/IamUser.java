@@ -38,6 +38,10 @@ public class IamUser {
     private Integer loginCount;
     /** ENABLED / DISABLED / LOCKED */
     private String status;
+    /** 首次登录/重置后需改密 */
+    private Integer mustChangePassword;
+    private Integer failCount;
+    private LocalDateTime lockedUntil;
     private String remark;
     private Integer isDeleted;
     private String createBy;

@@ -467,8 +467,8 @@ onUnmounted(() => {
 
 /* 统计卡：与参考系统一致的「标题 + 合计 + 分项行」 */
 .stat-card {
-  background: #fff;
-  border: 1px solid #f0f0f0;
+  background: var(--bp-card-bg, #fff);
+  border: 1px solid var(--el-border-color-light);
   border-radius: 8px;
   padding: 14px 16px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -489,11 +489,11 @@ onUnmounted(() => {
 .ico.green { background: #52c41a; }
 .ico.orange { background: #fa8c16; }
 .ico.red { background: #ff4d4f; }
-.stat-card .t { font-size: 14px; color: rgba(0, 0, 0, 0.85); }
+.stat-card .t { font-size: 14px; color: var(--el-text-color-primary); }
 .stat-card .total {
   margin-left: auto;
   font-size: 20px; font-weight: 500;
-  color: rgba(0, 0, 0, 0.85);
+  color: var(--el-text-color-primary);
   font-variant-numeric: tabular-nums;
 }
 .stat-card .rows { flex: 1; }
@@ -501,13 +501,13 @@ onUnmounted(() => {
   display: flex; align-items: center; justify-content: space-between;
   padding: 7px 0;
   font-size: 13px;
-  color: rgba(0, 0, 0, 0.65);
+  color: var(--el-text-color-regular);
   border-bottom: 1px dashed #f5f5f5;
 }
 .stat-card .row:last-child { border-bottom: none; }
 .stat-card .row b {
   font-size: 16px; font-weight: 500;
-  color: rgba(0, 0, 0, 0.85);
+  color: var(--el-text-color-primary);
   font-variant-numeric: tabular-nums;
 }
 .stat-card .row b.ok { color: #52c41a; }

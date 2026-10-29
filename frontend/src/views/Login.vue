@@ -86,6 +86,9 @@
           <p class="scope-note">
             登录后右上角显示「组织 · 平台」；平台编码可在悬停提示中查看。
           </p>
+          <el-link type="info" style="font-size:12px" @click="toOperator">
+            平台运营登录
+          </el-link>
         </div>
       </section>
     </div>
@@ -121,6 +124,10 @@ const accounts = [
 function fill(a) {
   form.username = a.u
   form.password = a.p
+}
+
+function toOperator() {
+  router.push('/platform-admin/login')
 }
 
 async function onSubmit() {

@@ -61,6 +61,14 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (path.startsWith("/api/callback/")) {
             return true;
         }
+        // 平台运营台：独立令牌（X-Operator-Token），由控制器自行校验
+        if (path.startsWith("/api/v1/platform-admin/")) {
+            return true;
+        }
+        // 登录前品牌信息
+        if (path.startsWith("/api/v1/public/")) {
+            return true;
+        }
         // 放行：登录、健康检查
         if (path.startsWith("/api/v1/auth/login") || path.startsWith("/actuator/")
                 || path.equals("/") || path.startsWith("/index.html")

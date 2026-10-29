@@ -323,6 +323,18 @@ const routes = [
     meta: { public: true }
   },
   {
+    path: '/platform-admin/login',
+    name: 'platformadminlogin',
+    component: () => import('@/views/PlatformAdminLogin.vue'),
+    meta: { public: true }
+  },
+  {
+    path: '/platform-admin',
+    name: 'platformadmin',
+    component: () => import('@/views/PlatformAdmin.vue'),
+    meta: { public: true }
+  },
+  {
     path: '/',
     component: () => import('@/layout/Layout.vue'),
     redirect: '/dashboard',

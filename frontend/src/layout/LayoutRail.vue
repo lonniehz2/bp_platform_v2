@@ -145,16 +145,16 @@ async function logout() {
   margin: 10px 0 4px;
   padding: 0 18px;
   font-size: 11px;
-  color: #a8abb2;
+  color: var(--el-text-color-secondary);
   letter-spacing: 0.5px;
 }
 .mi-label { display: inline-flex; align-items: center; gap: 4px; }
-.mi-label .lock { font-size: 12px; color: #c0c4cc; }
+.mi-label .lock { font-size: 12px; color: var(--el-text-color-secondary); }
 .mi-badge { margin-left: auto; }
 
 .layout { height: 100%; }
 .rail {
-  width: 76px; flex: 0 0 76px; background: #fff;
+  width: 76px; flex: 0 0 76px; background: var(--bp-sider-bg);
   border-right: 1px solid #f0f0f0;
   display: flex; flex-direction: column; align-items: center;
   padding: 8px 0; gap: 2px;
@@ -170,12 +170,12 @@ async function logout() {
   cursor: pointer; color: rgba(0, 0, 0, 0.65); font-size: 12px;
   transition: background 0.15s, color 0.15s;
 }
-.rail-item:hover { background: #f5f5f5; }
-.rail-item.active { background: #e6f7ff; color: #1890ff; }
+.rail-item:hover { background: var(--bp-hover-bg); }
+.rail-item.active { background: var(--bp-sider-active-bg); color: var(--el-color-primary); }
 .rail-bottom { margin-top: auto; }
 
 .panel {
-  width: 168px; flex: 0 0 168px; background: #fff;
+  width: 168px; flex: 0 0 168px; background: var(--bp-sider-bg);
   border-right: 1px solid #f0f0f0; padding: 8px 0; overflow: hidden;
 }
 .panel-title { padding: 6px 16px 10px; font-size: 13px; color: rgba(0, 0, 0, 0.45); }
@@ -185,17 +185,17 @@ async function logout() {
   margin: 0 8px; border-radius: 6px;
 }
 .panel-menu :deep(.el-menu-item.is-active) {
-  background: #e6f7ff; color: #1890ff; font-weight: 500;
+  background: var(--bp-sider-active-bg); color: var(--el-color-primary); font-weight: 500;
 }
 
 .right { min-width: 0; }
 .header {
   display: flex; align-items: center; gap: 12px;
-  background: #fff; border-bottom: 1px solid #f0f0f0;
+  background: var(--bp-sider-bg); border-bottom: 1px solid var(--el-border-color-light);
   height: 56px; padding: 0 16px;
 }
 .greet { font-size: 15px; color: rgba(0, 0, 0, 0.85); font-weight: 500; }
 .crumb { font-size: 13px; }
 .header .spacer { flex: 1; }
-.main { background: #f0f2f5; padding: 16px; overflow-y: auto; }
+.main { background: var(--bp-page-bg); padding: 16px; overflow-y: auto; }
 </style>

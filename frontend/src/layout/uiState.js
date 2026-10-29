@@ -1,6 +1,7 @@
 import { reactive, watch } from 'vue'
 
 const KEY = 'bp.ui.style'
+const MODE_KEY = 'bp.ui.mode'
 
 /**
  * 布局风格：
@@ -18,7 +19,36 @@ function read() {
   }
 }
 
-export const uiState = reactive({ style: read() })
+function readMode() {
+  try {
+    const v = localStorage.getItem(MODE_KEY)
+    return v === 'dark' ? 'dark' : 'light'
+  } catch (e) {
+    return 'light'
+  }
+}
+
+function applyMode(mode) {
+  try {
+    document.documentElement.classList.toggle('dark', mode === 'dark')
+  } catch (e) { /* ignore */ }
+}
+
+export const uiState = reactive({ style: read(), mode: readMode() })
+applyMode(uiState.mode)
+
+watch(() => uiState.mode, (v) => {
+  applyMode(v)
+  try { localStorage.setItem(MODE_KEY, v) } catch (e) { /* ignore */ }
+})
+
+export function setMode(v) {
+  uiState.mode = v === 'dark' ? 'dark' : 'light'
+}
+
+export function toggleMode() {
+  setMode(uiState.mode === 'dark' ? 'light' : 'dark')
+}
 
 watch(() => uiState.style, (v) => {
   try { localStorage.setItem(KEY, v) } catch (e) { /* ignore */ }

@@ -4,7 +4,7 @@
       <!-- 横向网格 -->
       <line v-for="(g, i) in gridLines" :key="'g' + i"
             :x1="PAD_L" :x2="W - PAD_R" :y1="g.y" :y2="g.y"
-            stroke="#ebeef5" stroke-width="1" />
+            stroke="var(--el-border-color-lighter)" stroke-width="1" />
       <text v-for="(g, i) in gridLines" :key="'t' + i"
             :x="PAD_L - 6" :y="g.y + 4" text-anchor="end" class="axis-text">
         {{ g.label }}
@@ -104,6 +104,6 @@ const gridLines = computed(() => {
 <style scoped>
 .trend { width: 100%; }
 .trend-svg { width: 100%; height: auto; display: block; }
-.axis-text { font-size: 11px; fill: #909399; }
-.value-text { font-size: 11px; fill: #606266; font-weight: 600; }
+.axis-text { font-size: 11px; fill: var(--el-text-color-secondary); }
+.value-text { font-size: 11px; fill: var(--el-text-color-regular); font-weight: 600; }
 </style>

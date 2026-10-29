@@ -16,6 +16,7 @@ public record MeVO(
         String userType,
         Boolean admin,
         List<String> permissions,
-        List<Long> roleIds
+        List<Long> roleIds,
+        Boolean mustChangePassword
 ) {
 }

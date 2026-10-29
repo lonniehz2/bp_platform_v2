@@ -45,7 +45,10 @@ public class MybatisTenantConfig {
             "bp_open_api",          // 开放接口清单
             // 调用日志按 appKey 归属，表本身无 tenant_id 列；
             // 若不忽略，租户插件会给 INSERT 注入 tenant_id 导致写入失败
-            "bp_open_call_log"
+            "bp_open_call_log",
+            // 平台运营台（跨平台表，无 tenant_id）
+            "bp_iam_platform_operator", "bp_iam_platform_operator_session",
+            "bp_iam_platform_audit", "bp_iam_tenant_branding", "bp_sys_platform_seq"
     );
 
     @Bean

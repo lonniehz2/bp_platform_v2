@@ -27,4 +27,7 @@ public interface AuthService {
 
     /** 用户全部权限码（管理员返回 *）。 */
     java.util.Set<String> permissionCodes(Long userId);
+
+    /** 业务用户修改密码（首次登录/重置后强制）。 */
+    void changePassword(Long userId, String oldPassword, String newPassword);
 }
