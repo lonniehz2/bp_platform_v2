@@ -35,7 +35,9 @@
       <el-table-column label="合同" width="160" show-overflow-tooltip>
         <template #default="{ row }">{{ row.contractIdName || row.contractId || '—' }}</template>
       </el-table-column>
-      <el-table-column prop="subsidyAmount" label="金额" width="100" />
+      <el-table-column label="金额" width="100" >
+          <template #default="{ row }">{{ $money(row.subsidyAmount) }}</template>
+        </el-table-column>
       <el-table-column prop="recordStatus" label="状态" width="110">
         <template #default="{ row }">
           <el-tag size="small" :type="row.recordStatus === 'PAID' ? 'success'

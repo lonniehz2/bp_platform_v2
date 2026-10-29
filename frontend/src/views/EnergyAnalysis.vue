@@ -34,7 +34,9 @@
       <el-table-column prop="feeItemName" label="计量项目" width="190" />
       <el-table-column prop="readings" label="读数次数" width="110" />
       <el-table-column prop="usage" label="用量" width="150" />
-      <el-table-column prop="amount" label="金额" width="150" />
+      <el-table-column label="金额" width="150" >
+          <template #default="{ row }">{{ $money(row.amount) }}</template>
+        </el-table-column>
     </el-table>
 
     <el-row :gutter="12" style="margin-bottom:6px">
@@ -55,7 +57,9 @@
           <el-table-column prop="month" label="月份" width="110" />
           <el-table-column prop="readings" label="读数次数" width="100" />
           <el-table-column prop="usage" label="用量" />
-          <el-table-column prop="amount" label="金额" />
+          <el-table-column label="金额" >
+          <template #default="{ row }">{{ $money(row.amount) }}</template>
+        </el-table-column>
         </el-table>
       </el-col>
       <el-col :span="12">

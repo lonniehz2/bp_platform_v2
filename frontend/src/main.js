@@ -10,7 +10,10 @@ import router from './router'
 import './styles/index.css'
 import './styles/theme.css'
 
+import { fmtMoney } from '@/utils/money'
+
 const app = createApp(App)
+app.config.globalProperties.$money = fmtMoney
 
 // 图标全量注册（内部管理台，体积可接受）
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {

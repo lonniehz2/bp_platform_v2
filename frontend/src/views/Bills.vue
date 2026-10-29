@@ -58,10 +58,18 @@
             {{ row.feeItemIdName || row.feeItemName || row.feeItemId || '—' }}
           </template>
         </el-table-column>
-        <el-table-column prop="billAmount" label="应收" width="90" />
-        <el-table-column prop="paidAmount" label="已缴" width="90" />
-        <el-table-column prop="waivedAmount" label="减免" width="85" />
-        <el-table-column prop="payableAmount" label="待缴" width="90" />
+        <el-table-column label="应收" width="90" >
+          <template #default="{ row }">{{ $money(row.billAmount) }}</template>
+        </el-table-column>
+        <el-table-column label="已缴" width="90" >
+          <template #default="{ row }">{{ $money(row.paidAmount) }}</template>
+        </el-table-column>
+        <el-table-column label="减免" width="85" >
+          <template #default="{ row }">{{ $money(row.waivedAmount) }}</template>
+        </el-table-column>
+        <el-table-column label="待缴" width="90" >
+          <template #default="{ row }">{{ $money(row.payableAmount) }}</template>
+        </el-table-column>
         <el-table-column prop="dueDate" label="截止日" width="105" />
         <el-table-column prop="billStatusLabel" label="状态" width="95">
           <template #default="{ row }">

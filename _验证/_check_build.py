@@ -40,7 +40,7 @@ WHITELIST = {
     'w', 'y', 'z',
     # Vue 模板内置
     '$route', '$router', '$emit', '$attrs', '$slots', '$props',
-    '$refs', '$el', '$nextTick'
+    '$refs', '$el', '$nextTick', '$money'
 }
 
 DECL_RE = re.compile(

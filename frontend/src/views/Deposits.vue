@@ -22,11 +22,21 @@
         <el-table-column prop="personId" label="人员" width="110">
           <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
         </el-table-column>
-        <el-table-column prop="depositAmount" label="应收" width="100" />
-        <el-table-column prop="paidAmount" label="已收" width="100" />
-        <el-table-column prop="deductAmount" label="已抵扣" width="100" />
-        <el-table-column prop="refundAmount" label="已退还" width="100" />
-        <el-table-column prop="balanceAmount" label="余额" width="100" />
+        <el-table-column label="应收" width="100" >
+          <template #default="{ row }">{{ $money(row.depositAmount) }}</template>
+        </el-table-column>
+        <el-table-column label="已收" width="100" >
+          <template #default="{ row }">{{ $money(row.paidAmount) }}</template>
+        </el-table-column>
+        <el-table-column label="已抵扣" width="100" >
+          <template #default="{ row }">{{ $money(row.deductAmount) }}</template>
+        </el-table-column>
+        <el-table-column label="已退还" width="100" >
+          <template #default="{ row }">{{ $money(row.refundAmount) }}</template>
+        </el-table-column>
+        <el-table-column label="余额" width="100" >
+          <template #default="{ row }">{{ $money(row.balanceAmount) }}</template>
+        </el-table-column>
         <el-table-column prop="depositStatus" label="状态" width="120">
           <template #default="{ row }">
             <el-tag size="small" :type="row.depositStatus === 'REFUNDED' ? 'success'
@@ -58,7 +68,9 @@
         <el-table-column prop="contractId" label="合同" width="130">
           <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
         </el-table-column>
-        <el-table-column prop="refundAmount" label="金额" width="110" />
+        <el-table-column label="金额" width="110" >
+          <template #default="{ row }">{{ $money(row.refundAmount) }}</template>
+        </el-table-column>
         <el-table-column prop="refundType" label="类型" width="110">
           <template #default="{ row }">{{ row.refundTypeLabel || enumLabel('refundType', row.refundType) }}</template>
         </el-table-column>

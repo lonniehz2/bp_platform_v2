@@ -52,7 +52,9 @@
         <el-table-column prop="personId" label="人员" width="150">
           <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
         </el-table-column>
-        <el-table-column prop="arrearsAmount" label="欠费" width="110" />
+        <el-table-column label="欠费" width="110" >
+          <template #default="{ row }">{{ $money(row.arrearsAmount) }}</template>
+        </el-table-column>
         <el-table-column prop="overdueDays" label="逾期天数" width="100" />
         <el-table-column prop="actionType" label="动作" width="120">
           <template #default="{ row }">{{ enumLabel('arrearsActionType', row.actionType) }}</template>
@@ -147,7 +149,9 @@
         <el-table-column prop="personId" label="人员" width="150">
           <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
         </el-table-column>
-        <el-table-column prop="arrearsAmount" label="欠费" width="110" />
+        <el-table-column label="欠费" width="110" >
+          <template #default="{ row }">{{ $money(row.arrearsAmount) }}</template>
+        </el-table-column>
         <el-table-column prop="overdueDays" label="逾期天数" width="100" />
         <el-table-column prop="billCount" label="账单数" width="90" />
         <el-table-column prop="freezeRecommended" label="建议冻结" width="100">

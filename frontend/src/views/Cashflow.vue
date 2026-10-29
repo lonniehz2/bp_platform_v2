@@ -46,12 +46,12 @@
         <el-table-column label="金额" width="120" align="right">
           <template #default="{ row }">
             <span :style="Number(row.amount) < 0 ? 'color:#f56c6c' : 'color:#67c23a'">
-              {{ Number(row.amount).toFixed(2) }}
+              {{ $money(row.amount) }}
             </span>
           </template>
         </el-table-column>
         <el-table-column label="变动后余额" width="130" align="right">
-          <template #default="{ row }">{{ Number(row.balanceAfter || 0).toFixed(2) }}</template>
+          <template #default="{ row }">{{ $money(row.balanceAfter) }}</template>
         </el-table-column>
         <el-table-column label="来源单据" width="180" show-overflow-tooltip>
           <template #default="{ row }">{{ bizKind(row.bizType) }} {{ row.bizId || '' }}</template>

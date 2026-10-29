@@ -38,8 +38,12 @@
             <span style="white-space:nowrap">{{ row.leaseStart }} ~ {{ row.leaseEnd }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="monthlyRent" label="月租" width="95" />
-          <el-table-column prop="depositAmount" label="押金" width="90" />
+        <el-table-column label="月租" width="95" >
+          <template #default="{ row }">{{ $money(row.monthlyRent) }}</template>
+        </el-table-column>
+          <el-table-column label="押金" width="90" >
+          <template #default="{ row }">{{ $money(row.depositAmount) }}</template>
+        </el-table-column>
           <el-table-column label="类型" width="100">
             <template #default="{ row }">
               {{ row.contractTypeLabel || enumLabel('contractType', row.contractType) }}
