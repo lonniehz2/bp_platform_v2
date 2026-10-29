@@ -79,7 +79,7 @@
                        @click="doExecute(row)">执行</el-button>
             <el-button link type="danger" :disabled="row.actionStatus === 'REVOKED'"
                        @click="doRevoke(row)">撤销</el-button>
-            <el-button link @click="detail = row; show = true">详情</el-button>
+            <el-button link @click="openArrearsDetail(row)">详情</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -216,7 +216,19 @@
 
     
 
-    <el-drawer v-model="show" title="明细（原始数据）" size="520px">
+    <el-drawer v-model="show" title="欠费处置详情" size="560px">
+      <div v-if="arrearBills.length" style="margin-bottom:12px">
+        <div style="font-weight:600;margin-bottom:6px">欠费账单（未缴）</div>
+        <el-table :data="arrearBills" size="small" border max-height="240">
+          <el-table-column prop="billNo" label="账单号" width="165" />
+          <el-table-column prop="billPeriod" label="账期" width="85" />
+          <el-table-column label="费用区间" width="185">
+            <template #default="{ row }">{{ row.periodStart }} ~ {{ row.periodEnd }}</template>
+          </el-table-column>
+          <el-table-column prop="payableAmount" label="待缴" width="85" />
+          <el-table-column prop="dueDate" label="截止日" width="105" />
+        </el-table>
+      </div>
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
@@ -414,6 +426,19 @@ const keyword = ref('')
 const overdueDays = ref(3)
 const show = ref(false)
 const detail = ref(null)
+const arrearBills = ref([])
+
+async function openArrearsDetail(row) {
+  detail.value = row
+  show.value = true
+  arrearBills.value = []
+  if (!row.contractId) return
+  try {
+    const d = await req.get('/fin/bills', { params: { pageNum: 1, pageSize: 30,
+      contractId: row.contractId, status: 'UNPAID' } })
+    arrearBills.value = (d && d.rows) || []
+  } catch (e) { arrearBills.value = [] }
+}
 
 const trendRows = ref([])
 const overdueTrend = computed(() => trendRows.value.map((m) => ({

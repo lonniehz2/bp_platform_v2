@@ -57,8 +57,15 @@
       <el-table-column prop="terminationType" label="类型" width="120">
         <template #default="{ row }">{{ row.terminationTypeLabel || enumLabel('terminationType', row.terminationType) }}</template>
       </el-table-column>
-      <el-table-column prop="planExitDate" label="计划退出" width="115" />
-      <el-table-column prop="actualExitDate" label="实际退出" width="115" />
+      <el-table-column label="退出日期" width="150">
+        <template #default="{ row }">
+          <span v-if="row.actualExitDate">{{ row.actualExitDate }}</span>
+          <span v-else-if="row.planExitDate" class="muted">
+            计划 {{ row.planExitDate }}
+          </span>
+          <span v-else class="muted">—</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="terminationStatus" label="状态" width="130">
         <template #default="{ row }">
           <el-tag size="small" :type="row.terminationStatus === 'COMPLETED' ? 'success'
