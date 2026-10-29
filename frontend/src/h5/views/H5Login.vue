@@ -6,7 +6,7 @@
     <div class="form card">
       <el-form :model="form">
         <el-form-item>
-          <el-input v-model="form.tenantId" placeholder="租户ID" size="large" />
+          <el-input v-model="form.tenantId" placeholder="平台编码" size="large" />
         </el-form-item>
         <el-form-item>
           <el-input v-model="form.username" placeholder="账号" size="large" />

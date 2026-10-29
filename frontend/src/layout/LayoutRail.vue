@@ -47,7 +47,7 @@
         </el-breadcrumb>
         <div class="spacer" />
         <el-tooltip placement="bottom"
-                    :content="'租户：' + (auth.user?.tenantName || '—') + '（' + (auth.user?.tenantId || '—') + '）'">
+                    :content="'平台：' + (auth.user?.tenantName || '—') + '（' + (auth.user?.tenantId || '—') + '）'">
           <el-tag size="small" type="info">
             组织 {{ auth.user?.orgName || '平台' }}
           </el-tag>

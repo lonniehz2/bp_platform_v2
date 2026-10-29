@@ -22,7 +22,7 @@
           <li><span class="dot" /><div><b>全流程闭环</b><em>申请 · 配租 · 签约 · 收费 · 退租</em></div></li>
           <li><span class="dot" /><div><b>账务可追溯</b><em>账单计费明细 · 收款核销 · 押金台账</em></div></li>
           <li><span class="dot" /><div><b>物联联动</b><em>门锁 / 水电表 / 告警 · IoT 对账</em></div></li>
-          <li><span class="dot" /><div><b>多租户隔离</b><em>租户级数据隔离 · 组织级数据范围</em></div></li>
+          <li><span class="dot" /><div><b>平台级隔离</b><em>平台数据隔离 · 组织数据范围</em></div></li>
         </ul>
 
         <div class="stats">
@@ -36,19 +36,19 @@
       <section class="card">
         <div class="card-head">
           <h2>欢迎登录</h2>
-          <p>请使用平台租户码与账号登录</p>
+          <p>请使用平台编码与账号登录</p>
         </div>
 
         <el-form :model="form" :rules="rules" ref="formRef" @keyup.enter="onSubmit">
           <el-form-item prop="tenantId">
-            <el-input v-model="form.tenantId" placeholder="平台租户码，如 350600" size="large">
+            <el-input v-model="form.tenantId" placeholder="平台编码，如 350600" size="large">
               <template #prefix><el-icon><OfficeBuilding /></el-icon></template>
               <template #suffix>
                 <el-tooltip placement="top">
                   <template #content>
                     <div style="max-width:260px;line-height:1.7">
-                      租户码是<b>数据隔离标识</b>，不是组织编码。<br />
-                      一个租户下可有多级组织；登录后右上角显示你的<b>组织</b>，<br />
+                      平台编码是<b>数据隔离标识</b>，既不是组织编码，也不是承租人。<br />
+                      一个平台下可有多级组织与承租人；登录后右上角显示你的<b>组织</b>，<br />
                       未限定组织（全局范围）时显示「平台」。
                     </div>
                   </template>
@@ -84,7 +84,7 @@
                     @click="fill(a)">{{ a.label }}</el-tag>
           </div>
           <p class="scope-note">
-            登录后右上角显示「组织 · 平台」；租户码可在悬停提示中查看。
+            登录后右上角显示「组织 · 平台」；平台编码可在悬停提示中查看。
           </p>
         </div>
       </section>
@@ -107,7 +107,7 @@ const loading = ref(false)
 const form = reactive({ tenantId: '350600', username: 'admin', password: 'admin123' })
 
 const rules = {
-  tenantId: [{ required: true, message: '请输入平台租户码', trigger: 'blur' }],
+  tenantId: [{ required: true, message: '请输入平台编码', trigger: 'blur' }],
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
 }

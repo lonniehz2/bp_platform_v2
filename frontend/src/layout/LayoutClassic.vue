@@ -45,6 +45,12 @@
           <el-breadcrumb-item>{{ titleOf($route.path) }}</el-breadcrumb-item>
         </el-breadcrumb>
         <div class="spacer" />
+        <el-tooltip placement="bottom"
+                    :content="'平台：' + (auth.user?.tenantName || '—') + '（' + (auth.user?.tenantId || '—') + '）'">
+          <el-tag size="small" type="info" style="margin-right:6px">
+            组织 {{ auth.user?.orgName || '平台' }}
+          </el-tag>
+        </el-tooltip>
         <el-tag size="small" type="info">{{ auth.displayName || '管理员' }}</el-tag>
         <el-tooltip content="使用帮助" placement="bottom">
           <el-button text @click="toHelp">
