@@ -11,6 +11,8 @@ public record MeVO(
         String realName,
         String tenantId,
         Long orgId,
+        String tenantName,
+        String orgName,
         String userType,
         Boolean admin,
         List<String> permissions,

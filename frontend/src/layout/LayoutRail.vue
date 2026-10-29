@@ -46,7 +46,12 @@
           <el-breadcrumb-item>{{ titleOf($route.path) }}</el-breadcrumb-item>
         </el-breadcrumb>
         <div class="spacer" />
-        <el-tag size="small" type="info">租户 {{ auth.user?.tenantId || '—' }}</el-tag>
+        <el-tooltip placement="bottom"
+                    :content="'租户：' + (auth.user?.tenantName || '—') + '（' + (auth.user?.tenantId || '—') + '）'">
+          <el-tag size="small" type="info">
+            组织 {{ auth.user?.orgName || '平台' }}
+          </el-tag>
+        </el-tooltip>
         <el-tooltip content="使用帮助" placement="bottom">
           <el-button text @click="toHelp">
             <el-icon><QuestionFilled /></el-icon>

@@ -54,6 +54,12 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordHasher hasher;
     private final SnowflakeIdGenerator idGen;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.mapper.IamTenantMapper tenantMapper;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.iam.mapper.IamOrgMapper orgMapper;
+
     public AuthServiceImpl(IamUserMapper userMapper, IamSessionMapper sessionMapper,
                            IamUserRoleMapper userRoleMapper, IamRoleMapper roleMapper,
                            IamRolePermissionMapper rolePermMapper,
@@ -153,8 +159,30 @@ public class AuthServiceImpl implements AuthService {
         boolean admin = user.getIsAdmin() != null && user.getIsAdmin() == 1;
         List<Long> roleIds = roleIds(userId);
         Set<String> perms = admin ? Set.of("*") : permissionCodes(userId);
+        String tenantName = null;
+        if (tenantMapper != null && user.getTenantId() != null) {
+            com.yundao.bp.iam.entity.IamTenant t = tenantMapper.selectOne(
+                    new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                            <com.yundao.bp.iam.entity.IamTenant>()
+                            .eq(com.yundao.bp.iam.entity.IamTenant::getTenantCode,
+                                    user.getTenantId())
+                            .last("LIMIT 1"));
+            if (t != null) {
+                tenantName = t.getTenantName();
+            }
+        }
+        String orgName = null;
+        if (user.getOrgId() == null) {
+            orgName = "平台";
+        } else if (orgMapper != null) {
+            com.yundao.bp.iam.entity.IamOrg o = orgMapper.selectById(user.getOrgId());
+            if (o != null) {
+                orgName = o.getOrgName();
+            }
+        }
         return new MeVO(user.getId(), user.getUsername(), user.getRealName(),
-                user.getTenantId(), user.getOrgId(), user.getUserType(), admin,
+                user.getTenantId(), user.getOrgId(), tenantName,
+                orgName == null ? "平台" : orgName, user.getUserType(), admin,
                 new ArrayList<>(perms), roleIds);
     }
 
