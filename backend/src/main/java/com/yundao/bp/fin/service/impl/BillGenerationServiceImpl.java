@@ -16,6 +16,7 @@ import com.yundao.bp.fin.dto.GenerateBillsCmd;
 import com.yundao.bp.fin.dto.GenerateResultVO;
 import com.yundao.bp.fin.dto.RecalcBillsCmd;
 import com.yundao.bp.fin.dto.RecalcBillsResult;
+import com.yundao.bp.fin.dto.BillExplainVO;
 import com.yundao.bp.fin.entity.FinBill;
 import com.yundao.bp.fin.entity.FinBillingRule;
 import com.yundao.bp.fin.entity.FinFeeItem;
@@ -430,6 +431,107 @@ public class BillGenerationServiceImpl implements BillGenerationService {
         return new RecalcBillsResult(bills.size(), changed, skipped,
                 oldTotal.setScale(2, RoundingMode.HALF_UP),
                 newTotal.setScale(2, RoundingMode.HALF_UP), dryRun, items);
+    }
+
+    @Override
+    public BillExplainVO explain(Long billId) {
+        FinBill b = billMapper.selectById(billId);
+        if (b == null) {
+            throw BizException.notFound("账单");
+        }
+        FinFeeItem item = b.getFeeItemId() == null ? null
+                : feeItemMapper.selectById(b.getFeeItemId());
+        CalcMode mode = null;
+        String modeLabel = "";
+        if (item != null) {
+            try {
+                mode = CalcMode.valueOf(item.getCalcMode());
+                modeLabel = mode.label();
+            } catch (Exception ignore) {
+            }
+        }
+        BizContract ct = b.getContractId() == null ? null
+                : contractMapper.selectById(b.getContractId());
+        AssetHouse house = b.getHouseId() == null ? null
+                : houseMapper.selectById(b.getHouseId());
+
+        BigDecimal price = item == null || item.getUnitPrice() == null
+                ? BigDecimal.ZERO : item.getUnitPrice();
+        BigDecimal area = house == null ? null : house.getArea();
+        Integer qty = null;
+        Integer days = null;
+        BigDecimal months = BigDecimal.ONE;
+        String formula = "—";
+        if (mode != null && ct != null && ct.getLeaseStart() != null
+                && b.getPeriodStart() != null && b.getPeriodEnd() != null) {
+            Proration pro = proration(ct, b.getPeriodStart(), b.getPeriodEnd());
+            days = pro.days();
+            months = pro.months();
+        }
+        if (mode == CalcMode.BY_NIGHT) {
+            nightsOf(b, ct);
+            days = (int) Math.max(1, ChronoUnit.DAYS.between(b.getPeriodStart(), b.getPeriodEnd()));
+            qty = days;
+            months = BigDecimal.ONE;
+            formula = "天数 × 单价";
+        } else if (mode == CalcMode.METER) {
+            formula = "用量 × 单价（用量见抄表记录）";
+            months = BigDecimal.ONE;
+        } else if (mode == CalcMode.BY_AREA) {
+            qty = 1;
+            formula = "面积 × 单价 × 月数";
+        } else if (mode == CalcMode.BY_PERSON || mode == CalcMode.BY_BED) {
+            qty = quantityOf(mode, house, 0, null);
+            formula = "数量 × 单价 × 月数";
+        } else if (mode != null) {
+            qty = 1;
+            formula = "单价 × 月数";
+        }
+
+        BigDecimal amount = b.getBillAmount();
+        // 短租/订单类账单单价来自订单，项目单价可能为 0：按账单金额反推展示
+        if (price.compareTo(BigDecimal.ZERO) == 0 && amount != null
+                && amount.compareTo(BigDecimal.ZERO) > 0 && qty != null && qty > 0) {
+            price = amount.divide(BigDecimal.valueOf(qty), 4, RoundingMode.HALF_UP);
+        }
+        java.util.List<BillExplainVO.Line> lines = new java.util.ArrayList<>();
+        lines.add(new BillExplainVO.Line("收费项目", item == null ? "—" : item.getItemName()));
+        lines.add(new BillExplainVO.Line("计费方式", modeLabel));
+        String unit = item == null ? null : item.getUnit();
+        String priceText = price.toPlainString()
+                + (unit == null || unit.isBlank() ? ""
+                : (unit.contains("元") ? " " + unit : " 元/" + unit));
+        lines.add(new BillExplainVO.Line("单价", priceText));
+        if (mode == CalcMode.BY_AREA) {
+            lines.add(new BillExplainVO.Line("建筑面积", area == null ? "—" : area.toPlainString() + " ㎡"));
+        }
+        if (qty != null && mode != CalcMode.BY_AREA) {
+            lines.add(new BillExplainVO.Line("数量", String.valueOf(qty)));
+        }
+        if (b.getPeriodStart() != null && b.getPeriodEnd() != null) {
+            lines.add(new BillExplainVO.Line("费用区间",
+                    b.getPeriodStart() + " ~ " + b.getPeriodEnd()));
+        }
+        if (days != null) {
+            lines.add(new BillExplainVO.Line("计费天数", days + " 天"));
+        }
+        if (mode != CalcMode.METER && mode != CalcMode.BY_NIGHT) {
+            lines.add(new BillExplainVO.Line("折算月数", months.stripTrailingZeros().toPlainString()));
+        }
+        lines.add(new BillExplainVO.Line("计算公式", formula));
+        lines.add(new BillExplainVO.Line("应收金额", amount == null ? "0.00" : amount.toPlainString()));
+        if (b.getRemark() != null && !b.getRemark().isBlank()) {
+            lines.add(new BillExplainVO.Line("计费说明", b.getRemark()));
+        }
+        return new BillExplainVO(b.getId(), b.getBillNo(),
+                item == null ? null : item.getItemName(),
+                mode == null ? null : mode.name(), modeLabel, price, area, qty, days, months,
+                formula, amount, b.getRemark(), lines);
+    }
+
+    /** 按夜计费天数（保留占位，避免空指针）。 */
+    private static int nightsOf(FinBill b, BizContract ct) {
+        return 0;
     }
 
     /** 数量取值。 */

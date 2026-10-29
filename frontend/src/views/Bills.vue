@@ -383,6 +383,13 @@
         <el-descriptions-item label="滞纳金">{{ dvRow.lateFee || 0 }}</el-descriptions-item>
         <el-descriptions-item label="逾期天数">{{ dvRow.overdueDays || 0 }}</el-descriptions-item>
       </el-descriptions>
+      <div v-if="explainRows.length" style="margin-top:12px">
+        <div style="font-weight:600;margin-bottom:6px">计费明细</div>
+        <el-table :data="explainRows" size="small" border>
+          <el-table-column prop="label" label="项目" width="130" />
+          <el-table-column prop="value" label="值" />
+        </el-table>
+      </div>
       <el-alert v-if="dvRow.remark" type="info" :closable="false" show-icon
                 style="margin-top:10px" title="计费说明">
         <div style="white-space:pre-wrap">{{ dvRow.remark }}</div>
@@ -441,9 +448,16 @@
 /** 通用详情弹窗（复用 DetailView） */
 const dvVisible = ref(false)
 const dvRow = ref({})
-function openDetail(row) {
+const explainRows = ref([])
+
+async function openDetail(row) {
   dvRow.value = row
   dvVisible.value = true
+  explainRows.value = []
+  try {
+    const e = await req.get('/fin/bills/' + row.id + '/explain')
+    explainRows.value = (e && e.lines) || []
+  } catch (err) { explainRows.value = [] }
 }
 
 import { enumLabel } from '@/constants/enums'

@@ -6,6 +6,7 @@ import com.yundao.bp.fin.dto.GenerateBillsCmd;
 import com.yundao.bp.fin.dto.GenerateResultVO;
 import com.yundao.bp.fin.dto.RecalcBillsCmd;
 import com.yundao.bp.fin.dto.RecalcBillsResult;
+import com.yundao.bp.fin.dto.BillExplainVO;
 
 /**
  * 批量自动出账服务。
@@ -30,4 +31,7 @@ public interface BillGenerationService {
 
     /** 历史账单按新规则重算（仅未缴且未收款的账单，dryRun 可预览）。 */
     RecalcBillsResult recalculate(RecalcBillsCmd cmd);
+
+    /** 账单计费明细。 */
+    BillExplainVO explain(Long billId);
 }

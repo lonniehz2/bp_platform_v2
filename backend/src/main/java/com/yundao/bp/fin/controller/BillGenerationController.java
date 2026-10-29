@@ -7,6 +7,7 @@ import com.yundao.bp.fin.dto.GenerateBillsCmd;
 import com.yundao.bp.fin.dto.GenerateResultVO;
 import com.yundao.bp.fin.dto.RecalcBillsCmd;
 import com.yundao.bp.fin.dto.RecalcBillsResult;
+import com.yundao.bp.fin.dto.BillExplainVO;
 import com.yundao.bp.fin.service.BillGenerationService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,6 +42,13 @@ public class BillGenerationController {
      *
      * <p>项目间相互隔离，单项失败不影响其它项，结果逐项返回。
      */
+    /** 账单计费明细。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:bill:view")
+    @org.springframework.web.bind.annotation.GetMapping("/bills/{id}/explain")
+    public R<BillExplainVO> explain(@org.springframework.web.bind.annotation.PathVariable Long id) {
+        return R.ok(service.explain(id));
+    }
+
     /** 历史账单按新规则重算（dryRun 预览）。 */
     @com.yundao.bp.iam.security.RequirePerm("fin:bill:batch")
     @PostMapping("/bills/recalculate")
