@@ -22,7 +22,10 @@ public record ChangeVO(
         String approveStatus,
         String approveStatusLabel,
         LocalDate effectiveDate,
-        LocalDateTime createTime
+        LocalDateTime createTime,
+        String houseName,
+        String lesseeName,
+        Integer applied
 ) {
     public static ChangeVO from(BizContractChange e) {
         if (e == null) {
@@ -46,6 +49,6 @@ public record ChangeVO(
                 "CC" + e.getId(), e.getContractId(), e.getNewContractId(),
                 e.getChangeType(), ct.label(), e.getChangeReason(), e.getBeforeJson(),
                 e.getAfterJson(), e.getApproveStatus(), st.label(), e.getEffectiveDate(),
-                e.getCreateTime());
+                e.getCreateTime(), null, null, null);
     }
 }

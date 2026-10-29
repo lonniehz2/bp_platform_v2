@@ -15,7 +15,7 @@ public record DepositCreateCmd(
         @NotNull(message = "合同不能为空")
         Long contractId,
 
-        @NotNull(message = "人员不能为空")
+        /** 为空时按合同承租人补齐 */
         Long personId,
 
         @NotNull(message = "应收押金不能为空")

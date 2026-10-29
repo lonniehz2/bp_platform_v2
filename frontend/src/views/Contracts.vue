@@ -62,6 +62,8 @@
                        data-testid="contract-detail">详情</el-button>
             <el-button v-if="['EFFECTIVE','RENEWING'].includes(row.contractStatus)"
                        link type="warning" @click="openSwap(row)">换房</el-button>
+            <el-button v-if="['EFFECTIVE','RENEWING'].includes(row.contractStatus)"
+                       link type="primary" @click="openChangeDlg(row)">发起变更</el-button>
             <el-button link type="warning" :disabled="row.contractStatus !== 'DRAFT'"
                        @click="openContractEdit(row)"
                        data-testid="contract-edit">编辑</el-button>
@@ -305,6 +307,41 @@
       <template #footer>
         <el-button @click="editVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="saveContractEdit">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 发起合同变更 -->
+    <el-dialog v-model="chgVisible" title="发起合同变更" width="560px">
+      <el-form :model="chg" label-width="110px">
+        <el-form-item label="合同"><el-input :model-value="chg.contractNo" disabled /></el-form-item>
+        <el-form-item label="变更类型">
+          <el-select v-model="chg.changeType" style="width:100%">
+            <el-option label="调租" value="RENT_ADJUST" />
+            <el-option label="租期变更" value="PERIOD" />
+            <el-option label="续签" value="RENEW" />
+            <el-option label="其他" value="OTHER" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="新月租金">
+          <el-input v-model.number="chg.newMonthlyRent" placeholder="调租时填写" />
+        </el-form-item>
+        <el-form-item label="新止租日">
+          <el-date-picker v-model="chg.newLeaseEnd" type="date" value-format="YYYY-MM-DD"
+                          style="width:100%" />
+        </el-form-item>
+        <el-form-item label="生效日期">
+          <el-date-picker v-model="chg.effectiveDate" type="date" value-format="YYYY-MM-DD"
+                          style="width:100%" />
+        </el-form-item>
+        <el-form-item label="变更原因">
+          <el-input v-model="chg.changeReason" type="textarea" :rows="2" />
+        </el-form-item>
+      </el-form>
+      <el-alert type="info" :closable="false" show-icon
+                title="提交后进入「合同变更」审批；批准且到生效日后自动写回合同。" />
+      <template #footer>
+        <el-button @click="chgVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="doChange">提交</el-button>
       </template>
     </el-dialog>
 
@@ -644,6 +681,34 @@ const quickSignVisible = ref(false)
 const vacantHouses = ref([])
 const houseLoading = ref(false)
 const route = useRoute()
+const chgVisible = ref(false)
+const chg = reactive({ contractId: null, contractNo: '', changeType: 'RENT_ADJUST',
+  newMonthlyRent: null, newLeaseEnd: '', effectiveDate: '', changeReason: '' })
+
+function openChangeDlg(row) {
+  Object.assign(chg, { contractId: row.id, contractNo: row.contractNo,
+    changeType: 'RENT_ADJUST', newMonthlyRent: null, newLeaseEnd: '',
+    effectiveDate: new Date().toISOString().slice(0, 10), changeReason: '' })
+  chgVisible.value = true
+}
+
+async function doChange() {
+  if (!chg.contractId) { ElMessage.warning('缺少合同'); return }
+  saving.value = true
+  try {
+    await req.post('/contracts/' + chg.contractId + '/changes', {
+      changeType: chg.changeType, changeReason: chg.changeReason || undefined,
+      newMonthlyRent: chg.newMonthlyRent || undefined,
+      newLeaseEnd: chg.newLeaseEnd || undefined,
+      effectiveDate: chg.effectiveDate || undefined
+    })
+    ElMessage.success('变更申请已提交，等待审批')
+    chgVisible.value = false
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || '提交失败')
+  } finally { saving.value = false }
+}
+
 const swapVisible = ref(false)
 const sw = reactive({ contractId: null, contractNo: '', targetHouseId: '', reason: '',
   personName: '', oldHouseName: '', leaseStart: '', leaseEnd: '' })

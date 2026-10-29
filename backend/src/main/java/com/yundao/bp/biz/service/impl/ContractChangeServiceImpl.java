@@ -138,6 +138,32 @@ public class ContractChangeServiceImpl implements ContractChangeService {
         return ChangeVO.from(requireChange(id));
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    private ChangeVO enrichChange(ChangeVO v) {
+        if (v == null || jdbc == null) {
+            return v;
+        }
+        String houseName = null;
+        String lesseeName = null;
+        try {
+            java.util.List<java.util.Map<String, Object>> rows = jdbc.queryForList(
+                    "select h.house_name, c.lessee_name from bp_biz_contract c "
+                            + "left join bp_asset_house h on h.id = c.house_id "
+                            + "where c.id = ?", v.contractId());
+            if (!rows.isEmpty()) {
+                houseName = (String) rows.get(0).get("house_name");
+                lesseeName = (String) rows.get(0).get("lessee_name");
+            }
+        } catch (Exception ignore) {
+        }
+        return new ChangeVO(v.id(), v.changeNo(), v.contractId(), v.newContractId(),
+                v.changeType(), v.changeTypeLabel(), v.changeReason(), v.beforeJson(),
+                v.afterJson(), v.approveStatus(), v.approveStatusLabel(), v.effectiveDate(),
+                v.createTime(), houseName, lesseeName, null);
+    }
+
     @Override
     public PageResult<ChangeVO> page(long pageNum, long pageSize, Long contractId,
                                      String changeType, String status) {
@@ -149,7 +175,7 @@ public class ContractChangeServiceImpl implements ContractChangeService {
                         BizContractChange::getApproveStatus, status)
                 .orderByDesc(BizContractChange::getId);
         IPage<BizContractChange> page = mapper.selectPage(new Page<>(pageNum, pageSize), qw);
-        List<ChangeVO> rows = page.getRecords().stream().map(ChangeVO::from).toList();
+        List<ChangeVO> rows = page.getRecords().stream().map(ChangeVO::from).map(this::enrichChange).toList();
         return PageResult.of(page.getTotal(), pageNum, pageSize, rows);
     }
 
@@ -169,8 +195,21 @@ public class ContractChangeServiceImpl implements ContractChangeService {
             type = ChangeType.OTHER;
         }
 
+        // 未到生效日：先记批准，等定时任务到期写回
+        java.time.LocalDate eff = e.getEffectiveDate() == null
+                ? java.time.LocalDate.now() : e.getEffectiveDate();
+        if (eff.isAfter(java.time.LocalDate.now())) {
+            e.setApproveStatus(ApproveStatus.APPROVED.name());
+            e.setApplied(0);
+            e.setUpdateTime(LocalDateTime.now());
+            mapper.updateById(e);
+            log.info("变更单 {} 已批准，生效日 {}，到期自动写回", id, eff);
+            return ChangeVO.from(e);
+        }
+        applyToContract(ct, after);
+
         // ⭐ 真正写回合同
-        if (after.containsKey("monthlyRent")) {
+        if (false && after.containsKey("monthlyRent")) {
             BigDecimal newRent = new BigDecimal(String.valueOf(after.get("monthlyRent")))
                     .setScale(2, RoundingMode.HALF_UP);
             log.info("合同 {} 租金调整：{} → {}", ct.getContractNo(), ct.getMonthlyRent(),
@@ -196,6 +235,7 @@ public class ContractChangeServiceImpl implements ContractChangeService {
         contractMapper.updateById(ct);
 
         e.setApproveStatus(ApproveStatus.APPROVED.name());
+        e.setApplied(1);
         if (e.getEffectiveDate() == null) {
             e.setEffectiveDate(LocalDate.now());
         }
@@ -203,6 +243,32 @@ public class ContractChangeServiceImpl implements ContractChangeService {
         mapper.updateById(e);
         log.info("变更单 {} 已批准并写回合同", id);
         return ChangeVO.from(e);
+    }
+
+    /** 把变更内容写回合同（批准且到生效日时调用）。 */
+    private void applyToContract(BizContract ct, Map<String, Object> after) {
+        if (after.containsKey("monthlyRent")) {
+            BigDecimal newRent = new BigDecimal(String.valueOf(after.get("monthlyRent")))
+                    .setScale(2, RoundingMode.HALF_UP);
+            log.info("合同 {} 租金调整：{} → {}", ct.getContractNo(), ct.getMonthlyRent(), newRent);
+            ct.setMonthlyRent(newRent);
+            if (ct.getSubsidyAmount() != null) {
+                ct.setActualPay(newRent.subtract(ct.getSubsidyAmount())
+                        .setScale(2, RoundingMode.HALF_UP));
+            }
+        }
+        if (after.containsKey("leaseEnd")) {
+            ct.setLeaseEnd(LocalDate.parse(String.valueOf(after.get("leaseEnd"))));
+        }
+        if (after.containsKey("lesseePersonId")) {
+            ct.setLesseePersonId(Long.valueOf(String.valueOf(after.get("lesseePersonId"))));
+            Object nm = after.get("lesseeName");
+            if (nm != null) {
+                ct.setLesseeName(String.valueOf(nm));
+            }
+        }
+        ct.setUpdateTime(LocalDateTime.now());
+        contractMapper.updateById(ct);
     }
 
     @Override

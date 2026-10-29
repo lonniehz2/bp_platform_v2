@@ -462,7 +462,11 @@ public class AllocationServiceImpl implements AllocationService {
                     continue;
                 }
                 BatchStatus obs = batchStatusOf(ob);
-                if (!obs.isTerminal()) {
+                // 已配租（ALLOCATED）属于历史，退房后可再次入池；只拦仍在报名/摇号/选房阶段的批次
+                boolean activePool = obs == BatchStatus.DRAFT || obs == BatchStatus.PUBLISHED
+                        || obs == BatchStatus.SIGNUP || obs == BatchStatus.LOTTERY
+                        || obs == BatchStatus.LOTTERY_DONE || obs == BatchStatus.SELECTING;
+                if (activePool) {
                     throw BizException.stateConflict("房源「" + (h.getHouseName() == null
                             ? h.getHouseCode() : h.getHouseName())
                             + "」已在批次 " + ob.getBatchNo() + "（" + obs.label() + "）中，不能重复入池");

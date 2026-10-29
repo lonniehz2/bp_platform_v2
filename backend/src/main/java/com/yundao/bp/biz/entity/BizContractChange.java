@@ -39,6 +39,9 @@ public class BizContractChange {
     private String approveStatus;
     private LocalDate effectiveDate;
 
+    /** 是否已写回合同（0 未生效，1 已生效） */
+    private Integer applied;
+
     @TableField(fill = FieldFill.INSERT)
     private String createBy;
     @TableField(fill = FieldFill.INSERT)

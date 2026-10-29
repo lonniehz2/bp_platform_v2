@@ -43,6 +43,9 @@ public class ContractServiceImpl implements ContractService {
     private static final Logger log = LoggerFactory.getLogger(ContractServiceImpl.class);
 
     private final BizContractMapper mapper;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.person.mapper.PersonMapper personMapper;
     private final SnowflakeIdGenerator idGen;
     /** 合同状态变化驱动房源占用；与合同变更同事务 */
     private final OccupancyService occupancyService;
@@ -145,14 +148,14 @@ public class ContractServiceImpl implements ContractService {
         }
         int months = monthCount(cmd.leaseStart(), cmd.leaseEnd());
 
-        Long activeContracts = mapper.selectCount(
+        // 一房一租：该房源已有在制/在租合同即拒绝
+        Long houseActive = mapper.selectCount(
                 new LambdaQueryWrapper<BizContract>()
-                        .eq(BizContract::getLesseePersonId, cmd.lesseePersonId())
                         .eq(BizContract::getHouseId, cmd.houseId())
                         .in(BizContract::getContractStatus,
-                                "SIGNING", "EFFECTIVE", "RENEWING"));
-        if (activeContracts != null && activeContracts > 0) {
-            throw BizException.stateConflict("该承租人对该房源已有在签/在租合同，不能重复签约");
+                                "DRAFT", "SIGNING", "EFFECTIVE", "RENEWING"));
+        if (houseActive != null && houseActive > 0) {
+            throw BizException.stateConflict("该房源已有履约中/签约中的合同，不能重复签约");
         }
 
         long id = idGen.nextId();
@@ -166,9 +169,29 @@ public class ContractServiceImpl implements ContractService {
         e.setAllocationId(cmd.allocationId());
         e.setOrgId(cmd.orgId());
         e.setLesseePersonId(cmd.lesseePersonId());
-        e.setLesseeName(cmd.lesseeName());
-        e.setLesseePhone(cmd.lesseePhone());
-        e.setLesseeIdCardMask(cmd.lesseeIdCardMask());
+        // 姓名/手机/证件：前端未传时按人员档案补齐，避免保存后为空
+        String lesseeName = blankToNull(cmd.lesseeName());
+        String lesseePhone = blankToNull(cmd.lesseePhone());
+        String lesseeIdCard = blankToNull(cmd.lesseeIdCardMask());
+        if (lesseeName == null || lesseePhone == null || lesseeIdCard == null) {
+            com.yundao.bp.person.entity.Person person =
+                    personMapper == null ? null : personMapper.selectById(cmd.lesseePersonId());
+            if (person != null) {
+                if (lesseeName == null) {
+                    lesseeName = blankToNull(person.getPersonName()) != null
+                            ? person.getPersonName() : person.getRealName();
+                }
+                if (lesseePhone == null) {
+                    lesseePhone = person.getPhone();
+                }
+                if (lesseeIdCard == null) {
+                    lesseeIdCard = person.getIdCardMask();
+                }
+            }
+        }
+        e.setLesseeName(lesseeName);
+        e.setLesseePhone(lesseePhone);
+        e.setLesseeIdCardMask(lesseeIdCard);
         e.setLessorOrgId(cmd.lessorOrgId());
         e.setHouseId(cmd.houseId());
         e.setSpaceId(cmd.spaceId());

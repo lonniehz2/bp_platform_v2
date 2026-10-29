@@ -110,8 +110,21 @@ public class DepositRefundServiceImpl implements DepositRefundService {
         }
 
         boolean exempt = cmd.isExempt() != null && cmd.isExempt() == 1;
-        BigDecimal due = exempt ? money(null) : money(cmd.depositAmount());
-        BigDecimal paid = exempt ? money(null) : money(cmd.paidAmount());
+        BigDecimal due = exempt ? BigDecimal.ZERO
+                : (cmd.depositAmount() == null ? BigDecimal.ZERO : money(cmd.depositAmount()));
+        BigDecimal paid = exempt ? BigDecimal.ZERO
+                : (cmd.paidAmount() == null ? BigDecimal.ZERO : money(cmd.paidAmount()));
+        if ((due == null || due.compareTo(BigDecimal.ZERO) == 0) && cmd.depositAmount() == null
+                && contractOrgIdMapper != null) {
+            com.yundao.bp.biz.entity.BizContract c =
+                    contractOrgIdMapper.selectById(cmd.contractId());
+            if (c != null && c.getDepositAmount() != null) {
+                due = money(c.getDepositAmount());
+            }
+        }
+        if (due == null) {
+            due = BigDecimal.ZERO;
+        }
         BigDecimal cap = cmd.capAmount() == null ? null : money(cmd.capAmount());
         boolean overCap = cap != null && due.compareTo(cap) > 0;
 
@@ -128,7 +141,13 @@ public class DepositRefundServiceImpl implements DepositRefundService {
                 e.setOrgId(c.getOrgId());
             }
         }
-        e.setPersonId(cmd.personId());
+        Long depositPerson = cmd.personId();
+        if (depositPerson == null && contractOrgIdMapper != null) {
+            com.yundao.bp.biz.entity.BizContract c =
+                    contractOrgIdMapper.selectById(cmd.contractId());
+            depositPerson = c == null ? null : c.getLesseePersonId();
+        }
+        e.setPersonId(depositPerson);
         e.setDepositAmount(due);
         e.setPaidAmount(paid);
         e.setDeductAmount(money(null));

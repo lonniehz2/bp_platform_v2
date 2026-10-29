@@ -155,8 +155,9 @@ public class MeterReadingServiceImpl implements MeterReadingService {
                         new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
                                 <com.yundao.bp.biz.entity.BizContract>()
                                 .eq(com.yundao.bp.biz.entity.BizContract::getHouseId, e.getHouseId())
-                                .eq(com.yundao.bp.biz.entity.BizContract::getContractStatus,
-                                        "EFFECTIVE")
+                                .in(com.yundao.bp.biz.entity.BizContract::getContractStatus,
+                                        "EFFECTIVE", "RENEWING", "SIGNING")
+                                .orderByDesc(com.yundao.bp.biz.entity.BizContract::getId)
                                 .last("LIMIT 1"));
         BillCreateCmd cmd = new BillCreateCmd(
                 e.getFeeItemId(), orgId,

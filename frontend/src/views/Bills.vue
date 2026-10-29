@@ -196,7 +196,13 @@
     <!-- 登记收款 PaymentCreateCmd -->
     <el-dialog v-model="payVisible" title="登记收款" width="520px">
       <el-form :model="p" label-width="110px">
-        <el-form-item label="组织ID"><el-input v-model="p.orgId" /></el-form-item>
+        <el-form-item label="组织">
+          <el-select v-model="p.orgId" filterable clearable style="width:100%"
+                     placeholder="按名称搜索组织">
+            <el-option v-for="o in payOrgs" :key="o.id" :label="o.orgName"
+                       :value="String(o.id)" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="人员ID"><PersonPicker v-model="p.personId" width="240px" testid="person-picker" /></el-form-item>
         <el-form-item label="缴费人"><el-input v-model="p.payerName" /></el-form-item>
         <el-form-item label="收款金额"><el-input v-model.number="p.payAmount" />
@@ -492,6 +498,13 @@ async function doShared() {
 }
 
 const payVisible = ref(false)
+const payOrgs = ref([])
+async function loadPayOrgs() {
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 500 } })
+    payOrgs.value = (d && d.rows) || []
+  } catch (e) { payOrgs.value = [] }
+}
 const p = reactive({ orgId: 1, personId: null, payerName: '', payAmount: null,
   payChannel: 'CASH', tradeNo: '', unknownFlag: 0, remark: '' })
 
@@ -526,7 +539,10 @@ async function doGenerate() {
   } finally { saving.value = false }
 }
 
-function openPay() { payVisible.value = true }
+function openPay() {
+  loadPayOrgs()
+  payVisible.value = true
+}
 async function doPay() {
   if (!p.payAmount || p.payAmount <= 0) { ElMessage.warning('收款金额必须大于 0'); return }
   saving.value = true

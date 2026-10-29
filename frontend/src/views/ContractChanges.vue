@@ -14,9 +14,16 @@
 
     <el-table :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">
-        <template #default="{ row }"><DetailView :row="row" /></template>
+        <template #default="{ row }">
+          <div style="display:flex;gap:24px;padding:8px 12px">
+            <div style="flex:1"><b>变更前</b><div class="kv">{{ beforeText(row) }}</div></div>
+            <div style="flex:1"><b>变更后</b><div class="kv">{{ afterText(row) }}</div></div>
+          </div>
+        </template>
       </el-table-column>
       <el-table-column prop="changeNo" label="变更号" width="170" />
+      <el-table-column prop="houseName" label="房源" width="150" />
+      <el-table-column prop="lesseeName" label="承租人" width="110" />
       <el-table-column prop="contractId" label="合同" width="200">
         <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
       </el-table-column>
@@ -25,6 +32,13 @@
           {{ row.changeTypeLabel || enumLabel('changeType', row.changeType) }}
         </template>
       </el-table-column>
+      <el-table-column label="变更前" width="200" show-overflow-tooltip>
+        <template #default="{ row }">{{ beforeText(row) }}</template>
+      </el-table-column>
+      <el-table-column label="变更后" width="200" show-overflow-tooltip>
+        <template #default="{ row }">{{ afterText(row) }}</template>
+      </el-table-column>
+      <el-table-column prop="changeReason" label="变更原因" width="160" show-overflow-tooltip />
       <el-table-column prop="effectiveDate" label="生效日" width="120" />
       <el-table-column label="状态" width="110">
         <template #default="{ row }">
@@ -129,6 +143,22 @@ const statuses = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']
 const loading = ref(false)
 const rows = ref([])
 const total = ref(0)
+
+const KV_LABEL = { monthlyRent: '月租金', leaseEnd: '止租日', leaseStart: '起租日',
+  lesseePersonId: '承租人ID', lesseeName: '承租人', depositAmount: '押金',
+  contractNo: '合同号', houseId: '房源', remark: '备注', rentPrice: '租金单价' }
+
+function kvText(raw) {
+  if (raw == null || raw === '') return '—'
+  let obj = raw
+  if (typeof raw === 'string') {
+    try { obj = JSON.parse(raw) } catch (e) { return raw }
+  }
+  if (!obj || typeof obj !== 'object') return String(obj)
+  return Object.keys(obj).map((k) => (KV_LABEL[k] || k) + '：' + obj[k]).join('；')
+}
+function beforeText(row) { return kvText(row.beforeJson ?? row.before) }
+function afterText(row) { return kvText(row.afterJson ?? row.after) }
 const changeVisible = ref(false)
 const current = ref(null)
 const beforeObj = ref({})

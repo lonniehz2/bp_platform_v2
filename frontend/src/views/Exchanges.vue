@@ -162,12 +162,17 @@ async function fillFromPerson(pid) {
   if (!pid) return
   try {
     const ct = await req.get('/contracts/active-by-person/' + pid)
-    if (ct) {
+    if (ct && ct.contractStatus === 'EFFECTIVE') {
       form.oldContractId = ct.id
       form.oldHouseId = ct.houseId
       auto.contractNo = ct.contractNo
       auto.houseName = ct.houseIdName || ct.houseId
       auto.orgName = ct.orgIdName || ct.orgId
+    } else if (ct) {
+      ElMessage.warning('该人员合同当前为「' + (ct.contractStatusLabel || ct.contractStatus)
+        + '」，仅履约中合同可发起换房')
+    } else {
+      ElMessage.warning('该人员没有生效中的合同，不能发起换房')
     }
     const gp = await req.get('/guarantee-profiles/person/' + pid).catch(() => null)
     if (gp && gp.familySize != null) form.familySizeBefore = gp.familySize

@@ -81,7 +81,8 @@
     <!-- 押金建档 DepositCreateCmd -->
     <el-dialog v-model="depVisible" title="押金建档" width="500px">
       <el-form :model="dp" label-width="120px">
-        <el-form-item label="合同ID"><el-input v-model="dp.contractId" />
+        <el-form-item label="合同ID"><el-input v-model="dp.contractId"
+                     @blur="fillFromContract" />
         </el-form-item>
         <el-form-item label="人员ID"><PersonPicker v-model="dp.personId" width="240px" testid="person-picker" />
         </el-form-item>
@@ -171,7 +172,7 @@ function openDetail(row) {
 }
 
 import { enumLabel } from '@/constants/enums'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 import DetailView from '@/components/DetailView.vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -188,7 +189,20 @@ const current = ref(null)
 
 const depVisible = ref(false)
 const dp = reactive({ contractId: null, personId: null, depositAmount: null,
-  paidAmount: null, capAmount: 1000, isExempt: 0, exemptReason: '' })
+  paidAmount: 0, capAmount: 1000, isExempt: 0, exemptReason: '' })
+
+async function fillFromContract() {
+  if (!dp.contractId) return
+  try {
+    const c = await req.get('/contracts/' + dp.contractId)
+    if (c) {
+      dp.personId = c.lesseePersonId
+      if (c.depositAmount != null) dp.depositAmount = c.depositAmount
+    }
+  } catch (e) {
+    ElMessage.warning('未找到该合同，请检查合同ID')
+  }
+}
 
 const amtVisible = ref(false)
 const amtMode = ref('receive')
