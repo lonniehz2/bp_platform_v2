@@ -22,6 +22,7 @@
         <div class="spacer" />
         <el-button type="success" @click="openGen">批量出账</el-button>
         <el-button type="warning" plain @click="batchDunning">批量催缴</el-button>
+        <el-button type="danger" plain @click="recalcBills">重算历史账单</el-button>
         <el-button type="warning" plain @click="openShared" data-testid="shared-bill">公摊分摊</el-button>
         <el-button plain @click="openEnergy" data-testid="bill-energy">能耗分析</el-button>
         <el-button @click="openPay">登记收款</el-button>
@@ -723,6 +724,20 @@ async function dunning(row) {
 }
 
 /** 批量催缴 */
+/** 历史账单按新折算规则重算（仅未缴、自动生成，含二次确认） */
+async function recalcBills() {
+  await ElMessageBox.confirm(
+    '将按「逐月天数折算」规则重算未缴、自动生成的账单，并改写金额（已收/已缴账单不动）。是否继续？',
+    '确认重算历史账单', { type: 'warning' })
+  saving.value = true
+  try {
+    const r = await req.post('/fin/bills/recalculate', { dryRun: false })
+    ElMessage.success('重算完成：扫描 ' + r.scanned + '，变更 ' + r.changed
+      + '，合计 ' + r.oldTotal + ' → ' + r.newTotal)
+    load()
+  } finally { saving.value = false }
+}
+
 async function batchDunning() {
   const picked = selected.value
   if (!picked.length) { ElMessage.warning('请先勾选账单'); return }

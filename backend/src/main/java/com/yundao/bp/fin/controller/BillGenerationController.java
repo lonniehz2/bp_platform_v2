@@ -5,6 +5,8 @@ import com.yundao.bp.fin.dto.GenerateBatchCmd;
 import com.yundao.bp.fin.dto.GenerateBatchVO;
 import com.yundao.bp.fin.dto.GenerateBillsCmd;
 import com.yundao.bp.fin.dto.GenerateResultVO;
+import com.yundao.bp.fin.dto.RecalcBillsCmd;
+import com.yundao.bp.fin.dto.RecalcBillsResult;
 import com.yundao.bp.fin.service.BillGenerationService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,6 +41,13 @@ public class BillGenerationController {
      *
      * <p>项目间相互隔离，单项失败不影响其它项，结果逐项返回。
      */
+    /** 历史账单按新规则重算（dryRun 预览）。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:bill:batch")
+    @PostMapping("/bills/recalculate")
+    public R<RecalcBillsResult> recalculate(@RequestBody RecalcBillsCmd cmd) {
+        return R.ok(service.recalculate(cmd));
+    }
+
     @com.yundao.bp.iam.security.RequirePerm("fin:bill:batch")
     @PostMapping("/bills/generate-batch")
     public R<GenerateBatchVO> generateBatch(@Valid @RequestBody GenerateBatchCmd cmd) {

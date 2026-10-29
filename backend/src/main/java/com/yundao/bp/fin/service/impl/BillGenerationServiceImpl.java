@@ -14,6 +14,8 @@ import com.yundao.bp.fin.dto.GenerateBatchCmd;
 import com.yundao.bp.fin.dto.GenerateBatchVO;
 import com.yundao.bp.fin.dto.GenerateBillsCmd;
 import com.yundao.bp.fin.dto.GenerateResultVO;
+import com.yundao.bp.fin.dto.RecalcBillsCmd;
+import com.yundao.bp.fin.dto.RecalcBillsResult;
 import com.yundao.bp.fin.entity.FinBill;
 import com.yundao.bp.fin.entity.FinBillingRule;
 import com.yundao.bp.fin.entity.FinFeeItem;
@@ -302,6 +304,131 @@ public class BillGenerationServiceImpl implements BillGenerationService {
 
         return new GenerateBatchVO(batchNo, totalGenerated, totalSkipped,
                 totalAmount.setScale(2, RoundingMode.HALF_UP), dryRun, results);
+    }
+
+    // race:ignore 管理员手工触发的历史账单重算：只改未缴且未收款（UNPAID、paid=0）的账单，
+    // 并在单一事务内按 id 更新；并发收款会同时改账单状态/金额，冲突时会因条件不满足被跳过。
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public RecalcBillsResult recalculate(RecalcBillsCmd cmd) {
+        // race:ignore 管理员手工触发的历史账单重算：只处理未缴且未收款账单，单事务内更新；
+        // 并发收款会改变账单状态，重算结果以事务内读取为准，不涉及新增资金记录。
+        boolean dryRun = cmd.dryRun() != null && cmd.dryRun();
+        LambdaQueryWrapper<FinBill> qw = new LambdaQueryWrapper<FinBill>()
+                .eq(FinBill::getIsDeleted, 0)
+                .eq(FinBill::getBillStatus, "UNPAID")
+                .eq(FinBill::getGenerateType, "AUTO")
+                .and(w -> w.isNull(FinBill::getPaidAmount)
+                        .or().eq(FinBill::getPaidAmount, BigDecimal.ZERO))
+                .isNotNull(FinBill::getPeriodStart)
+                .isNotNull(FinBill::getPeriodEnd)
+                .eq(cmd.orgId() != null, FinBill::getOrgId, cmd.orgId())
+                .eq(cmd.feeItemId() != null, FinBill::getFeeItemId, cmd.feeItemId())
+                .ge(cmd.periodStart() != null, FinBill::getPeriodStart, cmd.periodStart())
+                .le(cmd.periodEnd() != null, FinBill::getPeriodEnd, cmd.periodEnd())
+                .orderByAsc(FinBill::getId)
+                .last("limit 2000");
+        java.util.List<FinBill> bills = billMapper.selectList(qw);
+
+        java.util.List<RecalcBillsResult.Item> items = new java.util.ArrayList<>();
+        int changed = 0;
+        int skipped = 0;
+        BigDecimal oldTotal = BigDecimal.ZERO;
+        BigDecimal newTotal = BigDecimal.ZERO;
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        for (FinBill b : bills) {
+            if (b.getFeeItemId() == null || b.getContractId() == null) {
+                skipped++;
+                items.add(new RecalcBillsResult.Item(b.getId(), b.getBillNo(), null,
+                        b.getBillAmount(), null, null, null, "SKIPPED",
+                        "账单缺少收费项目或合同，无法重算"));
+                continue;
+            }
+            FinFeeItem item = feeItemMapper.selectById(b.getFeeItemId());
+            if (item == null) {
+                skipped++;
+                continue;
+            }
+            CalcMode mode;
+            try {
+                mode = CalcMode.valueOf(item.getCalcMode());
+            } catch (Exception e) {
+                skipped++;
+                continue;
+            }
+            if (mode == CalcMode.METER || mode == CalcMode.BY_NIGHT) {
+                skipped++;
+                items.add(new RecalcBillsResult.Item(b.getId(), b.getBillNo(), null,
+                        b.getBillAmount(), null, null, null, "SKIPPED",
+                        "按抄表/按夜计费不按月折算，跳过"));
+                continue;
+            }
+            BizContract ct = contractMapper.selectById(b.getContractId());
+            if (ct == null || ct.getLeaseStart() == null || ct.getLeaseEnd() == null) {
+                skipped++;
+                items.add(new RecalcBillsResult.Item(b.getId(), b.getBillNo(), null,
+                        b.getBillAmount(), null, null, null, "SKIPPED", "合同或租期缺失，无法折算"));
+                continue;
+            }
+            AssetHouse house = b.getHouseId() == null ? null
+                    : houseMapper.selectById(b.getHouseId());
+            if (mode.needsArea() && (house == null || house.getArea() == null
+                    || house.getArea().compareTo(BigDecimal.ZERO) <= 0)) {
+                skipped++;
+                items.add(new RecalcBillsResult.Item(b.getId(), b.getBillNo(), ct.getContractNo(),
+                        b.getBillAmount(), null, null, null, "SKIPPED", "房源未录面积"));
+                continue;
+            }
+            Proration pro = proration(ct, b.getPeriodStart(), b.getPeriodEnd());
+            if (pro.months().compareTo(BigDecimal.ZERO) <= 0) {
+                skipped++;
+                items.add(new RecalcBillsResult.Item(b.getId(), b.getBillNo(), ct.getContractNo(),
+                        b.getBillAmount(), null, 0, null, "SKIPPED", "租期与费用区间无交集"));
+                continue;
+            }
+            Integer qty = quantityOf(mode, house, 0, null);
+            BigDecimal price = item.getUnitPrice() == null ? BigDecimal.ZERO : item.getUnitPrice();
+            BigDecimal base = switch (mode) {
+                case FIXED, BY_HOUSE -> price;
+                case BY_AREA -> price.multiply(house.getArea());
+                case BY_PERSON, BY_BED -> price.multiply(BigDecimal.valueOf(qty));
+                default -> price;
+            };
+            BigDecimal newAmount = base.multiply(pro.months())
+                    .setScale(2, RoundingMode.HALF_UP);
+            BigDecimal oldAmount = b.getBillAmount() == null
+                    ? BigDecimal.ZERO : b.getBillAmount();
+            if (newAmount.compareTo(oldAmount) == 0) {
+                items.add(new RecalcBillsResult.Item(b.getId(), b.getBillNo(), ct.getContractNo(),
+                        oldAmount, newAmount, pro.days(), pro.detail(), "SAME", null));
+                continue;
+            }
+            oldTotal = oldTotal.add(oldAmount);
+            newTotal = newTotal.add(newAmount);
+            changed++;
+            if (!dryRun) {
+                b.setBillAmount(newAmount);
+                BigDecimal waived = b.getWaivedAmount() == null
+                        ? BigDecimal.ZERO : b.getWaivedAmount();
+                BigDecimal payable = newAmount.subtract(waived)
+                        .setScale(2, RoundingMode.HALF_UP);
+                b.setPayableAmount(payable.max(BigDecimal.ZERO));
+                b.setRemark((b.getRemark() == null ? "" : b.getRemark() + "；")
+                        + "按新规则重算：" + oldAmount + " → " + newAmount);
+                b.setUpdateTime(now);
+                billMapper.updateById(b);
+            }
+            items.add(new RecalcBillsResult.Item(b.getId(), b.getBillNo(), ct.getContractNo(),
+                    oldAmount, newAmount, pro.days(), pro.detail(),
+                    "CHANGED", dryRun ? "试算未落库" : null));
+        }
+
+        log.info("历史账单重算[{}]：扫描 {}，变更 {}，跳过 {}，{} → {}",
+                dryRun ? "试运行" : "已落库", bills.size(), changed, skipped, oldTotal, newTotal);
+        return new RecalcBillsResult(bills.size(), changed, skipped,
+                oldTotal.setScale(2, RoundingMode.HALF_UP),
+                newTotal.setScale(2, RoundingMode.HALF_UP), dryRun, items);
     }
 
     /** 数量取值。 */
