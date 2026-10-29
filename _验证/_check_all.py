@@ -29,6 +29,7 @@ STEPS = [
     ('数据范围运行时校验（租户 vs 管理员）', '_check_scope_runtime.py', STRICT),
     ('全功能页面对照（46 项）', '_verify_all_pages.py', []),
     ('用户旅程闭环（70 步）', '_check_journeys.py', STRICT),
+    ('新增功能回归（批量出账/变更生效/押金/流水等）', '_check_new_features2.py', STRICT),
 ]
 
 results = []
