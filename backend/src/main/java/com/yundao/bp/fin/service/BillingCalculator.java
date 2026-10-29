@@ -39,24 +39,36 @@ public class BillingCalculator {
      * @param quantity   数量（人数/床数/天数），BY_PERSON/BY_BED/BY_NIGHT 必填
      * @param meterStart 上次读数，METER 必填
      * @param meterEnd   本次读数，METER 必填
+     * @param months     计费月数（整月=1；不足月/跨月按天折算），默认 1
      */
     public record Context(BigDecimal area, Integer quantity,
-                          BigDecimal meterStart, BigDecimal meterEnd) {
+                          BigDecimal meterStart, BigDecimal meterEnd,
+                          BigDecimal months) {
 
         public static Context ofArea(BigDecimal area) {
-            return new Context(area, null, null, null);
+            return new Context(area, null, null, null, BigDecimal.ONE);
         }
 
         public static Context ofQuantity(int quantity) {
-            return new Context(null, quantity, null, null);
+            return new Context(null, quantity, null, null, BigDecimal.ONE);
         }
 
         public static Context ofMeter(BigDecimal start, BigDecimal end) {
-            return new Context(null, null, start, end);
+            return new Context(null, null, start, end, BigDecimal.ONE);
         }
 
         public static Context empty() {
-            return new Context(null, null, null, null);
+            return new Context(null, null, null, null, BigDecimal.ONE);
+        }
+
+        /** 指定计费月数（复制上下文，其余不变）。 */
+        public Context withMonths(BigDecimal m) {
+            return new Context(area, quantity, meterStart, meterEnd,
+                    m == null ? BigDecimal.ONE : m);
+        }
+
+        public BigDecimal monthsOrDefault() {
+            return months == null ? BigDecimal.ONE : months;
         }
     }
 
@@ -142,15 +154,25 @@ public class BillingCalculator {
 
     /** 基础金额。 */
     private BigDecimal baseAmount(CalcMode mode, BigDecimal unitPrice, Context ctx) {
+        BigDecimal months = ctx == null ? BigDecimal.ONE : ctx.monthsOrDefault();
         return switch (mode) {
-            case FIXED, BY_HOUSE -> unitPrice;
+            case FIXED, BY_HOUSE -> unitPrice.multiply(months);
             case BY_AREA -> {
                 if (ctx == null || ctx.area() == null) {
                     throw BizException.paramInvalid("按面积计费需提供面积");
                 }
-                yield unitPrice.multiply(ctx.area());
+                yield unitPrice.multiply(ctx.area()).multiply(months);
             }
-            case BY_PERSON, BY_BED, BY_NIGHT -> {
+            case BY_PERSON, BY_BED -> {
+                if (ctx == null || ctx.quantity() == null) {
+                    throw BizException.paramInvalid("按" + mode.label() + "计费需提供数量");
+                }
+                if (ctx.quantity() <= 0) {
+                    throw BizException.paramInvalid("数量必须大于 0");
+                }
+                yield unitPrice.multiply(BigDecimal.valueOf(ctx.quantity())).multiply(months);
+            }
+            case BY_NIGHT -> {
                 if (ctx == null || ctx.quantity() == null) {
                     throw BizException.paramInvalid("按" + mode.label() + "计费需提供数量");
                 }

@@ -286,7 +286,8 @@ public class FeeItemServiceImpl implements FeeItemService {
             }
         }
         BillingCalculator.Context ctx = new BillingCalculator.Context(
-                cmd.area(), cmd.quantity(), cmd.meterStart(), cmd.meterEnd());
+                cmd.area(), cmd.quantity(), cmd.meterStart(), cmd.meterEnd(),
+                java.math.BigDecimal.ONE);
         return calculator.calculate(item, ctx, rule);
     }
 }

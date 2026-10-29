@@ -122,6 +122,9 @@
                 title="同「合同 + 收费项目 + 账期」已生成过账单会自动跳过，可安全重复执行" />
       <div class="muted" style="font-size:12px;line-height:1.8;margin-bottom:6px">
         <b>计算公式（按收费项目）：</b>
+        <div class="muted" style="margin-bottom:4px">
+          费用区间与合同租期取交集；跨月按月内天数拆分（如 9/10–10/10 = 9月21/30 + 10月10/31）。
+        </div>
         <div v-for="f in FORMULAS" :key="f.mode">
           <span :style="f.mode === selectedCalcMode ? 'color:#409eff;font-weight:600' : ''">
             {{ f.label }}：{{ f.text }}
@@ -489,11 +492,11 @@ async function loadGenOptions() {
 }
 
 const FORMULAS = [
-  { mode: 'FIXED', label: '固定额', text: '固定金额 × 月数' },
-  { mode: 'BY_AREA', label: '按面积', text: '建筑面积 × 单价 × 月数' },
-  { mode: 'BY_HOUSE', label: '按套', text: '单价 × 套数 × 月数' },
-  { mode: 'BY_PERSON', label: '按人', text: '在住人数 × 单价 × 月数' },
-  { mode: 'BY_BED', label: '按床位', text: '床位数 × 单价 × 月数' },
+  { mode: 'FIXED', label: '固定额', text: '固定金额 × 月数（不足月按天折算）' },
+  { mode: 'BY_AREA', label: '按面积', text: '建筑面积 × 单价 × 月数（不足月按天折算）' },
+  { mode: 'BY_HOUSE', label: '按套', text: '单价 × 套数 × 月数（不足月按天折算）' },
+  { mode: 'BY_PERSON', label: '按人', text: '在住人数 × 单价 × 月数（不足月按天折算）' },
+  { mode: 'BY_BED', label: '按床位', text: '床位数 × 单价 × 月数（不足月按天折算）' },
   { mode: 'BY_NIGHT', label: '按夜', text: '天数 × 单价' },
   { mode: 'METER', label: '按抄表', text: '(本次读数 − 上次读数) × 单价' }
 ]

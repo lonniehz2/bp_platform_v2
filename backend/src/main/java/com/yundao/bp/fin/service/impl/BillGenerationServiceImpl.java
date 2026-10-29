@@ -148,15 +148,21 @@ public class BillGenerationServiceImpl implements BillGenerationService {
         BigDecimal total = BigDecimal.ZERO;
 
         for (BizContract ct : contracts) {
-            // 幂等：同合同+同项目+同账期已存在 → 跳过
+            // 幂等：同合同+同项目，账期相同或费用区间有重叠 → 跳过，避免重复收费
+            final LocalDate ps = cmd.periodStart();
+            final LocalDate pe = cmd.periodEnd();
             Long dup = billMapper.selectCount(new LambdaQueryWrapper<FinBill>()
                     .eq(FinBill::getContractId, ct.getId())
                     .eq(FinBill::getFeeItemId, cmd.feeItemId())
-                    .eq(FinBill::getBillPeriod, billPeriod));
+                    .eq(FinBill::getIsDeleted, 0)
+                    .and(w -> w.eq(FinBill::getBillPeriod, billPeriod)
+                            .or(o -> o.le(FinBill::getPeriodStart, pe)
+                                    .ge(FinBill::getPeriodEnd, ps))));
             if (dup != null && dup > 0) {
                 skipped++;
                 items.add(new GenerateResultVO.Item(ct.getId(), ct.getContractNo(), null, null,
-                        BigDecimal.ZERO, null, "SKIPPED", "该账期账单已存在（幂等跳过）"));
+                        BigDecimal.ZERO, null, "SKIPPED",
+                        "该合同在本账期或重叠区间已有账单（幂等跳过）"));
                 continue;
             }
 
@@ -178,7 +184,10 @@ public class BillGenerationServiceImpl implements BillGenerationService {
             }
 
             Integer qty = quantityOf(mode, house, nights, cmd.quantityOverride());
-            BillingCalculator.Context ctx = contextOf(mode, house, nights, qty);
+            // 期间与合同交集的按天折算（整月=1；不足月/跨月按月内天数占比）
+            Proration pro = proration(ct, cmd.periodStart(), cmd.periodEnd());
+            BillingCalculator.Context ctx = contextOf(mode, house, nights, qty)
+                    .withMonths(pro.months());
             BillingCalculator.Result rr;
             try {
                 rr = calculator.calculate(item, ctx, rule);
@@ -235,8 +244,10 @@ public class BillGenerationServiceImpl implements BillGenerationService {
             }
             generated++;
             total = total.add(amount);
+            String explain = pro.detail().isEmpty()
+                    ? rr.explain() : rr.explain() + "；" + pro.detail();
             items.add(new GenerateResultVO.Item(ct.getId(), ct.getContractNo(), billId, qty,
-                    amount, rr.explain(), "OK", null));
+                    amount, explain, "OK", null));
         }
 
         log.info("批量出账[{}]：合同 {}，生成 {}，跳过 {}，合计 {}",
@@ -320,5 +331,46 @@ public class BillGenerationServiceImpl implements BillGenerationService {
 
     private static BigDecimal money(BigDecimal v) {
         return (v == null ? BigDecimal.ZERO : v).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /** 计费折算结果：月数、计费天数、可读说明。 */
+    private record Proration(BigDecimal months, int days, String detail) {
+    }
+
+    /**
+     * 按「费用区间 ∩ 合同租期」逐月折算月数。
+     *
+     * <p>规则：整自然月 = 1 个月；不足整月或跨月，按每月实际天数占比累加，
+     * 例如 9/10–10/10 = 21/30（9 月）+ 10/31（10 月）。
+     */
+    private static Proration proration(BizContract ct, LocalDate ps, LocalDate pe) {
+        LocalDate start = ct.getLeaseStart() != null && ct.getLeaseStart().isAfter(ps)
+                ? ct.getLeaseStart() : ps;
+        LocalDate end = ct.getLeaseEnd() != null && ct.getLeaseEnd().isBefore(pe)
+                ? ct.getLeaseEnd() : pe;
+        if (start.isAfter(end)) {
+            return new Proration(BigDecimal.ZERO, 0, "合同租期与费用区间无交集");
+        }
+        int totalDays = (int) ChronoUnit.DAYS.between(start, end) + 1;
+        BigDecimal months = BigDecimal.ZERO;
+        StringBuilder detail = new StringBuilder();
+        LocalDate cursor = start;
+        while (!cursor.isAfter(end)) {
+            LocalDate monthEnd = cursor.withDayOfMonth(cursor.lengthOfMonth());
+            LocalDate segEnd = monthEnd.isAfter(end) ? end : monthEnd;
+            int segDays = (int) ChronoUnit.DAYS.between(cursor, segEnd) + 1;
+            BigDecimal frac = BigDecimal.valueOf(segDays)
+                    .divide(BigDecimal.valueOf(cursor.lengthOfMonth()), 6, RoundingMode.HALF_UP);
+            months = months.add(frac);
+            if (detail.length() > 0) {
+                detail.append(" + ");
+            }
+            detail.append(cursor.getMonthValue()).append("月")
+                    .append(segDays).append("/").append(cursor.lengthOfMonth());
+            cursor = segEnd.plusDays(1);
+        }
+        months = months.setScale(6, RoundingMode.HALF_UP);
+        String text = "计费 " + totalDays + " 天（" + detail + "）";
+        return new Proration(months, totalDays, text);
     }
 }
