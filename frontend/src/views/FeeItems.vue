@@ -23,7 +23,7 @@
       </template>
     </FilterBar>
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
       <el-table-column prop="itemCode" label="项目编码" width="150" />
       <el-table-column prop="itemName" label="名称" min-width="140" />
       <el-table-column label="类型" width="110">

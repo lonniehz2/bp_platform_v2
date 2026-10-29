@@ -14,7 +14,7 @@
     <el-alert type="info" :closable="false" show-icon :title="'失信限制再申请 5 年；到期可扫描自动失效'"
               style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
       <el-table-column type="expand">
         <template #default="{ row }">
           <DetailView :row="row" />

@@ -15,7 +15,7 @@
     <el-alert type="info" :closable="false" show-icon :title="'换房次数受限；「应换不换」按 1.5 倍租金计收'"
               style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
       <el-table-column type="expand">
         <template #default="{ row }">
           <DetailView :row="row" />

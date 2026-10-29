@@ -15,7 +15,7 @@
       <PersonPicker v-model="df.personId" width="240px" testid="person-picker" />
     </FilterBar>
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
         <el-table-column prop="contractId" label="合同" width="130">
           <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
         </el-table-column>
@@ -44,6 +44,11 @@
           </template>
         </el-table-column>
       </el-table>
+      <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
+                     :total="depositTotal" :page-size="depositSize"
+                     :current-page="depositPage" :page-sizes="[10, 20, 50, 100]"
+                     @current-change="(p) => { depositPage = p; load() }"
+                     @size-change="(sz) => { depositSize = sz; depositPage = 1; load() }" />
     </div>
 
     <div class="page-card">
@@ -187,6 +192,9 @@ import ContractSelect from '@/components/ContractSelect.vue'
 import FilterBar from '@/components/FilterBar.vue'
 
 const loading = ref(false)
+const depositPage = ref(1)
+const depositSize = ref(20)
+const depositTotal = ref(0)
 const saving = ref(false)
 const rows = ref([])
 const refunds = ref([])
@@ -247,12 +255,13 @@ async function load() {
   loading.value = true
   try {
     const params = {
-      pageNum: 1, pageSize: 50,
+      pageNum: depositPage.value, pageSize: depositSize.value,
       contractId: df.contractId || undefined,
       personId: df.personId || undefined
     }
     const d = await financeApi.deposits(params)
     rows.value = d.rows || []
+    depositTotal.value = Number(d.total || rows.value.length)
     const r = await req.get('/fin/refunds', { params })
     refunds.value = r.rows || r || []
   } catch (e) { /* 拦截器已提示 */ } finally { loading.value = false }

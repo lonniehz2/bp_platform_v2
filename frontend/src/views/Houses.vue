@@ -28,7 +28,7 @@
                    data-testid="house-import">批量导入</el-button>
     </div>
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
       <el-table-column prop="houseCode" label="编号" width="150" />
       <el-table-column prop="houseName" label="名称" min-width="140" />
       <el-table-column prop="orgId" label="组织" width="150">

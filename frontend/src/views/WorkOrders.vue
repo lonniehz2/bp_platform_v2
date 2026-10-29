@@ -29,7 +29,7 @@
           到期计划会按周期生成「巡检」类工单，并自动推进下次执行日
         </span>
       </div>
-      <el-table :data="plans" size="small" border max-height="360">
+      <el-table :data="plans" size="small" border max-height="360" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
         <el-table-column prop="planName" label="计划名称" min-width="160" />
         <el-table-column prop="inspectType" label="巡检类型" width="110">
           <template #default="{ row }">

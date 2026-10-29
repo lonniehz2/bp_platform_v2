@@ -14,7 +14,7 @@
         <el-button @click="openRatio">不可信占比</el-button>
       </div>
 
-      <el-table :data="rows" v-loading="loading" border size="small">
+      <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
         <el-table-column prop="openTime" label="开门时间" width="170" />
         <el-table-column prop="openTypeName" label="方式" width="100" />
         <el-table-column prop="houseId" label="房源" width="110">

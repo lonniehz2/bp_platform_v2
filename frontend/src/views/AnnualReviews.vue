@@ -11,7 +11,7 @@
               title="年审判定为「退出」会自动生成腾退单（类型用 OTHER，避免误触发 5 年禁申）"
               style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
       <el-table-column prop="reviewNo" label="年审单号" width="170" />
       <el-table-column prop="contractId" label="合同" width="130">
         <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>

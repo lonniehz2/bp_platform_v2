@@ -15,7 +15,7 @@
               title="补贴：FIXED 定额 / BY_AREA 按面积 / BY_PERSON 按人 / RATIO 按租金比例；封顶与抵扣规则由标准配置"
               style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
       <el-table-column type="expand">
         <template #default="{ row }">
           <DetailView :row="row" />

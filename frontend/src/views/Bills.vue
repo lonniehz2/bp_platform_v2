@@ -42,7 +42,7 @@
       </el-row>
 
       <el-table :data="rows" @selection-change="onSelect"
-                v-loading="loading" border size="small">
+                v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
         <el-table-column type="selection" width="42" />
         <el-table-column prop="billNo" label="账单号" width="165" />
         <el-table-column prop="payerName" label="缴费人" width="95" />

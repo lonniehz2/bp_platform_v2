@@ -36,7 +36,7 @@
       </template>
     </FilterBar>
 
-    <el-table :data="rows" v-loading="loading" border size="small">
+    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
       <el-table-column type="expand">
         <template #default="{ row }">
           <DetailView :row="row" />

@@ -32,7 +32,7 @@
           <div class="spacer" />
           <el-button type="success" @click="openPerson">新增人员</el-button>
         </div>
-        <el-table :data="persons" v-loading="loading" border size="small">
+        <el-table :data="persons" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
           <el-table-column prop="id" label="人员ID" width="190" />
         <el-table-column prop="personName" label="姓名" width="110" />
           <el-table-column label="所属组织" min-width="160">
