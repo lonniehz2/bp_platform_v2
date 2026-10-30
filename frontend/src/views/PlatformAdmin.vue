@@ -214,7 +214,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -403,12 +403,17 @@ async function logout() {
 }
 
 onMounted(async () => {
+  document.documentElement.classList.add('dark')
   if (!getOperatorToken()) {
     router.replace('/platform-admin/login')
     return
   }
   await load()
   if (forcePwd.value) pwdVisible.value = true
+})
+
+onUnmounted(() => {
+  document.documentElement.classList.remove('dark')
 })
 </script>
 
@@ -430,6 +435,16 @@ onMounted(async () => {
 .spacer { flex: 1; }
 .who { font-size: 12px; color: #9db8d6; margin-right: 8px; }
 .ops-main { padding: 18px 20px; }
+.ops-main :deep(.el-table) {
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  --el-table-header-bg-color: #1b232d;
+  --el-table-header-text-color: #cfe3ff;
+  --el-table-text-color: #dbe9f7;
+  --el-table-border-color: #242d38;
+  --el-table-row-hover-bg-color: #1e2833;
+}
+.ops-main :deep(.el-table th.el-table__cell) { background: #1b232d !important; }
 .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
 :deep(.el-tabs__item) { color: #9db8d6; }
 :deep(.el-tabs__item.is-active) { color: #59d9ff; }

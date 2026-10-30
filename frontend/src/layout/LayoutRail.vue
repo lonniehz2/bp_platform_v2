@@ -155,7 +155,7 @@ async function logout() {
 .layout { height: 100%; }
 .rail {
   width: 76px; flex: 0 0 76px; background: var(--bp-sider-bg);
-  border-right: 1px solid #f0f0f0;
+  border-right: 1px solid var(--el-border-color-light);
   display: flex; flex-direction: column; align-items: center;
   padding: 8px 0; gap: 2px;
 }
@@ -167,7 +167,7 @@ async function logout() {
 .rail-item {
   width: 64px; padding: 8px 0 6px; border-radius: 8px;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
-  cursor: pointer; color: rgba(0, 0, 0, 0.65); font-size: 12px;
+  cursor: pointer; color: var(--el-text-color-regular); font-size: 12px;
   transition: background 0.15s, color 0.15s;
 }
 .rail-item:hover { background: var(--bp-hover-bg); }
@@ -176,9 +176,9 @@ async function logout() {
 
 .panel {
   width: 168px; flex: 0 0 168px; background: var(--bp-sider-bg);
-  border-right: 1px solid #f0f0f0; padding: 8px 0; overflow: hidden;
+  border-right: 1px solid var(--el-border-color-light); padding: 8px 0; overflow: hidden;
 }
-.panel-title { padding: 6px 16px 10px; font-size: 13px; color: rgba(0, 0, 0, 0.45); }
+.panel-title { padding: 6px 16px 10px; font-size: 13px; color: var(--el-text-color-secondary); }
 .panel-menu { border-right: none; }
 .panel-menu :deep(.el-menu-item) {
   height: 38px; line-height: 38px; font-size: 14px;
@@ -194,7 +194,7 @@ async function logout() {
   background: var(--bp-sider-bg); border-bottom: 1px solid var(--el-border-color-light);
   height: 56px; padding: 0 16px;
 }
-.greet { font-size: 15px; color: rgba(0, 0, 0, 0.85); font-weight: 500; }
+.greet { font-size: 15px; color: var(--el-text-color-primary); font-weight: 500; }
 .crumb { font-size: 13px; }
 .header .spacer { flex: 1; }
 .main { background: var(--bp-page-bg); padding: 16px; overflow-y: auto; }

@@ -181,7 +181,7 @@ async function logout() {
 .layout { height: 100%; }
 .aside {
   background: var(--bp-sider-bg);
-  border-right: 1px solid #f0f0f0;
+  border-right: 1px solid var(--el-border-color-light);
   display: flex; flex-direction: column; height: 100%; overflow: hidden;
   transition: width 0.2s;
 }

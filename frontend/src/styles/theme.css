@@ -118,7 +118,7 @@
   margin-bottom: var(--bp-gap);
 }
 .bp-stat {
-  background: #fff;
+  background: var(--bp-card-bg);
   border: 1px solid var(--el-border-color-light);
   border-radius: 2px;
   padding: 14px 16px;
@@ -147,7 +147,7 @@
 /* ================= 兼容既有页面 ================= */
 /* 老页面用的是 .page-card，统一成新卡片风格 */
 .page-card {
-  background: #fff;
+  background: var(--bp-card-bg);
   border-radius: 2px;
   border: 1px solid var(--el-border-color-light);
   padding: 16px;
@@ -230,13 +230,16 @@ html.dark .el-table,
 html.dark .el-table__body-wrapper,
 html.dark .el-table__header-wrapper { background: transparent; }
 html.dark .el-table th.el-table__cell {
-  background-color: var(--el-table-header-bg-color);
-  color: var(--el-table-header-text-color);
+  background: #1b232d !important;
+  color: var(--el-table-header-text-color) !important;
 }
+html.dark .el-table td.el-table__cell,
+html.dark .el-table tr { background: transparent !important; }
+html.dark .el-table__empty-block { background: transparent; }
 
 html.dark .el-overlay { background-color: rgba(0, 0, 0, 0.55); }
 html.dark .el-table tr,
-html.dark .el-table th.el-table__cell { background-color: transparent; }
+
 html.dark .el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
   background: #19212a;
 }

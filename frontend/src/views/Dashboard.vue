@@ -513,6 +513,6 @@ onUnmounted(() => {
 .stat-card .row b.ok { color: #52c41a; }
 .stat-card .row b.warn { color: #faad14; }
 .stat-card .row b.danger { color: #ff4d4f; }
-.stat-card .row.empty { color: rgba(0, 0, 0, 0.25); justify-content: center; }
+.stat-card .row.empty { color: var(--el-text-color-secondary); justify-content: center; }
 .chart { flex: 1; min-height: 150px; }
 </style>

@@ -57,7 +57,7 @@
       <el-table-column label="租金标准" width="120">
         <template #default="{ row }">{{ row.rentStandard || '-' }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="160" fixed="right">
+      <el-table-column label="操作" width="210" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="changeStatus(row)">改状态</el-button>
           <el-button link @click="detail = row; show = true">详情</el-button>
