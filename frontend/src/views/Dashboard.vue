@@ -30,6 +30,13 @@
           <span class="total">{{ n('HOUSE_TOTAL') }}</span>
         </div>
         <div ref="chartRef" class="chart" />
+        <div class="pie-legend">
+          <span v-for="x in pieItems" :key="x.name" class="pie-legend-item">
+            <i :style="{ background: x.color }" />
+            <em>{{ x.name }}</em>
+            <b>{{ Number(x.value).toLocaleString() }}</b>
+          </span>
+        </div>
       </div>
 
       <div class="stat-card">
@@ -193,6 +200,18 @@ let chart = null
 /** 指标表为空时的房源状态兜底统计（否则饼图无数据、看起来像「没有文字」） */
 const houseStat = ref({ occupied: 0, vacant: 0, pending: 0 })
 
+/** 房源结构饼图数据（图例与图表共用） */
+const pieItems = computed(() => {
+  const occupied = Number(metrics.value.HOUSE_OCCUPIED || houseStat.value.occupied || 0)
+  const vacant = Number(metrics.value.HOUSE_VACANT || houseStat.value.vacant || 0)
+  const pending = Number(metrics.value.PENDING_ALLOC || houseStat.value.pending || 0)
+  return [
+    { name: '已出租', value: occupied, color: '#1890ff' },
+    { name: '空置', value: vacant, color: '#faad14' },
+    { name: '待配租', value: pending, color: '#722ed1' }
+  ]
+})
+
 /** 按图表容器（逐级向上）的实际背景挑选可读的文字颜色 */
 function contrastText() {
   try {
@@ -291,53 +310,34 @@ async function loadTrendCharts() {
 function renderChart() {
   if (!chart) return
   // 指标优先，为空时用实时统计兜底
-  const occupied = Number(metrics.value.HOUSE_OCCUPIED || houseStat.value.occupied || 0)
-  const vacant = Number(metrics.value.HOUSE_VACANT || houseStat.value.vacant || 0)
-  const pending = Number(metrics.value.PENDING_ALLOC || houseStat.value.pending || 0)
-  // 文字颜色跟随容器背景亮度：深色卡片用浅色字，浅色卡片用深色字，
-  // 否则深色风格下标签几乎看不见（此前硬编码 rgba(0,0,0,0.75)）
+  // 文字颜色跟随容器背景亮度：深色卡片用浅色字，浅色卡片用深色字
   const textColor = contrastText()
   chart.setOption({
     tooltip: {
       trigger: 'item',
       formatter: '{b}：{c} 套（{d}%）'
     },
-    legend: {
-      bottom: 0,
-      left: 'center',
-      orient: 'horizontal',
-      // 三个色块强制排成一行：缩小字号与间距，且图例不带数量（数量在 tooltip 里）
-      itemGap: 10,
-      itemWidth: 10,
-      itemHeight: 10,
-      textStyle: { color: textColor, fontSize: 11, textBorderColor: 'rgba(255,255,255,0.9)', textBorderWidth: 2 }
-    },
+    // 图例由卡片底部的 HTML 渲染，避免与饼图标签重叠
+    legend: { show: false },
     color: ['#1890ff', '#faad14', '#722ed1'],
     series: [{
       type: 'pie',
-      radius: ['46%', '68%'],
-      center: ['50%', '42%'],
+      radius: ['42%', '62%'],
+      center: ['50%', '46%'],
       avoidLabelOverlap: true,
       itemStyle: { borderColor: 'transparent', borderWidth: 2 },
       label: {
         show: true,
-        // 名称 + 百分比；文字带白色描边光晕，浅色/深色底都能看清
-        // （此前按背景亮度选色，在「浏览器强制暗色」等情况下会失效）
-        formatter: '{b}\n{d}%',
-        color: '#1f1f1f',
-        textBorderColor: 'rgba(255,255,255,0.95)',
-        textBorderWidth: 3,
-        fontSize: 12,
-        lineHeight: 16,
+        formatter: '{d}%',
+        color: textColor,
+        fontSize: 11,
+        lineHeight: 14,
         overflow: 'none'
       },
       labelLine: { show: true, length: 8, length2: 10, lineStyle: { color: '#9aa4b2' } },
-      data: [
-        { name: '已出租', value: occupied, itemStyle: { color: '#1890ff' } },
-        { name: '空置', value: vacant, itemStyle: { color: '#faad14' } },
-        // 原 #52c41a（绿）与空置橙在视觉上偏近，改为紫色拉开色相差
-        { name: '待配租', value: pending, itemStyle: { color: '#722ed1' } }
-      ]
+      data: pieItems.value.map((x) => ({
+        name: x.name, value: x.value, itemStyle: { color: x.color }
+      }))
     }]
   }, true)
 }
@@ -514,5 +514,18 @@ onUnmounted(() => {
 .stat-card .row b.warn { color: #faad14; }
 .stat-card .row b.danger { color: #ff4d4f; }
 .stat-card .row.empty { color: var(--el-text-color-secondary); justify-content: center; }
-.chart { flex: 1; min-height: 150px; }
+.chart { flex: 1; min-height: 118px; }
+.pie-legend {
+  display: flex; justify-content: center; flex-wrap: wrap;
+  gap: 3px 8px; padding: 4px 0 2px;
+  font-size: 10.5px; color: var(--el-text-color-regular);
+}
+.pie-legend-item { display: inline-flex; align-items: center; gap: 3px; }
+.pie-legend-item i {
+  width: 8px; height: 8px; border-radius: 2px; display: inline-block;
+}
+.pie-legend-item em { font-style: normal; }
+.pie-legend-item b { color: var(--el-text-color-primary); font-weight: 600; }
+:global(html.dark) .pie-legend { color: rgba(255, 255, 255, 0.75); }
+:global(html.dark) .pie-legend-item b { color: #fff; }
 </style>
