@@ -163,12 +163,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import * as echarts from 'echarts'
 import req from '@/api/request'
 import { rptApi } from '@/api/modules'
 import { metricLabel, metricUnit } from '@/constants/metrics'
 import LineTrend from '@/components/LineTrend.vue'
+import { uiState } from '@/layout/uiState'
 
 const HINTS = {
   HOUSE_TOTAL: '组织范围内全部房源',
@@ -453,6 +454,9 @@ function openScreen() {
 }
 
 onMounted(async () => { await load(); nextTick(() => loadTrendCharts()) })
+
+// 深浅色切换后重新计算图表文字颜色（否则标签仍是旧主题的深色）
+watch(() => uiState.mode, () => nextTick(() => renderChart()))
 onUnmounted(() => {
   window.removeEventListener('resize', onResize)
   chart && chart.dispose()
@@ -518,7 +522,7 @@ onUnmounted(() => {
 .pie-legend {
   display: flex; justify-content: center; flex-wrap: wrap;
   gap: 3px 8px; padding: 4px 0 2px;
-  font-size: 10.5px; color: var(--el-text-color-regular);
+  font-size: 11.5px; font-weight: 500; color: var(--el-text-color-regular);
 }
 .pie-legend-item { display: inline-flex; align-items: center; gap: 3px; }
 .pie-legend-item i {
@@ -526,6 +530,6 @@ onUnmounted(() => {
 }
 .pie-legend-item em { font-style: normal; }
 .pie-legend-item b { color: var(--el-text-color-primary); font-weight: 600; }
-:global(html.dark) .pie-legend { color: rgba(255, 255, 255, 0.75); }
+:global(html.dark) .pie-legend { color: #e6f1ff; }
 :global(html.dark) .pie-legend-item b { color: #fff; }
 </style>
