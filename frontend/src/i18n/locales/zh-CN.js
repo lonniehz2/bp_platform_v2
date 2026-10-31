@@ -1,0 +1,62 @@
+export default {
+  common: {
+    confirm: '确定',
+    cancel: '取消',
+    save: '保存',
+    search: '查询',
+    reset: '重置',
+    operation: '操作',
+    status: '状态',
+    loading: '加载中',
+    noData: '暂无数据'
+  },
+  locale: {
+    label: '语言',
+    zh: '简体中文',
+    en: 'English',
+    changed: '语言已切换'
+  },
+  login: {
+    brand: '租赁性保障用房管理平台',
+    brandSub: 'Leased Affordable Housing Management Platform',
+    slogan: '房源、合同、收费、物联一体化的保障房运营中枢',
+    welcome: '欢迎登录',
+    subtitle: '请使用平台编码与账号登录',
+    tenantPlaceholder: '平台编码，如 350600',
+    usernamePlaceholder: '用户名',
+    passwordPlaceholder: '密码',
+    submit: '登 录',
+    demoTitle: '演示账号（点击填充）',
+    operatorLogin: '平台运营登录',
+    flowTitle: '全流程闭环',
+    flowDesc: '申请 · 配租 · 签约 · 收费 · 退租',
+    billTitle: '账务可追溯',
+    billDesc: '账单计费明细 · 收款核销 · 押金台账',
+    iotTitle: '物联联动',
+    iotDesc: '门锁 / 水电表 / 告警 · IoT 对账',
+    tenantTitle: '平台级隔离',
+    tenantDesc: '平台数据隔离 · 组织数据范围',
+    pages: '业务页面',
+    modes: '计费方式',
+    online: '设备在线监测',
+    demoAdmin: '管理员 admin',
+    demoAcceptor: '受理岗 acceptor',
+    demoViewer: '只读 viewer',
+    scopeNote: '登录后右上角显示「组织 · 平台」；平台编码可在悬停提示中查看。',
+    tenantTip: '平台编码是数据隔离标识，既不是组织编码，也不是承租人。一个平台下可有多级组织与承租人；登录后右上角显示你的组织；未限定组织（全局范围）时显示「平台」。',
+    requiredTenant: '请输入平台编码',
+    requiredUsername: '请输入用户名',
+    requiredPassword: '请输入密码'
+  },
+  layout: {
+    greeting: 'Hi {name}，你好~',
+    help: '使用帮助',
+    logout: '退出登录',
+    logoutConfirm: '确认退出登录？',
+    tip: '提示',
+    platformCode: '平台编码',
+    org: '组织',
+    platform: '平台',
+    admin: '管理员'
+  }
+}

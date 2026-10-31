@@ -52,11 +52,12 @@
           </el-tag>
         </el-tooltip>
         <el-tag size="small" type="info">{{ auth.displayName || '管理员' }}</el-tag>
-        <el-tooltip content="使用帮助" placement="bottom">
+        <el-tooltip :content="$t('layout.help')" placement="bottom">
           <el-button text @click="toHelp">
             <el-icon><QuestionFilled /></el-icon>
           </el-button>
         </el-tooltip>
+        <LocaleSwitch />
         <StyleSwitch />
         <el-button text @click="logout">
           <el-icon><SwitchButton /></el-icon>
@@ -72,9 +73,11 @@ import { nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/store/auth'
+import { useI18n } from 'vue-i18n'
 import { useMenu } from './useMenu'
 import { useTodoStore } from '@/store/todo'
 import StyleSwitch from './StyleSwitch.vue'
+import LocaleSwitch from './LocaleSwitch.vue'
 import { sectionForRoute } from '@/content/help'
 import { QuestionFilled, Lock } from '@element-plus/icons-vue'
 import { useMenuBadges } from './useMenuBadges'
@@ -83,6 +86,7 @@ import { defaultOpenGroups, loadOpenGroups, saveOpenGroups } from './menuPrefs'
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 const todo = useTodoStore()
 const { classicGroups: groups, titleOf, groupOf } = useMenu()
 // 菜单角标（待办/逾期/催缴/告警/工单）
@@ -160,7 +164,7 @@ function toHelp() {
 }
 
 async function logout() {
-  await ElMessageBox.confirm('确认退出登录？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('layout.logoutConfirm'), t('layout.tip'), { type: 'warning' })
   auth.logout()
   router.push('/login')
 }

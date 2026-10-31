@@ -16,7 +16,8 @@ import req from './request'
 export const authApi = {
   login: (data) => req.post('/auth/login', data),
   logout: () => req.post('/auth/logout'),
-  me: () => req.get('/auth/me')
+  me: () => req.get('/auth/me'),
+  saveLocale: (locale) => req.put('/auth/locale', { locale })
 }
 
 /** 系统支撑：字典 / 参数 / 审计（下拉选项与政策参数都从这里取） */

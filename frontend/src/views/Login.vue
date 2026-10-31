@@ -1,5 +1,6 @@
 <template>
   <div class="login-page">
+    <div class="login-locale"><LocaleSwitch /></div>
     <div class="bg-grid" />
     <div class="orb orb-a" />
     <div class="orb orb-b" />
@@ -11,37 +12,37 @@
         <div class="brand-head">
           <div class="logo"><span class="logo-core" /></div>
           <div>
-            <h1>租赁性保障用房管理平台</h1>
+            <h1>{{ t('login.brand') }}</h1>
             <p class="en">Leased Affordable Housing Management Platform</p>
           </div>
         </div>
 
-        <p class="slogan">房源、合同、收费、物联一体化的保障房运营中枢</p>
+        <p class="slogan">{{ t('login.slogan') }}</p>
 
         <ul class="features">
-          <li><span class="dot" /><div><b>全流程闭环</b><em>申请 · 配租 · 签约 · 收费 · 退租</em></div></li>
-          <li><span class="dot" /><div><b>账务可追溯</b><em>账单计费明细 · 收款核销 · 押金台账</em></div></li>
-          <li><span class="dot" /><div><b>物联联动</b><em>门锁 / 水电表 / 告警 · IoT 对账</em></div></li>
-          <li><span class="dot" /><div><b>平台级隔离</b><em>平台数据隔离 · 组织数据范围</em></div></li>
+          <li><span class="dot" /><div><b>{{ t('login.flowTitle') }}</b><em>{{ t('login.flowDesc') }}</em></div></li>
+          <li><span class="dot" /><div><b>{{ t('login.billTitle') }}</b><em>{{ t('login.billDesc') }}</em></div></li>
+          <li><span class="dot" /><div><b>{{ t('login.iotTitle') }}</b><em>{{ t('login.iotDesc') }}</em></div></li>
+          <li><span class="dot" /><div><b>{{ t('login.tenantTitle') }}</b><em>{{ t('login.tenantDesc') }}</em></div></li>
         </ul>
 
         <div class="stats">
-          <div><b>46</b><span>业务页面</span></div>
-          <div><b>7</b><span>计费方式</span></div>
-          <div><b>24h</b><span>设备在线监测</span></div>
+          <div><b>46</b><span>{{ t('login.pages') }}</span></div>
+          <div><b>7</b><span>{{ t('login.modes') }}</span></div>
+          <div><b>24h</b><span>{{ t('login.online') }}</span></div>
         </div>
       </section>
 
       <!-- 右侧登录卡 -->
       <section class="card">
         <div class="card-head">
-          <h2>欢迎登录</h2>
-          <p>请使用平台编码与账号登录</p>
+          <h2>{{ t('login.welcome') }}</h2>
+          <p>{{ t('login.subtitle') }}</p>
         </div>
 
         <el-form :model="form" :rules="rules" ref="formRef" @keyup.enter="onSubmit">
           <el-form-item prop="tenantId">
-            <el-input v-model="form.tenantId" placeholder="平台编码，如 350600" size="large">
+            <el-input v-model="form.tenantId" :placeholder="t('login.tenantPlaceholder')" size="large">
               <template #prefix><el-icon><OfficeBuilding /></el-icon></template>
               <template #suffix>
                 <el-tooltip placement="top">
@@ -59,35 +60,33 @@
           </el-form-item>
 
           <el-form-item prop="username">
-            <el-input v-model="form.username" placeholder="用户名" size="large">
+            <el-input v-model="form.username" :placeholder="t('login.usernamePlaceholder')" size="large">
               <template #prefix><el-icon><User /></el-icon></template>
             </el-input>
           </el-form-item>
 
           <el-form-item prop="password">
             <el-input v-model="form.password" type="password" show-password
-                      placeholder="密码" size="large">
+                      :placeholder="t('login.passwordPlaceholder')" size="large">
               <template #prefix><el-icon><Lock /></el-icon></template>
             </el-input>
           </el-form-item>
 
           <el-button class="submit" size="large" :loading="loading" @click="onSubmit">
-            登 录
+            {{ t('login.submit') }}
           </el-button>
         </el-form>
 
         <div class="hint">
-          <div class="hint-title">演示账号（点击填充）</div>
+          <div class="hint-title">{{ t('login.demoTitle') }}</div>
           <div class="accounts">
             <el-tag v-for="a in accounts" :key="a.u" size="small" effect="dark"
                     :type="a.type" style="cursor:pointer;margin:3px"
                     @click="fill(a)">{{ a.label }}</el-tag>
           </div>
-          <p class="scope-note">
-            登录后右上角显示「组织 · 平台」；平台编码可在悬停提示中查看。
-          </p>
+          <p class="scope-note">{{ t('login.scopeNote') }}</p>
           <el-link type="info" style="font-size:12px" @click="toOperator">
-            平台运营登录
+            {{ t('login.operatorLogin') }}
           </el-link>
         </div>
       </section>
@@ -96,30 +95,33 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { computed, ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/store/auth'
+import LocaleSwitch from '@/layout/LocaleSwitch.vue'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const formRef = ref()
 const loading = ref(false)
 const form = reactive({ tenantId: '350600', username: 'admin', password: 'admin123' })
 
-const rules = {
-  tenantId: [{ required: true, message: '请输入平台编码', trigger: 'blur' }],
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
-}
+const rules = computed(() => ({
+  tenantId: [{ required: true, message: t('login.requiredTenant'), trigger: 'blur' }],
+  username: [{ required: true, message: t('login.requiredUsername'), trigger: 'blur' }],
+  password: [{ required: true, message: t('login.requiredPassword'), trigger: 'blur' }]
+}))
 
-const accounts = [
-  { label: '管理员 admin', u: 'admin', p: 'admin123', type: 'primary' },
-  { label: '受理岗 acceptor', u: 'acceptor', p: 'acc123', type: 'success' },
-  { label: '只读 viewer', u: 'viewer', p: 'view123', type: 'info' }
-]
+const accounts = computed(() => [
+  { label: t('login.demoAdmin'), u: 'admin', p: 'admin123', type: 'primary' },
+  { label: t('login.demoAcceptor'), u: 'acceptor', p: 'acc123', type: 'success' },
+  { label: t('login.demoViewer'), u: 'viewer', p: 'view123', type: 'info' }
+])
 
 function fill(a) {
   form.username = a.u
@@ -293,5 +295,12 @@ async function onSubmit() {
   .login-shell { grid-template-columns: 1fr; gap: 26px; }
   .brand { display: none; }
   .card { padding: 26px 20px 18px; }
+}
+
+.login-locale {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  z-index: 20;
 }
 </style>

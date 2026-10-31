@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/api/modules'
 import { setToken, setTenant, getToken } from '@/api/request'
+import { setLocale } from '@/i18n'
 
 /**
  * 登录态与权限。
@@ -26,6 +27,8 @@ export const useAuthStore = defineStore('auth', () => {
     setToken(data.token)
     admin.value = !!data.admin
     await loadMe()
+    const chosen = localStorage.getItem('bp_locale')
+    if (chosen) authApi.saveLocale(chosen).catch(() => {})
     return data
   }
 
@@ -34,6 +37,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = me
     permissions.value = me.permissions || []
     admin.value = !!me.admin
+    if (me.locale && !localStorage.getItem('bp_locale')) setLocale(me.locale)
     return me
   }
 

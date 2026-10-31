@@ -59,11 +59,13 @@ public class DisplayEnrichAdvice implements ResponseBodyAdvice<Object> {
             PageResult<java.util.Map<String, Object>> enriched =
                     new PageResult<>(pr.total(), pr.pageNum(), pr.pageSize(),
                             enricher.enrichRows(pr.rows()));
-            return new R<>(r.code(), r.message(), enriched, r.timestamp());
+            return new R<>(r.code(), r.message(), r.messageKey(), r.args(), enriched,
+                    r.timestamp());
         }
         if (data instanceof List<?> list && !list.isEmpty()
                 && isEnrichable(list.get(0))) {
-            return new R<>(r.code(), r.message(), enricher.enrichRows(list), r.timestamp());
+            return new R<>(r.code(), r.message(), r.messageKey(), r.args(),
+                    enricher.enrichRows(list), r.timestamp());
         }
         return body;
     }

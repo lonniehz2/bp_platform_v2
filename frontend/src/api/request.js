@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { getLocale } from '@/i18n'
 
 /**
  * 统一请求封装。
@@ -37,6 +38,8 @@ service.interceptors.request.use((cfg) => {
   const token = getToken()
   if (token) cfg.headers.Authorization = `Bearer ${token}`
   cfg.headers['X-Tenant-Id'] = getTenant()
+  cfg.headers['X-Locale'] = getLocale()
+  cfg.headers['Accept-Language'] = getLocale()
   return cfg
 })
 

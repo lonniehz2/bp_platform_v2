@@ -18,6 +18,8 @@ public class IamUser {
     private Long id;
     private String tenantId;
     private String username;
+    /** zh-CN / en-US；为空时跟随平台默认 */
+    private String locale;
     /** PBKDF2 哈希（算法$迭代$盐$值） */
     private String passwordHash;
     private LocalDateTime pwdUpdateTime;

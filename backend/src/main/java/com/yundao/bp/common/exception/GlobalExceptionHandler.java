@@ -2,6 +2,8 @@ package com.yundao.bp.common.exception;
 
 import com.yundao.bp.common.api.ErrorCode;
 import com.yundao.bp.common.api.R;
+import com.yundao.bp.common.i18n.LocaleContext;
+import com.yundao.bp.common.i18n.MessageResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -24,6 +26,12 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    private final MessageResolver messages;
+
+    public GlobalExceptionHandler(MessageResolver messages) {
+        this.messages = messages;
+    }
 
     /**
      * 解包 MyBatis / Spring 包装的异常，向上找到 {@link BizException}。
@@ -50,7 +58,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<R<Void>> handleBiz(BizException e, HttpServletRequest req) {
         log.warn("业务异常 [{}] {} {} - {}", e.errorCode().code(), req.getMethod(),
                 req.getRequestURI(), e.getMessage());
-        return ResponseEntity.status(e.errorCode().httpStatus()).body(R.fail(e.errorCode(), e.getMessage()));
+        return ResponseEntity.status(e.errorCode().httpStatus())
+                .body(R.fail(e.errorCode(), messages.localized(e.getMessage(), e.errorCode()),
+                        e.errorCode().messageKey()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -59,7 +69,9 @@ public class GlobalExceptionHandler {
                 .map(this::fmtFieldError)
                 .collect(Collectors.joining("; "));
         return ResponseEntity.status(ErrorCode.PARAM_INVALID.httpStatus())
-                .body(R.fail(ErrorCode.PARAM_INVALID, detail));
+                .body(R.fail(ErrorCode.PARAM_INVALID,
+                        messages.localized(detail, ErrorCode.PARAM_INVALID),
+                        ErrorCode.PARAM_INVALID.messageKey()));
     }
 
     @ExceptionHandler(BindException.class)
@@ -68,25 +80,31 @@ public class GlobalExceptionHandler {
                 .map(this::fmtFieldError)
                 .collect(Collectors.joining("; "));
         return ResponseEntity.status(ErrorCode.PARAM_INVALID.httpStatus())
-                .body(R.fail(ErrorCode.PARAM_INVALID, detail));
+                .body(R.fail(ErrorCode.PARAM_INVALID,
+                        messages.localized(detail, ErrorCode.PARAM_INVALID),
+                        ErrorCode.PARAM_INVALID.messageKey()));
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<R<Void>> handleMissingParam(MissingServletRequestParameterException e) {
+        String msg = messages.get("error.param_missing_detail", e.getParameterName());
         return ResponseEntity.status(ErrorCode.PARAM_MISSING.httpStatus())
-                .body(R.fail(ErrorCode.PARAM_MISSING, "缺少参数: " + e.getParameterName()));
+                .body(R.fail(ErrorCode.PARAM_MISSING, msg, ErrorCode.PARAM_MISSING.messageKey()));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<R<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        String msg = messages.get("error.param_type_detail", e.getName());
         return ResponseEntity.status(ErrorCode.PARAM_INVALID.httpStatus())
-                .body(R.fail(ErrorCode.PARAM_INVALID, "参数类型错误: " + e.getName()));
+                .body(R.fail(ErrorCode.PARAM_INVALID, msg, ErrorCode.PARAM_INVALID.messageKey()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<R<Void>> handleIllegalArg(IllegalArgumentException e) {
         return ResponseEntity.status(ErrorCode.PARAM_INVALID.httpStatus())
-                .body(R.fail(ErrorCode.PARAM_INVALID, e.getMessage()));
+                .body(R.fail(ErrorCode.PARAM_INVALID,
+                        messages.localized(e.getMessage(), ErrorCode.PARAM_INVALID),
+                        ErrorCode.PARAM_INVALID.messageKey()));
     }
 
     /**
@@ -113,11 +131,14 @@ public class GlobalExceptionHandler {
             log.warn("业务异常(解包) [{}] {} {} - {}", biz.errorCode().code(),
                     req.getMethod(), req.getRequestURI(), biz.getMessage());
             return ResponseEntity.status(biz.errorCode().httpStatus())
-                    .body(R.fail(biz.errorCode(), biz.getMessage()));
+                    .body(R.fail(biz.errorCode(),
+                            messages.localized(biz.getMessage(), biz.errorCode()),
+                            biz.errorCode().messageKey()));
         }
         log.error("未处理异常 {} {}", req.getMethod(), req.getRequestURI(), e);
         return ResponseEntity.status(ErrorCode.SYSTEM_ERROR.httpStatus())
-                .body(R.fail(ErrorCode.SYSTEM_ERROR));
+                .body(R.fail(ErrorCode.SYSTEM_ERROR, messages.error(ErrorCode.SYSTEM_ERROR),
+                        ErrorCode.SYSTEM_ERROR.messageKey()));
     }
 
     private String fmtFieldError(FieldError fe) {

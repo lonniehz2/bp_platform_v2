@@ -198,7 +198,7 @@ public class AuthServiceImpl implements AuthService {
         return new MeVO(user.getId(), user.getUsername(), user.getRealName(),
                 user.getTenantId(), user.getOrgId(), tenantName,
                 orgName == null ? "平台" : orgName, user.getUserType(), admin,
-                new ArrayList<>(perms), roleIds,
+                new ArrayList<>(perms), roleIds, user.getLocale(),
                 user.getMustChangePassword() != null && user.getMustChangePassword() == 1);
     }
 

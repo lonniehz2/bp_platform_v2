@@ -40,7 +40,7 @@
 
     <el-container class="right">
       <el-header class="header">
-        <span class="greet">Hi {{ auth.displayName || '管理员' }}，你好~</span>
+        <span class="greet">{{ $t('layout.greeting', { name: auth.displayName || $t('layout.admin') }) }}</span>
         <el-breadcrumb separator="/" class="crumb">
           <el-breadcrumb-item>{{ activeGroup }}</el-breadcrumb-item>
           <el-breadcrumb-item>{{ titleOf($route.path) }}</el-breadcrumb-item>
@@ -52,11 +52,12 @@
             {{ auth.user?.tenantName || '平台' }} · {{ auth.user?.orgName || '平台' }}
           </el-tag>
         </el-tooltip>
-        <el-tooltip content="使用帮助" placement="bottom">
+        <el-tooltip :content="$t('layout.help')" placement="bottom">
           <el-button text @click="toHelp">
             <el-icon><QuestionFilled /></el-icon>
           </el-button>
         </el-tooltip>
+        <LocaleSwitch />
         <StyleSwitch />
         <el-button text @click="logout">
           <el-icon><SwitchButton /></el-icon>
@@ -72,9 +73,11 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/store/auth'
+import { useI18n } from 'vue-i18n'
 import { useMenu } from './useMenu'
 import { useTodoStore } from '@/store/todo'
 import StyleSwitch from './StyleSwitch.vue'
+import LocaleSwitch from './LocaleSwitch.vue'
 import { sectionForRoute } from '@/content/help'
 import { QuestionFilled, Lock } from '@element-plus/icons-vue'
 import { useMenuBadges } from './useMenuBadges'
@@ -82,6 +85,7 @@ import { useMenuBadges } from './useMenuBadges'
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 const { groups, titleOf } = useMenu()
 const todo = useTodoStore()
 
@@ -134,7 +138,7 @@ function toHelp() {
 }
 
 async function logout() {
-  await ElMessageBox.confirm('确认退出登录？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('layout.logoutConfirm'), t('layout.tip'), { type: 'warning' })
   auth.logout()
   router.push('/login')
 }

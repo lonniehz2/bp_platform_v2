@@ -64,6 +64,11 @@ public enum ErrorCode {
         return message;
     }
 
+    /** 稳定消息 key；文案由 messages_*.properties 按 locale 解析。 */
+    public String messageKey() {
+        return "error." + name().toLowerCase(java.util.Locale.ROOT);
+    }
+
     public int httpStatus() {
         return httpStatus;
     }

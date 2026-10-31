@@ -1,0 +1,62 @@
+export default {
+  common: {
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    save: 'Save',
+    search: 'Search',
+    reset: 'Reset',
+    operation: 'Actions',
+    status: 'Status',
+    loading: 'Loading',
+    noData: 'No data'
+  },
+  locale: {
+    label: 'Language',
+    zh: '简体中文',
+    en: 'English',
+    changed: 'Language switched'
+  },
+  login: {
+    brand: 'Leased Affordable Housing Management Platform',
+    brandSub: 'Leased Affordable Housing Management Platform',
+    slogan: 'An integrated operations hub for housing, contracts, billing and IoT',
+    welcome: 'Welcome',
+    subtitle: 'Sign in with your platform code and account',
+    tenantPlaceholder: 'Platform code, e.g. 350600',
+    usernamePlaceholder: 'Username',
+    passwordPlaceholder: 'Password',
+    submit: 'Sign in',
+    demoTitle: 'Demo accounts (click to fill)',
+    operatorLogin: 'Platform operator sign-in',
+    flowTitle: 'End-to-end workflow',
+    flowDesc: 'Apply · Allocate · Sign · Bill · Move out',
+    billTitle: 'Traceable billing',
+    billDesc: 'Bill details · Payments · Deposit ledger',
+    iotTitle: 'IoT integration',
+    iotDesc: 'Locks / meters / alarms · IoT reconciliation',
+    tenantTitle: 'Platform isolation',
+    tenantDesc: 'Tenant isolation · Organization scope',
+    pages: 'Pages',
+    modes: 'Billing modes',
+    online: 'Devices monitored',
+    demoAdmin: 'Admin',
+    demoAcceptor: 'Acceptor',
+    demoViewer: 'Viewer',
+    scopeNote: 'The organization and platform are shown at the top-right after sign-in.',
+    tenantTip: 'The platform code is the data-isolation key, not an organization or tenant. One platform can contain multiple organizations and tenants.',
+    requiredTenant: 'Platform code is required',
+    requiredUsername: 'Username is required',
+    requiredPassword: 'Password is required'
+  },
+  layout: {
+    greeting: 'Hi {name}',
+    help: 'Help',
+    logout: 'Sign out',
+    logoutConfirm: 'Sign out now?',
+    tip: 'Notice',
+    platformCode: 'Platform code',
+    org: 'Organization',
+    platform: 'Platform',
+    admin: 'Administrator'
+  }
+}
