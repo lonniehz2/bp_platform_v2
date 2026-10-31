@@ -46,9 +46,9 @@
         </el-breadcrumb>
         <div class="spacer" />
         <el-tooltip placement="bottom"
-                    :content="'平台编码：' + (auth.user?.tenantId || '—') + ' ｜ 组织：' + (auth.user?.orgName || '平台')">
+                    :content="'平台编码：' + (auth.user?.tenantId || '—') + ' ｜ 组织：' + (auth.user?.orgName || t('layout.platform'))">
           <el-tag size="small" type="info" style="margin-right:6px">
-            {{ auth.user?.tenantName || '平台' }} · {{ auth.user?.orgName || '平台' }}
+            {{ auth.user?.tenantName || t('layout.platform') }} · {{ auth.user?.orgName || t('layout.platform') }}
           </el-tag>
         </el-tooltip>
         <el-tag size="small" type="info">{{ auth.displayName || '管理员' }}</el-tag>

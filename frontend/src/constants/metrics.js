@@ -3,6 +3,17 @@
  * 编码来源：后端 MetricServiceImpl（13 个指标）。
  * 前端只做展示映射，不参与计算。
  */
+import { getLocale } from '@/i18n'
+
+export const METRIC_LABEL_EN = {
+  HOUSE_TOTAL: 'Total Housing', HOUSE_OCCUPIED: 'Occupied',
+  HOUSE_VACANT: 'Vacant', OCCUPANCY_RATE: 'Occupancy Rate',
+  BILL_UNPAID_AMOUNT: 'Arrears', BILL_UNPAID_COUNT: 'Unpaid Bills',
+  PAYMENT_TOTAL_AMOUNT: 'Collected', ACCESS_TODAY_COUNT: 'Opens Today',
+  ACCESS_ABNORMAL_COUNT: 'Abnormal Opens', ALLOCATED: 'Allocated',
+  PENDING_ALLOC: 'Pending Allocation', OCCUPIED: 'Occupied', VACANT: 'Vacant'
+}
+
 export const METRIC_LABEL = {
   HOUSE_TOTAL: '房源总数',
   HOUSE_OCCUPIED: '已租房源',
@@ -36,7 +47,8 @@ export const METRIC_UNIT = {
 }
 
 export function metricLabel(code) {
-  return METRIC_LABEL[code] || code
+  const zh = METRIC_LABEL[code] || code
+  return getLocale() === 'en-US' ? (METRIC_LABEL_EN[code] || zh) : zh
 }
 
 export function chartLabel(type) {
@@ -44,5 +56,8 @@ export function chartLabel(type) {
 }
 
 export function metricUnit(code) {
-  return METRIC_UNIT[code] || ''
+  const u = METRIC_UNIT[code] || ''
+  if (!u) return ''
+  if (getLocale() === 'en-US') return code.endsWith('_RATE') ? '%' : ' CNY'
+  return u
 }

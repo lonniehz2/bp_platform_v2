@@ -3,21 +3,21 @@
     <!-- 顶部两个筛选（对应参考系统的「演示/全部」） -->
     <div class="bp-page-head">
       <div>
-        <h2>运营驾驶舱</h2>
+        <h2>{{ t('dashboard.title') }}</h2>
         <div class="desc">
-          数据实时聚合 · 刷新 {{ screen?.refreshSeconds || 60 }}s ·
-          {{ metrics.generatedAt ? '更新于 ' + fmtTime(metrics.generatedAt) : '加载中' }}
+          {{ t('dashboard.subtitle') }} · {{ screen?.refreshSeconds || 60 }}s ·
+          {{ metrics.generatedAt ? t('dashboard.updatedAt') + ' ' + fmtTime(metrics.generatedAt) : t('dashboard.loading') }}
         </div>
       </div>
       <div class="actions">
         <el-radio-group v-model="scope" size="small" @change="load">
-          <el-radio-button value="all">全部</el-radio-button>
-          <el-radio-button value="org">本组织</el-radio-button>
+          <el-radio-button value="all">{{ t('dashboard.all') }}</el-radio-button>
+          <el-radio-button value="org">{{ t('dashboard.org') }}</el-radio-button>
         </el-radio-group>
         <el-button type="primary" :loading="loading" @click="load">
-          <el-icon><Refresh /></el-icon>刷新
+          <el-icon><Refresh /></el-icon>{{ t('dashboard.refresh') }}
         </el-button>
-        <el-button @click="openScreen">大屏</el-button>
+        <el-button @click="openScreen">{{ t('dashboard.screen') }}</el-button>
       </div>
     </div>
 
@@ -26,7 +26,7 @@
       <div class="stat-card">
         <div class="head">
           <span class="ico blue"><el-icon><PieChart /></el-icon></span>
-          <el-tooltip content="按房源状态拆分：已出租 / 空置可租 / 待配租 / 其他，总数=房源台账条数" placement="top"><span class="t" style="cursor:help">房源结构 <span class="muted">ⓘ</span></span></el-tooltip>
+          <el-tooltip :content="t('dashboard.structureTip')" placement="top"><span class="t" style="cursor:help">{{ t('dashboard.structure') }} <span class="muted">ⓘ</span></span></el-tooltip>
           <span class="total">{{ n('HOUSE_TOTAL') }}</span>
         </div>
         <div ref="chartRef" class="chart" />
@@ -42,45 +42,45 @@
       <div class="stat-card">
         <div class="head">
           <span class="ico green"><el-icon><OfficeBuilding /></el-icon></span>
-          <el-tooltip content="已出租=状态 OCCUPIED；空置可租=VACANT；出租率=已出租÷房源总数" placement="top"><span class="t" style="cursor:help">房源概况 <span class="muted">ⓘ</span></span></el-tooltip>
+          <el-tooltip :content="t('dashboard.overviewTip')" placement="top"><span class="t" style="cursor:help">{{ t('dashboard.overview') }} <span class="muted">ⓘ</span></span></el-tooltip>
           <span class="total">{{ n('HOUSE_TOTAL') }}</span>
         </div>
         <div class="rows">
-          <div class="row"><span>已出租</span><b class="ok">{{ n('HOUSE_OCCUPIED') }}</b></div>
-          <div class="row"><span>空置可租</span><b class="warn">{{ n('HOUSE_VACANT') }}</b></div>
-          <div class="row"><span>出租率</span><b class="ok">{{ rate }}%</b></div>
-          <div class="row"><span>待配租</span><b>{{ n('PENDING_ALLOC') }}</b></div>
+          <div class="row"><span>{{ t('dashboard.occupied') }}</span><b class="ok">{{ n('HOUSE_OCCUPIED') }}</b></div>
+          <div class="row"><span>{{ t('dashboard.vacant') }}</span><b class="warn">{{ n('HOUSE_VACANT') }}</b></div>
+          <div class="row"><span>{{ t('dashboard.occupancy') }}</span><b class="ok">{{ rate }}%</b></div>
+          <div class="row"><span>{{ t('dashboard.pending') }}</span><b>{{ n('PENDING_ALLOC') }}</b></div>
         </div>
       </div>
 
       <div class="stat-card">
         <div class="head">
           <span class="ico orange"><el-icon><Money /></el-icon></span>
-          <el-tooltip content="欠费金额=应收−已缴的正数部分；收缴率=累计收款÷累计应收" placement="top"><span class="t" style="cursor:help">财务应收 <span class="muted">ⓘ</span></span></el-tooltip>
+          <el-tooltip :content="t('dashboard.financeTip')" placement="top"><span class="t" style="cursor:help">{{ t('dashboard.finance') }} <span class="muted">ⓘ</span></span></el-tooltip>
           <span class="total">{{ money('BILL_UNPAID_AMOUNT') }}</span>
         </div>
         <div class="rows">
-          <div class="row"><span>欠费账单</span><b class="danger">{{ n('BILL_UNPAID_COUNT') }}</b></div>
-          <div class="row"><span>累计收款</span><b class="ok">{{ money('PAYMENT_TOTAL_AMOUNT') }}</b></div>
-          <div class="row"><span>收缴率</span><b :class="collectRate >= 90 ? 'ok' : 'warn'">
+          <div class="row"><span>{{ t('dashboard.unpaidBills') }}</span><b class="danger">{{ n('BILL_UNPAID_COUNT') }}</b></div>
+          <div class="row"><span>{{ t('dashboard.collected') }}</span><b class="ok">{{ money('PAYMENT_TOTAL_AMOUNT') }}</b></div>
+          <div class="row"><span>{{ t('dashboard.collectRate') }}</span><b :class="collectRate >= 90 ? 'ok' : 'warn'">
             {{ collectRate }}%</b></div>
-          <div class="row"><span>补贴发放</span><b>{{ subsidyCount }} 笔</b></div>
+          <div class="row"><span>{{ t('dashboard.subsidies') }}</span><b>{{ subsidyCount }} {{ t('dashboard.unitCount') }}</b></div>
         </div>
       </div>
 
       <div class="stat-card">
         <div class="head">
           <span class="ico red"><el-icon><Warning /></el-icon></span>
-          <span class="t">设备风控</span>
+          <span class="t">{{ t('dashboard.device') }}</span>
           <span class="total">{{ n('ACCESS_ABNORMAL_COUNT') }}</span>
         </div>
         <div class="rows">
-          <div class="row"><span>今日开门</span><b>{{ n('ACCESS_TODAY_COUNT') }}</b></div>
-          <div class="row"><span>异常开门</span>
+          <div class="row"><span>{{ t('dashboard.todayOpen') }}</span><b>{{ n('ACCESS_TODAY_COUNT') }}</b></div>
+          <div class="row"><span>{{ t('dashboard.abnormalOpen') }}</span>
             <b :class="n('ACCESS_ABNORMAL_COUNT') > 0 ? 'danger' : 'ok'">
               {{ n('ACCESS_ABNORMAL_COUNT') }}</b></div>
-          <div class="row"><span>告警待处理</span><b class="warn">{{ alertPending }}</b></div>
-          <div class="row"><span>工单待办</span><b>{{ workOrderPending }}</b></div>
+          <div class="row"><span>{{ t('dashboard.alerts') }}</span><b class="warn">{{ alertPending }}</b></div>
+          <div class="row"><span>{{ t('dashboard.workOrders') }}</span><b>{{ workOrderPending }}</b></div>
         </div>
       </div>
     </div>
@@ -90,7 +90,7 @@
       <div class="stat-card">
         <div class="head">
           <span class="ico blue"><el-icon><Tickets /></el-icon></span>
-          <el-tooltip content="待受理=已提交未受理；审核中=受理后未终审；已通过=终审通过" placement="top"><span class="t" style="cursor:help">申请与审批 <span class="muted">ⓘ</span></span></el-tooltip>
+          <el-tooltip :content="t('dashboard.appsTip')" placement="top"><span class="t" style="cursor:help">{{ t('dashboard.apps') }} <span class="muted">ⓘ</span></span></el-tooltip>
           <span class="total">{{ appTotal }}</span>
         </div>
         <div class="rows">
@@ -98,14 +98,14 @@
             <span>{{ x.label }}</span>
             <b :class="x.tone || ''">{{ x.value }}</b>
           </div>
-          <div v-if="!appStats.length" class="row empty">暂无数据</div>
+          <div v-if="!appStats.length" class="row empty">{{ t('dashboard.noData') }}</div>
         </div>
       </div>
 
       <div class="stat-card">
         <div class="head">
           <span class="ico orange"><el-icon><Wallet /></el-icon></span>
-          <el-tooltip content="押金按收取/退还/待退三态统计，金额单位元" placement="top"><span class="t" style="cursor:help">押金与退款 <span class="muted">ⓘ</span></span></el-tooltip>
+          <el-tooltip :content="t('dashboard.depositsTip')" placement="top"><span class="t" style="cursor:help">{{ t('dashboard.deposits') }} <span class="muted">ⓘ</span></span></el-tooltip>
           <span class="total">{{ depositTotal }}</span>
         </div>
         <div class="rows">
@@ -113,14 +113,14 @@
             <span>{{ x.label }}</span>
             <b :class="x.tone || ''">{{ x.value }}</b>
           </div>
-          <div v-if="!depositStats.length" class="row empty">暂无数据</div>
+          <div v-if="!depositStats.length" class="row empty">{{ t('dashboard.noData') }}</div>
         </div>
       </div>
 
       <div class="stat-card">
         <div class="head">
           <span class="ico green"><el-icon><Bell /></el-icon></span>
-          <el-tooltip content="工单与告警按待处理/处理中/已处理统计，含今日新增" placement="top"><span class="t" style="cursor:help">服务与待办 <span class="muted">ⓘ</span></span></el-tooltip>
+          <el-tooltip :content="t('dashboard.serviceTip')" placement="top"><span class="t" style="cursor:help">{{ t('dashboard.service') }} <span class="muted">ⓘ</span></span></el-tooltip>
           <span class="total">{{ serviceTotal }}</span>
         </div>
         <div class="rows">
@@ -128,7 +128,7 @@
             <span>{{ x.label }}</span>
             <b :class="x.tone || ''">{{ x.value }}</b>
           </div>
-          <div v-if="!serviceStats.length" class="row empty">暂无数据</div>
+          <div v-if="!serviceStats.length" class="row empty">{{ t('dashboard.noData') }}</div>
         </div>
       </div>
     </div>
@@ -137,13 +137,13 @@
     <el-row :gutter="12" style="margin-bottom:14px">
       <el-col :span="12">
         <div class="bp-card">
-          <div class="head">应收 / 实收趋势（近 6 月）</div>
+          <div class="head">{{ t('dashboard.recvTrend') }}</div>
           <LineTrend :rows="billTrend" color="#1890ff" :height="190" />
         </div>
       </el-col>
       <el-col :span="12">
         <div class="bp-card">
-          <div class="head">能耗用量趋势（近 6 月）</div>
+          <div class="head">{{ t('dashboard.energyTrend') }}</div>
           <LineTrend :rows="energyTrend" color="#faad14" :height="190" />
         </div>
       </el-col>
@@ -151,18 +151,20 @@
 
     <!-- 指标明细 -->
     <div class="bp-card">
-      <div class="head">指标明细</div>
+      <div class="head">{{ t('dashboard.metrics') }}</div>
       <el-table :data="metricRows" size="small" border>
-        <el-table-column prop="label" label="指标名称" width="180" />
-        <el-table-column prop="code" label="编码" width="240" />
-        <el-table-column prop="value" label="当前值" align="right" width="160" />
-        <el-table-column prop="hint" label="说明" min-width="220" />
+        <el-table-column prop="label" :label="t('dashboard.metricName')" width="180" />
+        <el-table-column prop="code" :label="t('dashboard.code')" width="240" />
+        <el-table-column prop="value" :label="t('dashboard.currentValue')" align="right" width="160" />
+        <el-table-column prop="hint" :label="t('dashboard.hint')" min-width="220" />
       </el-table>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+import { getLocale } from '@/i18n'
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import * as echarts from 'echarts'
 import req from '@/api/request'
@@ -170,6 +172,8 @@ import { rptApi } from '@/api/modules'
 import { metricLabel, metricUnit } from '@/constants/metrics'
 import LineTrend from '@/components/LineTrend.vue'
 import { uiState } from '@/layout/uiState'
+
+const { t } = useI18n()
 
 const HINTS = {
   HOUSE_TOTAL: '组织范围内全部房源',
@@ -207,9 +211,9 @@ const pieItems = computed(() => {
   const vacant = Number(metrics.value.HOUSE_VACANT || houseStat.value.vacant || 0)
   const pending = Number(metrics.value.PENDING_ALLOC || houseStat.value.pending || 0)
   return [
-    { name: '已出租', value: occupied, color: '#1890ff' },
-    { name: '空置', value: vacant, color: '#faad14' },
-    { name: '待配租', value: pending, color: '#722ed1' }
+    { name: t('dashboard.pieOccupied'), value: occupied, color: '#1890ff' },
+    { name: t('dashboard.pieVacant'), value: vacant, color: '#faad14' },
+    { name: t('dashboard.piePending'), value: pending, color: '#722ed1' }
   ]
 })
 
@@ -261,11 +265,11 @@ const subsidyCount = ref(0)
 
 function n(code) {
   const v = Number(metrics.value[code] || 0)
-  return v.toLocaleString('zh-CN')
+  return v.toLocaleString(getLocale())
 }
 function money(code) {
   const v = Number(metrics.value[code] || 0)
-  return '¥' + v.toLocaleString('zh-CN', { maximumFractionDigits: 2 })
+  return '¥' + v.toLocaleString(getLocale(), { maximumFractionDigits: 2 })
 }
 function fmtTime(t) {
   return String(t).replace('T', ' ').slice(0, 19)
@@ -285,7 +289,7 @@ const metricRows = computed(() =>
     .map(([code, value]) => ({
       code, label: metricLabel(code),
       value: Number(value).toLocaleString('zh-CN') + (metricUnit(code) || ''),
-      hint: HINTS[code] || '-'
+      hint: t('dashboard.hintMap.' + code)
     }))
 )
 
@@ -316,7 +320,7 @@ function renderChart() {
   chart.setOption({
     tooltip: {
       trigger: 'item',
-      formatter: '{b}：{c} 套（{d}%）'
+      formatter: '{b}: {c} ({d}%)'
     },
     // 图例由卡片底部的 HTML 渲染，避免与饼图标签重叠
     legend: { show: false },

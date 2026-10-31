@@ -1,10 +1,10 @@
 <template>
-  <el-tooltip :content="uiState.mode === 'dark' ? '切换到浅色模式' : '切换到深色模式'">
+  <el-tooltip :content="uiState.mode === 'dark' ? t('layout.toLight') : t('layout.toDark')">
     <el-button circle size="small" style="margin-right:8px" @click="toggleMode">
       <el-icon><Moon v-if="uiState.mode === 'light'" /><Sunny v-else /></el-icon>
     </el-button>
   </el-tooltip>
-  <el-tooltip :content="`当前：${uiState.style === 'rail' ? '风格2 · 图标窄栏' : '风格1 · 宽侧栏'}（点击切换）`">
+  <el-tooltip :content="t('layout.styleTip', { name: uiState.style === 'rail' ? t('layout.railName') : t('layout.classicName') })">
     <el-segmented v-model="model" :options="options" size="small"
                   style="margin-right:8px" />
   </el-tooltip>
@@ -12,12 +12,14 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { uiState, setStyle, toggleMode } from './uiState'
 
-const options = [
-  { label: '风格1', value: 'classic' },
-  { label: '风格2', value: 'rail' }
-]
+const { t } = useI18n()
+const options = computed(() => [
+  { label: t('layout.style1'), value: 'classic' },
+  { label: t('layout.style2'), value: 'rail' }
+])
 
 const model = computed({
   get: () => uiState.style,
