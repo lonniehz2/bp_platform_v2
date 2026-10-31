@@ -489,13 +489,10 @@
         <span style="font-weight:600">{{ dvRow.billNo }}</span>
         <el-tag size="small" :type="dvRow.billStatus === 'PAID' ? 'success'
           : (dvRow.billStatus === 'CANCELLED' ? 'info' : 'warning')">
-          {{ dvRow.billStatusLabel || dvRow.billStatus }}
+          {{ enumLabel('billStatus', dvRow.billStatus) }}
         </el-tag>
         <span class="muted" v-if="dvRow.generateType">
-          生成方式：{{ dvRow.generateType === 'AUTO' ? '自动出账'
-            : (dvRow.generateType === 'METER' ? '抄表出账'
-            : (dvRow.generateType === 'SHARED' ? '公摊分摊'
-            : (dvRow.generateType === 'SHORT_RENT' ? '短租订单' : dvRow.generateType))) }}
+          {{ t('bill.generateType') }}: {{ enumLabel('generateType', dvRow.generateType) }}
         </span>
       </div>
       <el-descriptions :column="2" border size="small">
@@ -522,9 +519,9 @@
         <el-descriptions-item :label="labelOf('overdueDays')">{{ dvRow.overdueDays || 0 }}</el-descriptions-item>
       </el-descriptions>
       <div style="margin-top:12px">
-        <div style="font-weight:600;margin-bottom:6px">缴费明细（收款单）</div>
+        <div style="font-weight:600;margin-bottom:6px">{{ t('bill.paymentsDetail') }}</div>
         <el-table :data="billPayments" size="small" border
-                  empty-text="暂无收款核销记录">
+                  :empty-text="t('bill.noPayments')">
           <el-table-column prop="payment_no" :label="labelOf('paymentNo')" width="185" />
           <el-table-column :label="labelOf('payerName')" width="110">
             <template #default="{ row }">{{ row.payer_name || '—' }}</template>
@@ -539,18 +536,18 @@
         </el-table>
       </div>
       <div v-if="explainRows.length" style="margin-top:12px">
-        <div style="font-weight:600;margin-bottom:6px">计费明细</div>
+        <div style="font-weight:600;margin-bottom:6px">{{ t('bill.calcDetail') }}</div>
         <el-table :data="explainRows" size="small" border>
           <el-table-column prop="label" :label="labelOf('item')" width="130" />
           <el-table-column prop="value" :label="labelOf('value')" />
         </el-table>
       </div>
       <el-alert v-if="dvRow.remark" type="info" :closable="false" show-icon
-                style="margin-top:10px" title="计费说明">
+                style="margin-top:10px" :title="t('bill.remarkTitle')">
         <div style="white-space:pre-wrap">{{ dvRow.remark }}</div>
       </el-alert>
       <el-collapse style="margin-top:8px">
-        <el-collapse-item title="原始字段（排障用）">
+        <el-collapse-item :title="t('bill.rawFields')">
           <DetailView :row="dvRow" />
         </el-collapse-item>
       </el-collapse>

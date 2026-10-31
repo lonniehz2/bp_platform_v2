@@ -8,7 +8,8 @@ export default {
     operation: '操作',
     status: '状态',
     loading: '加载中',
-    noData: '暂无数据'
+    noData: '暂无数据',
+    close: '关闭'
   },
   locale: {
     label: '语言',
@@ -86,6 +87,12 @@ export default {
     waive: '减免',
     cancel: '取消',
     remind: '催缴',
+    paymentsDetail: '缴费明细（收款单）',
+    calcDetail: '计费明细',
+    remarkTitle: '计费说明',
+    rawFields: '原始字段（排障用）',
+    noPayments: '暂无收款核销记录',
+    generateType: '生成方式',
     genTitle: '批量出账',
     resultTitle: '出账结果',
     sharedTitle: '公摊费用分摊出账',
@@ -121,6 +128,7 @@ export default {
     more: '更多 ▾',
     daysLeft: '剩 {n} 天',
     months: '{n} 个月',
+    actualPay: '实付（月租-补贴）',
     createTitle: '新建合同', quickTitle: '快捷签约（线下受理）', detailTitle: '合同详情', editTitle: '编辑合同条款（仅草稿可改）', changeTitle: '发起合同变更', swapTitle: '合同换房', signTitle: '合同签约', renewTitle: '合同续签', termTitle: '终止合同', exportFile: '合同台账', exported: '已导出 {n} 条合同', exportFailed: '导出失败'
   },
   nav: {

@@ -46,7 +46,7 @@
         </el-table-column>
           <el-table-column :label="t('contract.type')" width="100">
             <template #default="{ row }">
-              {{ row.contractTypeLabel || enumLabel('contractType', row.contractType) }}
+              {{ enumLabel('contractType', row.contractType) }}
             </template>
           </el-table-column>
         <!-- 「到期」不再是独立列：租期已含起止日期，剩余天数并入状态列展示 -->
@@ -254,31 +254,31 @@
       <el-descriptions :column="2" border size="small">
         <el-descriptions-item :label="labelOf('contractNo')">{{ detail.contractNo }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('status')">
-          {{ detail.contractStatusLabel || enumLabel('contractStatus', detail.contractStatus) }}
+          {{ enumLabel('contractStatus', detail.contractStatus) }}
         </el-descriptions-item>
         <el-descriptions-item :label="labelOf('contractType')">
-          {{ detail.contractTypeLabel || enumLabel('contractType', detail.contractType) }}
+          {{ enumLabel('contractType', detail.contractType) }}
         </el-descriptions-item>
-        <el-descriptions-item label="承租人">{{ detail.lesseeName }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('lesseeName')">{{ detail.lesseeName }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('idNumber')">{{ detail.lesseeIdCardMask }}</el-descriptions-item>
-        <el-descriptions-item label="手机号">{{ detail.lesseePhone }}</el-descriptions-item>
-        <el-descriptions-item label="房屋" :span="2">{{ detail.houseAddress }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('lesseePhone')">{{ detail.lesseePhone }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('houseName')" :span="2">{{ detail.houseAddress }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('area')">{{ detail.houseArea }} ㎡</el-descriptions-item>
         <el-descriptions-item :label="labelOf('lessorName')">{{ detail.lessorOrgIdName }}</el-descriptions-item>
-        <el-descriptions-item label="起租">{{ detail.leaseStart }}</el-descriptions-item>
-        <el-descriptions-item label="止租">{{ detail.leaseEnd }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('leaseStart')">{{ detail.leaseStart }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('leaseEnd')">{{ detail.leaseEnd }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('leaseTerm')">{{ t('contract.months', { n: detail.leaseMonths }) }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('monthlyRent')">{{ detail.monthlyRent }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('billingPersonCount')">{{ detail.billingPersonCount || 1 }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('billingBedCount')">{{ detail.billingBedCount || 1 }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('depositAmount')">{{ detail.depositAmount }}</el-descriptions-item>
-        <el-descriptions-item label="实付（月租-补贴）">{{ detail.actualPay }}</el-descriptions-item>
+        <el-descriptions-item :label="t('contract.actualPay')">{{ detail.actualPay }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('subsidyAmount')">{{ detail.subsidyAmount }}</el-descriptions-item>
-        <el-descriptions-item :label="labelOf('paymentCycle')">{{ detail.payCycle }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('paymentCycle')">{{ enumLabel('paymentCycle', detail.payCycle) }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('signDate')">{{ detail.signTime }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('remark')" :span="2">{{ detail.remark || '—' }}</el-descriptions-item>
       </el-descriptions>
-      <template #footer><el-button @click="detailVisible = false">关闭</el-button></template>
+      <template #footer><el-button @click="detailVisible = false">{{ t('common.close') }}</el-button></template>
     </el-dialog>
 
     <!-- 编辑合同（仅草稿） -->
