@@ -191,22 +191,46 @@ public class BillGenerationServiceImpl implements BillGenerationService {
             Proration pro = proration(ct, cmd.periodStart(), cmd.periodEnd());
             BillingCalculator.Context ctx = contextOf(mode, house, nights, qty)
                     .withMonths(pro.months());
-            BillingCalculator.Result rr;
-            try {
-                rr = calculator.calculate(item, ctx, rule);
-            } catch (Exception e) {
-                skipped++;
-                skipReasons.add("合同 " + ct.getContractNo() + " 算费失败：" + e.getMessage());
-                items.add(new GenerateResultVO.Item(ct.getId(), ct.getContractNo(), null, qty,
-                        BigDecimal.ZERO, null, "SKIPPED", e.getMessage()));
-                continue;
+
+            // 租金类项目：以合同月租为准，不再套用收费项目里的默认单价；
+            // 合同月补贴作为减免，账单应收=月租×月数，减免=补贴×月数，待缴=差额。
+            BigDecimal amount;
+            BigDecimal discount = money(null);
+            String calcExplain;
+            if ("RENT".equals(item.getItemType())
+                    && ct.getMonthlyRent() != null
+                    && ct.getMonthlyRent().compareTo(BigDecimal.ZERO) > 0) {
+                amount = money(ct.getMonthlyRent().multiply(pro.months()));
+                BigDecimal subsidy = ct.getSubsidyAmount() == null
+                        ? BigDecimal.ZERO : ct.getSubsidyAmount();
+                discount = money(subsidy.multiply(pro.months()));
+                if (discount.compareTo(amount) > 0) {
+                    discount = amount;
+                }
+                calcExplain = "合同月租 " + ct.getMonthlyRent().toPlainString()
+                        + " × " + pro.months().stripTrailingZeros().toPlainString() + " 个月"
+                        + (discount.compareTo(BigDecimal.ZERO) > 0
+                        ? "；补贴抵扣 " + discount.toPlainString() : "");
+            } else {
+                BillingCalculator.Result rr;
+                try {
+                    rr = calculator.calculate(item, ctx, rule);
+                } catch (Exception e) {
+                    skipped++;
+                    skipReasons.add("合同 " + ct.getContractNo() + " 算费失败：" + e.getMessage());
+                    items.add(new GenerateResultVO.Item(ct.getId(), ct.getContractNo(), null, qty,
+                            BigDecimal.ZERO, null, "SKIPPED", e.getMessage()));
+                    continue;
+                }
+                amount = rr.finalAmount();
+                calcExplain = rr.explain();
             }
 
-            BigDecimal amount = rr.finalAmount();
+            BigDecimal payable = amount.subtract(discount);
             if (amount.compareTo(BigDecimal.ZERO) <= 0) {
                 skipped++;
                 items.add(new GenerateResultVO.Item(ct.getId(), ct.getContractNo(), null, qty,
-                        amount, rr.explain(), "SKIPPED", "金额为 0（减免规则或数量为 0）"));
+                        amount, calcExplain, "SKIPPED", "金额为 0（减免规则或数量为 0）"));
                 continue;
             }
 
@@ -230,16 +254,18 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                 b.setPeriodStart(cmd.periodStart());
                 b.setPeriodEnd(cmd.periodEnd());
                 b.setBillAmount(amount);
-                b.setDiscountAmount(money(null));
+                b.setDiscountAmount(discount);
                 b.setLateFee(money(null));
                 b.setPaidAmount(money(null));
                 b.setWaivedAmount(money(null));
-                b.setPayableAmount(amount);
+                b.setPayableAmount(payable);
                 b.setDueDate(dueDate);
                 b.setBillStatus("UNPAID");
                 b.setOverdueDays(0);
                 b.setGenerateType("AUTO");
-                b.setRemark("批量出账：" + item.getItemName() + "；" + pro.detail());
+                b.setRemark("批量出账：" + item.getItemName() + "；" + pro.detail()
+                        + (discount.compareTo(BigDecimal.ZERO) > 0
+                        ? "；补贴抵扣 " + discount.toPlainString() : ""));
                 b.setIsDeleted(0);
                 b.setCreateTime(now);
                 billMapper.insert(b);
@@ -248,7 +274,7 @@ public class BillGenerationServiceImpl implements BillGenerationService {
             generated++;
             total = total.add(amount);
             String explain = pro.detail().isEmpty()
-                    ? rr.explain() : rr.explain() + "；" + pro.detail();
+                    ? calcExplain : calcExplain + "；" + pro.detail();
             items.add(new GenerateResultVO.Item(ct.getId(), ct.getContractNo(), billId, qty,
                     amount, explain, "OK", null));
         }

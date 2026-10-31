@@ -270,7 +270,7 @@
         <el-descriptions-item label="租期">{{ detail.leaseMonths }} 个月</el-descriptions-item>
         <el-descriptions-item label="月租">{{ detail.monthlyRent }}</el-descriptions-item>
         <el-descriptions-item label="押金">{{ detail.depositAmount }}</el-descriptions-item>
-        <el-descriptions-item label="已收">{{ detail.actualPay }}</el-descriptions-item>
+        <el-descriptions-item label="实付（月租-补贴）">{{ detail.actualPay }}</el-descriptions-item>
         <el-descriptions-item label="补贴">{{ detail.subsidyAmount }}</el-descriptions-item>
         <el-descriptions-item label="支付周期">{{ detail.payCycle }}</el-descriptions-item>
         <el-descriptions-item label="签约时间">{{ detail.signTime }}</el-descriptions-item>
