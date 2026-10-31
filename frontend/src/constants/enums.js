@@ -339,6 +339,7 @@ const TYPE_OVERRIDE = {
   payMode: {
     FIXED: '定额',
     RATIO: '按比例',
+    BANK: '银行代发',
     OFFSET: '抵扣房租',
     FINANCE: '财政发放'
   },

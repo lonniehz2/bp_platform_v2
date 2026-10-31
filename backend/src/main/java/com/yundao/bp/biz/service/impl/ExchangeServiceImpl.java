@@ -250,6 +250,10 @@ public class ExchangeServiceImpl implements ExchangeService {
     @Transactional(rollbackFor = Exception.class)
     public ExchangeVO approve(Long id, String opinion) {
         BizExchange e = require(id);
+        // 申请中可直接批准：内部先流转到审批中，再批准
+        if (ExchangeStatus.APPLYING.name().equals(e.getExchangeStatus())) {
+            transition(e, ExchangeStatus.APPROVING);
+        }
         transition(e, ExchangeStatus.APPROVED);
         if (opinion != null && !opinion.isBlank()) {
             e.setExchangeReason((e.getExchangeReason() == null ? "" : e.getExchangeReason())

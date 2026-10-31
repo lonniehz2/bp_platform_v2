@@ -201,16 +201,8 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                     && ct.getMonthlyRent() != null
                     && ct.getMonthlyRent().compareTo(BigDecimal.ZERO) > 0) {
                 amount = money(ct.getMonthlyRent().multiply(pro.months()));
-                BigDecimal subsidy = ct.getSubsidyAmount() == null
-                        ? BigDecimal.ZERO : ct.getSubsidyAmount();
-                discount = money(subsidy.multiply(pro.months()));
-                if (discount.compareTo(amount) > 0) {
-                    discount = amount;
-                }
                 calcExplain = "合同月租 " + ct.getMonthlyRent().toPlainString()
-                        + " × " + pro.months().stripTrailingZeros().toPlainString() + " 个月"
-                        + (discount.compareTo(BigDecimal.ZERO) > 0
-                        ? "；补贴抵扣 " + discount.toPlainString() : "");
+                        + " × " + pro.months().stripTrailingZeros().toPlainString() + " 个月";
             } else {
                 BillingCalculator.Result rr;
                 try {

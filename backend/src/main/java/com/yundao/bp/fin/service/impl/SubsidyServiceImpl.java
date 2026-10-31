@@ -397,7 +397,7 @@ public class SubsidyServiceImpl implements SubsidyService {
                 paid, "补贴发放 " + e.getRecordNo());
 
         // OFFSET_RENT 抵扣租金：直接冲减当期租金账单
-        if ("OFFSET_RENT".equals(e.getPayMode())) {
+        if ("OFFSET".equals(e.getPayMode()) || "OFFSET_RENT".equals(e.getPayMode())) {
             int offset = offsetRent(e.getContractId(), e.getSubsidyPeriod(), paid);
             log.info("补贴 {} 抵扣租金 {}：冲减 {} 张账单", e.getRecordNo(), paid, offset);
         }

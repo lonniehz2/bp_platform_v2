@@ -24,7 +24,7 @@ public record SubsidyGrantCmd(
         /** 可选：指定标准；不传则按保障类型/组织自动匹配 */
         Long standardId,
 
-        @Pattern(regexp = "^$|FINANCE|BANK|OFFSET_RENT", message = "发放方式不合法")
+        @Pattern(regexp = "^$|FINANCE|BANK|OFFSET|OFFSET_RENT", message = "发放方式不合法")
         String payMode,
 
         String bankAccount
