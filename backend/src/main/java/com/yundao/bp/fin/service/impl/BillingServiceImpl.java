@@ -289,7 +289,7 @@ public class BillingServiceImpl implements BillingService {
         e.setPayerName(cmd.payerName());
         e.setPayAmount(money(cmd.payAmount()));
         e.setPayChannel(cmd.payChannel());
-        e.setPayTime(now);
+        e.setPayTime(cmd.payTime() == null ? now : cmd.payTime());
         e.setTradeNo(cmd.tradeNo());
         e.setPayStatus(PayStatus.SUCCESS.name());
         e.setReconcileStatus("UNRECONCILED");

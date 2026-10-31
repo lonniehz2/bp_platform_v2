@@ -25,6 +25,9 @@ public record PaymentCreateCmd(
                 message = "收款渠道不合法")
         String payChannel,
 
+        /** 收款时间（可回填历史收款；为空=登记时间） */
+        java.time.LocalDateTime payTime,
+
         String tradeNo,
         Long operatorId,
         /** 是否未知款项（来源不明，先挂账待查证） */

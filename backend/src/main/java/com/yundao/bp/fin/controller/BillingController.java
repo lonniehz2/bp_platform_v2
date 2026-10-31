@@ -168,6 +168,41 @@ public class BillingController {
         return R.ok(billingService.confirmPayment(id));
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbcForAlloc;
+
+    /** 收款单使用明细：核销到哪些账单。 */
+    @GetMapping("/payments/{id}/allocations")
+    public R<java.util.List<java.util.Map<String, Object>>> paymentAllocations(
+            @PathVariable Long id) {
+        java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
+        if (jdbcForAlloc == null) {
+            return R.ok(out);
+        }
+        out.addAll(jdbcForAlloc.queryForList(
+                "select a.bill_id, b.bill_no, a.allocate_amount, a.create_time "
+                        + "from bp_fin_payment_allocate a "
+                        + "left join bp_fin_bill b on b.id = a.bill_id "
+                        + "where a.payment_id = ? order by a.create_time", id));
+        return R.ok(out);
+    }
+
+    /** 账单缴费明细：这张账单由哪些收款单核销。 */
+    @GetMapping("/bills/{id}/payments")
+    public R<java.util.List<java.util.Map<String, Object>>> billPayments(@PathVariable Long id) {
+        java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
+        if (jdbcForAlloc == null) {
+            return R.ok(out);
+        }
+        out.addAll(jdbcForAlloc.queryForList(
+                "select p.id as payment_id, p.payment_no, p.pay_amount, "
+                        + "a.allocate_amount, p.pay_time, p.pay_channel, p.payer_name "
+                        + "from bp_fin_payment_allocate a "
+                        + "join bp_fin_payment p on p.id = a.payment_id "
+                        + "where a.bill_id = ? order by a.create_time", id));
+        return R.ok(out);
+    }
+
     /** 核销：把收款单的钱核到账单上。 */
     @com.yundao.bp.iam.security.RequirePerm("fin:payment:pay")
     @PostMapping("/payments/{paymentId}/allocate")
