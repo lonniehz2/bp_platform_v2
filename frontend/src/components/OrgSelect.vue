@@ -5,7 +5,7 @@
     filterable
     clearable
     :loading="loading"
-    :placeholder="placeholder"
+    :placeholder="placeholder || t('contract.orgSearch')"
     :style="{ width: width }"
     :data-testid="testid"
     @update:model-value="(v) => emit('update:modelValue', v)"
@@ -15,12 +15,14 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, onMounted } from 'vue'
 import req from '@/api/request'
 
 defineProps({
   modelValue: { type: [String, Number], default: '' },
-  placeholder: { type: String, default: '输入组织名称搜索' },
+  placeholder: { type: String, default: '' },
   width: { type: String, default: '100%' },
   testid: { type: String, default: 'org-select' }
 })

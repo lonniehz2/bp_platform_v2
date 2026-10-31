@@ -108,28 +108,28 @@
       <el-form :model="g" label-width="120px">
         <el-form-item :label="labelOf('orgName')">
           <el-select v-model="g.orgId" filterable clearable style="width:100%"
-                     placeholder="按名称搜索组织">
+                     :placeholder="t('bill.orgSearch')">
             <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName"
                        :value="String(o.id)" />
           </el-select>
         </el-form-item>
         <el-form-item :label="labelOf('feeItemName')" required>
           <el-select v-model="g.feeItemId" filterable style="width:100%"
-                     placeholder="选择计费项目" @change="loadGenRules">
+                     :placeholder="t('bill.selectFeeItem')" @change="loadGenRules">
             <el-option v-for="f in feeItems" :key="f.id"
                        :label="f.itemName || f.feeItemName || f.id" :value="String(f.id)" />
           </el-select>
         </el-form-item>
         <el-form-item :label="labelOf('ruleName')">
           <el-radio-group v-model="g.ruleMode">
-            <el-radio-button label="AUTO">自动匹配</el-radio-button>
-            <el-radio-button label="MANUAL">指定规则</el-radio-button>
-            <el-radio-button label="NONE">不使用</el-radio-button>
+            <el-radio-button label="AUTO">{{ t('bill.ruleAuto') }}</el-radio-button>
+            <el-radio-button label="MANUAL">{{ t('bill.ruleManual') }}</el-radio-button>
+            <el-radio-button label="NONE">{{ t('bill.ruleNone') }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item v-if="g.ruleMode === 'MANUAL'" :label="labelOf('ruleName')" required>
           <el-select v-model="g.ruleId" filterable style="width:100%"
-                     placeholder="选择已审批规则">
+                     :placeholder="t('bill.selectRule')">
             <el-option v-for="r in genRules" :key="r.id"
                        :label="r.ruleName + '（' + r.ruleType + '）'" :value="String(r.id)" />
           </el-select>
@@ -201,7 +201,7 @@
                 style="margin-bottom:12px" />
       <el-form :model="sf" label-width="110px">
         <el-form-item :label="labelOf('orgName')" required>
-          <el-select v-model="sf.orgId" filterable style="width:100%" placeholder="选择组织/小区">
+          <el-select v-model="sf.orgId" filterable style="width:100%" :placeholder="t('bill.selectOrg')">
             <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName" :value="String(o.id)" />
           </el-select>
         </el-form-item>
@@ -213,7 +213,7 @@
           </el-select>
         </el-form-item>
         <el-form-item :label="labelOf('totalAmount')" required>
-          <el-input v-model="sf.totalAmount" type="number" placeholder="如 1200" />
+          <el-input v-model="sf.totalAmount" type="number" :placeholder="t('bill.amountExample')" />
         </el-form-item>
         <el-form-item :label="labelOf('allocationMode')">
           <el-radio-group v-model="sf.allocateBy">
@@ -249,7 +249,7 @@
       <el-form :model="mf" label-width="96px" inline>
         <el-form-item :label="labelOf('houseName')">
           <el-select v-model="mf.houseId" filterable remote :remote-method="searchMeterHouse"
-                     :loading="houseLoading" style="width:240px" placeholder="输入房号搜索">
+                     :loading="houseLoading" style="width:240px" :placeholder="t('bill.houseSearch')">
             <el-option v-for="h in meterHouses" :key="h.id" :label="h.houseName" :value="String(h.id)" />
           </el-select>
         </el-form-item>
@@ -307,7 +307,7 @@
       <el-form :model="p" label-width="110px">
         <el-form-item :label="labelOf('orgName')">
           <el-select v-model="p.orgId" filterable clearable style="width:100%"
-                     placeholder="按名称搜索组织">
+                     :placeholder="t('bill.orgSearch')">
             <el-option v-for="o in payOrgs" :key="o.id" :label="o.orgName"
                        :value="String(o.id)" />
           </el-select>
@@ -318,16 +318,16 @@
         </el-form-item>
         <el-form-item :label="labelOf('channel')">
           <el-select v-model="p.payChannel" style="width:100%">
-            <el-option label="现金" value="CASH" />
-            <el-option label="银行转账" value="BANK" />
-            <el-option label="微信" value="WECHAT" />
-            <el-option label="支付宝" value="ALIPAY" />
+              <el-option :label="enumLabel('payChannel', 'CASH')" value="CASH" />
+              <el-option :label="enumLabel('payChannel', 'BANK')" value="BANK" />
+              <el-option :label="enumLabel('payChannel', 'WECHAT')" value="WECHAT" />
+              <el-option :label="enumLabel('payChannel', 'ALIPAY')" value="ALIPAY" />
             <el-option label="POS" value="POS" />
           </el-select></el-form-item>
         <el-form-item :label="labelOf('payTime')">
           <el-date-picker v-model="p.payTime" type="datetime" style="width:100%"
                           value-format="YYYY-MM-DD HH:mm:ss"
-                          placeholder="默认当前时间，可回填历史收款" />
+                          :placeholder="t('bill.payTimeHint')" />
         </el-form-item>
         <el-form-item :label="labelOf('transactionNo')"><el-input v-model="p.tradeNo" /></el-form-item>
         <el-form-item :label="labelOf('unknownSource')">
@@ -345,7 +345,7 @@
     <!-- 收款单列表 -->
     <el-dialog v-model="paymentsVisible" title="收款单" width="1120px" top="5vh">
       <div class="toolbar" style="margin-bottom:8px">
-        <el-input v-model="payKeyword" placeholder="收款单号" clearable style="width:240px"
+        <el-input v-model="payKeyword" :placeholder="t('bill.paymentSearch')" clearable style="width:240px"
                   @keyup.enter="loadPayments" />
         <el-button type="primary" @click="loadPayments">查询</el-button>
         <div class="spacer" />
@@ -421,14 +421,14 @@
         </el-form-item>
         <el-form-item :label="labelOf('targetBill')" required>
           <el-select v-model="useBillId" filterable style="width:100%"
-                     placeholder="选择未缴清账单（单号/账期）" @change="onUseBillChange">
+                     :placeholder="t('bill.selectBill')" @change="onUseBillChange">
             <el-option v-for="b in useBills" :key="b.id"
                        :label="b.billNo + ' · ' + (b.billPeriod || '') + ' · 待缴 ' + b.payableAmount"
                        :value="String(b.id)" />
           </el-select>
         </el-form-item>
         <el-form-item :label="labelOf('allocateAmount')">
-          <el-input v-model.number="useAmount" placeholder="留空=取余额与待缴较小值" />
+          <el-input v-model.number="useAmount" :placeholder="t('bill.amountHint')" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -448,7 +448,7 @@
           <el-input :model-value="current?.payableAmount" disabled /></el-form-item>
         <el-form-item :label="labelOf('paymentNo')" required>
           <el-select v-model="a.paymentId" filterable style="width:100%"
-                     placeholder="选择待核销收款单（单号/缴费人）">
+                     :placeholder="t('bill.selectPayment')">
             <el-option v-for="x in openPaymentsList" :key="x.id"
                        :label="x.paymentNo + ' · ' + (x.payerName || x.personIdName || x.personId || '—') + ' · 余额 ' + (x.remainAmount ?? 0)"
                        :value="String(x.id)" />
@@ -458,7 +458,7 @@
           </span>
         </el-form-item>
         <el-form-item :label="labelOf('allocateAmount')">
-          <el-input v-model.number="a.amount" placeholder="留空=全部待缴" /></el-form-item>
+          <el-input v-model.number="a.amount" :placeholder="t('bill.amountHint')" /></el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="allocVisible = false">{{ t('common.cancel') }}</el-button>
@@ -472,7 +472,7 @@
         <el-form-item :label="labelOf('billNo')">
           <el-input :model-value="current?.billNo" disabled /></el-form-item>
         <el-form-item :label="labelOf('waiveAmount')">
-          <el-input v-model.number="w.waiveAmount" placeholder="留空=全部待缴" /></el-form-item>
+          <el-input v-model.number="w.waiveAmount" :placeholder="t('bill.amountHint')" /></el-form-item>
         <el-form-item :label="labelOf('waiveReason')">
           <el-input v-model="w.reason" type="textarea" :rows="3" /></el-form-item>
       </el-form>

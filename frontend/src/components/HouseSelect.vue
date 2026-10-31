@@ -8,7 +8,7 @@
     reserve-keyword
     :remote-method="search"
     :loading="loading"
-    :placeholder="placeholder"
+    :placeholder="placeholder || t('contract.houseSearch')"
     :style="{ width: width }"
     :data-testid="testid"
     @update:model-value="onChange"
@@ -28,6 +28,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, watch } from 'vue'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
@@ -36,7 +38,7 @@ const props = defineProps({
   modelValue: { type: [String, Number], default: '' },
   orgId: { type: [String, Number], default: '' },
   houseStatus: { type: String, default: '' },
-  placeholder: { type: String, default: '输入房源编号/名称搜索' },
+  placeholder: { type: String, default: '' },
   width: { type: String, default: '100%' },
   testid: { type: String, default: 'house-select' }
 })

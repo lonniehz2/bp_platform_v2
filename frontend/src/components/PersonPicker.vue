@@ -14,7 +14,7 @@
     clearable
     :remote-method="search"
     :loading="loading"
-    :placeholder="placeholder"
+    :placeholder="placeholder || t('contract.personSearch')"
     :style="{ width: width }"
     :data-testid="testid"
     @update:model-value="(v) => emit('update:modelValue', v)"
@@ -39,12 +39,14 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, watch } from 'vue'
 import req from '@/api/request'
 
 const props = defineProps({
   modelValue: { type: [String, Number], default: '' },
-  placeholder: { type: String, default: '输入姓名/手机/身份证号/人员ID 搜索' },
+  placeholder: { type: String, default: '' },
   width: { type: String, default: '240px' },
   testid: { type: String, default: 'person-picker' }
 })

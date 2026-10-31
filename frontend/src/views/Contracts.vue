@@ -108,10 +108,10 @@
         <el-row :gutter="12">
           <el-col :span="12"><el-form-item :label="labelOf('contractType')">
             <el-select v-model="c.contractType" style="width:100%">
-              <el-option label="公租房" value="PUBLIC_RENTAL" />
-              <el-option label="保租房" value="AFFORDABLE" />
-              <el-option label="人才公寓" value="TALENT" />
-              <el-option label="廉租房" value="LOW_RENT" />
+              <el-option :label="enumLabel('houseType', 'PUBLIC_RENTAL')" value="PUBLIC_RENTAL" />
+              <el-option :label="enumLabel('houseType', 'AFFORDABLE')" value="AFFORDABLE" />
+              <el-option :label="enumLabel('houseType', 'TALENT')" value="TALENT" />
+              <el-option :label="enumLabel('houseType', 'LOW_RENT')" value="LOW_RENT" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('orgName')" required>
             <OrgSelect v-model="c.orgId" testid="c-org-id" /></el-form-item></el-col>
@@ -130,7 +130,7 @@
                          @picked="onHousePicked" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('spaceName')">
             <el-input :model-value="spaceLabel" disabled
-                      placeholder="选择房源后自动带出" data-testid="c-space-id" /></el-form-item></el-col>
+                      :placeholder="t('contract.spaceAuto')" data-testid="c-space-id" /></el-form-item></el-col>
           <el-col :span="24"><el-form-item :label="labelOf('houseAddress')">
             <el-input v-model="c.houseAddress" data-testid="c-address" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('area')">
@@ -153,11 +153,11 @@
             <el-input v-model.number="c.rentPrice" data-testid="c-rent-price" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('rentUnit')">
             <el-select v-model="c.rentUnit" style="width:100%" data-testid="c-rent-unit">
-              <el-option label="按面积·月" value="AREA_MONTH" />
-              <el-option label="按套·月" value="HOUSE_MONTH" />
-              <el-option label="按床位·月" value="BED_MONTH" />
-              <el-option label="按套·夜" value="HOUSE_NIGHT" />
-              <el-option label="按床·夜" value="BED_NIGHT" />
+              <el-option :label="enumLabel('rentUnit', 'AREA_MONTH')" value="AREA_MONTH" />
+              <el-option :label="enumLabel('rentUnit', 'HOUSE_MONTH')" value="HOUSE_MONTH" />
+              <el-option :label="enumLabel('rentUnit', 'BED_MONTH')" value="BED_MONTH" />
+              <el-option :label="enumLabel('rentUnit', 'HOUSE_NIGHT')" value="HOUSE_NIGHT" />
+              <el-option :label="enumLabel('rentUnit', 'BED_NIGHT')" value="BED_NIGHT" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('depositAmount')">
             <el-input v-model.number="c.depositAmount" data-testid="c-deposit" /></el-form-item></el-col>
@@ -165,10 +165,10 @@
             <el-input v-model.number="c.subsidyAmount" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('paymentCycle')">
             <el-select v-model="c.payCycle" style="width:100%">
-              <el-option label="月付" value="MONTH" />
-              <el-option label="季付" value="QUARTER" />
-              <el-option label="半年付" value="HALF_YEAR" />
-              <el-option label="年付" value="YEAR" />
+              <el-option :label="enumLabel('paymentCycle', 'MONTH')" value="MONTH" />
+              <el-option :label="enumLabel('paymentCycle', 'QUARTER')" value="QUARTER" />
+              <el-option :label="enumLabel('paymentCycle', 'HALF_YEAR')" value="HALF_YEAR" />
+              <el-option :label="enumLabel('paymentCycle', 'YEAR')" value="YEAR" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('paymentDay')">
             <el-input v-model.number="c.payDay" /></el-form-item></el-col>
@@ -192,9 +192,9 @@
       <el-form :model="sg" label-width="110px">
         <el-form-item :label="labelOf('signMethod')">
           <el-select v-model="sg.signVendor" style="width:100%">
-            <el-option label="线下纸质" value="OFFLINE" />
-            <el-option label="电子签章" value="ESIGN" />
-            <el-option label="CA证书" value="CA" />
+              <el-option :label="enumLabel('signMethod', 'OFFLINE')" value="OFFLINE" />
+              <el-option :label="enumLabel('signMethod', 'ESIGN')" value="ESIGN" />
+              <el-option :label="enumLabel('signMethod', 'CA')" value="CA" />
           </el-select></el-form-item>
         <el-form-item :label="labelOf('signFileUrl')">
           <el-input v-model="sg.signFileUrl" /></el-form-item>
@@ -235,9 +235,9 @@
       <el-form :model="tm" label-width="110px">
         <el-form-item :label="labelOf('terminationType')">
           <el-select v-model="tm.terminateType" style="width:100%">
-            <el-option label="协商终止" value="AGREEMENT" />
-            <el-option label="违约终止" value="BREACH" />
-            <el-option label="到期终止" value="EXPIRE" />
+              <el-option :label="enumLabel('terminationType', 'AGREEMENT')" value="AGREEMENT" />
+              <el-option :label="enumLabel('terminationType', 'BREACH')" value="BREACH" />
+              <el-option :label="enumLabel('terminationType', 'EXPIRE')" value="EXPIRE" />
           </el-select></el-form-item>
         <el-form-item :label="labelOf('terminationReason')">
           <el-input v-model="tm.reason" type="textarea" :rows="3" /></el-form-item>
@@ -299,10 +299,10 @@
                             style="width:100%" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('paymentCycle')">
             <el-select v-model="ef.payCycle" style="width:100%">
-              <el-option label="月付" value="MONTH" />
-              <el-option label="季付" value="QUARTER" />
-              <el-option label="半年付" value="HALF_YEAR" />
-              <el-option label="年付" value="YEAR" />
+              <el-option :label="enumLabel('paymentCycle', 'MONTH')" value="MONTH" />
+              <el-option :label="enumLabel('paymentCycle', 'QUARTER')" value="QUARTER" />
+              <el-option :label="enumLabel('paymentCycle', 'HALF_YEAR')" value="HALF_YEAR" />
+              <el-option :label="enumLabel('paymentCycle', 'YEAR')" value="YEAR" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('paymentDay')">
             <el-input v-model="ef.payDay" type="number" /></el-form-item></el-col>
@@ -322,14 +322,14 @@
         <el-form-item :label="labelOf('contractNo')"><el-input :model-value="chg.contractNo" disabled /></el-form-item>
         <el-form-item :label="labelOf('changeType')">
           <el-select v-model="chg.changeType" style="width:100%">
-            <el-option label="调租" value="RENT_ADJUST" />
+              <el-option :label="enumLabel('changeType', 'RENT_ADJUST')" value="RENT_ADJUST" />
             <el-option :label="labelOf('leaseChange')" value="PERIOD" />
-            <el-option label="续签" value="RENEW" />
-            <el-option label="其他" value="OTHER" />
+              <el-option :label="enumLabel('changeType', 'RENEW')" value="RENEW" />
+              <el-option :label="enumLabel('changeType', 'OTHER')" value="OTHER" />
           </el-select>
         </el-form-item>
         <el-form-item :label="labelOf('newMonthlyRent')">
-          <el-input v-model.number="chg.newMonthlyRent" placeholder="调租时填写" />
+          <el-input v-model.number="chg.newMonthlyRent" :placeholder="t('contract.rentAdjustHint')" />
         </el-form-item>
         <el-form-item :label="labelOf('newLeaseEnd')">
           <el-date-picker v-model="chg.newLeaseEnd" type="date" value-format="YYYY-MM-DD"
@@ -361,7 +361,7 @@
         </el-form-item>
         <el-form-item :label="labelOf('houseName')" required>
           <el-select v-model="qf.houseId" filterable remote :remote-method="searchVacantHouse"
-                     :loading="houseLoading" style="width:100%" placeholder="输入房号搜索空置房源">
+                     :loading="houseLoading" style="width:100%" :placeholder="t('contract.houseSearchVacant')">
             <el-option v-for="h in vacantHouses" :key="h.id"
                        :label="`${h.houseName}（${h.orgIdName || ''}）`" :value="String(h.id)" />
           </el-select>
@@ -379,10 +379,10 @@
             <el-input v-model="qf.depositAmount" type="number" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('securityType')">
             <el-select v-model="qf.securityType" style="width:100%">
-              <el-option label="公租房" value="PUBLIC" />
-              <el-option label="经适房" value="AFFORDABLE" />
-              <el-option label="人才房" value="TALENT" />
-              <el-option label="廉租房" value="LOW_RENT" />
+              <el-option :label="enumLabel('securityType', 'PUBLIC')" value="PUBLIC" />
+              <el-option :label="enumLabel('securityType', 'AFFORDABLE')" value="AFFORDABLE" />
+              <el-option :label="enumLabel('securityType', 'TALENT')" value="TALENT" />
+              <el-option :label="enumLabel('securityType', 'LOW_RENT')" value="LOW_RENT" />
             </el-select></el-form-item></el-col>
           <el-col :span="24"><el-form-item :label="labelOf('remark')">
             <el-input v-model="qf.remark" type="textarea" :rows="2" /></el-form-item></el-col>
@@ -410,7 +410,7 @@
         </el-form-item>
         <el-form-item :label="labelOf('exchangeReason')">
           <el-input v-model="sw.reason" type="textarea" :rows="2"
-                    placeholder="如 家庭人口增加 / 楼层不适" />
+                    :placeholder="t('contract.reasonExample')" />
         </el-form-item>
       </el-form>
       <template #footer>
