@@ -157,6 +157,23 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  application: {
+    status: '状态', search: '查询', reset: '清空', create: '新建申请',
+    empty: '暂无申请单，点右上「新建申请」',
+    no: '申请编号', applicant: '申请人', securityType: '保障类型',
+    familySize: '家庭人口', income: '人均收入', statusCol: '状态',
+    node: '当前环节', applyTime: '申请时间', actions: '操作',
+    detail: '详情', submit: '提交', accept: '受理', review: '审核',
+    supplement: '补件', records: '轨迹',
+    createTitle: '新建申请', org: '受理组织', applicantId: '申请人ID',
+    mode: '保障方式', house: '实物配租', subsidy: '租赁补贴',
+    channel: '申请渠道', online: '线上', offline: '线下',
+    familyIncome: '家庭月收入', promise: '签署承诺书', agree: '同意核实',
+    cancel: '取消',
+    reviewTitle: '资格审核', stage: '审核阶段', result: '审核结果',
+    pass: '通过', reject: '不通过', needSupplement: '需补件', opinion: '意见',
+    recordsTitle: '审核轨迹', noRecords: '暂无审核记录', detailTitle: '详情'
+  },
   house: {
     title: '房源台账',
     org: '组织名称',

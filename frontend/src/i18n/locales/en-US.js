@@ -157,6 +157,23 @@ export default {
     unauthorized: 'Not authorized: contact administrator',
     fullscreen: 'Full-screen display',
   },
+  application: {
+    status: 'Status', search: 'Search', reset: 'Reset', create: 'New Application',
+    empty: 'No applications. Click "New Application" to start.',
+    no: 'Application No.', applicant: 'Applicant', securityType: 'Security Type',
+    familySize: 'Family Size', income: 'Income per Capita', statusCol: 'Status',
+    node: 'Current Stage', applyTime: 'Applied At', actions: 'Actions',
+    detail: 'Detail', submit: 'Submit', accept: 'Accept', review: 'Review',
+    supplement: 'Supplement', records: 'History',
+    createTitle: 'New Application', org: 'Accepting Organization', applicantId: 'Applicant ID',
+    mode: 'Housing Mode', house: 'Physical Unit', subsidy: 'Rent Subsidy',
+    channel: 'Channel', online: 'Online', offline: 'Offline',
+    familyIncome: 'Monthly Family Income', promise: 'Sign Commitment', agree: 'Consent to Verification',
+    cancel: 'Cancel',
+    reviewTitle: 'Eligibility Review', stage: 'Review Stage', result: 'Result',
+    pass: 'Pass', reject: 'Reject', needSupplement: 'Need Supplement', opinion: 'Opinion',
+    recordsTitle: 'Review History', noRecords: 'No review records', detailTitle: 'Detail'
+  },
   house: {
     title: 'Housing',
     org: 'Organization',

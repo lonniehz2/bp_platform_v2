@@ -2,56 +2,56 @@
   <div>
     <div class="page-card">
       <div class="toolbar">
-        <el-select v-model="query.applicationStatus" placeholder="状态" clearable
+        <el-select v-model="query.applicationStatus" :placeholder="t('application.status')" clearable
                    style="width:150px" @change="load">
           <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
         </el-select>
         <PersonPicker v-model="query.personId" width="260px" testid="app-person-picker" />
-        <el-button type="primary" @click="load">查询</el-button>
-        <el-button @click="resetQuery">清空</el-button>
+        <el-button type="primary" @click="load">{{ t('application.search') }}</el-button>
+        <el-button @click="resetQuery">{{ t('application.reset') }}</el-button>
         <div class="spacer" />
         <el-button type="success" @click="openCreate">
-          <el-icon><Plus /></el-icon>新建申请
+          <el-icon><Plus /></el-icon>{{ t('application.create') }}
         </el-button>
       </div>
 
-      <el-table empty-text="暂无申请单，点右上「新建申请」" :data="rows" v-loading="loading" border size="small">
-        <el-table-column prop="applicationNo" label="申请编号" width="160" />
-        <el-table-column prop="personName" label="申请人" width="110">
+      <el-table :empty-text="t('application.empty')" :data="rows" v-loading="loading" border size="small">
+        <el-table-column prop="applicationNo" :label="t('application.no')" width="160" />
+        <el-table-column prop="personName" :label="t('application.applicant')" width="110">
         <template #default="{ row }">
           {{ row.personName || row.personId }}
         </template>
       </el-table-column>
-        <el-table-column prop="securityType" label="保障类型" width="120">
+        <el-table-column prop="securityType" :label="t('application.securityType')" width="120">
           <template #default="{ row }">{{ row.securityTypeLabel || enumLabel('securityType', row.securityType) }}</template>
         </el-table-column>
-        <el-table-column prop="familySize" label="家庭人口" width="90" />
-        <el-table-column prop="incomePerCapita" label="人均收入" width="110" />
-        <el-table-column prop="applicationStatusLabel" label="状态" width="100">
+        <el-table-column prop="familySize" :label="t('application.familySize')" width="90" />
+        <el-table-column prop="incomePerCapita" :label="t('application.income')" width="110" />
+        <el-table-column prop="applicationStatusLabel" :label="t('application.statusCol')" width="100">
           <template #default="{ row }">
             <el-tag :type="tagOf(row.applicationStatus)" size="small">
               {{ row.applicationStatusLabel || row.applicationStatus }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="currentNode" label="当前环节" width="100">
+        <el-table-column prop="currentNode" :label="t('application.node')" width="100">
         <template #default="{ row }">{{ row.currentNodeLabel || enumLabel('currentNode', row.currentNode) }}</template>
       </el-table-column>
-        <el-table-column prop="applyTime" label="申请时间" width="170" />
-        <el-table-column label="操作" width="290" fixed="right">
+        <el-table-column prop="applyTime" :label="t('application.applyTime')" width="170" />
+        <el-table-column :label="t('application.actions')" width="290" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
+            <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('application.detail') }}</el-button>
             <el-button v-if="row.applicationStatus === 'SUBMITTED'" link type="success"
-                       @click="accept(row)" data-testid="row-accept">受理</el-button>
+                       @click="accept(row)" data-testid="row-accept">{{ t('application.accept') }}</el-button>
             <el-button v-if="row.applyChannel === 'OFFLINE'
                        && ['SUBMITTED','ACCEPTED','REVIEWING'].includes(row.applicationStatus)"
                        link type="warning" data-testid="row-offline-pass"
                        @click="offlinePass(row)">线下通过</el-button>
             <el-button v-if="canReview(row)" link type="primary"
-                       @click="openReview(row)">审核</el-button>
+                       @click="openReview(row)">{{ t('application.review') }}</el-button>
             <el-button v-if="row.applicationStatus === 'SUPPLEMENT'" link type="warning"
                        data-testid="row-supplement" @click="supplement(row)">补件完成</el-button>
-            <el-button link @click="openRecords(row)">轨迹</el-button>
+            <el-button link @click="openRecords(row)">{{ t('application.records') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -63,55 +63,55 @@
     </div>
 
     <!-- 新建申请 -->
-    <el-dialog v-model="createVisible" title="新建申请" width="560px">
+    <el-dialog v-model="createVisible" :title="t('application.createTitle')" width="560px">
       <el-form :model="form" label-width="110px">
-        <el-form-item label="受理组织">
+        <el-form-item :label="t('application.org')">
           <OrgSelect v-model="form.orgId" width="100%" testid="app-org" />
         </el-form-item>
-        <el-form-item label="申请人ID">
+        <el-form-item :label="t('application.applicantId')">
           <PersonPicker v-model="form.personId" width="240px" testid="person-picker" />
         </el-form-item>
-        <el-form-item label="保障类型">
+        <el-form-item :label="t('application.securityType')">
           <el-select v-model="form.securityType">
             <el-option v-for="o in securityTypeOptions" :key="o.value"
                        :label="o.label" :value="o.value" />
           </el-select>
         </el-form-item>
-        <el-form-item label="保障方式">
+        <el-form-item :label="t('application.mode')">
           <el-select v-model="form.securityMode">
             <el-option label="实物配租" value="HOUSE" />
             <el-option label="租赁补贴" value="SUBSIDY" />
           </el-select>
         </el-form-item>
-        <el-form-item label="申请渠道">
+        <el-form-item :label="t('application.channel')">
           <el-select v-model="form.applyChannel">
             <el-option label="线上" value="ONLINE" />
             <el-option label="线下" value="OFFLINE" />
           </el-select>
         </el-form-item>
-        <el-form-item label="家庭人口">
+        <el-form-item :label="t('application.familySize')">
           <el-input v-model.number="form.familySize" />
         </el-form-item>
-        <el-form-item label="家庭月收入">
+        <el-form-item :label="t('application.familyIncome')">
           <el-input v-model.number="form.declaredIncome" />
         </el-form-item>
         <el-alert type="warning" :closable="false" show-icon
                   title="提交前会自动校验：信用惩戒、实名认证、承诺书签署" />
-        <el-form-item label="签署承诺书" style="margin-top:8px">
+        <el-form-item :label="t('application.promise')" style="margin-top:8px">
           <el-switch v-model="form.complianceCommitFlag" :active-value="1" :inactive-value="0" />
         </el-form-item>
-        <el-form-item label="同意核实">
+        <el-form-item :label="t('application.agree')">
           <el-switch v-model="form.dataShareAgreeFlag" :active-value="1" :inactive-value="0" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="save">提交</el-button>
+        <el-button @click="createVisible = false">{{ t('application.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="save">{{ t('application.submit') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 审核 -->
-    <el-dialog v-model="reviewVisible" title="资格审核" width="560px">
+    <el-dialog v-model="reviewVisible" :title="t('application.reviewTitle')" width="560px">
       <el-descriptions :column="2" border size="small" style="margin-bottom:14px">
         <el-descriptions-item label="申请编号">{{ current?.applicationNo }}</el-descriptions-item>
         <el-descriptions-item label="申请人">{{ current?.personId }}</el-descriptions-item>
@@ -121,7 +121,7 @@
       <el-alert type="info" :closable="false" show-icon
                 title="「通过」前系统会按保障档案校验：收入档位、家庭人口一致性、人才认定有效期、名下房产" />
       <el-form :model="reviewForm" label-width="90px" style="margin-top:12px">
-        <el-form-item label="审核阶段">
+        <el-form-item :label="t('application.stage')">
           <el-select v-model="reviewForm.stage" disabled>
             <el-option label="受理初审" value="ACCEPT" />
             <el-option label="形式审查" value="FORM" />
@@ -132,14 +132,14 @@
             必须按 受理初审 → 形式审查 → 联审 → 终审 逐级通过
           </div>
         </el-form-item>
-        <el-form-item label="审核结果">
+        <el-form-item :label="t('application.result')">
           <el-radio-group v-model="reviewForm.result">
-            <el-radio value="PASS">通过</el-radio>
-            <el-radio value="REJECT">不通过</el-radio>
-            <el-radio value="SUPPLEMENT">需补件</el-radio>
+            <el-radio value="PASS">{{ t('application.pass') }}</el-radio>
+            <el-radio value="REJECT">{{ t('application.reject') }}</el-radio>
+            <el-radio value="SUPPLEMENT">{{ t('application.needSupplement') }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="意见">
+        <el-form-item :label="t('application.opinion')">
           <el-input v-model="reviewForm.opinion" type="textarea" :rows="3" />
         </el-form-item>
       </el-form>
@@ -150,7 +150,7 @@
     </el-dialog>
 
     <!-- 轨迹 -->
-    <el-drawer v-model="recordsVisible" title="审核轨迹" size="520px">
+    <el-drawer v-model="recordsVisible" :title="t('application.recordsTitle')" size="520px">
       <el-timeline>
         <el-timeline-item v-for="r in records" :key="r.id"
                           :timestamp="r.reviewTime" placement="top">
@@ -158,18 +158,20 @@
           <div class="muted">{{ r.reviewUserName }} — {{ r.reviewOpinion }}</div>
         </el-timeline-item>
       </el-timeline>
-      <el-empty v-if="!records.length" description="暂无审核记录" />
+      <el-empty v-if="!records.length" :description="t('application.noRecords')" />
     </el-drawer>
   </div>
 
     <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('application.detailTitle')" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {
