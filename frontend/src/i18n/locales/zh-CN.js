@@ -115,6 +115,11 @@ export default {
     more: '更多 ▾',
     daysLeft: '剩 {n} 天'
   },
+  nav: {
+    brand: '住房保障运营平台',
+    unauthorized: '未授权：请联系管理员',
+    fullscreen: '全屏大屏',
+  },
   layout: {
     greeting: 'Hi {name}，你好~',
     help: '使用帮助',

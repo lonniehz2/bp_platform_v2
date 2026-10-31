@@ -5,6 +5,7 @@ import {
   GROUP_ORDER, GROUP_ICON, GROUP_ALIAS, SUBGROUPS, MENU_RANK,
   MENU_DESC, MENU_BADGE_KEY, basePathOf, HIDDEN_PATHS
 } from './menuConfig'
+import { trGroup, trPage, trPageDesc } from '@/i18n/nav'
 
 export { GROUP_ORDER, GROUP_ICON, MENU_DESC, SUBGROUPS }
 
@@ -90,7 +91,7 @@ export function useMenu() {
       if (!allowed && !showDisabled.value) continue
 
       const tabs = TAB_MENU[m.name]
-      const desc = MENU_DESC[basePath] || ''
+      const desc = trPageDesc(basePath, MENU_DESC[basePath] || '')
 
       // 多页签页面：菜单只占一项，落到默认页签，页内再切换
       const path = tabs && tabs.length ? basePath + '/' + tabs[0].tab : basePath
@@ -98,6 +99,7 @@ export function useMenu() {
         path,
         name: m.name,
         meta: m.meta,
+        title: trPage(m.meta?.title || ''),
         desc,
         badgeKey: MENU_BADGE_KEY[basePath] || '',
         disabled: !allowed,
@@ -130,17 +132,17 @@ export function useMenu() {
             }
             return false
           })
-          if (segItems.length) sections.push({ title: seg.title, items: segItems })
+          if (segItems.length) sections.push({ title: trPage(seg.title), items: segItems })
         }
         const rest = items.filter((m) => !used.has(m.path))
-        if (rest.length) sections.push({ title: '其他', items: rest })
+        if (rest.length) sections.push({ title: trPage('其他'), items: rest })
       } else {
         sections = [{ title: '', items }]
       }
 
       // items 供路由高亮/跳转逻辑使用，sections 供菜单分区渲染
       const flat = sections.flatMap((x) => x.items)
-      out.push({ name, icon: GROUP_ICON[name] || 'Menu', title: name, items: flat, sections })
+      out.push({ name, label: trGroup(name), icon: GROUP_ICON[name] || 'Menu', title: trGroup(name), items: flat, sections })
     }
     return out
   })
@@ -168,14 +170,14 @@ export function useMenu() {
 
   function titleOf(path) {
     const hit = menuRoutes.find((m) => m.path === path)
-    if (hit) return hit.meta?.title || '页面'
+    if (hit) return trPage(hit.meta?.title || '页面')
     // 子页签：/rbac/user → 父页面「用户与权限」+「用户管理」
     const parent = parentRouteOf(path)
-    if (!parent) return '页面'
+    if (!parent) return trPage('页面')
     const tab = String(path).split('/').pop()
     const t = (TAB_MENU[parent.name] || []).find((x) => x.tab === tab)
-    const parentTitle = parent.meta?.title || '页面'
-    return t ? parentTitle + ' · ' + t.title : parentTitle
+    const parentTitle = trPage(parent.meta?.title || '页面')
+    return t ? parentTitle + ' · ' + trPage(t.title) : parentTitle
   }
 
   function groupOf(path) {

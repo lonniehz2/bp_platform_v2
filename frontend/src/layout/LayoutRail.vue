@@ -6,10 +6,10 @@
            :class="['rail-item', { active: activeGroup === g.name }]"
            @click="pickGroup(g.name)">
         <el-icon :size="20"><component :is="g.icon" /></el-icon>
-        <span>{{ g.name }}</span>
+        <span>{{ g.label || g.name }}</span>
       </div>
       <div class="rail-bottom">
-        <el-tooltip content="全屏大屏" placement="right">
+        <el-tooltip :content="t('nav.fullscreen')" placement="right">
           <div class="rail-item" @click="openScreen">
             <el-icon :size="18"><Monitor /></el-icon>
           </div>
@@ -18,16 +18,16 @@
     </div>
 
     <div class="panel">
-      <div class="panel-title">{{ activeGroup }}</div>
+      <div class="panel-title">{{ activeGroupLabel }}</div>
       <el-menu :default-active="$route.path" router class="panel-menu">
         <template v-for="sec in activeSections" :key="sec.title || 'all'">
           <div v-if="sec.title" class="sub-group">{{ sec.title }}</div>
           <el-menu-item v-for="m in sec.items" :key="m.path" :index="m.path"
                         :disabled="m.disabled">
-            <el-tooltip :content="m.disabled ? '未授权：请联系管理员' : (m.desc || m.meta.title)"
+            <el-tooltip :content="m.disabled ? t('nav.unauthorized') : (m.desc || m.title)"
                         placement="right" :show-after="400">
               <span class="mi-label">
-                {{ m.meta.title }}
+                {{ m.title }}
                 <el-icon v-if="m.disabled" class="lock"><Lock /></el-icon>
               </span>
             </el-tooltip>
@@ -42,7 +42,7 @@
       <el-header class="header">
         <span class="greet">{{ $t('layout.greeting', { name: auth.displayName || $t('layout.admin') }) }}</span>
         <el-breadcrumb separator="/" class="crumb">
-          <el-breadcrumb-item>{{ activeGroup }}</el-breadcrumb-item>
+          <el-breadcrumb-item>{{ activeGroupLabel }}</el-breadcrumb-item>
           <el-breadcrumb-item>{{ titleOf($route.path) }}</el-breadcrumb-item>
         </el-breadcrumb>
         <div class="spacer" />
@@ -90,6 +90,7 @@ const { groups, titleOf } = useMenu()
 const todo = useTodoStore()
 
 const activeGroup = ref(groups.value[0]?.name || '')
+const activeGroupLabel = computed(() => groups.value.find((g) => g.name === activeGroup.value)?.label || activeGroup.value)
 const activeSections = computed(() => {
   const g = groups.value.find((x) => x.name === activeGroup.value) || groups.value[0]
   return g?.sections || []

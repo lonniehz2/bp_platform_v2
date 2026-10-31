@@ -115,6 +115,11 @@ export default {
     more: 'More ▾',
     daysLeft: '{n} days left'
   },
+  nav: {
+    brand: 'Housing Operations Platform',
+    unauthorized: 'Not authorized: contact administrator',
+    fullscreen: 'Full-screen display',
+  },
   layout: {
     greeting: 'Hi {name}',
     help: 'Help',

@@ -26,7 +26,7 @@ ALLOW_PATHS = (
 ZH = re.compile(r'[\u4e00-\u9fff]')
 COMMENT = re.compile(r'^\s*(//|/\*|\*|<!--|#)')
 # 允许的文案调用：$t('...') / t('...')，但 key 本身不应含中文
-T_CALL = re.compile(r"(\$t|\bt)\(\s*['\"]")
+T_CALL = re.compile(r"(\$t|\bt|\btrPage|\btrGroup|\btrPageDesc)\(\s*['\"]")
 
 
 def rel(p):
@@ -58,6 +58,9 @@ def scan_diff(staged):
             if not text or COMMENT.match(text):
                 continue
             if allowed(current) or not ZH.search(text):
+                continue
+            if any(k in text for k in ('trPage(', 'trGroup(', 'trPageDesc(')):
+                # 导航标题走中文→英文映射表，允许中文入参
                 continue
             if T_CALL.search(text):
                 # 参数里若还有中文，仍然失败；纯 key 放行

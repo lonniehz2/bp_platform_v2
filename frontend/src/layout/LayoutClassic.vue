@@ -1,7 +1,7 @@
 <template>
   <el-container class="layout">
     <el-aside :width="collapsed ? '64px' : '210px'" class="aside">
-      <div class="brand">{{ collapsed ? '保' : '住房保障运营平台' }}</div>
+      <div class="brand">{{ collapsed ? '保' : t('nav.brand') }}</div>
       <el-menu :default-active="$route.path" :collapse="collapsed"
                :collapse-transition="false" :default-openeds="openedGroups"
                router class="menu" @open="onMenuOpen" @close="onMenuClose">
@@ -9,16 +9,16 @@
           <el-sub-menu v-if="g.items.length > 1" :index="g.name">
             <template #title>
               <el-icon><component :is="g.icon" /></el-icon>
-              <span>{{ g.name }}</span>
+              <span>{{ g.label || g.name }}</span>
             </template>
             <template v-for="sec in (g.sections || [])" :key="sec.title || 'all'">
               <div v-if="sec.title" class="sub-group">{{ sec.title }}</div>
               <el-menu-item v-for="m in sec.items" :key="m.path" :index="m.path"
                             :disabled="m.disabled">
-                <el-tooltip :content="m.disabled ? '未授权：请联系管理员' : (m.desc || m.meta.title)"
+                <el-tooltip :content="m.disabled ? t('nav.unauthorized') : (m.desc || m.title)"
                             placement="right" :show-after="400">
                   <span class="mi-label">
-                    {{ m.meta.title }}
+                    {{ m.title }}
                     <el-icon v-if="m.disabled" class="lock"><Lock /></el-icon>
                   </span>
                 </el-tooltip>
@@ -29,7 +29,7 @@
           </el-sub-menu>
           <el-menu-item v-else :index="g.items[0].path">
             <el-icon><component :is="g.icon" /></el-icon>
-            <template #title>{{ g.items[0].meta.title }}</template>
+            <template #title>{{ g.items[0].title }}</template>
           </el-menu-item>
         </template>
       </el-menu>
