@@ -97,7 +97,8 @@
           <el-button v-else link @click="openInspect(row)">查验</el-button>
           <el-button v-if="row.settleStatus === 'SETTLED'" link type="success"
                      @click="openDetail(row)">结算单</el-button>
-          <el-button v-else link type="warning" :disabled="!row.inspectStatus
+          <el-button v-else link type="primary" @click="openEnergy(row)">能耗结算</el-button>
+          <el-button v-if="row.settleStatus !== 'SETTLED'" link type="warning" :disabled="!row.inspectStatus
                      || row.inspectStatus === 'PENDING'" @click="openSettle(row)">结算</el-button>
           <el-button v-if="row.settleStatus === 'SETTLED'" link type="success"
                      @click="doComplete(row)">办结</el-button>
@@ -182,6 +183,31 @@
       <template #footer>
         <el-button @click="inspectVisible = false">取消</el-button>
         <el-button type="primary" :loading="saving" @click="doInspect">提交</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 退租能耗即时结算 -->
+    <el-dialog v-model="energyVisible" title="退租能耗即时结算" width="480px">
+      <el-alert type="warning" :closable="false" show-icon
+                title="优先使用即时抄表；设备离线时人工录入当前读数，按月初至退租日累计阶梯费用分摊。" />
+      <el-form :model="ef" label-width="100px" style="margin-top:10px">
+        <el-form-item label="表计" required>
+          <el-select v-model="ef.meterPointId" filterable style="width:100%">
+            <el-option v-for="p in energyPoints" :key="p.id"
+                       :label="p.meterName || p.id" :value="String(p.id)" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="当前读数" required>
+          <el-input v-model.number="ef.reading" />
+        </el-form-item>
+        <el-form-item label="退租日">
+          <el-date-picker v-model="ef.exitDate" type="date" value-format="YYYY-MM-DD"
+                          style="width:100%" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="energyVisible = false">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="doEnergy">生成能耗账单</el-button>
       </template>
     </el-dialog>
 
@@ -280,6 +306,9 @@ const current = ref(null)
 const createVisible = ref(false)
 const inspectVisible = ref(false)
 const settleVisible = ref(false)
+const energyVisible = ref(false)
+const energyPoints = ref([])
+const ef = reactive({ meterPointId: '', reading: null, exitDate: '' })
 const enforceVisible = ref(false)
 const releaseVisible = ref(false)
 
@@ -419,6 +448,35 @@ async function doInspect() {
     await req.post(`/terminations/${current.value.id}/inspect`, { ...ins })
     ElMessage.success('查验已提交')
     inspectVisible.value = false; load()
+  } finally { saving.value = false }
+}
+
+async function openEnergy(row) {
+  current.value = row
+  try {
+    energyPoints.value = (await req.get('/fin/meter-points')) || []
+  } catch (e) { energyPoints.value = [] }
+  ef.meterPointId = ''
+  ef.reading = null
+  ef.exitDate = row.actualExitDate || row.planExitDate || new Date().toISOString().slice(0, 10)
+  energyVisible.value = true
+}
+async function doEnergy() {
+  if (!ef.meterPointId || ef.reading == null) {
+    ElMessage.warning('请选择表计并录入当前读数')
+    return
+  }
+  saving.value = true
+  try {
+    await req.post('/fin/utility-allocations/exit', {
+      meterPointId: ef.meterPointId,
+      contractId: current.value.contractId || current.value.id,
+      exitDate: ef.exitDate,
+      reading: ef.reading
+    })
+    ElMessage.success('能耗账单已生成，可继续结算')
+    energyVisible.value = false
+    openSettle(current.value)
   } finally { saving.value = false }
 }
 
