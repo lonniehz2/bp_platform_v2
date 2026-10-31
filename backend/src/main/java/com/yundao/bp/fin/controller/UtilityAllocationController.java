@@ -67,6 +67,12 @@ public class UtilityAllocationController {
 
     @PostMapping("/utility-allocations/exit")
     public R<UtilityAllocationVO> exit(@RequestBody ExitCmd cmd) {
+        if (!com.yundao.bp.common.tenant.TenantContext.hasTenant()
+                && com.yundao.bp.iam.security.LoginUser.get() != null) {
+            com.yundao.bp.iam.security.LoginUser u = com.yundao.bp.iam.security.LoginUser.get();
+            com.yundao.bp.common.tenant.TenantContext.set(
+                    com.yundao.bp.common.tenant.TenantInfo.of(u.tenantId(), u.userId()));
+        }
         return R.ok(service.settleExit(cmd.meterPointId(), cmd.contractId(), cmd.exitDate(),
                 cmd.reading()));
     }

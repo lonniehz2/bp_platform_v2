@@ -300,6 +300,30 @@ public class UtilityAllocationService {
         BillingCalculator.Result rr = calculator.calculate(item,
                 BillingCalculator.Context.ofMeter(start, end), rule);
         BigDecimal totalAmount = rr.finalAmount();
+        // 退租即时结算已分摊的部分从月终总费用中扣除，并排除已结算合同
+        java.util.List<UtilityAllocation> exits = allocationMapper.selectList(
+                new LambdaQueryWrapper<UtilityAllocation>()
+                        .eq(UtilityAllocation::getMeterPointId, point.getId())
+                        .likeRight(UtilityAllocation::getPeriod, period + "-EXIT-")
+                        .eq(UtilityAllocation::getStatus, "EXIT"));
+        java.util.Set<Long> exited = new java.util.HashSet<>();
+        BigDecimal settled = BigDecimal.ZERO;
+        for (UtilityAllocation ex : exits) {
+            settled = settled.add(ex.getTotalAmount() == null
+                    ? BigDecimal.ZERO : ex.getTotalAmount());
+            try {
+                exited.add(Long.valueOf(ex.getPeriod().substring(
+                        ex.getPeriod().lastIndexOf('-') + 1)));
+            } catch (Exception ignore) {
+            }
+        }
+        if (settled.compareTo(BigDecimal.ZERO) > 0) {
+            totalAmount = totalAmount.subtract(settled);
+            if (totalAmount.compareTo(BigDecimal.ZERO) < 0) {
+                totalAmount = BigDecimal.ZERO;
+            }
+            contracts.removeIf(c -> exited.contains(c.getId()));
+        }
         if (onlyContract != null) {
             contracts.removeIf(c -> !onlyContract.equals(c.getId()));
         }
