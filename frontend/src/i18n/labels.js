@@ -22,6 +22,7 @@ export const FIELD_LABEL_EN = {
   orgName: 'Organization',
   area: 'Area',
   monthlyRent: 'Monthly Rent',
+  unitPrice: 'Unit Price',
   rentUnit: 'Rent Unit',
   depositAmount: 'Deposit',
   leaseStart: 'Lease Start',

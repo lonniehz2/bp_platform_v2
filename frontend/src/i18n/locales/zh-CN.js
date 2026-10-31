@@ -85,7 +85,13 @@ export default {
     more: '更多▾',
     waive: '减免',
     cancel: '取消',
-    remind: '催缴'
+    remind: '催缴',
+    genTitle: '批量出账',
+    resultTitle: '出账结果',
+    sharedTitle: '公摊费用分摊出账',
+    exportFile: '账单',
+    exported: '已导出 {n} 条账单',
+    exportFailed: '导出失败'
   },
   contract: {
     title: '合同管理',
@@ -113,7 +119,8 @@ export default {
     change: '发起变更',
     edit: '编辑',
     more: '更多 ▾',
-    daysLeft: '剩 {n} 天'
+    daysLeft: '剩 {n} 天',
+    createTitle: '新建合同', quickTitle: '快捷签约（线下受理）', detailTitle: '合同详情', editTitle: '编辑合同条款（仅草稿可改）', changeTitle: '发起合同变更', swapTitle: '合同换房', signTitle: '合同签约', renewTitle: '合同续签', termTitle: '终止合同', exportFile: '合同台账', exported: '已导出 {n} 条合同', exportFailed: '导出失败'
   },
   nav: {
     brand: '住房保障运营平台',

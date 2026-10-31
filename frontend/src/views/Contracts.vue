@@ -103,55 +103,55 @@
     </div>
 
     <!-- 新建合同 ContractCreateCmd -->
-    <el-dialog v-model="createVisible" title="新建合同" width="680px">
+    <el-dialog v-model="createVisible" :title="t('contract.createTitle')" width="680px">
       <el-form :model="c" label-width="120px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="合同类型">
+          <el-col :span="12"><el-form-item :label="labelOf('contractType')">
             <el-select v-model="c.contractType" style="width:100%">
               <el-option label="公租房" value="PUBLIC_RENTAL" />
               <el-option label="保租房" value="AFFORDABLE" />
               <el-option label="人才公寓" value="TALENT" />
               <el-option label="廉租房" value="LOW_RENT" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="出租组织" required>
+          <el-col :span="12"><el-form-item :label="labelOf('orgName')" required>
             <OrgSelect v-model="c.orgId" testid="c-org-id" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="出租方组织" required>
+          <el-col :span="12"><el-form-item :label="labelOf('orgName')" required>
             <OrgSelect v-model="c.lessorOrgId" testid="c-lessor-org-id" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="承租人" required>
+          <el-col :span="12"><el-form-item :label="labelOf('lesseeName')" required>
             <PersonPicker v-model="c.lesseePersonId" width="100%" testid="c-lessee-id" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="承租人姓名">
+          <el-col :span="12"><el-form-item :label="labelOf('lesseeName')">
             <el-input v-model="c.lesseeName" data-testid="c-lessee-name" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="联系电话">
+          <el-col :span="12"><el-form-item :label="labelOf('lesseePhone')">
             <el-input v-model="c.lesseePhone" data-testid="c-lessee-phone" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="证件号">
+          <el-col :span="12"><el-form-item :label="labelOf('idNumber')">
             <el-input v-model="c.lesseeIdCardMask" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="房源" required>
+          <el-col :span="12"><el-form-item :label="labelOf('houseName')" required>
             <HouseSelect v-model="c.houseId" :org-id="c.orgId" testid="c-house-id"
                          @picked="onHousePicked" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="空间">
+          <el-col :span="12"><el-form-item :label="labelOf('spaceName')">
             <el-input :model-value="spaceLabel" disabled
                       placeholder="选择房源后自动带出" data-testid="c-space-id" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="房屋地址">
+          <el-col :span="24"><el-form-item :label="labelOf('houseAddress')">
             <el-input v-model="c.houseAddress" data-testid="c-address" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="建筑面积">
+          <el-col :span="12"><el-form-item :label="labelOf('area')">
             <el-input v-model.number="c.houseArea" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="起租日">
+          <el-col :span="12"><el-form-item :label="labelOf('leaseStart')">
             <div data-testid="c-lease-start" style="width:100%">
               <el-date-picker v-model="c.leaseStart" type="date"
                               value-format="YYYY-MM-DD" style="width:100%" />
             </div>
           </el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="止租日">
+          <el-col :span="12"><el-form-item :label="labelOf('leaseEnd')">
             <div data-testid="c-lease-end" style="width:100%">
               <el-date-picker v-model="c.leaseEnd" type="date"
                               value-format="YYYY-MM-DD" style="width:100%" />
             </div>
           </el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="月租金" required>
+          <el-col :span="12"><el-form-item :label="labelOf('monthlyRent')" required>
             <el-input v-model.number="c.monthlyRent" data-testid="c-rent" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="租金单价" required>
+          <el-col :span="12"><el-form-item :label="labelOf('unitPrice')" required>
             <el-input v-model.number="c.rentPrice" data-testid="c-rent-price" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="租金单位">
+          <el-col :span="12"><el-form-item :label="labelOf('rentUnit')">
             <el-select v-model="c.rentUnit" style="width:100%" data-testid="c-rent-unit">
               <el-option label="按面积·月" value="AREA_MONTH" />
               <el-option label="按套·月" value="HOUSE_MONTH" />
@@ -159,22 +159,22 @@
               <el-option label="按套·夜" value="HOUSE_NIGHT" />
               <el-option label="按床·夜" value="BED_NIGHT" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="押金">
+          <el-col :span="12"><el-form-item :label="labelOf('depositAmount')">
             <el-input v-model.number="c.depositAmount" data-testid="c-deposit" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="月补贴">
+          <el-col :span="12"><el-form-item :label="labelOf('subsidyAmount')">
             <el-input v-model.number="c.subsidyAmount" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="付款周期">
+          <el-col :span="12"><el-form-item :label="labelOf('paymentCycle')">
             <el-select v-model="c.payCycle" style="width:100%">
               <el-option label="月付" value="MONTH" />
               <el-option label="季付" value="QUARTER" />
               <el-option label="半年付" value="HALF_YEAR" />
               <el-option label="年付" value="YEAR" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="付款日">
+          <el-col :span="12"><el-form-item :label="labelOf('paymentDay')">
             <el-input v-model.number="c.payDay" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="关联配租单ID">
+          <el-col :span="12"><el-form-item :label="labelOf('allocationId')">
             <el-input v-model="c.allocationId" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="备注">
+          <el-col :span="24"><el-form-item :label="labelOf('remark')">
             <el-input v-model="c.remark" type="textarea" :rows="2" />
           </el-form-item></el-col>
         </el-row>
@@ -182,13 +182,13 @@
       <el-alert type="warning" :closable="false" show-icon
                 title="月租金/押金/补贴会按计费规则出账；关联配租单会做公示完成校验" />
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">保存</el-button>
+        <el-button @click="createVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('common.save') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 签约 SignCmd -->
-    <el-dialog v-model="signVisible" title="合同签约" width="480px">
+    <el-dialog v-model="signVisible" :title="t('contract.signTitle')" width="480px">
       <el-form :model="sg" label-width="110px">
         <el-form-item label="签署方式">
           <el-select v-model="sg.signVendor" style="width:100%">
@@ -200,17 +200,17 @@
           <el-input v-model="sg.signFileUrl" /></el-form-item>
         <el-form-item label="签署流程ID">
           <el-input v-model="sg.signFlowId" /></el-form-item>
-        <el-form-item label="备注">
+        <el-form-item :label="labelOf('remark')">
           <el-input v-model="sg.reason" type="textarea" :rows="2" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="signVisible = false">取消</el-button>
+        <el-button @click="signVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doSign">确认签约</el-button>
       </template>
     </el-dialog>
 
     <!-- 续签 RenewCmd -->
-    <el-dialog v-model="renewVisible" title="合同续签" width="460px">
+    <el-dialog v-model="renewVisible" :title="t('contract.renewTitle')" width="460px">
       <el-form :model="rn" label-width="110px">
         <el-form-item label="新止租日">
           <el-date-picker v-model="rn.newLeaseEnd" type="date"
@@ -220,7 +220,7 @@
           <el-input v-model.number="rn.newMonthlyRent" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="renewVisible = false">取消</el-button>
+        <el-button @click="renewVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doRenew">确认续签</el-button>
       </template>
     </el-dialog>
@@ -231,7 +231,7 @@
     </el-drawer>
 
     <!-- 终止 -->
-    <el-dialog v-model="termVisible" title="终止合同" width="460px">
+    <el-dialog v-model="termVisible" :title="t('contract.termTitle')" width="460px">
       <el-form :model="tm" label-width="110px">
         <el-form-item label="终止类型">
           <el-select v-model="tm.terminateType" style="width:100%">
@@ -243,24 +243,24 @@
           <el-input v-model="tm.reason" type="textarea" :rows="3" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="termVisible = false">取消</el-button>
+        <el-button @click="termVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="danger" :loading="saving" @click="doTerminate">确认终止</el-button>
       </template>
     </el-dialog>
   </div>
 
     <!-- 合同详情 -->
-    <el-dialog v-model="detailVisible" title="合同详情" width="820px">
+    <el-dialog v-model="detailVisible" :title="t('contract.detailTitle')" width="820px">
       <el-descriptions :column="2" border size="small">
         <el-descriptions-item label="合同号">{{ detail.contractNo }}</el-descriptions-item>
         <el-descriptions-item label="状态">
           {{ detail.contractStatusLabel || enumLabel('contractStatus', detail.contractStatus) }}
         </el-descriptions-item>
-        <el-descriptions-item label="合同类型">
+        <el-descriptions-item :label="labelOf('contractType')">
           {{ detail.contractTypeLabel || enumLabel('contractType', detail.contractType) }}
         </el-descriptions-item>
         <el-descriptions-item label="承租人">{{ detail.lesseeName }}</el-descriptions-item>
-        <el-descriptions-item label="证件号">{{ detail.lesseeIdCardMask }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('idNumber')">{{ detail.lesseeIdCardMask }}</el-descriptions-item>
         <el-descriptions-item label="手机号">{{ detail.lesseePhone }}</el-descriptions-item>
         <el-descriptions-item label="房屋" :span="2">{{ detail.houseAddress }}</el-descriptions-item>
         <el-descriptions-item label="面积">{{ detail.houseArea }} ㎡</el-descriptions-item>
@@ -268,33 +268,33 @@
         <el-descriptions-item label="起租">{{ detail.leaseStart }}</el-descriptions-item>
         <el-descriptions-item label="止租">{{ detail.leaseEnd }}</el-descriptions-item>
         <el-descriptions-item label="租期">{{ detail.leaseMonths }} 个月</el-descriptions-item>
-        <el-descriptions-item label="月租">{{ detail.monthlyRent }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('monthlyRent')">{{ detail.monthlyRent }}</el-descriptions-item>
         <el-descriptions-item label="计费人口">{{ detail.billingPersonCount || 1 }}</el-descriptions-item>
         <el-descriptions-item label="计费床位">{{ detail.billingBedCount || 1 }}</el-descriptions-item>
-        <el-descriptions-item label="押金">{{ detail.depositAmount }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('depositAmount')">{{ detail.depositAmount }}</el-descriptions-item>
         <el-descriptions-item label="实付（月租-补贴）">{{ detail.actualPay }}</el-descriptions-item>
         <el-descriptions-item label="补贴">{{ detail.subsidyAmount }}</el-descriptions-item>
         <el-descriptions-item label="支付周期">{{ detail.payCycle }}</el-descriptions-item>
         <el-descriptions-item label="签约时间">{{ detail.signTime }}</el-descriptions-item>
-        <el-descriptions-item label="备注" :span="2">{{ detail.remark || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('remark')" :span="2">{{ detail.remark || '—' }}</el-descriptions-item>
       </el-descriptions>
       <template #footer><el-button @click="detailVisible = false">关闭</el-button></template>
     </el-dialog>
 
     <!-- 编辑合同（仅草稿） -->
-    <el-dialog v-model="editVisible" title="编辑合同条款（仅草稿可改）" width="620px">
+    <el-dialog v-model="editVisible" :title="t('contract.editTitle')" width="620px">
       <el-alert type="warning" :closable="false" show-icon
                 title="签约后修改金额或租期请走「合同变更」，此处仅限草稿" />
       <el-form :model="ef" label-width="100px" style="margin-top:12px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="月租">
+          <el-col :span="12"><el-form-item :label="labelOf('monthlyRent')">
             <el-input v-model="ef.monthlyRent" type="number" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="押金">
+          <el-col :span="12"><el-form-item :label="labelOf('depositAmount')">
             <el-input v-model="ef.depositAmount" type="number" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="起租日">
+          <el-col :span="12"><el-form-item :label="labelOf('leaseStart')">
             <el-date-picker v-model="ef.leaseStart" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="止租日">
+          <el-col :span="12"><el-form-item :label="labelOf('leaseEnd')">
             <el-date-picker v-model="ef.leaseEnd" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="支付周期">
@@ -306,18 +306,18 @@
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="每月付款日">
             <el-input v-model="ef.payDay" type="number" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="备注">
+          <el-col :span="24"><el-form-item :label="labelOf('remark')">
             <el-input v-model="ef.remark" type="textarea" :rows="2" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="saveContractEdit">保存</el-button>
+        <el-button @click="editVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="saveContractEdit">{{ t('common.save') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 发起合同变更 -->
-    <el-dialog v-model="chgVisible" title="发起合同变更" width="560px">
+    <el-dialog v-model="chgVisible" :title="t('contract.changeTitle')" width="560px">
       <el-form :model="chg" label-width="110px">
         <el-form-item label="合同"><el-input :model-value="chg.contractNo" disabled /></el-form-item>
         <el-form-item label="变更类型">
@@ -346,20 +346,20 @@
       <el-alert type="info" :closable="false" show-icon
                 title="提交后进入「合同变更」审批；批准且到生效日后自动写回合同。" />
       <template #footer>
-        <el-button @click="chgVisible = false">取消</el-button>
+        <el-button @click="chgVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doChange">提交</el-button>
       </template>
     </el-dialog>
 
     <!-- 快捷签约：存量人员 + 空置房源直接签约 -->
-    <el-dialog v-model="quickSignVisible" title="快捷签约（线下受理）" width="640px">
+    <el-dialog v-model="quickSignVisible" :title="t('contract.quickTitle')" width="640px">
       <el-alert type="info" :closable="false" show-icon
                 title="用于存量人员/房源直接签约：系统会自动补一张「线下受理」申请单，保证可追溯" />
       <el-form :model="qf" label-width="100px" style="margin-top:12px">
-        <el-form-item label="承租人" required>
+        <el-form-item :label="labelOf('lesseeName')" required>
           <PersonPicker v-model="qf.personId" />
         </el-form-item>
-        <el-form-item label="房源" required>
+        <el-form-item :label="labelOf('houseName')" required>
           <el-select v-model="qf.houseId" filterable remote :remote-method="searchVacantHouse"
                      :loading="houseLoading" style="width:100%" placeholder="输入房号搜索空置房源">
             <el-option v-for="h in vacantHouses" :key="h.id"
@@ -367,15 +367,15 @@
           </el-select>
         </el-form-item>
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="起租日" required>
+          <el-col :span="12"><el-form-item :label="labelOf('leaseStart')" required>
             <el-date-picker v-model="qf.leaseStart" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="止租日" required>
+          <el-col :span="12"><el-form-item :label="labelOf('leaseEnd')" required>
             <el-date-picker v-model="qf.leaseEnd" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="月租" required>
+          <el-col :span="12"><el-form-item :label="labelOf('monthlyRent')" required>
             <el-input v-model="qf.monthlyRent" type="number" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="押金">
+          <el-col :span="12"><el-form-item :label="labelOf('depositAmount')">
             <el-input v-model="qf.depositAmount" type="number" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="保障类型">
             <el-select v-model="qf.securityType" style="width:100%">
@@ -384,18 +384,18 @@
               <el-option label="人才房" value="TALENT" />
               <el-option label="廉租房" value="LOW_RENT" />
             </el-select></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="备注">
+          <el-col :span="24"><el-form-item :label="labelOf('remark')">
             <el-input v-model="qf.remark" type="textarea" :rows="2" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="quickSignVisible = false">取消</el-button>
+        <el-button @click="quickSignVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doQuickSign">生成合同</el-button>
       </template>
     </el-dialog>
 
     <!-- 换房 -->
-    <el-dialog v-model="swapVisible" title="合同换房" width="600px">
+    <el-dialog v-model="swapVisible" :title="t('contract.swapTitle')" width="600px">
       <el-alert type="info" :closable="false" show-icon
                 title="换房会把合同迁到目标房源所在空间，原房源释放并留痕；请确认目标房源可租。" />
       <el-form :model="sw" label-width="100px" style="margin-top:12px">
@@ -414,7 +414,7 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="swapVisible = false">取消</el-button>
+        <el-button @click="swapVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doSwap">确认换房</el-button>
       </template>
     </el-dialog>
@@ -423,6 +423,7 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { enumLabel } from '@/constants/enums'
+import { labelOf } from '@/constants/fieldLabels'
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -615,22 +616,22 @@ async function exportContracts() {
       contractStatus: q.contractStatus || undefined,
       keyword: q.keyword || undefined
     })
-    downloadCsv('合同台账_' + new Date().toISOString().slice(0, 10), [
-      { key: 'contractNo', label: '合同号' },
-      { key: 'lesseeName', label: '承租人' },
-      { key: 'orgIdName', label: '组织' },
-      { key: 'houseAddress', label: '房屋' },
-      { key: 'leaseStart', label: '起租日' },
-      { key: 'leaseEnd', label: '止租日' },
-      { key: 'monthlyRent', label: '月租' },
-      { key: 'depositAmount', label: '押金' },
-      { key: 'contractTypeLabel', label: '类型' },
-      { key: 'contractStatusLabel', label: '状态' },
-      { key: 'signTime', label: '签约时间' }
+    downloadCsv(t('contract.exportFile') + '_' + new Date().toISOString().slice(0, 10), [
+      { key: 'contractNo', label: labelOf('contractNo') },
+      { key: 'lesseeName', label: labelOf('lesseeName') },
+      { key: 'orgIdName', label: labelOf('orgName') },
+      { key: 'houseAddress', label: labelOf('houseAddress') },
+      { key: 'leaseStart', label: labelOf('leaseStart') },
+      { key: 'leaseEnd', label: labelOf('leaseEnd') },
+      { key: 'monthlyRent', label: labelOf('monthlyRent') },
+      { key: 'depositAmount', label: labelOf('depositAmount') },
+      { key: 'contractTypeLabel', label: labelOf('contractType') },
+      { key: 'contractStatusLabel', label: labelOf('contractStatus') },
+      { key: 'signTime', label: labelOf('signDate') }
     ], rows)
-    ElMessage.success('已导出 ' + rows.length + ' 条合同')
+    ElMessage.success(t('contract.exported', { n: rows.length }))
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '导出失败')
+    ElMessage.error(e?.response?.data?.message || t('contract.exportFailed'))
   } finally { exporting.value = false }
 }
 

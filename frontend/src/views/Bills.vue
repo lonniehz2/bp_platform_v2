@@ -104,7 +104,7 @@
     </div>
 
     <!-- 批量出账 -->
-    <el-dialog v-model="genVisible" title="批量出账" width="500px">
+    <el-dialog v-model="genVisible" :title="t('bill.genTitle')" width="500px">
       <el-form :model="g" label-width="120px">
         <el-form-item label="组织">
           <el-select v-model="g.orgId" filterable clearable style="width:100%"
@@ -113,14 +113,14 @@
                        :value="String(o.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="收费项目" required>
+        <el-form-item :label="labelOf('feeItemName')" required>
           <el-select v-model="g.feeItemId" filterable style="width:100%"
                      placeholder="选择计费项目" @change="loadGenRules">
             <el-option v-for="f in feeItems" :key="f.id"
                        :label="f.itemName || f.feeItemName || f.id" :value="String(f.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="计费规则">
+        <el-form-item :label="labelOf('ruleName')">
           <el-radio-group v-model="g.ruleMode">
             <el-radio-button label="AUTO">自动匹配</el-radio-button>
             <el-radio-button label="MANUAL">指定规则</el-radio-button>
@@ -134,15 +134,15 @@
                        :label="r.ruleName + '（' + r.ruleType + '）'" :value="String(r.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="费用起始" required>
+        <el-form-item :label="t('bill.periodStart')" required>
           <el-date-picker v-model="g.periodStart" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
-        <el-form-item label="费用截止" required>
+        <el-form-item :label="t('bill.periodEnd')" required>
           <el-date-picker v-model="g.periodEnd" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
-        <el-form-item label="试算（不落库）">
+        <el-form-item :label="t('bill.dryRun')">
           <el-switch v-model="g.dryRun" /></el-form-item>
       </el-form>
       <el-alert type="info" :closable="false" show-icon
@@ -161,13 +161,13 @@
         </div>
       </div>
       <template #footer>
-        <el-button @click="genVisible = false">取消</el-button>
+        <el-button @click="genVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doGenerate">开始出账</el-button>
       </template>
     </el-dialog>
 
     <!-- 批量出账结果 -->
-    <el-dialog v-model="genResultVisible" title="出账结果" width="760px">
+    <el-dialog v-model="genResultVisible" :title="t('bill.resultTitle')" width="760px">
       <el-alert v-if="genResult" :closable="false" show-icon
                 :type="genResult.skipped ? 'warning' : 'success'"
                 :title="'生成 ' + (genResult.generated || 0) + ' 张' +
@@ -195,17 +195,17 @@
     </el-dialog>
 
     <!-- 公摊费用分摊（物业） -->
-    <el-dialog v-model="sharedVisible" title="公摊费用分摊出账" width="560px">
+    <el-dialog v-model="sharedVisible" :title="t('bill.sharedTitle')" width="560px">
       <el-alert type="info" :closable="false" show-icon
                 title="把公共区域总费用按面积或户数分摊到该范围内的在租房源，为每套生成一张账单"
                 style="margin-bottom:12px" />
       <el-form :model="sf" label-width="110px">
-        <el-form-item label="组织" required>
+        <el-form-item :label="labelOf('orgName')" required>
           <el-select v-model="sf.orgId" filterable style="width:100%" placeholder="选择组织/小区">
             <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName" :value="String(o.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="收费项目" required>
+        <el-form-item :label="labelOf('feeItemName')" required>
           <el-select v-model="sf.feeItemId" filterable style="width:100%">
             <el-option v-for="f in feeItems" :key="f.id"
                        :label="f.itemName || f.feeItemName || f.itemCode || f.id"
@@ -222,10 +222,10 @@
           </el-radio-group>
         </el-form-item>
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="费用起始" required>
+          <el-col :span="12"><el-form-item :label="t('bill.periodStart')" required>
             <el-date-picker v-model="sf.periodStart" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="费用截止" required>
+          <el-col :span="12"><el-form-item :label="t('bill.periodEnd')" required>
             <el-date-picker v-model="sf.periodEnd" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="账期" required>
@@ -236,7 +236,7 @@
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="sharedVisible = false">取消</el-button>
+        <el-button @click="sharedVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doShared">开始分摊</el-button>
       </template>
     </el-dialog>
@@ -337,7 +337,7 @@
           <el-input v-model="p.remark" type="textarea" :rows="2" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="payVisible = false">取消</el-button>
+        <el-button @click="payVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doPay">确认收款</el-button>
       </template>
     </el-dialog>
@@ -432,7 +432,7 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="useVisible = false">取消</el-button>
+        <el-button @click="useVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="confirmUse">确认核销</el-button>
       </template>
     </el-dialog>
@@ -461,7 +461,7 @@
           <el-input v-model.number="a.amount" placeholder="留空=全部待缴" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="allocVisible = false">取消</el-button>
+        <el-button @click="allocVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doAllocate">确认核销</el-button>
       </template>
     </el-dialog>
@@ -477,7 +477,7 @@
           <el-input v-model="w.reason" type="textarea" :rows="3" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="waiveVisible = false">取消</el-button>
+        <el-button @click="waiveVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="warning" :loading="saving" @click="doWaive">确认减免</el-button>
       </template>
     </el-dialog>
@@ -628,6 +628,7 @@ async function openDetail(row) {
 }
 
 import { enumLabel } from '@/constants/enums'
+import { labelOf } from '@/constants/fieldLabels'
 import { ref, reactive, computed, onMounted } from 'vue'
 import DetailView from '@/components/DetailView.vue'
 import PersonPicker from '@/components/PersonPicker.vue'
@@ -770,21 +771,21 @@ async function exportBills() {
       billPeriod: q.billPeriod || undefined,
       houseId: q.houseId || undefined
     })
-    downloadCsv('账单_' + new Date().toISOString().slice(0, 10), [
-      { key: 'billNo', label: '账单号' },
-      { key: 'payerName', label: '缴费人' },
-      { key: 'billPeriod', label: '账期' },
-      { key: 'billAmount', label: '应收' },
-      { key: 'paidAmount', label: '已缴' },
-      { key: 'waivedAmount', label: '减免' },
-      { key: 'payableAmount', label: '待缴' },
-      { key: 'dueDate', label: '截止日' },
-      { key: 'billStatusLabel', label: '状态' },
-      { key: 'overdueDays', label: '逾期天数' }
+    downloadCsv(t('bill.exportFile') + '_' + new Date().toISOString().slice(0, 10), [
+      { key: 'billNo', label: labelOf('billNo') },
+      { key: 'payerName', label: labelOf('payerName') },
+      { key: 'billPeriod', label: labelOf('billPeriod') },
+      { key: 'billAmount', label: labelOf('billAmount') },
+      { key: 'paidAmount', label: labelOf('paidAmount') },
+      { key: 'waivedAmount', label: labelOf('waivedAmount') },
+      { key: 'payableAmount', label: labelOf('payableAmount') },
+      { key: 'dueDate', label: labelOf('dueDate') },
+      { key: 'billStatusLabel', label: labelOf('billStatus') },
+      { key: 'overdueDays', label: labelOf('overdueDays') }
     ], rows)
-    ElMessage.success('已导出 ' + rows.length + ' 条账单')
+    ElMessage.success(t('bill.exported', { n: rows.length }))
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '导出失败')
+    ElMessage.error(e?.response?.data?.message || t('bill.exportFailed'))
   } finally { exporting.value = false }
 }
 

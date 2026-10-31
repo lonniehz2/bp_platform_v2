@@ -85,7 +85,13 @@ export default {
     more: 'More▾',
     waive: 'Waive',
     cancel: 'Cancel',
-    remind: 'Remind'
+    remind: 'Remind',
+    genTitle: 'Generate Bills',
+    resultTitle: 'Generation Result',
+    sharedTitle: 'Shared Cost Allocation',
+    exportFile: 'bills',
+    exported: '{n} bills exported',
+    exportFailed: 'Export failed'
   },
   contract: {
     title: 'Contracts',
@@ -113,7 +119,8 @@ export default {
     change: 'Change',
     edit: 'Edit',
     more: 'More ▾',
-    daysLeft: '{n} days left'
+    daysLeft: '{n} days left',
+    createTitle: 'New Contract', quickTitle: 'Quick Sign (offline)', detailTitle: 'Contract Detail', editTitle: 'Edit Contract (draft only)', changeTitle: 'Contract Change', swapTitle: 'Housing Exchange', signTitle: 'Sign Contract', renewTitle: 'Renew Contract', termTitle: 'Terminate Contract', exportFile: 'contracts', exported: '{n} contracts exported', exportFailed: 'Export failed'
   },
   nav: {
     brand: 'Housing Operations Platform',
