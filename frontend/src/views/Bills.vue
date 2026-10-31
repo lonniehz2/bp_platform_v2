@@ -376,7 +376,9 @@
         <el-descriptions-item label="收款金额">{{ payDetail.payAmount }}</el-descriptions-item>
         <el-descriptions-item label="已核销">{{ payDetail.reconciledAmount }}</el-descriptions-item>
         <el-descriptions-item label="余额">{{ payDetail.remainAmount }}</el-descriptions-item>
-        <el-descriptions-item label="收款渠道">{{ payDetail.payChannel }}</el-descriptions-item>
+        <el-descriptions-item label="收款渠道">
+          {{ enumLabel('payChannel', payDetail.payChannel) || payDetail.payChannel }}
+        </el-descriptions-item>
         <el-descriptions-item label="收款时间">{{ payDetail.payTime }}</el-descriptions-item>
         <el-descriptions-item label="状态">
           {{ payDetail.payStatusLabel || payDetail.payStatus }}
@@ -514,7 +516,11 @@
             <template #default="{ row }">{{ row.payer_name || '—' }}</template>
           </el-table-column>
           <el-table-column prop="allocate_amount" label="核销金额" width="110" />
-          <el-table-column prop="pay_channel" label="渠道" width="90" />
+          <el-table-column label="渠道" width="90">
+            <template #default="{ row }">
+              {{ enumLabel('payChannel', row.pay_channel) || row.pay_channel }}
+            </template>
+          </el-table-column>
           <el-table-column prop="pay_time" label="收款时间" />
         </el-table>
       </div>
