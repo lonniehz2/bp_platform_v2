@@ -6,6 +6,7 @@
       <div class="spacer" />
       <el-input v-model="keyword" placeholder="搜索操作，如「核销」「退租」"
                 clearable style="width:240px" />
+      <el-button @click="downloadPdf">下载 PDF 版</el-button>
       <el-button type="primary" @click="printDoc">打印 / 另存 PDF</el-button>
     </div>
 
@@ -43,6 +44,14 @@
                   <template #default="{ row }">{{ row[k] }}</template>
                 </el-table-column>
               </el-table>
+              <pre v-else-if="b.type === 'code'" class="formula">{{ b.text }}</pre>
+              <el-collapse v-else-if="b.type === 'faq'" class="faq">
+                <el-collapse-item v-for="(f, j) in b.items" :key="j" :title="f.q" :name="j">
+                  <p class="faq-a">{{ f.a }}</p>
+                </el-collapse-item>
+              </el-collapse>
+              <el-image v-else-if="b.type === 'image'" :src="b.src" fit="contain"
+                        :preview-src-list="[b.src]" class="help-img" />
             </template>
           </section>
         </div>
@@ -57,7 +66,7 @@
  */
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { HELP_SECTIONS, HELP_VERSION } from '@/content/help'
+import { HELP_SECTIONS, HELP_VERSION, HELP_PDF } from '@/content/help'
 
 const route = useRoute()
 
@@ -86,6 +95,10 @@ function jump(id) {
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
+function downloadPdf() {
+  window.open(HELP_PDF, '_blank')
+}
+
 function printDoc() {
   window.print()
 }
@@ -108,8 +121,8 @@ function printDoc() {
   font-size: 13px;
   color: var(--el-text-color-primary);
 }
-.toc-item:hover { background: #f5f7fa; }
-.toc-item.active { background: #ecf5ff; color: #409eff; font-weight: 600; }
+.toc-item:hover { background: var(--el-fill-color-light); }
+.toc-item.active { background: var(--el-color-primary-light-9); color: var(--el-color-primary); font-weight: 600; }
 .help-body { max-height: 76vh; overflow: auto; padding-right: 8px; }
 .sec { margin-bottom: 26px; }
 .sec h2 {
@@ -119,10 +132,19 @@ function printDoc() {
   border-left: 3px solid #409eff;
 }
 .sec h3 { font-size: 14px; margin: 14px 0 6px; color: var(--el-text-color-primary); }
-.sec p { margin: 6px 0; line-height: 1.8; color: #444; font-size: 13px; }
-.steps, .bullets { margin: 6px 0 6px 20px; font-size: 13px; line-height: 1.9; color: #444; }
+.sec p { margin: 6px 0; line-height: 1.8; color: var(--el-text-color-regular); font-size: 13px; }
+.steps, .bullets { margin: 6px 0 6px 20px; font-size: 13px; line-height: 1.9; color: var(--el-text-color-regular); }
 .note { margin: 8px 0; }
 .tbl { margin: 8px 0 4px; }
+.formula {
+  margin: 10px 0; padding: 10px 12px; border-radius: 6px;
+  background: var(--el-fill-color-light); border: 1px solid var(--el-border-color-light);
+  font-family: Consolas, 'Courier New', monospace; font-size: 12px; line-height: 1.7;
+  white-space: pre-wrap; overflow-x: auto; color: var(--el-text-color-primary);
+}
+.faq { margin: 10px 0; }
+.faq-a { line-height: 1.8; color: var(--el-text-color-regular); font-size: 13px; }
+.help-img { max-width: 100%; margin: 10px 0; border: 1px solid var(--el-border-color-light); }
 
 @media print {
   .toolbar, .toc { display: none; }
