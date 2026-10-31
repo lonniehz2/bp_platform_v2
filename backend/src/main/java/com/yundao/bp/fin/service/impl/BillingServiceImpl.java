@@ -52,6 +52,9 @@ public class BillingServiceImpl implements BillingService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.fin.mapper.FinArrearsActionMapper arrearsActionMapper;
     private final FinPaymentMapper paymentMapper;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbcForPayer;
     private final FinPaymentAllocateMapper allocateMapper;
     private final SnowflakeIdGenerator idGen;
 
@@ -143,7 +146,24 @@ public class BillingServiceImpl implements BillingService {
         e.setHouseId(cmd.houseId());
         e.setSpaceId(cmd.spaceId());
         e.setPersonId(cmd.personId());
-        e.setPayerName(cmd.payerName());
+        String payerName = cmd.payerName();
+        if ((payerName == null || payerName.isBlank()) && cmd.personId() != null
+                && jdbcForPayer != null) {
+            try {
+                java.util.List<java.util.Map<String, Object>> ps = jdbcForPayer.queryForList(
+                        "select person_name, real_name from bp_person where id = ?",
+                        cmd.personId());
+                if (!ps.isEmpty()) {
+                    Object n = ps.get(0).get("person_name");
+                    if (n == null || String.valueOf(n).isBlank()) {
+                        n = ps.get(0).get("real_name");
+                    }
+                    payerName = n == null ? null : String.valueOf(n);
+                }
+            } catch (Exception ignore) {
+            }
+        }
+        e.setPayerName(payerName);
         e.setPayerPhone(cmd.payerPhone());
         e.setFeeItemId(cmd.feeItemId());
         e.setBillPeriod(cmd.billPeriod());

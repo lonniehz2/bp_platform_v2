@@ -26,6 +26,7 @@
         <el-button type="warning" plain @click="openShared" data-testid="shared-bill">公摊分摊</el-button>
         <el-button plain @click="openEnergy" data-testid="bill-energy">能耗分析</el-button>
         <el-button @click="openPay">登记收款</el-button>
+        <el-button plain @click="openPayments" data-testid="bill-payments">收款单</el-button>
         <el-button @click="scanOverdue">扫描逾期</el-button>
         <el-button plain data-testid="bill-export" :loading="exporting"
                    @click="exportBills">导出 CSV</el-button>
@@ -322,6 +323,43 @@
       </template>
     </el-dialog>
 
+    <!-- 收款单列表 -->
+    <el-dialog v-model="paymentsVisible" title="收款单" width="900px">
+      <div class="toolbar" style="margin-bottom:8px">
+        <el-input v-model="payKeyword" placeholder="收款单号" clearable style="width:240px"
+                  @keyup.enter="loadPayments" />
+        <el-button type="primary" @click="loadPayments">查询</el-button>
+        <div class="spacer" />
+        <el-button @click="openPay">登记收款</el-button>
+      </div>
+      <el-table :data="payments" border size="small" max-height="420"
+                empty-text="暂无收款单，点击「登记收款」新增">
+        <el-table-column prop="paymentNo" label="收款单号" width="190" />
+        <el-table-column label="缴费人" width="130">
+          <template #default="{ row }">
+            {{ row.payerName || row.personIdName || row.personId || '—' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="payAmount" label="收款金额" width="110" />
+        <el-table-column prop="reconciledAmount" label="已核销" width="110" />
+        <el-table-column prop="remainAmount" label="余额" width="110" />
+        <el-table-column label="状态" width="110">
+          <template #default="{ row }">{{ row.payStatusLabel || row.payStatus }}</template>
+        </el-table-column>
+        <el-table-column prop="payTime" label="收款时间" width="170" />
+        <el-table-column label="操作" width="110" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" :disabled="!Number(row.remainAmount)"
+                       @click="usePayment(row)">用于核销</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination style="margin-top:10px" layout="total, prev, pager, next"
+                     :total="+payTotal || 0" :page-size="payPageSize"
+                     :current-page="payPageNum"
+                     @current-change="(p) => { payPageNum = p; loadPayments() }" />
+    </el-dialog>
+
     <!-- 核销 AllocateCmd -->
     <el-dialog v-model="allocVisible" title="账单核销" width="480px">
       <el-alert type="info" :closable="false" show-icon
@@ -331,7 +369,16 @@
           <el-input :model-value="current?.billNo" disabled /></el-form-item>
         <el-form-item label="账单待缴">
           <el-input :model-value="current?.payableAmount" disabled /></el-form-item>
-        <el-form-item label="收款单ID"><el-input v-model="a.paymentId" />
+        <el-form-item label="收款单" required>
+          <el-select v-model="a.paymentId" filterable style="width:100%"
+                     placeholder="选择待核销收款单（单号/缴费人）">
+            <el-option v-for="x in openPaymentsList" :key="x.id"
+                       :label="x.paymentNo + ' · ' + (x.payerName || x.personIdName || x.personId || '—') + ' · 余额 ' + (x.remainAmount ?? 0)"
+                       :value="String(x.id)" />
+          </el-select>
+          <span class="muted" style="font-size:12px">
+            没有收款单？先点顶部「登记收款」，再回到本页核销
+          </span>
         </el-form-item>
         <el-form-item label="核销金额">
           <el-input v-model.number="a.amount" placeholder="留空=全部待缴" /></el-form-item>
@@ -701,6 +748,36 @@ const p = reactive({ orgId: null, personId: null, payerName: '', payAmount: null
 
 const allocVisible = ref(false)
 const a = reactive({ paymentId: null, amount: null })
+const paymentsVisible = ref(false)
+const payments = ref([])
+const openPaymentsList = ref([])
+const payKeyword = ref('')
+const payPageNum = ref(1)
+const payPageSize = ref(50)
+const payTotal = ref(0)
+
+async function loadPayments() {
+  try {
+    const d = await req.get('/fin/payments', {
+      params: { pageNum: payPageNum.value, pageSize: payPageSize.value,
+        keyword: payKeyword.value || undefined }
+    })
+    payments.value = (d && d.rows) || []
+    payTotal.value = Number((d && d.total) || 0)
+    openPaymentsList.value = payments.value.filter((x) => Number(x.remainAmount) > 0)
+  } catch (e) { payments.value = []; openPaymentsList.value = [] }
+}
+
+async function openPayments() {
+  payPageNum.value = 1
+  await loadPayments()
+  paymentsVisible.value = true
+}
+
+function usePayment(row) {
+  a.paymentId = String(row.id)
+  paymentsVisible.value = false
+}
 
 const waiveVisible = ref(false)
 const w = reactive({ waiveAmount: null, reason: '' })
@@ -753,14 +830,17 @@ async function doPay() {
   if (!p.payAmount || p.payAmount <= 0) { ElMessage.warning('收款金额必须大于 0'); return }
   saving.value = true
   try {
-    await financeApi.createPayment({ ...p })
-    ElMessage.success('收款已登记')
+    const created = await financeApi.createPayment({ ...p })
+    const no = created && (created.paymentNo || created.id)
+    ElMessage.success('收款已登记' + (no ? ('：' + no + '（可在「收款单」查看）') : ''))
     payVisible.value = false
+    loadPayments()
   } finally { saving.value = false }
 }
 
 function openAllocate(row) {
   current.value = row; a.paymentId = null; a.amount = null
+  loadPayments()
   allocVisible.value = true
 }
 async function doAllocate() {
