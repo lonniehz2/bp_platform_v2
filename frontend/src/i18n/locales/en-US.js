@@ -87,6 +87,7 @@ export default {
     waive: 'Waive',
     cancel: 'Cancel',
     remind: 'Remind',
+    detailTitle: 'Bill Detail',
     paymentsDetail: 'Payment Details',
     calcDetail: 'Calculation Details',
     remarkTitle: 'Billing Notes',

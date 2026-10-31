@@ -484,7 +484,7 @@
   </div>
 
     <!-- 账单详情：结构化信息 + 计费说明 -->
-    <el-dialog v-model="dvVisible" title="账单详情" width="780px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('bill.detailTitle')" width="780px" top="6vh">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
         <span style="font-weight:600">{{ dvRow.billNo }}</span>
         <el-tag size="small" :type="dvRow.billStatus === 'PAID' ? 'success'
@@ -538,13 +538,17 @@
       <div v-if="explainRows.length" style="margin-top:12px">
         <div style="font-weight:600;margin-bottom:6px">{{ t('bill.calcDetail') }}</div>
         <el-table :data="explainRows" size="small" border>
-          <el-table-column prop="label" :label="labelOf('item')" width="130" />
-          <el-table-column prop="value" :label="labelOf('value')" />
+          <el-table-column :label="labelOf('item')" width="130">
+            <template #default="{ row }">{{ explainLabel(row.label) }}</template>
+          </el-table-column>
+          <el-table-column :label="labelOf('value')">
+            <template #default="{ row }">{{ explainValue(row.label, row.value) }}</template>
+          </el-table-column>
         </el-table>
       </div>
       <el-alert v-if="dvRow.remark" type="info" :closable="false" show-icon
                 style="margin-top:10px" :title="t('bill.remarkTitle')">
-        <div style="white-space:pre-wrap">{{ dvRow.remark }}</div>
+        <div style="white-space:pre-wrap">{{ localizeRemark(dvRow.remark) }}</div>
       </el-alert>
       <el-collapse style="margin-top:8px">
         <el-collapse-item :title="t('bill.rawFields')">
@@ -600,6 +604,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
+import { getLocale } from '@/i18n'
 
 /** 通用详情弹窗（复用 DetailView） */
 const { t } = useI18n()
@@ -1106,6 +1111,45 @@ async function batchDunning() {
 async function scanOverdue() {
   await financeApi.scanOverdue()
   ElMessage.success('逾期扫描完成'); load()
+}
+
+function explainLabel(label) {
+  const map = {
+    '收费项目': 'Fee Item', '计费方式': 'Billing Mode', '单价': 'Unit Price',
+    '建筑面积': 'Building Area', '数量': 'Quantity', '费用区间': 'Service Period',
+    '计费天数': 'Billing Days', '折算月数': 'Prorated Months',
+    '计算公式': 'Formula', '应收金额': 'Amount', '计费说明': 'Billing Notes'
+  }
+  return getLocale() === 'en-US' ? (map[label] || label) : label
+}
+
+function explainValue(label, value) {
+  if (getLocale() !== 'en-US' || value === null || value === undefined) return value
+  let v = String(value)
+  const mode = {
+    '按抄表': 'Meter', '按面积': 'Area', '按人': 'Person', '按床位': 'Bed',
+    '按套': 'Unit', '按夜': 'Night', '固定额': 'Fixed'
+  }
+  if (label === '计费方式') v = mode[v] || v
+  const formulas = {
+    '天数 × 单价': 'Days × Unit Price',
+    '用量 × 单价（用量见抄表记录）': 'Usage × Unit Price (see meter readings)',
+    '面积 × 单价 × 月数': 'Area × Unit Price × Months',
+    '数量 × 单价 × 月数': 'Quantity × Unit Price × Months',
+    '单价 × 月数': 'Unit Price × Months'
+  }
+  if (label === '计算公式') v = formulas[v] || v
+  v = v.replace(/元\/方/g, 'CNY/m³').replace(/元\/㎡/g, 'CNY/m²')
+    .replace(/元\/月/g, 'CNY/month').replace(/元\/人·月/g, 'CNY/person·month')
+    .replace(/㎡/g, 'm²').replace(/ 天/g, ' days')
+  return v
+}
+
+function localizeRemark(text) {
+  if (!text || getLocale() !== 'en-US') return text
+  return String(text)
+    .replace(/抄表出账/g, 'Meter billing').replace(/月租金/g, 'Monthly rent')
+    .replace(/物业费/g, 'Property fee').replace(/公摊分摊/g, 'Shared allocation')
 }
 
 const q0 = JSON.parse(JSON.stringify(q))

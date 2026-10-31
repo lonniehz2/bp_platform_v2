@@ -87,6 +87,7 @@ export default {
     waive: '减免',
     cancel: '取消',
     remind: '催缴',
+    detailTitle: '账单详情',
     paymentsDetail: '缴费明细（收款单）',
     calcDetail: '计费明细',
     remarkTitle: '计费说明',
