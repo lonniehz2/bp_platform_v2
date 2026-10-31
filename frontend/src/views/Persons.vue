@@ -1,19 +1,19 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">保障对象</h3>
+      <h3 style="margin:0">{{ t('person.title') }}</h3>
       <el-tag size="small" type="info">建档 → 实名核验 → 保障档案 → 资格判定</el-tag>
       <div class="spacer" />
-      <el-select v-model="orgId" filterable clearable placeholder="全部组织"
+      <el-select v-model="orgId" filterable clearable :placeholder="t('person.allOrg')"
                  style="width:220px" data-testid="person-org-filter">
-        <el-option label="全部组织" :value="null" />
+        <el-option :label="t('person.allOrg')" :value="null" />
         <el-option v-for="o in orgOptions" :key="o.id"
                    :label="orgOptionLabel(o)" :value="o.id" />
       </el-select>
       <el-checkbox v-model="includeChildren" :disabled="!orgId"
                    data-testid="person-org-children">含下级</el-checkbox>
-      <el-button type="primary" @click="reloadAll">查询</el-button>
-      <el-button @click="resetAllQuery">清空</el-button>
+      <el-button type="primary" @click="reloadAll">{{ t('person.search') }}</el-button>
+      <el-button @click="resetAllQuery">{{ t('person.reset') }}</el-button>
     </div>
 
     <el-alert type="warning" :closable="false" show-icon
@@ -22,40 +22,40 @@
 
     <el-tabs v-model="tab" @tab-change="onTab">
       <!-- ============ 人员档案 ============ -->
-      <el-tab-pane label="人员档案" name="person">
+      <el-tab-pane :label="t('person.tabPerson')" name="person">
         <div class="toolbar">
-          <el-input v-model="keyword" placeholder="姓名 / 证件号" clearable
+          <el-input v-model="keyword" :placeholder="t('person.keyword')" clearable
                     style="width:190px" @keyup.enter="loadPersons" />
-          <el-button @click="loadPersons">查询</el-button>
-          <el-button @click="resetPersonQuery">清空</el-button>
-          <el-button @click="queryByIdCard">按证件号精确查</el-button>
+          <el-button @click="loadPersons">{{ t('person.search') }}</el-button>
+          <el-button @click="resetPersonQuery">{{ t('person.reset') }}</el-button>
+          <el-button @click="queryByIdCard">{{ t('person.exact') }}</el-button>
           <div class="spacer" />
-          <el-button type="success" @click="openPerson">新增人员</el-button>
+          <el-button type="success" @click="openPerson">{{ t('person.add') }}</el-button>
         </div>
         <el-table :data="persons" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
-          <el-table-column prop="id" label="人员ID" width="190" />
-        <el-table-column prop="personName" label="姓名" width="110" />
-          <el-table-column label="所属组织" min-width="160">
+          <el-table-column prop="id" :label="t('person.id')" width="190" />
+        <el-table-column prop="personName" :label="t('person.name')" width="110" />
+          <el-table-column :label="t('person.org')" min-width="160">
             <template #default="{ row }">{{ orgNameOf(row.orgId) }}</template>
           </el-table-column>
-          <el-table-column prop="idCardMask" label="证件号" width="190">
+          <el-table-column prop="idCardMask" :label="t('person.idCard')" width="190">
             <template #default="{ row }">{{ row.idCard || row.idCardMask || '-' }}</template>
           </el-table-column>
-          <el-table-column prop="phoneMask" label="手机号" width="140" />
-        <el-table-column label="实名状态" width="110">
+          <el-table-column prop="phoneMask" :label="t('person.phone')" width="140" />
+        <el-table-column :label="t('person.verifyStatus')" width="110">
           <template #default="{ row }">
             <el-tag size="small" :type="row.verifyStatus === 'VERIFIED' ? 'success' : 'info'">
               {{ enumLabel('verifyStatus', row.verifyStatus) }}
             </el-tag>
           </template>
         </el-table-column>
-          <el-table-column label="户籍" width="90">
+          <el-table-column :label="t('person.household')" width="90">
             <template #default="{ row }">{{ enumLabel('householdType', row.householdType) }}</template>
           </el-table-column>
-          <el-table-column label="婚姻" width="90">
+          <el-table-column :label="t('person.marriage')" width="90">
             <template #default="{ row }">{{ enumLabel('maritalStatus', row.maritalStatus) }}</template>
           </el-table-column>
-          <el-table-column prop="personStatus" label="状态" width="100">
+          <el-table-column prop="personStatus" :label="t('person.status')" width="100">
             <template #default="{ row }">
               <el-tag size="small" :type="row.personStatus === 'NORMAL' ? 'success'
                 : (row.personStatus === 'FROZEN' ? 'warning' : 'info')">
@@ -63,14 +63,14 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="330" fixed="right">
+          <el-table-column :label="t('person.actions')" width="330" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-              <el-button link type="primary" @click="changeStatus(row)">改状态</el-button>
-              <el-button link @click="openProfileFor(row)">保障档案</el-button>
+              <el-button link type="primary" @click="openEdit(row)">{{ t('person.edit') }}</el-button>
+              <el-button link type="primary" @click="changeStatus(row)">{{ t('person.changeStatus') }}</el-button>
+              <el-button link @click="openProfileFor(row)">{{ t('person.profile') }}</el-button>
               <el-button link :disabled="row.verifyStatus === 'VERIFIED'"
                          @click="openVerifyFor(row)">实名核验</el-button>
-              <el-button link type="danger" @click="removePerson(row)">删除</el-button>
+              <el-button link type="danger" @click="removePerson(row)">{{ t('person.delete') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -81,23 +81,23 @@
       </el-tab-pane>
 
       <!-- ============ 保障档案 ============ -->
-      <el-tab-pane label="保障档案" name="profile">
+      <el-tab-pane :label="t('person.tabProfile')" name="profile">
         <div class="toolbar">
-          <el-button type="success" @click="profileVisible = true">建档</el-button>
-          <el-button @click="loadExpiring">临近到期</el-button>
-          <el-input v-model.number="expiringDays" placeholder="天数" style="width:90px"
+          <el-button type="success" @click="profileVisible = true">{{ t('person.createProfile') }}</el-button>
+          <el-button @click="loadExpiring">{{ t('person.expiring') }}</el-button>
+          <el-input v-model.number="expiringDays" :placeholder="t('person.days')" style="width:90px"
                     data-testid="expiring-days" @keyup.enter="loadExpiring" />
           <div class="spacer" />
           <PersonPicker v-model="profilePersonId" width="260px"
                         testid="profile-filter-person" />
-          <el-button type="primary" @click="loadProfileByPerson">查看</el-button>
-          <el-button @click="profilePersonId = null; loadProfiles()">全部</el-button>
+          <el-button type="primary" @click="loadProfileByPerson">{{ t('person.view') }}</el-button>
+          <el-button @click="profilePersonId = null; loadProfiles()">{{ t('person.all') }}</el-button>
         </div>
         <el-alert type="info" :closable="false" show-icon
                   title="资格判定：按档案事实（收入档位、名下房产、人才认定有效期）判定是否具备保障资格，通过后档案置「已通过」并给 1 年有效期；不通过会列出具体原因。退出保障：档案置「已退出」，同时退出轮候队列，且不能再新增申请或入队（记录保留可查）。"
                   style="margin-bottom:10px" />
         <el-table :data="profiles" v-loading="loading" border size="small">
-          <el-table-column label="保障对象" width="230">
+          <el-table-column :label="t('person.target')" width="230">
             <template #default="{ row }">
               <div>{{ row.personName || row.personId }}</div>
               <div class="muted" style="font-size:12px">
@@ -105,16 +105,16 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="保障类型" width="110">
+          <el-table-column :label="t('person.securityType')" width="110">
             <template #default="{ row }">
               {{ row.securityTypeLabel || enumLabel('securityType', row.securityType) }}
             </template>
           </el-table-column>
-          <el-table-column prop="familySize" label="家庭人口" width="100" />
-          <el-table-column prop="monthlyIncome" label="月收入" width="110">
+          <el-table-column prop="familySize" :label="t('person.familySize')" width="100" />
+          <el-table-column prop="monthlyIncome" :label="t('person.monthlyIncome')" width="110">
             <template #default="{ row }">{{ money(row.monthlyIncome) }}</template>
           </el-table-column>
-          <el-table-column label="收入档位" width="130">
+          <el-table-column :label="t('person.incomeLevel')" width="130">
             <template #default="{ row }">
               <el-tag v-if="row.incomeLevelLabel || row.incomeLevel" size="small">
                 {{ row.incomeLevelLabel || enumLabel('incomeLevel', row.incomeLevel) }}
@@ -122,14 +122,14 @@
               <span v-else class="muted">未评定</span>
             </template>
           </el-table-column>
-          <el-table-column label="状态" width="100">
+          <el-table-column :label="t('person.status')" width="100">
             <template #default="{ row }">{{ row.profileStatusLabel || enumLabel('profileStatus', row.profileStatus) }}</template>
           </el-table-column>
-          <el-table-column label="操作" width="300" fixed="right">
+          <el-table-column :label="t('person.actions')" width="300" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openProfileEdit(row)">编辑</el-button>
-              <el-button link type="primary" @click="openRecalc(row)">收入重算</el-button>
-              <el-button link type="success" @click="qualify(row)">资格判定</el-button>
+              <el-button link type="primary" @click="openProfileEdit(row)">{{ t('person.edit') }}</el-button>
+              <el-button link type="primary" @click="openRecalc(row)">{{ t('person.recalc') }}</el-button>
+              <el-button link type="success" @click="qualify(row)">{{ t('person.qualify') }}</el-button>
               <el-button link type="danger" :disabled="row.profileStatus === 'EXITED'"
                          :title="row.profileStatus === 'EXITED' ? '该人员已退出保障' : ''"
                          @click="exitProfile(row)">退出保障</el-button>
@@ -143,18 +143,18 @@
       </el-tab-pane>
 
       <!-- ============ 实名核验 ============ -->
-      <el-tab-pane label="实名核验" name="verify">
+      <el-tab-pane :label="t('person.tabVerify')" name="verify">
         <div class="toolbar">
-          <el-button type="success" @click="verifyVisible = true">发起核验</el-button>
-          <el-button @click="loadFailStats">失败统计</el-button>
+          <el-button type="success" @click="verifyVisible = true">{{ t('person.startVerify') }}</el-button>
+          <el-button @click="loadFailStats">{{ t('person.failStats') }}</el-button>
           <div class="spacer" />
           <PersonPicker v-model="verifyPersonId" width="260px"
                         testid="verify-filter-person" />
-          <el-button type="primary" @click="loadConclusion">查结论</el-button>
-          <el-button @click="verifyPersonId = null; loadVerifies()">全部</el-button>
+          <el-button type="primary" @click="loadConclusion">{{ t('person.conclusion') }}</el-button>
+          <el-button @click="verifyPersonId = null; loadVerifies()">{{ t('person.all') }}</el-button>
         </div>
         <el-table :data="verifies" v-loading="loading" border size="small">
-          <el-table-column label="核验对象" width="240">
+          <el-table-column :label="t('person.verifyTarget')" width="240">
             <template #default="{ row }">
               <div>{{ row.personName || row.personId }}</div>
               <div class="muted" style="font-size:12px">
@@ -162,22 +162,22 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="核验方式" width="130">
+          <el-table-column :label="t('person.verifyMethod')" width="130">
             <template #default="{ row }">
               {{ enumLabel('verifyType', row.verifyType) || row.verifyType }}
             </template>
           </el-table-column>
-          <el-table-column label="结果" width="110">
+          <el-table-column :label="t('person.result')" width="110">
             <template #default="{ row }">
               <el-tag size="small" :type="Number(row.verifyPass) === 1 ? 'success' : 'danger'">
                 {{ Number(row.verifyPass) === 1 ? '通过' : '未通过' }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="faceScore" label="人脸分" width="100" />
-          <el-table-column prop="responseCode" label="返回码" width="100" />
-          <el-table-column prop="verifyTime" label="核验时间" width="170" />
-          <el-table-column label="操作" width="200" fixed="right">
+          <el-table-column prop="faceScore" :label="t('person.faceScore')" width="100" />
+          <el-table-column prop="responseCode" :label="t('person.responseCode')" width="100" />
+          <el-table-column prop="verifyTime" :label="t('person.verifyTime')" width="170" />
+          <el-table-column :label="t('person.actions')" width="200" fixed="right">
             <template #default="{ row }">
               <el-button v-if="Number(row.verifyPass) !== 1" link type="primary"
                          @click="openVerifyFor(row)">实名核验</el-button>
@@ -196,47 +196,47 @@
 
     <!-- 新增人员 PersonCreateCmd -->
     <el-dialog v-model="personVisible"
-               :title="editTarget ? '编辑人员' : '新增人员'" width="620px">
+               :title="editTarget ? t('person.editTitle') : t('person.newTitle')" width="620px">
       <el-form :model="pf" label-width="110px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="姓名" required>
+          <el-col :span="12"><el-form-item :label="t('person.name')" required>
             <el-input v-model="pf.personName" data-testid="person-name" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="身份证号">
+          <el-col :span="12"><el-form-item :label="t('person.idCard')">
             <el-input v-model="pf.idCard" :disabled="!!editTarget"
-                      placeholder="18 位，校验位需正确（编辑不可改）" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="手机号">
+                      :placeholder="t('person.idCardHint')" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item :label="t('person.phone')">
             <el-input v-model="pf.phone" data-testid="person-phone"
-                      placeholder="编辑时留空表示不修改" /></el-form-item></el-col>
+                      :placeholder="t('person.phoneHint')" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="所属组织">
             <el-select v-model="pf.orgId" filterable clearable style="width:100%"
-                       placeholder="选择组织（可空）" data-testid="person-org">
+                       :placeholder="t('person.orgHint')" data-testid="person-org">
               <el-option v-for="o in orgOptions" :key="o.id"
                          :label="o.orgName" :value="String(o.id)" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="户籍类型">
+          <el-col :span="12"><el-form-item :label="t('person.householdType')">
             <el-select v-model="pf.householdType" style="width:100%">
-              <el-option label="城镇" value="URBAN" />
-              <el-option label="农村" value="RURAL" />
-              <el-option label="其他" value="OTHER" />
+              <el-option :label="t('person.urban')" value="URBAN" />
+              <el-option :label="t('person.rural')" value="RURAL" />
+              <el-option :label="t('person.other')" value="OTHER" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="婚姻状况">
+          <el-col :span="12"><el-form-item :label="t('person.maritalStatus')">
             <el-select v-model="pf.maritalStatus" style="width:100%">
-              <el-option label="未婚" value="SINGLE" />
-              <el-option label="已婚" value="MARRIED" />
-              <el-option label="离异" value="DIVORCED" />
-              <el-option label="丧偶" value="WIDOWED" />
+              <el-option :label="t('person.single')" value="SINGLE" />
+              <el-option :label="t('person.married')" value="MARRIED" />
+              <el-option :label="t('person.divorced')" value="DIVORCED" />
+              <el-option :label="t('person.widowed')" value="WIDOWED" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="学历">
+          <el-col :span="12"><el-form-item :label="t('person.education')">
             <el-input v-model="pf.education" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="工作单位">
+          <el-col :span="12"><el-form-item :label="t('person.employer')">
             <el-input v-model="pf.employer" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="备注">
+          <el-col :span="24"><el-form-item :label="t('person.remark')">
             <el-input v-model="pf.remark" type="textarea" :rows="2" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="personVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreatePerson">保存</el-button>
+        <el-button @click="personVisible = false">{{ t('person.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreatePerson">{{ t('person.save') }}</el-button>
       </template>
     </el-dialog>
 
@@ -397,6 +397,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -404,6 +405,7 @@ import req, { getToken, getTenant } from '@/api/request'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { enumLabel } from '@/constants/enums'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const TABS = ['person', 'profile', 'verify']
