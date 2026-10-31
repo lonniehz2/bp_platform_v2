@@ -120,6 +120,7 @@ export default {
     edit: '编辑',
     more: '更多 ▾',
     daysLeft: '剩 {n} 天',
+    months: '{n} 个月',
     createTitle: '新建合同', quickTitle: '快捷签约（线下受理）', detailTitle: '合同详情', editTitle: '编辑合同条款（仅草稿可改）', changeTitle: '发起合同变更', swapTitle: '合同换房', signTitle: '合同签约', renewTitle: '合同续签', termTitle: '终止合同', exportFile: '合同台账', exported: '已导出 {n} 条合同', exportFailed: '导出失败'
   },
   nav: {

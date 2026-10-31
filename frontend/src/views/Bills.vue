@@ -106,7 +106,7 @@
     <!-- 批量出账 -->
     <el-dialog v-model="genVisible" :title="t('bill.genTitle')" width="500px">
       <el-form :model="g" label-width="120px">
-        <el-form-item label="组织">
+        <el-form-item :label="labelOf('orgName')">
           <el-select v-model="g.orgId" filterable clearable style="width:100%"
                      placeholder="按名称搜索组织">
             <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName"
@@ -127,7 +127,7 @@
             <el-radio-button label="NONE">不使用</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item v-if="g.ruleMode === 'MANUAL'" label="指定规则" required>
+        <el-form-item v-if="g.ruleMode === 'MANUAL'" :label="labelOf('ruleName')" required>
           <el-select v-model="g.ruleId" filterable style="width:100%"
                      placeholder="选择已审批规则">
             <el-option v-for="r in genRules" :key="r.id"
@@ -175,19 +175,19 @@
                   (genResult.totalAmount != null ? '，合计 ' + genResult.totalAmount + ' 元' : '')" />
       <el-table v-if="genResult && genResult.items" :data="genResult.items" size="small"
                 border max-height="360" style="margin-top:10px">
-        <el-table-column prop="contractNo" label="合同" width="170" />
-        <el-table-column label="金额" width="100" >
+        <el-table-column prop="contractNo" :label="labelOf('contractNo')" width="170" />
+        <el-table-column :label="labelOf('amount')" width="100" >
           <template #default="{ row }">{{ $money(row.amount) }}</template>
         </el-table-column>
-        <el-table-column prop="status" label="结果" width="90">
+        <el-table-column prop="status" :label="labelOf('result')" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="row.status === 'OK' ? 'success' : 'warning'">
               {{ row.status === 'OK' ? '已生成' : '跳过' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="explain" label="计算过程" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="reason" label="跳过原因" min-width="160" show-overflow-tooltip />
+        <el-table-column prop="explain" :label="labelOf('explain')" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="reason" :label="labelOf('skipReason')" min-width="160" show-overflow-tooltip />
       </el-table>
       <template #footer>
         <el-button type="primary" @click="genResultVisible = false">知道了</el-button>
@@ -212,10 +212,10 @@
                        :value="String(f.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="总金额" required>
+        <el-form-item :label="labelOf('totalAmount')" required>
           <el-input v-model="sf.totalAmount" type="number" placeholder="如 1200" />
         </el-form-item>
-        <el-form-item label="分摊方式">
+        <el-form-item :label="labelOf('allocationMode')">
           <el-radio-group v-model="sf.allocateBy">
             <el-radio-button value="AREA">按建筑面积</el-radio-button>
             <el-radio-button value="HOUSE">按户数均摊</el-radio-button>
@@ -228,9 +228,9 @@
           <el-col :span="12"><el-form-item :label="t('bill.periodEnd')" required>
             <el-date-picker v-model="sf.periodEnd" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="账期" required>
+          <el-col :span="12"><el-form-item :label="labelOf('billPeriod')" required>
             <el-input v-model="sf.billPeriod" placeholder="202610" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="到期日">
+          <el-col :span="12"><el-form-item :label="labelOf('dueDate')">
             <el-date-picker v-model="sf.dueDate" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
         </el-row>
@@ -247,23 +247,23 @@
                 title="录入本次读数后自动带出上次读数、用量与金额；确认无误再点「出账生成账单」"
                 style="margin-bottom:12px" />
       <el-form :model="mf" label-width="96px" inline>
-        <el-form-item label="房源">
+        <el-form-item :label="labelOf('houseName')">
           <el-select v-model="mf.houseId" filterable remote :remote-method="searchMeterHouse"
                      :loading="houseLoading" style="width:240px" placeholder="输入房号搜索">
             <el-option v-for="h in meterHouses" :key="h.id" :label="h.houseName" :value="String(h.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="收费项目">
+        <el-form-item :label="labelOf('feeItemName')">
           <el-select v-model="mf.feeItemId" filterable style="width:200px">
             <el-option v-for="f in meterItems" :key="f.id"
                        :label="`${f.itemName}（${f.unitPrice}/${f.unit || '单位'}）`"
                        :value="String(f.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="本次读数">
+        <el-form-item :label="labelOf('reading')">
           <el-input v-model="mf.reading" type="number" style="width:140px" />
         </el-form-item>
-        <el-form-item label="抄表日">
+        <el-form-item :label="labelOf('readDate')">
           <el-date-picker v-model="mf.readDate" type="date" value-format="YYYY-MM-DD"
                           style="width:150px" />
         </el-form-item>
@@ -273,24 +273,24 @@
       </el-form>
 
       <el-table :data="readings" size="small" border max-height="320" style="margin-top:8px">
-        <el-table-column prop="readDate" label="抄表日" width="110" />
-        <el-table-column prop="prevReading" label="上次读数" width="100" />
-        <el-table-column prop="reading" label="本次读数" width="100" />
-        <el-table-column prop="usageAmount" label="用量" width="90" />
-        <el-table-column label="单价" width="80" >
+        <el-table-column prop="readDate" :label="labelOf('readDate')" width="110" />
+        <el-table-column prop="prevReading" :label="labelOf('prevReading')" width="100" />
+        <el-table-column prop="reading" :label="labelOf('reading')" width="100" />
+        <el-table-column prop="usageAmount" :label="labelOf('usage')" width="90" />
+        <el-table-column :label="labelOf('unitPrice')" width="80" >
           <template #default="{ row }">{{ $money(row.unitPrice) }}</template>
         </el-table-column>
-        <el-table-column label="金额" width="100" >
+        <el-table-column :label="labelOf('amount')" width="100" >
           <template #default="{ row }">{{ $money(row.amount) }}</template>
         </el-table-column>
-        <el-table-column prop="billStatus" label="状态" width="100">
+        <el-table-column prop="billStatus" :label="labelOf('status')" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="row.billStatus === 'BILLED' ? 'success' : 'warning'">
               {{ row.billStatus === 'BILLED' ? '已出账' : '待出账' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="90">
+        <el-table-column :label="labelOf('actions')" width="90">
           <template #default="{ row }">
             <el-button link type="primary" :disabled="row.billStatus === 'BILLED'"
                        @click="doMeterBill(row)">出账</el-button>
@@ -305,18 +305,18 @@
     <!-- 登记收款 PaymentCreateCmd -->
     <el-dialog v-model="payVisible" title="登记收款" width="520px">
       <el-form :model="p" label-width="110px">
-        <el-form-item label="组织">
+        <el-form-item :label="labelOf('orgName')">
           <el-select v-model="p.orgId" filterable clearable style="width:100%"
                      placeholder="按名称搜索组织">
             <el-option v-for="o in payOrgs" :key="o.id" :label="o.orgName"
                        :value="String(o.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="人员ID"><PersonPicker v-model="p.personId" width="240px" testid="person-picker" /></el-form-item>
-        <el-form-item label="缴费人"><el-input v-model="p.payerName" /></el-form-item>
-        <el-form-item label="收款金额"><el-input v-model.number="p.payAmount" />
+        <el-form-item :label="labelOf('personId')"><PersonPicker v-model="p.personId" width="240px" testid="person-picker" /></el-form-item>
+        <el-form-item :label="labelOf('payerName')"><el-input v-model="p.payerName" /></el-form-item>
+        <el-form-item :label="labelOf('payAmount')"><el-input v-model.number="p.payAmount" />
         </el-form-item>
-        <el-form-item label="收款渠道">
+        <el-form-item :label="labelOf('channel')">
           <el-select v-model="p.payChannel" style="width:100%">
             <el-option label="现金" value="CASH" />
             <el-option label="银行转账" value="BANK" />
@@ -324,16 +324,16 @@
             <el-option label="支付宝" value="ALIPAY" />
             <el-option label="POS" value="POS" />
           </el-select></el-form-item>
-        <el-form-item label="收款时间">
+        <el-form-item :label="labelOf('payTime')">
           <el-date-picker v-model="p.payTime" type="datetime" style="width:100%"
                           value-format="YYYY-MM-DD HH:mm:ss"
                           placeholder="默认当前时间，可回填历史收款" />
         </el-form-item>
-        <el-form-item label="交易流水号"><el-input v-model="p.tradeNo" /></el-form-item>
-        <el-form-item label="来源不明">
+        <el-form-item :label="labelOf('transactionNo')"><el-input v-model="p.tradeNo" /></el-form-item>
+        <el-form-item :label="labelOf('unknownSource')">
           <el-switch v-model="p.unknownFlag" :active-value="1" :inactive-value="0" />
         </el-form-item>
-        <el-form-item label="备注">
+        <el-form-item :label="labelOf('remark')">
           <el-input v-model="p.remark" type="textarea" :rows="2" /></el-form-item>
       </el-form>
       <template #footer>
@@ -353,20 +353,20 @@
       </div>
       <el-table :data="payments" border size="small" max-height="420"
                 empty-text="暂无收款单，点击「登记收款」新增">
-        <el-table-column prop="paymentNo" label="收款单号" width="185" />
-        <el-table-column label="缴费人" width="130">
+        <el-table-column prop="paymentNo" :label="labelOf('paymentNo')" width="185" />
+        <el-table-column :label="labelOf('payerName')" width="130">
           <template #default="{ row }">
             {{ row.payerName || row.personIdName || row.personId || '—' }}
           </template>
         </el-table-column>
-        <el-table-column prop="payAmount" label="收款金额" width="110" />
-        <el-table-column prop="reconciledAmount" label="已核销" width="110" />
-        <el-table-column prop="remainAmount" label="余额" width="110" />
-        <el-table-column label="状态" width="110">
+        <el-table-column prop="payAmount" :label="labelOf('payAmount')" width="110" />
+        <el-table-column prop="reconciledAmount" :label="labelOf('allocateAmount')" width="110" />
+        <el-table-column prop="remainAmount" :label="labelOf('balance')" width="110" />
+        <el-table-column :label="labelOf('status')" width="110">
           <template #default="{ row }">{{ row.payStatusLabel || row.payStatus }}</template>
         </el-table-column>
-        <el-table-column prop="payTime" label="收款时间" width="170" />
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column prop="payTime" :label="labelOf('payTime')" width="170" />
+        <el-table-column :label="labelOf('actions')" width="150" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openPaymentDetail(row)">详情</el-button>
             <el-button link type="success" :disabled="!Number(row.remainAmount)"
@@ -383,28 +383,28 @@
     <!-- 收款单详情：使用明细 -->
     <el-dialog v-model="payDetailVisible" title="收款单详情" width="820px">
       <el-descriptions v-if="payDetail" :column="2" border size="small">
-        <el-descriptions-item label="收款单号">{{ payDetail.paymentNo }}</el-descriptions-item>
-        <el-descriptions-item label="缴费人">
+        <el-descriptions-item :label="labelOf('paymentNo')">{{ payDetail.paymentNo }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('payerName')">
           {{ payDetail.payerName || payDetail.personIdName || payDetail.personId || '—' }}
         </el-descriptions-item>
-        <el-descriptions-item label="收款金额">{{ payDetail.payAmount }}</el-descriptions-item>
-        <el-descriptions-item label="已核销">{{ payDetail.reconciledAmount }}</el-descriptions-item>
-        <el-descriptions-item label="余额">{{ payDetail.remainAmount }}</el-descriptions-item>
-        <el-descriptions-item label="收款渠道">
+        <el-descriptions-item :label="labelOf('payAmount')">{{ payDetail.payAmount }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('allocateAmount')">{{ payDetail.reconciledAmount }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('balance')">{{ payDetail.remainAmount }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('channel')">
           {{ enumLabel('payChannel', payDetail.payChannel) || payDetail.payChannel }}
         </el-descriptions-item>
-        <el-descriptions-item label="收款时间">{{ payDetail.payTime }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
+        <el-descriptions-item :label="labelOf('payTime')">{{ payDetail.payTime }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('status')">
           {{ payDetail.payStatusLabel || payDetail.payStatus }}
         </el-descriptions-item>
-        <el-descriptions-item label="备注" :span="2">{{ payDetail.remark || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('remark')" :span="2">{{ payDetail.remark || '—' }}</el-descriptions-item>
       </el-descriptions>
       <div style="font-weight:600;margin:12px 0 6px">使用明细（核销到账单）</div>
       <el-table :data="payUsage" border size="small"
                 empty-text="尚未核销到任何账单">
-        <el-table-column prop="bill_no" label="账单号" width="190" />
-        <el-table-column prop="allocate_amount" label="核销金额" width="120" />
-        <el-table-column prop="create_time" label="核销时间" />
+        <el-table-column prop="bill_no" :label="labelOf('billNo')" width="190" />
+        <el-table-column prop="allocate_amount" :label="labelOf('allocateAmount')" width="120" />
+        <el-table-column prop="create_time" :label="labelOf('allocateTime')" />
       </el-table>
     </el-dialog>
 
@@ -413,13 +413,13 @@
       <el-alert type="info" :closable="false" show-icon
                 title="选择一张未缴清账单，把本收款单的余额核销进去" />
       <el-form label-width="110px" style="margin-top:10px">
-        <el-form-item label="收款单">
+        <el-form-item :label="labelOf('paymentNo')">
           <el-input :model-value="usePaymentRow?.paymentNo" disabled />
         </el-form-item>
-        <el-form-item label="可核销余额">
+        <el-form-item :label="labelOf('availableAmount')">
           <el-input :model-value="usePaymentRow?.remainAmount" disabled />
         </el-form-item>
-        <el-form-item label="目标账单" required>
+        <el-form-item :label="labelOf('targetBill')" required>
           <el-select v-model="useBillId" filterable style="width:100%"
                      placeholder="选择未缴清账单（单号/账期）" @change="onUseBillChange">
             <el-option v-for="b in useBills" :key="b.id"
@@ -427,7 +427,7 @@
                        :value="String(b.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="核销金额">
+        <el-form-item :label="labelOf('allocateAmount')">
           <el-input v-model.number="useAmount" placeholder="留空=取余额与待缴较小值" />
         </el-form-item>
       </el-form>
@@ -442,11 +442,11 @@
       <el-alert type="info" :closable="false" show-icon
                 title="三重上限：不超收款单余额、不超账单应付、已缴账单不可再核销" />
       <el-form :model="a" label-width="110px" style="margin-top:12px">
-        <el-form-item label="账单号">
+        <el-form-item :label="labelOf('billNo')">
           <el-input :model-value="current?.billNo" disabled /></el-form-item>
-        <el-form-item label="账单待缴">
+        <el-form-item :label="labelOf('billPayable')">
           <el-input :model-value="current?.payableAmount" disabled /></el-form-item>
-        <el-form-item label="收款单" required>
+        <el-form-item :label="labelOf('paymentNo')" required>
           <el-select v-model="a.paymentId" filterable style="width:100%"
                      placeholder="选择待核销收款单（单号/缴费人）">
             <el-option v-for="x in openPaymentsList" :key="x.id"
@@ -457,7 +457,7 @@
             没有收款单？先点顶部「登记收款」，再回到本页核销
           </span>
         </el-form-item>
-        <el-form-item label="核销金额">
+        <el-form-item :label="labelOf('allocateAmount')">
           <el-input v-model.number="a.amount" placeholder="留空=全部待缴" /></el-form-item>
       </el-form>
       <template #footer>
@@ -469,11 +469,11 @@
     <!-- 减免 WaiveCmd -->
     <el-dialog v-model="waiveVisible" title="账单减免" width="460px">
       <el-form :model="w" label-width="110px">
-        <el-form-item label="账单号">
+        <el-form-item :label="labelOf('billNo')">
           <el-input :model-value="current?.billNo" disabled /></el-form-item>
-        <el-form-item label="减免金额">
+        <el-form-item :label="labelOf('waiveAmount')">
           <el-input v-model.number="w.waiveAmount" placeholder="留空=全部待缴" /></el-form-item>
-        <el-form-item label="减免原因">
+        <el-form-item :label="labelOf('waiveReason')">
           <el-input v-model="w.reason" type="textarea" :rows="3" /></el-form-item>
       </el-form>
       <template #footer>
@@ -499,50 +499,50 @@
         </span>
       </div>
       <el-descriptions :column="2" border size="small">
-        <el-descriptions-item label="缴费人">
+        <el-descriptions-item :label="labelOf('payerName')">
           {{ dvRow.payerName || dvRow.personIdName || '—' }}
           <span v-if="dvRow.payerPhone" class="muted">（{{ dvRow.payerPhone }}）</span>
         </el-descriptions-item>
-        <el-descriptions-item label="合同">
+        <el-descriptions-item :label="labelOf('contractNo')">
           {{ dvRow.contractIdName || dvRow.contractId || '—' }}
         </el-descriptions-item>
-        <el-descriptions-item label="房源">
+        <el-descriptions-item :label="labelOf('houseName')">
           {{ dvRow.houseIdName || dvRow.houseId || '—' }}
         </el-descriptions-item>
-        <el-descriptions-item label="收费项目">
+        <el-descriptions-item :label="labelOf('feeItemName')">
           {{ dvRow.feeItemIdName || dvRow.feeItemName || dvRow.feeItemId || '—' }}
         </el-descriptions-item>
-        <el-descriptions-item label="账期">{{ dvRow.billPeriod }}（{{ dvRow.periodStart }} ~ {{ dvRow.periodEnd }}）</el-descriptions-item>
-        <el-descriptions-item label="缴费截止">{{ dvRow.dueDate || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="应收">{{ dvRow.billAmount }}</el-descriptions-item>
-        <el-descriptions-item label="已缴">{{ dvRow.paidAmount }}</el-descriptions-item>
-        <el-descriptions-item label="减免">{{ dvRow.waivedAmount }}</el-descriptions-item>
-        <el-descriptions-item label="待缴">{{ dvRow.payableAmount }}</el-descriptions-item>
-        <el-descriptions-item label="滞纳金">{{ dvRow.lateFee || 0 }}</el-descriptions-item>
-        <el-descriptions-item label="逾期天数">{{ dvRow.overdueDays || 0 }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('billPeriod')">{{ dvRow.billPeriod }}（{{ dvRow.periodStart }} ~ {{ dvRow.periodEnd }}）</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('payDue')">{{ dvRow.dueDate || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('billAmount')">{{ dvRow.billAmount }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('paidAmount')">{{ dvRow.paidAmount }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('waiveAmount')">{{ dvRow.waivedAmount }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('payableAmount')">{{ dvRow.payableAmount }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('lateFee')">{{ dvRow.lateFee || 0 }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('overdueDays')">{{ dvRow.overdueDays || 0 }}</el-descriptions-item>
       </el-descriptions>
       <div style="margin-top:12px">
         <div style="font-weight:600;margin-bottom:6px">缴费明细（收款单）</div>
         <el-table :data="billPayments" size="small" border
                   empty-text="暂无收款核销记录">
-          <el-table-column prop="payment_no" label="收款单号" width="185" />
-          <el-table-column label="缴费人" width="110">
+          <el-table-column prop="payment_no" :label="labelOf('paymentNo')" width="185" />
+          <el-table-column :label="labelOf('payerName')" width="110">
             <template #default="{ row }">{{ row.payer_name || '—' }}</template>
           </el-table-column>
-          <el-table-column prop="allocate_amount" label="核销金额" width="110" />
-          <el-table-column label="渠道" width="90">
+          <el-table-column prop="allocate_amount" :label="labelOf('allocateAmount')" width="110" />
+          <el-table-column :label="labelOf('channel')" width="90">
             <template #default="{ row }">
               {{ enumLabel('payChannel', row.pay_channel) || row.pay_channel }}
             </template>
           </el-table-column>
-          <el-table-column prop="pay_time" label="收款时间" />
+          <el-table-column prop="pay_time" :label="labelOf('payTime')" />
         </el-table>
       </div>
       <div v-if="explainRows.length" style="margin-top:12px">
         <div style="font-weight:600;margin-bottom:6px">计费明细</div>
         <el-table :data="explainRows" size="small" border>
-          <el-table-column prop="label" label="项目" width="130" />
-          <el-table-column prop="value" label="值" />
+          <el-table-column prop="label" :label="labelOf('item')" width="130" />
+          <el-table-column prop="value" :label="labelOf('value')" />
         </el-table>
       </div>
       <el-alert v-if="dvRow.remark" type="info" :closable="false" show-icon
@@ -572,10 +572,10 @@
         <el-col :span="12">
           <div style="font-weight:600;margin-bottom:6px">月度趋势</div>
           <el-table :data="energyMonths0" size="small" border max-height="240">
-            <el-table-column prop="month" label="月份" width="100" />
-            <el-table-column prop="reading" label="读数次数" width="90" />
-            <el-table-column prop="usage" label="用量" />
-            <el-table-column label="金额" >
+            <el-table-column prop="month" :label="labelOf('month')" width="100" />
+            <el-table-column prop="reading" :label="labelOf('readCount')" width="90" />
+            <el-table-column prop="usage" :label="labelOf('usage')" />
+            <el-table-column :label="labelOf('amount')" >
           <template #default="{ row }">{{ $money(row.amount) }}</template>
         </el-table-column>
           </el-table>
@@ -583,17 +583,17 @@
         <el-col :span="12">
           <div style="font-weight:600;margin-bottom:6px">楼栋汇总</div>
           <el-table :data="energyBuildings" size="small" border max-height="240">
-            <el-table-column prop="building" label="楼栋" />
-            <el-table-column prop="usage" label="用量" width="120" />
+            <el-table-column prop="building" :label="labelOf('building')" />
+            <el-table-column prop="usage" :label="labelOf('usage')" width="120" />
           </el-table>
         </el-col>
       </el-row>
       <div style="font-weight:600;margin:12px 0 6px">用量 TOP 10 房源</div>
       <el-table :data="energyTop" size="small" border max-height="260">
-        <el-table-column prop="houseCode" label="房源编号" width="150" />
-        <el-table-column prop="houseName" label="房源名称" min-width="180" />
-        <el-table-column prop="building" label="楼栋" width="110" />
-        <el-table-column prop="usage" label="用量" width="100" />
+        <el-table-column prop="houseCode" :label="labelOf('houseCode')" width="150" />
+        <el-table-column prop="houseName" :label="labelOf('houseName')" min-width="180" />
+        <el-table-column prop="building" :label="labelOf('building')" width="110" />
+        <el-table-column prop="usage" :label="labelOf('usage')" width="100" />
       </el-table>
       <template #footer>
         <el-button @click="energyVisible = false">关闭</el-button>
@@ -780,7 +780,7 @@ async function exportBills() {
       { key: 'waivedAmount', label: labelOf('waivedAmount') },
       { key: 'payableAmount', label: labelOf('payableAmount') },
       { key: 'dueDate', label: labelOf('dueDate') },
-      { key: 'billStatusLabel', label: labelOf('billStatus') },
+      { key: 'billStatusLabel', label: labelOf('billStatus'), map: (r) => enumLabel('billStatus', r.billStatus) },
       { key: 'overdueDays', label: labelOf('overdueDays') }
     ], rows)
     ElMessage.success(t('bill.exported', { n: rows.length }))

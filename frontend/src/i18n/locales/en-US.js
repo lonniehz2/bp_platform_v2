@@ -120,6 +120,7 @@ export default {
     edit: 'Edit',
     more: 'More ▾',
     daysLeft: '{n} days left',
+    months: '{n} months',
     createTitle: 'New Contract', quickTitle: 'Quick Sign (offline)', detailTitle: 'Contract Detail', editTitle: 'Edit Contract (draft only)', changeTitle: 'Contract Change', swapTitle: 'Housing Exchange', signTitle: 'Sign Contract', renewTitle: 'Renew Contract', termTitle: 'Terminate Contract', exportFile: 'contracts', exported: '{n} contracts exported', exportFailed: 'Export failed'
   },
   nav: {

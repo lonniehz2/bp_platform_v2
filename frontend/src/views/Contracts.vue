@@ -190,15 +190,15 @@
     <!-- 签约 SignCmd -->
     <el-dialog v-model="signVisible" :title="t('contract.signTitle')" width="480px">
       <el-form :model="sg" label-width="110px">
-        <el-form-item label="签署方式">
+        <el-form-item :label="labelOf('signMethod')">
           <el-select v-model="sg.signVendor" style="width:100%">
             <el-option label="线下纸质" value="OFFLINE" />
             <el-option label="电子签章" value="ESIGN" />
             <el-option label="CA证书" value="CA" />
           </el-select></el-form-item>
-        <el-form-item label="签署文件URL">
+        <el-form-item :label="labelOf('signFileUrl')">
           <el-input v-model="sg.signFileUrl" /></el-form-item>
-        <el-form-item label="签署流程ID">
+        <el-form-item :label="labelOf('signFlowId')">
           <el-input v-model="sg.signFlowId" /></el-form-item>
         <el-form-item :label="labelOf('remark')">
           <el-input v-model="sg.reason" type="textarea" :rows="2" /></el-form-item>
@@ -212,11 +212,11 @@
     <!-- 续签 RenewCmd -->
     <el-dialog v-model="renewVisible" :title="t('contract.renewTitle')" width="460px">
       <el-form :model="rn" label-width="110px">
-        <el-form-item label="新止租日">
+        <el-form-item :label="labelOf('newLeaseEnd')">
           <el-date-picker v-model="rn.newLeaseEnd" type="date"
                           value-format="YYYY-MM-DD" style="width:100%" />
         </el-form-item>
-        <el-form-item label="新月租金">
+        <el-form-item :label="labelOf('newMonthlyRent')">
           <el-input v-model.number="rn.newMonthlyRent" /></el-form-item>
       </el-form>
       <template #footer>
@@ -233,13 +233,13 @@
     <!-- 终止 -->
     <el-dialog v-model="termVisible" :title="t('contract.termTitle')" width="460px">
       <el-form :model="tm" label-width="110px">
-        <el-form-item label="终止类型">
+        <el-form-item :label="labelOf('terminationType')">
           <el-select v-model="tm.terminateType" style="width:100%">
             <el-option label="协商终止" value="AGREEMENT" />
             <el-option label="违约终止" value="BREACH" />
             <el-option label="到期终止" value="EXPIRE" />
           </el-select></el-form-item>
-        <el-form-item label="终止原因">
+        <el-form-item :label="labelOf('terminationReason')">
           <el-input v-model="tm.reason" type="textarea" :rows="3" /></el-form-item>
       </el-form>
       <template #footer>
@@ -252,8 +252,8 @@
     <!-- 合同详情 -->
     <el-dialog v-model="detailVisible" :title="t('contract.detailTitle')" width="820px">
       <el-descriptions :column="2" border size="small">
-        <el-descriptions-item label="合同号">{{ detail.contractNo }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
+        <el-descriptions-item :label="labelOf('contractNo')">{{ detail.contractNo }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('status')">
           {{ detail.contractStatusLabel || enumLabel('contractStatus', detail.contractStatus) }}
         </el-descriptions-item>
         <el-descriptions-item :label="labelOf('contractType')">
@@ -263,19 +263,19 @@
         <el-descriptions-item :label="labelOf('idNumber')">{{ detail.lesseeIdCardMask }}</el-descriptions-item>
         <el-descriptions-item label="手机号">{{ detail.lesseePhone }}</el-descriptions-item>
         <el-descriptions-item label="房屋" :span="2">{{ detail.houseAddress }}</el-descriptions-item>
-        <el-descriptions-item label="面积">{{ detail.houseArea }} ㎡</el-descriptions-item>
-        <el-descriptions-item label="出租方">{{ detail.lessorOrgIdName }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('area')">{{ detail.houseArea }} ㎡</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('lessorName')">{{ detail.lessorOrgIdName }}</el-descriptions-item>
         <el-descriptions-item label="起租">{{ detail.leaseStart }}</el-descriptions-item>
         <el-descriptions-item label="止租">{{ detail.leaseEnd }}</el-descriptions-item>
-        <el-descriptions-item label="租期">{{ detail.leaseMonths }} 个月</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('leaseTerm')">{{ t('contract.months', { n: detail.leaseMonths }) }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('monthlyRent')">{{ detail.monthlyRent }}</el-descriptions-item>
-        <el-descriptions-item label="计费人口">{{ detail.billingPersonCount || 1 }}</el-descriptions-item>
-        <el-descriptions-item label="计费床位">{{ detail.billingBedCount || 1 }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('billingPersonCount')">{{ detail.billingPersonCount || 1 }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('billingBedCount')">{{ detail.billingBedCount || 1 }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('depositAmount')">{{ detail.depositAmount }}</el-descriptions-item>
         <el-descriptions-item label="实付（月租-补贴）">{{ detail.actualPay }}</el-descriptions-item>
-        <el-descriptions-item label="补贴">{{ detail.subsidyAmount }}</el-descriptions-item>
-        <el-descriptions-item label="支付周期">{{ detail.payCycle }}</el-descriptions-item>
-        <el-descriptions-item label="签约时间">{{ detail.signTime }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('subsidyAmount')">{{ detail.subsidyAmount }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('paymentCycle')">{{ detail.payCycle }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('signDate')">{{ detail.signTime }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('remark')" :span="2">{{ detail.remark || '—' }}</el-descriptions-item>
       </el-descriptions>
       <template #footer><el-button @click="detailVisible = false">关闭</el-button></template>
@@ -297,14 +297,14 @@
           <el-col :span="12"><el-form-item :label="labelOf('leaseEnd')">
             <el-date-picker v-model="ef.leaseEnd" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="支付周期">
+          <el-col :span="12"><el-form-item :label="labelOf('paymentCycle')">
             <el-select v-model="ef.payCycle" style="width:100%">
               <el-option label="月付" value="MONTH" />
               <el-option label="季付" value="QUARTER" />
               <el-option label="半年付" value="HALF_YEAR" />
               <el-option label="年付" value="YEAR" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="每月付款日">
+          <el-col :span="12"><el-form-item :label="labelOf('paymentDay')">
             <el-input v-model="ef.payDay" type="number" /></el-form-item></el-col>
           <el-col :span="24"><el-form-item :label="labelOf('remark')">
             <el-input v-model="ef.remark" type="textarea" :rows="2" /></el-form-item></el-col>
@@ -319,27 +319,27 @@
     <!-- 发起合同变更 -->
     <el-dialog v-model="chgVisible" :title="t('contract.changeTitle')" width="560px">
       <el-form :model="chg" label-width="110px">
-        <el-form-item label="合同"><el-input :model-value="chg.contractNo" disabled /></el-form-item>
-        <el-form-item label="变更类型">
+        <el-form-item :label="labelOf('contractNo')"><el-input :model-value="chg.contractNo" disabled /></el-form-item>
+        <el-form-item :label="labelOf('changeType')">
           <el-select v-model="chg.changeType" style="width:100%">
             <el-option label="调租" value="RENT_ADJUST" />
-            <el-option label="租期变更" value="PERIOD" />
+            <el-option :label="labelOf('leaseChange')" value="PERIOD" />
             <el-option label="续签" value="RENEW" />
             <el-option label="其他" value="OTHER" />
           </el-select>
         </el-form-item>
-        <el-form-item label="新月租金">
+        <el-form-item :label="labelOf('newMonthlyRent')">
           <el-input v-model.number="chg.newMonthlyRent" placeholder="调租时填写" />
         </el-form-item>
-        <el-form-item label="新止租日">
+        <el-form-item :label="labelOf('newLeaseEnd')">
           <el-date-picker v-model="chg.newLeaseEnd" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
-        <el-form-item label="生效日期">
+        <el-form-item :label="labelOf('effectiveDate')">
           <el-date-picker v-model="chg.effectiveDate" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
-        <el-form-item label="变更原因">
+        <el-form-item :label="labelOf('changeReason')">
           <el-input v-model="chg.changeReason" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
@@ -377,7 +377,7 @@
             <el-input v-model="qf.monthlyRent" type="number" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('depositAmount')">
             <el-input v-model="qf.depositAmount" type="number" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="保障类型">
+          <el-col :span="12"><el-form-item :label="labelOf('securityType')">
             <el-select v-model="qf.securityType" style="width:100%">
               <el-option label="公租房" value="PUBLIC" />
               <el-option label="经适房" value="AFFORDABLE" />
@@ -399,16 +399,16 @@
       <el-alert type="info" :closable="false" show-icon
                 title="换房会把合同迁到目标房源所在空间，原房源释放并留痕；请确认目标房源可租。" />
       <el-form :model="sw" label-width="100px" style="margin-top:12px">
-        <el-form-item label="合同"><el-input :model-value="sw.contractNo" disabled /></el-form-item>
+        <el-form-item :label="labelOf('contractNo')"><el-input :model-value="sw.contractNo" disabled /></el-form-item>
         <el-form-item label="承租人"><el-input :model-value="sw.personName" disabled /></el-form-item>
-        <el-form-item label="原房源"><el-input :model-value="sw.oldHouseName" disabled /></el-form-item>
-        <el-form-item label="原租期">
+        <el-form-item :label="labelOf('oldHouseName')"><el-input :model-value="sw.oldHouseName" disabled /></el-form-item>
+        <el-form-item :label="labelOf('oldLease')">
           <el-input :model-value="(sw.leaseStart || '') + ' ~ ' + (sw.leaseEnd || '')" disabled />
         </el-form-item>
-        <el-form-item label="目标房源" required>
+        <el-form-item :label="labelOf('targetHouse')" required>
           <HouseSelect v-model="sw.targetHouseId" width="100%" testid="swap-house" />
         </el-form-item>
-        <el-form-item label="换房原因">
+        <el-form-item :label="labelOf('exchangeReason')">
           <el-input v-model="sw.reason" type="textarea" :rows="2"
                     placeholder="如 家庭人口增加 / 楼层不适" />
         </el-form-item>
@@ -625,8 +625,8 @@ async function exportContracts() {
       { key: 'leaseEnd', label: labelOf('leaseEnd') },
       { key: 'monthlyRent', label: labelOf('monthlyRent') },
       { key: 'depositAmount', label: labelOf('depositAmount') },
-      { key: 'contractTypeLabel', label: labelOf('contractType') },
-      { key: 'contractStatusLabel', label: labelOf('contractStatus') },
+      { key: 'contractTypeLabel', label: labelOf('contractType'), map: (r) => enumLabel('contractType', r.contractType) },
+      { key: 'contractStatusLabel', label: labelOf('contractStatus'), map: (r) => enumLabel('contractStatus', r.contractStatus) },
       { key: 'signTime', label: labelOf('signDate') }
     ], rows)
     ElMessage.success(t('contract.exported', { n: rows.length }))
