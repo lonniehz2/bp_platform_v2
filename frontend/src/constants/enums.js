@@ -1,3 +1,5 @@
+import { trEnum } from '@/i18n/labels'
+
 /**
  * 全局枚举字典（值 → 中文）。
  *
@@ -470,9 +472,9 @@ export function enumLabel(field, value) {
   if (value === null || value === undefined || value === '') return '-'
   const v = String(value)
   if (field && TYPE_OVERRIDE[field] && TYPE_OVERRIDE[field][v]) {
-    return TYPE_OVERRIDE[field][v]
+    return trEnum(v, TYPE_OVERRIDE[field][v])
   }
-  return GLOBAL[v] || v
+  return trEnum(v, GLOBAL[v] || v)
 }
 
 /** 用于表格列的简写：仅传值 */

@@ -1,3 +1,5 @@
+import { trField } from '@/i18n/labels'
+
 /**
  * 字段名 → 中文名（详情展示用）。
  *
@@ -296,7 +298,7 @@ export const INTERNAL_FIELDS = new Set([
 ])
 
 export function fieldLabel(key) {
-  return FIELD_LABEL[key] || key
+  return trField(key, FIELD_LABEL[key] || key)
 }
 
 /**
@@ -331,13 +333,13 @@ export function loadRemoteLabels(api) {
 
 /** 同步取标签：远程 → 静态 → 驼峰兜底（xxxId → xxxID） */
 export function labelOf(key) {
-  if (remote[key]) return remote[key]
-  if (FIELD_LABEL[key]) return FIELD_LABEL[key]
+  if (remote[key]) return trField(key, remote[key])
+  if (FIELD_LABEL[key]) return trField(key, FIELD_LABEL[key])
   // 兜底：把 Id 结尾的字段拆成「基础字段名 + ID」
   const m = /^(\w+?)Id$/.exec(key)
   if (m) {
     const base = remote[m[1]] || FIELD_LABEL[m[1]]
-    if (base) return base + 'ID'
+    if (base) return trField(m[1], base) + 'ID'
   }
   return key
 }

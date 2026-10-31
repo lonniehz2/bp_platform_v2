@@ -2,96 +2,96 @@
   <div>
     <div class="page-card">
       <div class="toolbar">
-        <h3 style="margin:0">账单与缴费</h3>
+        <h3 style="margin:0">{{ t('bill.title') }}</h3>
         <OrgSelect v-model="q.orgId" width="200px" testid="bill-org-filter"
-                   placeholder="组织名称" @update:model-value="reload" />
-        <el-select v-model="q.billStatus" placeholder="状态" clearable
+                   :placeholder="t('bill.org')" @update:model-value="reload" />
+        <el-select v-model="q.billStatus" :placeholder="t('bill.status')" clearable
                    style="width:140px" @change="reload">
           <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
         </el-select>
-        <el-input v-model="q.billPeriod" placeholder="账期 2026-10" clearable
+        <el-input v-model="q.billPeriod" :placeholder="t('bill.period')" clearable
                   style="width:140px" @keyup.enter="reload" />
         <el-select v-model="q.houseId" filterable remote :remote-method="searchMeterHouse"
                    :loading="houseLoading" clearable style="width:200px"
-                   placeholder="房源（含水电费）" @change="reload">
+                   :placeholder="t('bill.house')" @change="reload">
           <el-option v-for="h in meterHouses" :key="h.id" :label="h.houseName"
                      :value="String(h.id)" />
         </el-select>
-        <el-button type="primary" @click="reload">查询</el-button>
-        <el-button @click="resetQuery">清空</el-button>
+        <el-button type="primary" @click="reload">{{ t('bill.search') }}</el-button>
+        <el-button @click="resetQuery">{{ t('bill.reset') }}</el-button>
         <div class="spacer" />
-        <el-button type="success" @click="openGen">批量出账</el-button>
-        <el-button type="warning" plain @click="batchDunning">批量催缴</el-button>
-        <el-button type="danger" plain @click="recalcBills">重算历史账单</el-button>
-        <el-button type="warning" plain @click="openShared" data-testid="shared-bill">公摊分摊</el-button>
-        <el-button plain @click="openEnergy" data-testid="bill-energy">能耗分析</el-button>
-        <el-button @click="openPay">登记收款</el-button>
-        <el-button plain @click="openPayments" data-testid="bill-payments">收款单</el-button>
-        <el-button @click="scanOverdue">扫描逾期</el-button>
+        <el-button type="success" @click="openGen">{{ t('bill.generate') }}</el-button>
+        <el-button type="warning" plain @click="batchDunning">{{ t('bill.dunning') }}</el-button>
+        <el-button type="danger" plain @click="recalcBills">{{ t('bill.recalc') }}</el-button>
+        <el-button type="warning" plain @click="openShared" data-testid="shared-bill">{{ t('bill.shared') }}</el-button>
+        <el-button plain @click="openEnergy" data-testid="bill-energy">{{ t('bill.energy') }}</el-button>
+        <el-button @click="openPay">{{ t('bill.pay') }}</el-button>
+        <el-button plain @click="openPayments" data-testid="bill-payments">{{ t('bill.payments') }}</el-button>
+        <el-button @click="scanOverdue">{{ t('bill.overdue') }}</el-button>
         <el-button plain data-testid="bill-export" :loading="exporting"
-                   @click="exportBills">导出 CSV</el-button>
+                   @click="exportBills">{{ t('bill.export') }}</el-button>
       </div>
 
       <el-row :gutter="12" style="margin-bottom:10px">
         <el-col :span="12">
-          <div style="font-weight:600;margin-bottom:2px">应收趋势</div>
+          <div style="font-weight:600;margin-bottom:2px">{{ t('bill.recvTrend') }}</div>
           <LineTrend :rows="recvTrend" color="#409eff" :height="170" />
         </el-col>
         <el-col :span="12">
-          <div style="font-weight:600;margin-bottom:2px">实收趋势 / 收缴率</div>
+          <div style="font-weight:600;margin-bottom:2px">{{ t('bill.paidTrend') }}</div>
           <LineTrend :rows="paidTrend" color="#67c23a" :height="170" />
         </el-col>
       </el-row>
 
       <el-table :data="rows" @selection-change="onSelect"
-                v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+                v-loading="loading" border size="small" :empty-text="t('bill.empty')">
         <el-table-column type="selection" width="42" />
-        <el-table-column prop="billNo" label="账单号" width="165" />
-        <el-table-column prop="payerName" label="缴费人" width="95" />
-        <el-table-column prop="billPeriod" label="账期" width="95" />
-        <el-table-column label="费用区间" width="200">
+        <el-table-column prop="billNo" :label="t('bill.no')" width="165" />
+        <el-table-column prop="payerName" :label="t('bill.payer')" width="95" />
+        <el-table-column prop="billPeriod" :label="t('bill.billingPeriod')" width="95" />
+        <el-table-column :label="t('bill.range')" width="200">
           <template #default="{ row }">
             {{ row.periodStart || '—' }} ~ {{ row.periodEnd || '—' }}
           </template>
         </el-table-column>
-        <el-table-column label="收费项目" width="140" show-overflow-tooltip>
+        <el-table-column :label="t('bill.item')" width="140" show-overflow-tooltip>
           <template #default="{ row }">
             {{ row.feeItemIdName || row.feeItemName || row.feeItemId || '—' }}
           </template>
         </el-table-column>
-        <el-table-column label="应收" width="90" >
+        <el-table-column :label="t('bill.amount')" width="90" >
           <template #default="{ row }">{{ $money(row.billAmount) }}</template>
         </el-table-column>
-        <el-table-column label="已缴" width="90" >
+        <el-table-column :label="t('bill.paid')" width="90" >
           <template #default="{ row }">{{ $money(row.paidAmount) }}</template>
         </el-table-column>
-        <el-table-column label="减免" width="85" >
+        <el-table-column :label="t('bill.waived')" width="85" >
           <template #default="{ row }">{{ $money(row.waivedAmount) }}</template>
         </el-table-column>
-        <el-table-column label="待缴" width="90" >
+        <el-table-column :label="t('bill.payable')" width="90" >
           <template #default="{ row }">{{ $money(row.payableAmount) }}</template>
         </el-table-column>
-        <el-table-column prop="dueDate" label="截止日" width="105" />
-        <el-table-column prop="billStatusLabel" label="状态" width="95">
+        <el-table-column prop="dueDate" :label="t('bill.due')" width="105" />
+        <el-table-column prop="billStatusLabel" :label="t('bill.status')" width="95">
           <template #default="{ row }">
             <el-tag size="small" :type="row.overdueNow ? 'danger'
               : (row.billStatus === 'PAID' ? 'success' : 'info')">
-              {{ row.billStatusLabel || row.billStatus }}
+              {{ enumLabel('billStatus', row.billStatus) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="overdueDays" label="逾期" width="70" />
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column prop="overdueDays" :label="t('bill.overdueCol')" width="70" />
+        <el-table-column :label="t('bill.actions')" width="220" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-            <el-button link type="primary" @click="openAllocate(row)">核销</el-button>
+            <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('bill.detail') }}</el-button>
+            <el-button link type="primary" @click="openAllocate(row)">{{ t('bill.allocate') }}</el-button>
             <el-dropdown trigger="click" style="margin-left:8px">
-              <el-button link type="primary">更多▾</el-button>
+              <el-button link type="primary">{{ t('bill.more') }}</el-button>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item @click="openWaive(row)">减免</el-dropdown-item>
-                  <el-dropdown-item @click="cancelBill(row)">取消</el-dropdown-item>
-                  <el-dropdown-item @click="dunning(row)">催缴</el-dropdown-item>
+                  <el-dropdown-item @click="openWaive(row)">{{ t('bill.waive') }}</el-dropdown-item>
+                  <el-dropdown-item @click="cancelBill(row)">{{ t('bill.cancel') }}</el-dropdown-item>
+                  <el-dropdown-item @click="dunning(row)">{{ t('bill.remind') }}</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -602,7 +602,10 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+
 /** 通用详情弹窗（复用 DetailView） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 const explainRows = ref([])

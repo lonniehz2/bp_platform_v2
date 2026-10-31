@@ -2,77 +2,77 @@
   <div>
     <div class="page-card">
       <div class="toolbar">
-        <h3 style="margin:0">合同管理</h3>
-        <el-input v-model="q.keyword" placeholder="合同号 / 承租人" clearable
+        <h3 style="margin:0">{{ t('contract.title') }}</h3>
+        <el-input v-model="q.keyword" :placeholder="t('contract.keyword')" clearable
                   style="width:180px" @keyup.enter="reload" />
-        <el-select v-model="q.orgId" placeholder="组织名称" clearable filterable
+        <el-select v-model="q.orgId" :placeholder="t('contract.org')" clearable filterable
                    style="width:200px" data-testid="contract-org-filter"
                    @change="reload">
           <el-option v-for="o in orgFilterOptions" :key="o.id"
                      :label="o.orgName" :value="String(o.id)" />
         </el-select>
-        <el-select v-model="q.contractStatus" placeholder="状态" clearable
+        <el-select v-model="q.contractStatus" :placeholder="t('contract.status')" clearable
                    style="width:150px" @change="reload">
           <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
         </el-select>
-        <el-button type="primary" @click="reload">查询</el-button>
-        <el-button @click="resetQuery">清空</el-button>
+        <el-button type="primary" @click="reload">{{ t('contract.search') }}</el-button>
+        <el-button @click="resetQuery">{{ t('contract.reset') }}</el-button>
         <div class="spacer" />
-        <el-button type="success" @click="openCreate">新建合同</el-button>
+        <el-button type="success" @click="openCreate">{{ t('contract.create') }}</el-button>
           <el-button type="primary" plain @click="openQuickSign"
-                     data-testid="quick-sign">快捷签约</el-button>
-        <el-button @click="expireDue">到期批量处理</el-button>
+                     data-testid="quick-sign">{{ t('contract.quick') }}</el-button>
+        <el-button @click="expireDue">{{ t('contract.expire') }}</el-button>
         <el-button plain data-testid="contract-export" :loading="exporting"
-                   @click="exportContracts">导出 CSV</el-button>
+                   @click="exportContracts">{{ t('contract.export') }}</el-button>
       </div>
 
       <el-table empty-text="暂无合同，点右上「新建合同」或「快捷签约」" :data="rows" v-loading="loading" border size="small" max-height="560">
-        <el-table-column prop="contractNo" label="合同号" width="165" show-overflow-tooltip />
-        <el-table-column prop="lesseeName" label="承租人" width="100" />
-        <el-table-column label="组织" width="150" show-overflow-tooltip>
+        <el-table-column prop="contractNo" :label="t('contract.no')" width="165" show-overflow-tooltip />
+        <el-table-column prop="lesseeName" :label="t('contract.lessee')" width="100" />
+        <el-table-column :label="t('contract.orgCol')" width="150" show-overflow-tooltip>
           <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
         </el-table-column>
-        <el-table-column prop="houseAddress" label="房屋" min-width="170" />
-        <el-table-column label="租期" width="190">
+        <el-table-column prop="houseAddress" :label="t('contract.house')" min-width="170" />
+        <el-table-column :label="t('contract.lease')" width="190">
           <template #default="{ row }">
             <span style="white-space:nowrap">{{ row.leaseStart }} ~ {{ row.leaseEnd }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="月租" width="95" >
+        <el-table-column :label="t('contract.rent')" width="95" >
           <template #default="{ row }">{{ $money(row.monthlyRent) }}</template>
         </el-table-column>
-          <el-table-column label="押金" width="90" >
+          <el-table-column :label="t('contract.deposit')" width="90" >
           <template #default="{ row }">{{ $money(row.depositAmount) }}</template>
         </el-table-column>
-          <el-table-column label="类型" width="100">
+          <el-table-column :label="t('contract.type')" width="100">
             <template #default="{ row }">
               {{ row.contractTypeLabel || enumLabel('contractType', row.contractType) }}
             </template>
           </el-table-column>
         <!-- 「到期」不再是独立列：租期已含起止日期，剩余天数并入状态列展示 -->
-        <el-table-column label="状态" width="140">
+        <el-table-column :label="t('contract.statusCol')" width="140">
           <template #default="{ row }">
             <el-tag size="small" :type="row.expiringSoon ? 'warning' : 'info'">
-              {{ row.contractStatusLabel || row.contractStatus }}
+              {{ enumLabel('contractStatus', row.contractStatus) }}
             </el-tag>
             <span v-if="row.expiringSoon" class="muted" style="margin-left:4px;font-size:12px">
-              剩 {{ row.daysToExpire }} 天
+              {{ t('contract.daysLeft', { n: row.daysToExpire }) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="190">
+        <el-table-column :label="t('contract.actions')" width="190">
           <template #default="{ row }">
             <el-button link type="primary" @click="openContractDetail(row)"
-                       data-testid="contract-detail">详情</el-button>
+                       data-testid="contract-detail">{{ t('contract.detail') }}</el-button>
             <el-button v-if="['EFFECTIVE','RENEWING'].includes(row.contractStatus)"
-                       link type="warning" @click="openSwap(row)">换房</el-button>
+                       link type="warning" @click="openSwap(row)">{{ t('contract.swap') }}</el-button>
             <el-button v-if="['EFFECTIVE','RENEWING'].includes(row.contractStatus)"
-                       link type="primary" @click="openChangeDlg(row)">发起变更</el-button>
+                       link type="primary" @click="openChangeDlg(row)">{{ t('contract.change') }}</el-button>
             <el-button link type="warning" :disabled="row.contractStatus !== 'DRAFT'"
                        @click="openContractEdit(row)"
-                       data-testid="contract-edit">编辑</el-button>
+                       data-testid="contract-edit">{{ t('contract.edit') }}</el-button>
             <el-dropdown trigger="click" style="margin-left:8px">
-              <el-button link type="primary">更多 ▾</el-button>
+              <el-button link type="primary">{{ t('contract.more') }}</el-button>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item @click="openCohabitant(row)">同住人</el-dropdown-item>
@@ -421,6 +421,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -433,6 +434,7 @@ import PersonPicker from '@/components/PersonPicker.vue'
 import OrgSelect from '@/components/OrgSelect.vue'
 import HouseSelect from '@/components/HouseSelect.vue'
 
+const { t } = useI18n()
 const statuses = ['DRAFT', 'PENDING_SIGN', 'EFFECTIVE', 'CHANGING', 'TERMINATED', 'EXPIRED']
 const loading = ref(false)
 const saving = ref(false)
