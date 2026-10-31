@@ -318,8 +318,12 @@ public class BillingCalculator {
 
     private BigDecimal extractRate(String config) {
         try {
-            com.fasterxml.jackson.databind.JsonNode n =
-                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(config).get("rate");
+            com.fasterxml.jackson.databind.JsonNode root =
+                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(config);
+            com.fasterxml.jackson.databind.JsonNode n = root.get("rate");
+            if (n == null || n.isNull()) {
+                n = root.get("ratio");   // 兼容历史规则配置
+            }
             return (n == null || n.isNull()) ? null : n.decimalValue();
         } catch (Exception e) {
             return null;

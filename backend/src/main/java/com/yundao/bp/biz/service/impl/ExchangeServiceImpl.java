@@ -66,6 +66,9 @@ public class ExchangeServiceImpl implements ExchangeService {
     private final AssetHouseMapper houseMapper;
     private final BizContractMapper contractMapper;
     private final SnowflakeIdGenerator idGen;
+    private final com.yundao.bp.fin.mapper.FinDepositMapper depositMapper;
+    private final com.yundao.bp.fin.mapper.DepositTransferMapper transferMapper;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
 
     /** 数据范围（ALL/ORG_SUB/ORG/SELF） */
@@ -132,11 +135,17 @@ public class ExchangeServiceImpl implements ExchangeService {
 
     public ExchangeServiceImpl(BizExchangeMapper mapper, AssetHouseMapper houseMapper,
                                BizContractMapper contractMapper,
-                               SnowflakeIdGenerator idGen) {
+                               SnowflakeIdGenerator idGen,
+                               com.yundao.bp.fin.mapper.FinDepositMapper depositMapper,
+                               com.yundao.bp.fin.mapper.DepositTransferMapper transferMapper,
+                               org.springframework.jdbc.core.JdbcTemplate jdbc) {
         this.mapper = mapper;
         this.houseMapper = houseMapper;
         this.contractMapper = contractMapper;
         this.idGen = idGen;
+        this.depositMapper = depositMapper;
+        this.transferMapper = transferMapper;
+        this.jdbc = jdbc;
     }
 
     @Override
@@ -296,6 +305,7 @@ public class ExchangeServiceImpl implements ExchangeService {
         if (oldCt != null) {
             newContractId = createNewContract(e, oldCt, newHouse);
             e.setNewContractId(newContractId);
+            transferDeposit(e, oldCt, newContractId);
 
             // ② 原合同终止（换房退出）
             oldCt.setContractStatus(ContractStatus.TERMINATED.name());
@@ -375,6 +385,9 @@ public class ExchangeServiceImpl implements ExchangeService {
         nc.setDepositAmount(oldCt.getDepositAmount());
         nc.setSubsidyAmount(oldCt.getSubsidyAmount());
         nc.setActualPay(oldCt.getActualPay());
+        nc.setBillingPersonCount(oldCt.getBillingPersonCount());
+        nc.setBillingBedCount(oldCt.getBillingBedCount() == null ? 1 : oldCt.getBillingBedCount());
+        nc.setQuantityUpdatedAt(LocalDateTime.now());
         nc.setPayCycle(oldCt.getPayCycle());
         nc.setPayDay(oldCt.getPayDay());
         nc.setLateFeeRate(oldCt.getLateFeeRate());
@@ -452,5 +465,66 @@ public class ExchangeServiceImpl implements ExchangeService {
                     "换房状态不允许从 " + from.label() + " 变更为 " + target.label());
         }
         e.setExchangeStatus(target.name());
+    }
+
+    /** 换房完成：押金余额全额转移到新合同，原台账置“已转移”。 */
+    private void transferDeposit(BizExchange e, BizContract oldCt, Long newContractId) {
+        // race:ignore 换房完成本身有状态机与事务保护，同一换房单只会成功一次
+        com.yundao.bp.fin.entity.FinDeposit old = depositMapper.selectOne(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper
+                        <com.yundao.bp.fin.entity.FinDeposit>()
+                        .eq(com.yundao.bp.fin.entity.FinDeposit::getContractId, oldCt.getId())
+                        .orderByDesc(com.yundao.bp.fin.entity.FinDeposit::getId)
+                        .last("LIMIT 1"));
+        if (old == null) {
+            return;
+        }
+        Long pending = jdbc.queryForObject(
+                "select count(*) from bp_fin_refund where contract_id=?"
+                        + " and refund_status in ('PENDING','APPROVED')",
+                Long.class, oldCt.getId());
+        if (pending != null && pending > 0) {
+            throw BizException.stateConflict("原合同存在退款中的单据，请先处理后再换房");
+        }
+        java.math.BigDecimal amount = old.getBalanceAmount() == null
+                ? java.math.BigDecimal.ZERO : old.getBalanceAmount();
+        if (amount.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        old.setBalanceAmount(java.math.BigDecimal.ZERO);
+        old.setDepositStatus("TRANSFERRED");
+        old.setUpdateTime(java.time.LocalDateTime.now());
+        depositMapper.updateById(old);
+
+        com.yundao.bp.fin.entity.FinDeposit nc = new com.yundao.bp.fin.entity.FinDeposit();
+        nc.setId(idGen.nextId());
+        nc.setTenantId(old.getTenantId());
+        nc.setContractId(newContractId);
+        nc.setPersonId(old.getPersonId());
+        nc.setOrgId(old.getOrgId());
+        nc.setDepositAmount(amount);
+        nc.setPaidAmount(amount);
+        nc.setDeductAmount(java.math.BigDecimal.ZERO);
+        nc.setRefundAmount(java.math.BigDecimal.ZERO);
+        nc.setBalanceAmount(amount);
+        nc.setDepositStatus("HELD");
+        nc.setSourceType("EXCHANGE");
+        nc.setSourceContractId(oldCt.getId());
+        nc.setCreateTime(java.time.LocalDateTime.now());
+        nc.setUpdateTime(java.time.LocalDateTime.now());
+        depositMapper.insert(nc);
+
+        com.yundao.bp.fin.entity.DepositTransfer tr =
+                new com.yundao.bp.fin.entity.DepositTransfer();
+        tr.setId(idGen.nextId());
+        tr.setTenantId(old.getTenantId());
+        tr.setExchangeId(e.getId());
+        tr.setOldContractId(oldCt.getId());
+        tr.setNewContractId(newContractId);
+        tr.setOldDepositId(old.getId());
+        tr.setNewDepositId(nc.getId());
+        tr.setTransferAmount(amount);
+        tr.setCreateTime(java.time.LocalDateTime.now());
+        transferMapper.insert(tr);
     }
 }

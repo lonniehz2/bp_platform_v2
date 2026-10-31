@@ -126,6 +126,10 @@ public class FeeItemServiceImpl implements FeeItemService {
         if (item == null) {
             throw BizException.notFound("收费项目");
         }
+        if ("TIERED".equals(cmd.ruleType())
+                && !"METER".equals(item.getCalcMode())) {
+            throw BizException.paramInvalid("阶梯计价仅允许用于抄表类项目");
+        }
         if (cmd.effectiveStart() != null && cmd.effectiveEnd() != null
                 && !cmd.effectiveEnd().isAfter(cmd.effectiveStart())) {
             throw BizException.paramInvalid("生效结束日必须晚于开始日");

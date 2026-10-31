@@ -76,6 +76,7 @@ public class CohabitantServiceImpl implements CohabitantService {
         e.setIsGranted(cmd.isGranted() == null ? 0 : cmd.isGranted());
         e.setCreateTime(LocalDateTime.now());
         mapper.insert(e);
+        refreshPersonCount(contractId);
         log.info("合同 {} 添加同住人 {}（{}）", ct.getContractNo(), e.getMemberName(),
                 CohabitantVO.relationLabel(e.getRelation()));
         return CohabitantVO.from(e);
@@ -105,7 +106,11 @@ public class CohabitantServiceImpl implements CohabitantService {
         if (e == null) {
             throw BizException.notFound("同住人");
         }
+        BizContractCohabitant row = mapper.selectById(id);
         mapper.deleteById(id);
+        if (row != null) {
+            refreshPersonCount(row.getContractId());
+        }
         log.info("合同 {} 移除同住人 {}", e.getContractId(), e.getMemberName());
     }
 
@@ -136,5 +141,25 @@ public class CohabitantServiceImpl implements CohabitantService {
             case "SPOUSE", "CHILD", "PARENT", "SIBLING" -> relation;
             default -> "OTHER";
         };
+    }
+
+    /** 同住人变化后刷新合同计费人口（承租人 1 + 同住人数）。 */
+    private void refreshPersonCount(Long contractId) {
+        if (contractId == null) {
+            return;
+        }
+        BizContract c = contractMapper.selectById(contractId);
+        if (c == null) {
+            return;
+        }
+        Long n = mapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query
+                .LambdaQueryWrapper<BizContractCohabitant>()
+                .eq(BizContractCohabitant::getContractId, contractId));
+        c.setBillingPersonCount(1 + (n == null ? 0 : n.intValue()));
+        if (c.getBillingBedCount() == null) {
+            c.setBillingBedCount(1);
+        }
+        c.setQuantityUpdatedAt(java.time.LocalDateTime.now());
+        contractMapper.updateById(c);
     }
 }

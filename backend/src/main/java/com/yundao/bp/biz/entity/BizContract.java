@@ -55,6 +55,12 @@ public class BizContract {
     /** 实付月租金 = 月租金 - 月补贴 */
     private BigDecimal actualPay;
 
+    /** 计费人口快照：承租人 1 + 同住人 */
+    private Integer billingPersonCount;
+    /** 计费床位快照 */
+    private Integer billingBedCount;
+    private LocalDateTime quantityUpdatedAt;
+
     /** MONTH / QUARTER / HALF_YEAR / YEAR */
     private String payCycle;
     private Integer payDay;

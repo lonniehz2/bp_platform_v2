@@ -208,6 +208,9 @@ public class ContractServiceImpl implements ContractService {
         e.setDepositAmount(deposit);
         e.setSubsidyAmount(subsidy);
         e.setActualPay(actualPay);
+        e.setBillingPersonCount(1);
+        e.setBillingBedCount(1);
+        e.setQuantityUpdatedAt(LocalDateTime.now());
         e.setPayCycle(blankToNull(cmd.payCycle()) == null ? "MONTH" : cmd.payCycle());
         e.setPayDay(cmd.payDay() == null ? 1 : cmd.payDay());
         e.setLateFeeRate(cmd.lateFeeRate());

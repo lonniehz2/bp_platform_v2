@@ -115,9 +115,23 @@
         </el-form-item>
         <el-form-item label="收费项目" required>
           <el-select v-model="g.feeItemId" filterable style="width:100%"
-                     placeholder="选择计费项目">
+                     placeholder="选择计费项目" @change="loadGenRules">
             <el-option v-for="f in feeItems" :key="f.id"
                        :label="f.itemName || f.feeItemName || f.id" :value="String(f.id)" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="计费规则">
+          <el-radio-group v-model="g.ruleMode">
+            <el-radio-button label="AUTO">自动匹配</el-radio-button>
+            <el-radio-button label="MANUAL">指定规则</el-radio-button>
+            <el-radio-button label="NONE">不使用</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item v-if="g.ruleMode === 'MANUAL'" label="指定规则" required>
+          <el-select v-model="g.ruleId" filterable style="width:100%"
+                     placeholder="选择已审批规则">
+            <el-option v-for="r in genRules" :key="r.id"
+                       :label="r.ruleName + '（' + r.ruleType + '）'" :value="String(r.id)" />
           </el-select>
         </el-form-item>
         <el-form-item label="费用起始" required>
@@ -723,7 +737,8 @@ const selectedCalcMode = computed(() => {
 
 function openGen() {
   Object.assign(g, { orgId: '', feeItemId: '', periodStart: '', periodEnd: '',
-    billPeriod: '', dryRun: false })
+    billPeriod: '', dryRun: false, ruleMode: 'AUTO', ruleId: '' })
+  genRules.value = []
   loadGenOptions()
   genVisible.value = true
 }
@@ -779,7 +794,19 @@ async function loadTrend() {
 const current = ref(null)
 
 const genVisible = ref(false)
-const g = reactive({ orgId: null, billPeriod: '', dryRun: true })
+const g = reactive({ orgId: null, billPeriod: '', dryRun: true,
+  ruleMode: 'AUTO', ruleId: '', feeItemId: '', periodStart: '', periodEnd: '' })
+const genRules = ref([])
+
+async function loadGenRules() {
+  genRules.value = []
+  if (!g.feeItemId) return
+  try {
+    const list = await req.get('/fin/billing-rules', { params: { feeItemId: g.feeItemId } })
+    genRules.value = (list || []).filter((r) =>
+      r.approveStatus === 'APPROVED' && r.status === 'ENABLED')
+  } catch (e) { genRules.value = [] }
+}
 
 /** 公摊分摊（物业管理） */
 const sharedVisible = ref(false)
@@ -950,6 +977,9 @@ async function doGenerate() {
   if (!g.feeItemId) { ElMessage.warning('请选择收费项目'); return }
   if (!g.periodStart || !g.periodEnd) { ElMessage.warning('请选择费用起止日'); return }
   if (g.periodEnd <= g.periodStart) { ElMessage.warning('费用截止日必须晚于起始日'); return }
+  if (g.ruleMode === 'MANUAL' && !g.ruleId) {
+    ElMessage.warning('请选择指定的计费规则'); return
+  }
   if (!g.dryRun) {
     await ElMessageBox.confirm(
       '将为该组织/项目/费用区间内符合条件的合同生成账单；已出过账的会自动跳过。是否继续？',

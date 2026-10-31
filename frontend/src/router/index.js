@@ -308,6 +308,12 @@ export const menuRoutes = [
             perm: 'platform:info:view' }
   },
   {
+    path: '/energy-allocation',
+    name: 'energyallocation',
+    component: () => import('@/views/Energy.vue'),
+    meta: { title: '能耗分摊', icon: 'Odometer', group: '计量与能耗' }
+  },
+  {
     path: '/help',
     name: 'help',
     component: () => import('@/views/Help.vue'),

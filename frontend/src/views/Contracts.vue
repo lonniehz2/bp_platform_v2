@@ -269,6 +269,8 @@
         <el-descriptions-item label="止租">{{ detail.leaseEnd }}</el-descriptions-item>
         <el-descriptions-item label="租期">{{ detail.leaseMonths }} 个月</el-descriptions-item>
         <el-descriptions-item label="月租">{{ detail.monthlyRent }}</el-descriptions-item>
+        <el-descriptions-item label="计费人口">{{ detail.billingPersonCount || 1 }}</el-descriptions-item>
+        <el-descriptions-item label="计费床位">{{ detail.billingBedCount || 1 }}</el-descriptions-item>
         <el-descriptions-item label="押金">{{ detail.depositAmount }}</el-descriptions-item>
         <el-descriptions-item label="实付（月租-补贴）">{{ detail.actualPay }}</el-descriptions-item>
         <el-descriptions-item label="补贴">{{ detail.subsidyAmount }}</el-descriptions-item>

@@ -40,6 +40,8 @@ public class FinDeposit {
 
     /** HELD / PARTIAL_REFUND / REFUNDED / DEDUCTED */
     private String depositStatus;
+    private String sourceType;
+    private Long sourceContractId;
 
     /** 政策规定上限（成都 1000 元） */
     private BigDecimal capAmount;

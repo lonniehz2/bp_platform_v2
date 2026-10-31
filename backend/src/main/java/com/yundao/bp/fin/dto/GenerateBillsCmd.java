@@ -26,6 +26,9 @@ public record GenerateBillsCmd(
         /** 可选：指定计费规则；不传则用项目默认单价 */
         Long ruleId,
 
+        /** 规则方式：AUTO 自动匹配（默认）/ MANUAL 指定 / NONE 不使用 */
+        String ruleMode,
+
         @NotNull(message = "费用起始日不能为空")
         LocalDate periodStart,
         @NotNull(message = "费用截止日不能为空")

@@ -5,6 +5,8 @@ import com.yundao.bp.asset.entity.AssetHouse;
 import com.yundao.bp.asset.mapper.AssetHouseMapper;
 import com.yundao.bp.biz.constant.ContractStatus;
 import com.yundao.bp.biz.entity.BizContract;
+import com.yundao.bp.biz.entity.BizContractCohabitant;
+import com.yundao.bp.biz.mapper.BizContractCohabitantMapper;
 import com.yundao.bp.biz.mapper.BizContractMapper;
 import com.yundao.bp.common.exception.BizException;
 import com.yundao.bp.common.id.SnowflakeIdGenerator;
@@ -32,7 +34,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -66,6 +71,7 @@ public class BillGenerationServiceImpl implements BillGenerationService {
     private final FinFeeItemMapper feeItemMapper;
     private final FinBillingRuleMapper ruleMapper;
     private final FinBillMapper billMapper;
+    private final BizContractCohabitantMapper cohabitantMapper;
     private final BillingCalculator calculator;
     private final SnowflakeIdGenerator idGen;
 
@@ -74,6 +80,7 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                                      FinFeeItemMapper feeItemMapper,
                                      FinBillingRuleMapper ruleMapper,
                                      FinBillMapper billMapper,
+                                     BizContractCohabitantMapper cohabitantMapper,
                                      BillingCalculator calculator,
                                      SnowflakeIdGenerator idGen) {
         this.contractMapper = contractMapper;
@@ -81,6 +88,7 @@ public class BillGenerationServiceImpl implements BillGenerationService {
         this.feeItemMapper = feeItemMapper;
         this.ruleMapper = ruleMapper;
         this.billMapper = billMapper;
+        this.cohabitantMapper = cohabitantMapper;
         this.calculator = calculator;
         this.idGen = idGen;
     }
@@ -112,15 +120,33 @@ public class BillGenerationServiceImpl implements BillGenerationService {
             throw BizException.paramInvalid("费用截止日不能早于起始日");
         }
 
-        FinBillingRule rule = null;
-        if (cmd.ruleId() != null) {
-            rule = ruleMapper.selectById(cmd.ruleId());
-            if (rule == null) {
+        String ruleMode = cmd.ruleMode() == null || cmd.ruleMode().isBlank()
+                ? (cmd.ruleId() != null ? "MANUAL" : "AUTO")
+                : cmd.ruleMode().trim().toUpperCase();
+        if (!List.of("AUTO", "MANUAL", "NONE").contains(ruleMode)) {
+            throw BizException.paramInvalid("规则方式不合法: " + cmd.ruleMode());
+        }
+        FinBillingRule manualRule = null;
+        if ("MANUAL".equals(ruleMode)) {
+            if (cmd.ruleId() == null) {
+                throw BizException.paramInvalid("指定规则时必须选择计费规则");
+            }
+            manualRule = ruleMapper.selectById(cmd.ruleId());
+            if (manualRule == null) {
                 throw BizException.notFound("计费规则");
             }
-            if (!"APPROVED".equals(rule.getApproveStatus())) {
+            if (!"APPROVED".equals(manualRule.getApproveStatus())) {
                 throw BizException.stateConflict("规则未审批通过，不能用于计费");
             }
+        }
+        // 自动匹配候选：只取本项目、已启用、已审批的规则
+        List<FinBillingRule> candidates = new ArrayList<>();
+        if ("AUTO".equals(ruleMode)) {
+            candidates = ruleMapper.selectList(new LambdaQueryWrapper<FinBillingRule>()
+                    .eq(FinBillingRule::getFeeItemId, cmd.feeItemId())
+                    .eq(FinBillingRule::getStatus, "ENABLED")
+                    .eq(FinBillingRule::getApproveStatus, "APPROVED")
+                    .eq(FinBillingRule::getIsDeleted, 0));
         }
 
         // 扫描生效合同
@@ -138,8 +164,7 @@ public class BillGenerationServiceImpl implements BillGenerationService {
         }
         List<BizContract> contracts = contractMapper.selectList(cw);
 
-        String billPeriod = cmd.billPeriod() == null || cmd.billPeriod().isBlank()
-                ? cmd.periodStart().format(PERIOD_FMT) : cmd.billPeriod();
+        String billPeriod = normalizePeriod(cmd.billPeriod(), cmd.periodStart());
         LocalDate dueDate = cmd.dueDate() == null ? cmd.periodStart() : cmd.dueDate();
         int nights = (int) Math.max(1,
                 ChronoUnit.DAYS.between(cmd.periodStart(), cmd.periodEnd()));
@@ -171,6 +196,9 @@ public class BillGenerationServiceImpl implements BillGenerationService {
 
             AssetHouse house = ct.getHouseId() == null ? null
                     : houseMapper.selectById(ct.getHouseId());
+            FinBillingRule effectiveRule = "NONE".equals(ruleMode) ? null
+                    : ("MANUAL".equals(ruleMode) ? manualRule
+                    : matchRule(candidates, ct, house, cmd.periodStart(), cmd.periodEnd()));
 
             // 计算数量
             // 按面积计费但房源未录面积：明确跳过并给出准确原因，
@@ -186,7 +214,7 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                 continue;
             }
 
-            Integer qty = quantityOf(mode, house, nights, cmd.quantityOverride());
+            Integer qty = quantityOf(mode, ct, house, nights, cmd.quantityOverride());
             // 期间与合同交集的按天折算（整月=1；不足月/跨月按月内天数占比）
             Proration pro = proration(ct, cmd.periodStart(), cmd.periodEnd());
             BillingCalculator.Context ctx = contextOf(mode, house, nights, qty)
@@ -197,14 +225,18 @@ public class BillGenerationServiceImpl implements BillGenerationService {
             BigDecimal amount;
             BigDecimal discount = money(null);
             String calcExplain;
+            // 仅“整套/面积/固定”租金用合同月租覆盖；
+            // 按人/按床/按夜的租金项目按收费项目单价×数量，不能套整间月租
             if ("RENT".equals(item.getItemType())
                     && ct.getMonthlyRent() != null
-                    && ct.getMonthlyRent().compareTo(BigDecimal.ZERO) > 0) {
+                    && ct.getMonthlyRent().compareTo(BigDecimal.ZERO) > 0
+                    && (mode == CalcMode.BY_HOUSE || mode == CalcMode.BY_AREA
+                        || mode == CalcMode.FIXED)) {
                 amount = money(ct.getMonthlyRent().multiply(pro.months()));
                 calcExplain = "合同月租 " + ct.getMonthlyRent().toPlainString()
                         + " × " + pro.months().stripTrailingZeros().toPlainString() + " 个月";
                 // 合同租金仍受规则约束：EXEMPT 归零、DISCOUNT 打折
-                BigDecimal adjusted = calculator.applyRuleToAmount(amount, rule);
+                BigDecimal adjusted = calculator.applyRuleToAmount(amount, effectiveRule);
                 if (adjusted.compareTo(amount) != 0) {
                     calcExplain = calcExplain + "；规则调整后 " + adjusted.toPlainString();
                     amount = money(adjusted);
@@ -212,7 +244,7 @@ public class BillGenerationServiceImpl implements BillGenerationService {
             } else {
                 BillingCalculator.Result rr;
                 try {
-                    rr = calculator.calculate(item, ctx, rule);
+                    rr = calculator.calculate(item, ctx, effectiveRule);
                 } catch (Exception e) {
                     skipped++;
                     skipReasons.add("合同 " + ct.getContractNo() + " 算费失败：" + e.getMessage());
@@ -261,7 +293,15 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                 b.setBillStatus("UNPAID");
                 b.setOverdueDays(0);
                 b.setGenerateType("AUTO");
-                b.setRemark("批量出账：" + item.getItemName() + "；" + pro.detail()
+                b.setRuleId(effectiveRule == null ? null : effectiveRule.getId());
+                b.setRuleVersion(effectiveRule == null ? null : effectiveRule.getRuleVersion());
+                b.setRuleSnapshot(snapshot(effectiveRule));
+                b.setBillingQuantity(qty);
+                b.setQuantityUnit(quantityUnit(mode));
+                b.setQuantitySource(quantitySource(mode));
+                b.setRemark("批量出账：" + item.getItemName()
+                        + (effectiveRule == null ? "" : "（规则：" + effectiveRule.getRuleName() + "）")
+                        + "；" + pro.detail()
                         + (discount.compareTo(BigDecimal.ZERO) > 0
                         ? "；补贴抵扣 " + discount.toPlainString() : ""));
                 b.setIsDeleted(0);
@@ -273,6 +313,9 @@ public class BillGenerationServiceImpl implements BillGenerationService {
             total = total.add(amount);
             String explain = pro.detail().isEmpty()
                     ? calcExplain : calcExplain + "；" + pro.detail();
+            if (effectiveRule != null) {
+                explain = explain + "；规则：" + effectiveRule.getRuleName();
+            }
             items.add(new GenerateResultVO.Item(ct.getId(), ct.getContractNo(), billId, qty,
                     amount, explain, "OK", null));
         }
@@ -306,7 +349,7 @@ public class BillGenerationServiceImpl implements BillGenerationService {
             try {
                 // 单项目出账复用既有幂等逻辑
                 GenerateResultVO one = generate(new GenerateBillsCmd(
-                        it.feeItemId(), it.ruleId(),
+                        it.feeItemId(), it.ruleId(), null,
                         cmd.periodStart(), cmd.periodEnd(),
                         cmd.billPeriod(), cmd.dueDate(),
                         cmd.orgId(), cmd.houseType(), cmd.contractIds(),
@@ -412,7 +455,7 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                         b.getBillAmount(), null, 0, null, "SKIPPED", "租期与费用区间无交集"));
                 continue;
             }
-            Integer qty = quantityOf(mode, house, 0, null);
+            Integer qty = quantityOf(mode, ct, house, 0, null);
             BigDecimal price = item.getUnitPrice() == null ? BigDecimal.ZERO : item.getUnitPrice();
             BigDecimal base = switch (mode) {
                 case FIXED, BY_HOUSE -> price;
@@ -505,7 +548,7 @@ public class BillGenerationServiceImpl implements BillGenerationService {
             qty = 1;
             formula = "面积 × 单价 × 月数";
         } else if (mode == CalcMode.BY_PERSON || mode == CalcMode.BY_BED) {
-            qty = quantityOf(mode, house, 0, null);
+            qty = quantityOf(mode, ct, house, 0, null);
             formula = "数量 × 单价 × 月数";
         } else if (mode != null) {
             qty = 1;
@@ -558,22 +601,151 @@ public class BillGenerationServiceImpl implements BillGenerationService {
         return 0;
     }
 
-    /** 数量取值。 */
-    private static Integer quantityOf(CalcMode mode, AssetHouse house, int nights,
-                                      Integer override) {
-        if (override != null && override > 0) {
-            return override;
-        }
-        return switch (mode) {
-            case BY_NIGHT -> nights;
-            case BY_BED, BY_PERSON -> house != null && house.getMaxCapacity() != null
-                    ? house.getMaxCapacity() : 1;
-            case FIXED, BY_HOUSE, BY_AREA -> 1;
-            case METER -> 1;
-        };
+    /** 数量取值：按合同实际保障人口/实际床位，不再取房源 maxCapacity。 */
+private Integer quantityOf(CalcMode mode, BizContract ct, AssetHouse house, int nights,
+                           Integer override) {
+    if (override != null && override > 0) {
+        return override;
     }
+    return switch (mode) {
+        case BY_NIGHT -> nights;
+        case BY_PERSON -> personCount(ct);
+        case BY_BED -> bedCount(ct);
+        case FIXED, BY_HOUSE, BY_AREA -> 1;
+        case METER -> 1;
+    };
+}
 
-    /** 构造计算上下文。 */
+/** 保障人口 = 承租人 1 + 同住人。 */
+private int personCount(BizContract ct) {
+    if (ct == null || ct.getId() == null) {
+        return 1;
+    }
+    Long n = cohabitantMapper.selectCount(new LambdaQueryWrapper<BizContractCohabitant>()
+            .eq(BizContractCohabitant::getContractId, ct.getId()));
+    return 1 + (n == null ? 0 : n.intValue());
+}
+
+/** 实际签约床位数，默认 1。 */
+private static int bedCount(BizContract ct) {
+    return ct != null && ct.getBillingBedCount() != null && ct.getBillingBedCount() > 0
+            ? ct.getBillingBedCount() : 1;
+}
+
+private static String quantityUnit(CalcMode mode) {
+    return switch (mode) {
+        case BY_PERSON -> "PERSON";
+        case BY_BED -> "BED";
+        case BY_NIGHT -> "NIGHT";
+        case BY_AREA -> "AREA";
+        default -> "HOUSE";
+    };
+}
+
+private static String quantitySource(CalcMode mode) {
+    return switch (mode) {
+        case BY_PERSON -> "COHABITANT";
+        case BY_BED -> "CONTRACT";
+        default -> "DEFAULT";
+    };
+}
+
+/** 自动匹配规则：组织/房源类型/保障类型/生效期/优先级。 */
+private static FinBillingRule matchRule(List<FinBillingRule> rules, BizContract ct,
+                                        AssetHouse house, LocalDate ps, LocalDate pe) {
+    if (rules == null || rules.isEmpty()) {
+        return null;
+    }
+    String houseType = house == null ? null : house.getHouseType();
+    String security = securityTypeOf(ct.getContractType());
+    FinBillingRule best = null;
+    int bestScore = Integer.MIN_VALUE;
+    for (FinBillingRule r : rules) {
+        if (r.getOrgId() != null && !r.getOrgId().equals(ct.getOrgId())) {
+            continue;
+        }
+        if (r.getHouseType() != null && !r.getHouseType().isBlank()
+                && !r.getHouseType().equals(houseType)) {
+            continue;
+        }
+        if (r.getSecurityType() != null && !r.getSecurityType().isBlank()
+                && !r.getSecurityType().equals(security)) {
+            continue;
+        }
+        // 合同暂无收入档数据：规则限定收入档时不参与自动匹配，避免误用
+        if (r.getIncomeLevel() != null && !r.getIncomeLevel().isBlank()) {
+            continue;
+        }
+        if (r.getEffectiveStart() != null && r.getEffectiveStart().isAfter(ps)) {
+            continue;
+        }
+        if (r.getEffectiveEnd() != null && r.getEffectiveEnd().isBefore(pe)) {
+            continue;
+        }
+        int score = (r.getOrgId() == null ? 0 : 100)
+                + (r.getSecurityType() == null || r.getSecurityType().isBlank() ? 0 : 20)
+                + (r.getHouseType() == null || r.getHouseType().isBlank() ? 0 : 10)
+                + (r.getPriority() == null ? 0 : r.getPriority());
+        if (score > bestScore
+                || (score == bestScore && best != null
+                    && r.getId() != null && best.getId() != null
+                    && r.getId() > best.getId())) {
+            best = r;
+            bestScore = score;
+        }
+    }
+    return best;
+}
+
+private static String securityTypeOf(String contractType) {
+    if (contractType == null) {
+        return "PUBLIC";
+    }
+    if (contractType.contains("PUBLIC")) {
+        return "PUBLIC";
+    }
+    if (contractType.contains("LOW")) {
+        return "LOW";
+    }
+    return contractType;
+}
+
+/** 规则快照：规则后续修改不影响历史账单解释。 */
+private static String snapshot(FinBillingRule r) {
+    if (r == null) {
+        return null;
+    }
+    try {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", r.getId());
+        m.put("code", r.getRuleCode());
+        m.put("name", r.getRuleName());
+        m.put("version", r.getRuleVersion());
+        m.put("type", r.getRuleType());
+        m.put("config", r.getPriceConfig());
+        m.put("priority", r.getPriority());
+        return new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(m);
+    } catch (Exception e) {
+        return "{}";
+    }
+}
+
+/** 账期统一为 yyyy-MM（兼容前端传入 yyyyMM）。 */
+private static String normalizePeriod(String period, LocalDate start) {
+    if (period == null || period.isBlank()) {
+        return start.format(PERIOD_FMT);
+    }
+    String p = period.trim().replace("/", "-");
+    if (p.matches("\\d{6}")) {
+        return p.substring(0, 4) + "-" + p.substring(4);
+    }
+    if (p.matches("\\d{4}-\\d{2}")) {
+        return p;
+    }
+    return start.format(PERIOD_FMT);
+}
+
+/** 构造计算上下文。 */
     private static BillingCalculator.Context contextOf(CalcMode mode, AssetHouse house,
                                                        int nights, Integer qty) {
         return switch (mode) {

@@ -53,7 +53,9 @@ public record ContractVO(
         String remark,
         LocalDateTime createTime,
         /** 父合同ID：换房/续签生成的新合同指向原合同，便于追溯链条 */
-        Long parentContractId
+        Long parentContractId,
+        Integer billingPersonCount,
+        Integer billingBedCount
 ) {
     public static ContractVO from(BizContract e) {
         if (e == null) {
@@ -81,6 +83,7 @@ public record ContractVO(
                 e.getEffectiveTime(), e.getTerminateTime(), e.getTerminateReason(),
                 e.getAutoGrant(), e.getAutoExpire(), e.getArrearsStop(),
                 daysToExpire, expiringSoon, st.isOccupying(), e.getRemark(), e.getCreateTime(),
-                e.getParentContractId());
+                e.getParentContractId(),
+                e.getBillingPersonCount(), e.getBillingBedCount());
     }
 }

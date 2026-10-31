@@ -56,6 +56,18 @@ public class FinBill {
     private String generateType;
     private String remark;
 
+    /** 命中的计费规则（快照，避免规则后续变更影响历史解释） */
+    private Long ruleId;
+    private Integer ruleVersion;
+    private String ruleSnapshot;
+    /** 本单计费数量（人/床/间夜/套） */
+    private Integer billingQuantity;
+    private String quantityUnit;
+    private String quantitySource;
+    private String tierDetail;
+    private Integer lateFeeDays;
+    private String lateFeeDetail;
+
     @TableLogic
     private Integer isDeleted;
 

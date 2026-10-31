@@ -284,6 +284,8 @@ export const FIELD_LABEL = {
   workOrderNo: '工单号',
   workOrderStatus: '状态',
   workOrderType: '类型',
+  billingPersonCount: '计费人口',
+  billingBedCount: '计费床位',
 }
 
 /** 系统/内部字段：默认折叠，避免干扰业务阅读 */
