@@ -1,40 +1,40 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">房源台账</h3>
+      <h3 style="margin:0">{{ t('house.title') }}</h3>
       <div class="spacer" />
-      <el-select v-model="orgFilter" placeholder="组织名称" clearable filterable
+      <el-select v-model="orgFilter" :placeholder="t('house.org')" clearable filterable
                  style="width:200px" data-testid="house-org-filter"
                  @change="reload">
         <el-option v-for="o in orgOptions" :key="o.id"
                    :label="o.orgName" :value="o.id" />
       </el-select>
-      <el-input v-model="keyword" placeholder="房源编号/名称" clearable
+      <el-input v-model="keyword" :placeholder="t('house.keyword')" clearable
                 style="width:180px" @keyup.enter="reload" />
-      <el-select v-model="houseStatus" placeholder="状态" clearable
+      <el-select v-model="houseStatus" :placeholder="t('house.status')" clearable
                  style="width:140px" @change="reload">
         <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
       </el-select>
-        <el-select v-model="houseTypeFilter" placeholder="业态" clearable
+        <el-select v-model="houseTypeFilter" :placeholder="t('house.type')" clearable
                    style="width:150px" @change="reload" data-testid="house-type-filter">
           <el-option v-for="t in houseTypes" :key="t.value" :label="t.label" :value="t.value" />
         </el-select>
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="success" @click="openCreate">新增房源</el-button>
+      <el-button type="primary" @click="reload">{{ t('house.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('house.reset') }}</el-button>
+      <el-button type="success" @click="openCreate">{{ t('house.create') }}</el-button>
         <el-button type="primary" plain @click="openBeds"
-                   data-testid="house-beds">床位管理</el-button>
+                   data-testid="house-beds">{{ t('house.beds') }}</el-button>
         <el-button type="warning" plain @click="importVisible = true"
-                   data-testid="house-import">批量导入</el-button>
+                   data-testid="house-import">{{ t('house.import') }}</el-button>
     </div>
 
-    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
-      <el-table-column prop="houseCode" label="编号" width="150" />
-      <el-table-column prop="houseName" label="名称" min-width="140" />
-      <el-table-column prop="orgId" label="组织" width="150">
+    <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('house.empty')">
+      <el-table-column prop="houseCode" :label="t('house.code')" width="150" />
+      <el-table-column prop="houseName" :label="t('house.name')" min-width="140" />
+      <el-table-column prop="orgId" :label="t('house.orgCol')" width="150">
         <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
       </el-table-column>
-      <el-table-column label="所属空间" width="170" show-overflow-tooltip>
+      <el-table-column :label="t('house.space')" width="170" show-overflow-tooltip>
             <template #default="{ row }">
               <span v-if="row.spaceName">
                 <el-tag v-if="row.spaceType === 'BED'" size="small" type="warning">床位</el-tag>
@@ -43,25 +43,25 @@
               <span v-else class="muted">—</span>
             </template>
           </el-table-column>
-          <el-table-column label="类型" width="130">
+          <el-table-column :label="t('house.typeCol')" width="130">
         <template #default="{ row }">{{ row.houseTypeLabel || enumLabel('houseType', row.houseType) }}</template>
       </el-table-column>
-      <el-table-column label="状态" width="110">
+      <el-table-column :label="t('house.statusCol')" width="110">
         <template #default="{ row }">
           <el-tag size="small" :type="statusType(row.houseStatus)">
             {{ row.houseStatusLabel || enumLabel('houseStatus', row.houseStatus) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="area" label="面积(㎡)" width="100" />
-      <el-table-column label="租金标准" width="120">
+      <el-table-column prop="area" :label="t('house.area')" width="100" />
+      <el-table-column :label="t('house.rent')" width="120">
         <template #default="{ row }">{{ row.rentStandard || '-' }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="210" fixed="right">
+      <el-table-column :label="t('house.actions')" width="210" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="changeStatus(row)">改状态</el-button>
-          <el-button link @click="detail = row; show = true">详情</el-button>
-          <el-button link type="primary" @click="openOccupancy(row)">入住信息</el-button>
+          <el-button link type="primary" @click="changeStatus(row)">{{ t('house.changeStatus') }}</el-button>
+          <el-button link @click="detail = row; show = true">{{ t('house.detail') }}</el-button>
+          <el-button link type="primary" @click="openOccupancy(row)">{{ t('house.occupancy') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -69,14 +69,14 @@
                    :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
                    @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
 
-    <el-dialog v-model="occVisible" title="入住信息" width="560px">
+    <el-dialog v-model="occVisible" :title="t('house.occTitle')" width="560px">
       <el-descriptions v-if="occ && occ.occupied" :column="1" border size="small">
-        <el-descriptions-item label="合同号">{{ occ.contractNo }}</el-descriptions-item>
-        <el-descriptions-item label="租期">{{ occ.leaseStart }} ~ {{ occ.leaseEnd }}</el-descriptions-item>
-        <el-descriptions-item label="承租人">{{ occ.tenantName || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="联系电话">{{ occ.tenantPhone || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="已入住人数">{{ occ.tenantCount }} 人</el-descriptions-item>
-        <el-descriptions-item label="同住人">
+        <el-descriptions-item :label="t('house.contractNo')">{{ occ.contractNo }}</el-descriptions-item>
+        <el-descriptions-item :label="t('house.lease')">{{ occ.leaseStart }} ~ {{ occ.leaseEnd }}</el-descriptions-item>
+        <el-descriptions-item :label="t('house.lessee')">{{ occ.tenantName || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('house.phone')">{{ occ.tenantPhone || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('house.tenants')">{{ occ.tenantCount }} 人</el-descriptions-item>
+        <el-descriptions-item :label="t('house.cohabitants')">
           <div v-if="!occ.cohabitants || !occ.cohabitants.length" class="muted">无</div>
           <div v-for="(c, i) in occ.cohabitants" :key="i">
             {{ c.name }}（{{ c.relation || '同住' }}）{{ c.id_card_mask || '' }}
@@ -85,32 +85,32 @@
       </el-descriptions>
       <el-empty v-else description="该房源当前无有效合同" />
       <template #footer>
-        <el-button @click="occVisible = false">关闭</el-button>
+        <el-button @click="occVisible = false">{{ t('house.close') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="createVisible" title="新增房源" width="640px">
+    <el-dialog v-model="createVisible" :title="t('house.createTitle')" width="640px">
       <el-form :model="f" label-width="120px">
         <el-row :gutter="12">
           <el-col :span="12"><el-form-item label="所属组织">
             <el-select v-model="f.orgId" filterable clearable style="width:100%"
-                       placeholder="选择组织后加载空间节点"
+                       :placeholder="t('house.selectOrg')"
                        @change="onOrgChange">
               <el-option v-for="o in orgOptions" :key="o.id"
                          :label="o.orgName" :value="o.id" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="空间节点" required>
+          <el-col :span="12"><el-form-item :label="t('house.spaceNode')" required>
             <el-tree-select v-model="f.spaceId" :data="spaceTree" check-strictly
                             filterable :render-after-expand="false"
                             :props="{ label: 'spaceName', value: 'id', children: 'children' }"
-                            placeholder="输入房间名搜索，如 1101室" style="width:100%"
+                            :placeholder="t('house.spaceSearch')" style="width:100%"
                             @change="onSpacePicked" />
           </el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="房源编号" required>
+          <el-col :span="12"><el-form-item :label="t('house.houseCode')" required>
             <el-input v-model="f.houseCode" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="房源名称" required>
+          <el-col :span="12"><el-form-item :label="t('house.houseName')" required>
             <el-input v-model="f.houseName" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="房源类型" required>
+          <el-col :span="12"><el-form-item :label="t('house.houseType')" required>
             <el-select v-model="f.houseType" style="width:100%">
               <el-option label="公租房" value="PUBLIC_RENTAL" />
               <el-option label="保障性租赁住房" value="AFFORDABLE_RENTAL" />
@@ -120,13 +120,13 @@
               <el-option label="出租房" value="RENTAL" />
               <el-option label="酒店/民宿" value="HOTEL" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="建筑面积" required>
+          <el-col :span="12"><el-form-item :label="t('house.buildArea')" required>
             <el-input-number v-model="f.area" :min="0.01" :precision="2"
                              style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="套内面积">
+          <el-col :span="12"><el-form-item :label="t('house.innerArea')">
             <el-input-number v-model="f.innerArea" :min="0" :precision="2"
                              style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="建筑类型">
+          <el-col :span="12"><el-form-item :label="t('house.buildType')">
             <el-select v-model="f.structType" style="width:100%">
               <el-option label="多层" value="MULTI" />
               <el-option label="小高层" value="SMALL_HIGH" />
@@ -134,7 +134,7 @@
               <el-option label="超高层" value="SUPER_HIGH" />
               <el-option label="别墅" value="VILLA" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="用途">
+          <el-col :span="12"><el-form-item :label="t('house.purpose')">
             <el-select v-model="f.useType" style="width:100%">
               <el-option label="民用" value="CIVIL" />
               <el-option label="商用" value="COMMERCIAL" />
@@ -348,6 +348,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { computed, ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { houseApi } from '@/api/modules'
@@ -356,6 +357,7 @@ import { useAuthStore } from '@/store/auth'
 import { enumLabel } from '@/constants/enums'
 import DetailView from '@/components/DetailView.vue'
 
+const { t } = useI18n()
 const statuses = ['VACANT', 'PENDING_ALLOC', 'ALLOCATED', 'OCCUPIED', 'LOCKED',
   'REPAIR', 'OFFLINE']
 const loading = ref(false)
