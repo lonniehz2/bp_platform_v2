@@ -76,8 +76,9 @@ public class MeterReadingServiceImpl implements MeterReadingService {
         FinMeterReading prev = mapper.selectOne(new LambdaQueryWrapper<FinMeterReading>()
                 .eq(FinMeterReading::getHouseId, cmd.houseId())
                 .eq(FinMeterReading::getFeeItemId, cmd.feeItemId())
-                .lt(FinMeterReading::getReadDate, readDate)
+                .le(FinMeterReading::getReadDate, readDate)
                 .orderByDesc(FinMeterReading::getReadDate)
+                .orderByDesc(FinMeterReading::getId)
                 .last("LIMIT 1"));
         BigDecimal prevReading = prev == null ? BigDecimal.ZERO : prev.getReading();
         if (cmd.reading().compareTo(prevReading) < 0) {

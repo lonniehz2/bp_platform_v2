@@ -141,6 +141,10 @@ public class BillingCalculator {
             }
             case DISCOUNT -> {
                 BigDecimal rate = extractRate(config);
+                if (rate != null && (rate.compareTo(BigDecimal.ZERO) < 0
+                        || rate.compareTo(BigDecimal.ONE) > 0)) {
+                    throw BizException.paramInvalid("折扣率应在 0~1 之间: " + rate);
+                }
                 if (rate != null) {
                     finalAmt = base.multiply(rate).setScale(2, RoundingMode.HALF_UP);
                     why.append("（折扣 ").append(rate).append("）");
@@ -150,6 +154,38 @@ public class BillingCalculator {
             }
         }
         return new Result(money(base), money(finalAmt), why.toString());
+    }
+
+    /**
+     * 对已经算好的金额套用规则（合同租金等自定义基数场景）。
+     * 仅处理全额减免与折扣；阶梯/标准不改变金额。
+     */
+    public BigDecimal applyRuleToAmount(BigDecimal baseAmount, FinBillingRule rule) {
+        BigDecimal base = baseAmount == null ? BigDecimal.ZERO : baseAmount;
+        if (rule == null) {
+            return base;
+        }
+        RuleType ruleType;
+        try {
+            ruleType = RuleType.valueOf(rule.getRuleType());
+        } catch (IllegalArgumentException e) {
+            throw BizException.paramInvalid("规则类型不合法: " + rule.getRuleType());
+        }
+        String config = rule.getPriceConfig() == null ? "{}" : rule.getPriceConfig();
+        if (ruleType == RuleType.EXEMPT) {
+            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        }
+        if (ruleType == RuleType.DISCOUNT) {
+            BigDecimal rate = extractRate(config);
+            if (rate != null && (rate.compareTo(BigDecimal.ZERO) < 0
+                    || rate.compareTo(BigDecimal.ONE) > 0)) {
+                throw BizException.paramInvalid("折扣率应在 0~1 之间: " + rate);
+            }
+            if (rate != null) {
+                return base.multiply(rate).setScale(2, RoundingMode.HALF_UP);
+            }
+        }
+        return base;
     }
 
     /** 基础金额。 */

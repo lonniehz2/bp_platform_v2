@@ -203,6 +203,12 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                 amount = money(ct.getMonthlyRent().multiply(pro.months()));
                 calcExplain = "合同月租 " + ct.getMonthlyRent().toPlainString()
                         + " × " + pro.months().stripTrailingZeros().toPlainString() + " 个月";
+                // 合同租金仍受规则约束：EXEMPT 归零、DISCOUNT 打折
+                BigDecimal adjusted = calculator.applyRuleToAmount(amount, rule);
+                if (adjusted.compareTo(amount) != 0) {
+                    calcExplain = calcExplain + "；规则调整后 " + adjusted.toPlainString();
+                    amount = money(adjusted);
+                }
             } else {
                 BillingCalculator.Result rr;
                 try {

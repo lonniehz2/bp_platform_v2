@@ -293,6 +293,17 @@ public class DepositRefundServiceImpl implements DepositRefundService {
         e.setCreateTime(now);
         e.setUpdateTime(now);
         refundMapper.insert(e);
+
+        // 原子扣减后同步押金状态（避免余额为 0 但状态仍是已收取）
+        if ("DEPOSIT".equals(cmd.refundType()) && cmd.contractId() != null) {
+            FinDeposit dep = depositMapper.selectOne(new LambdaQueryWrapper<FinDeposit>()
+                    .eq(FinDeposit::getContractId, cmd.contractId()).last("LIMIT 1"));
+            if (dep != null) {
+                recalcDeposit(dep);
+                dep.setUpdateTime(LocalDateTime.now());
+                depositMapper.updateById(dep);
+            }
+        }
         return RefundVO.from(e);
     }
 
@@ -336,6 +347,26 @@ public class DepositRefundServiceImpl implements DepositRefundService {
         e.setRefundReason(reason);
         e.setUpdateTime(LocalDateTime.now());
         refundMapper.updateById(e);
+
+        // 退款创建时已扣减押金余额；驳回需原路回补，避免钱被“吞掉”
+        if ("DEPOSIT".equals(e.getRefundType()) && e.getContractId() != null) {
+            BigDecimal amt = money(e.getRefundAmount());
+            int restored = depositMapper.update(null,
+                    new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper
+                            <FinDeposit>()
+                            .eq(FinDeposit::getContractId, e.getContractId())
+                            .ge(FinDeposit::getRefundAmount, amt)
+                            .setSql("refund_amount = refund_amount - " + amt
+                                    + ", balance_amount = balance_amount + " + amt));
+            FinDeposit dep = depositMapper.selectOne(new LambdaQueryWrapper<FinDeposit>()
+                    .eq(FinDeposit::getContractId, e.getContractId()).last("LIMIT 1"));
+            if (dep != null) {
+                recalcDeposit(dep);
+                dep.setUpdateTime(LocalDateTime.now());
+                depositMapper.updateById(dep);
+            }
+            log.info("退款 {} 驳回，回补押金 {}（影响 {} 行）", e.getRefundNo(), amt, restored);
+        }
         return RefundVO.from(e);
     }
 

@@ -190,8 +190,8 @@ public class SubsidyServiceImpl implements SubsidyService {
         if (ct == null) {
             throw BizException.notFound("合同");
         }
-        FinSubsidyStandard std = resolveStandard(cmd.standardId(), ct);
-        return calc(std, ct, cmd.area(), cmd.personCount(), cmd.monthlyRent());
+        FinSubsidyStandard std = resolveStandard(cmd.standardId(), ct, null);
+        return calc(std, ct, cmd.area(), cmd.personCount(), cmd.monthlyRent(), null);
     }
 
     // ==================== 发放 ====================
@@ -213,8 +213,8 @@ public class SubsidyServiceImpl implements SubsidyService {
                     "该合同 " + cmd.subsidyPeriod() + " 补贴已发放（幂等拒绝）");
         }
 
-        FinSubsidyStandard std = resolveStandard(cmd.standardId(), ct);
-        SubsidyCalcResult r = calc(std, ct, null, null, null);
+        FinSubsidyStandard std = resolveStandard(cmd.standardId(), ct, cmd.subsidyPeriod());
+        SubsidyCalcResult r = calc(std, ct, null, null, null, cmd.subsidyPeriod());
         if (r.cappedAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw BizException.stateConflict("按当前标准计算补贴为 0，无法发放");
         }
@@ -316,13 +316,13 @@ public class SubsidyServiceImpl implements SubsidyService {
                 }
                 FinSubsidyStandard std;
                 try {
-                    std = resolveStandard(null, ct);
+                    std = resolveStandard(null, ct, subsidyPeriod);
                 } catch (BizException be) {
                     skipped++;
                     skipReasons.add("合同 " + ct.getContractNo() + "：" + be.getMessage());
                     continue;
                 }
-                SubsidyCalcResult r = calc(std, ct, null, null, null);
+                SubsidyCalcResult r = calc(std, ct, null, null, null, subsidyPeriod);
                 if (r.cappedAmount().compareTo(BigDecimal.ZERO) <= 0) {
                     skipped++;
                     skipReasons.add("合同 " + ct.getContractNo() + "：按标准计算补贴为 0");
@@ -441,7 +441,7 @@ public class SubsidyServiceImpl implements SubsidyService {
 
     /** 按标准与合同算补贴。 */
     private SubsidyCalcResult calc(FinSubsidyStandard std, BizContract ct, BigDecimal areaIn,
-                                   Integer personIn, BigDecimal rentIn) {
+                                   Integer personIn, BigDecimal rentIn, String period) {
         SubsidyMode mode;
         try {
             mode = SubsidyMode.valueOf(std.getSubsidyMode());
@@ -507,7 +507,7 @@ public class SubsidyServiceImpl implements SubsidyService {
     }
 
     /** 匹配补贴标准：指定 > 按合同类型+组织 > 按合同类型。 */
-    private FinSubsidyStandard resolveStandard(Long standardId, BizContract ct) {
+    private FinSubsidyStandard resolveStandard(Long standardId, BizContract ct, String period) {
         if (standardId != null) {
             FinSubsidyStandard s = standardMapper.selectById(standardId);
             if (s == null) {
@@ -521,14 +521,18 @@ public class SubsidyServiceImpl implements SubsidyService {
         // 合同类型 → 保障类型映射（PUBLIC_RENTAL→PUBLIC 等）
         String securityType = mapSecurityType(ct.getContractType());
         LocalDate today = LocalDate.now();
+        if (period != null && period.matches("\\d{4}-\\d{2}")) {
+            today = java.time.YearMonth.parse(period).atEndOfMonth();
+        }
+        final LocalDate effectiveDate = today;
 
         List<FinSubsidyStandard> list = standardMapper.selectList(
                 new LambdaQueryWrapper<FinSubsidyStandard>()
                         .eq(FinSubsidyStandard::getStatus, "ENABLED")
                         .eq(FinSubsidyStandard::getSecurityType, securityType)
-                        .le(FinSubsidyStandard::getEffectiveStart, today)
+                        .le(FinSubsidyStandard::getEffectiveStart, effectiveDate)
                         .and(w -> w.isNull(FinSubsidyStandard::getEffectiveEnd)
-                                .or().ge(FinSubsidyStandard::getEffectiveEnd, today))
+                                .or().ge(FinSubsidyStandard::getEffectiveEnd, effectiveDate))
                         .orderByDesc(FinSubsidyStandard::getId));
         if (list.isEmpty()) {
             throw BizException.stateConflict(

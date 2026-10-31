@@ -351,6 +351,16 @@ public class TerminationServiceImpl implements TerminationService {
                 ? (java.math.BigDecimal) auto.get("depositAmount") : depositRefund;
         BigDecimal arrears = arrearsAmount == null
                 ? (java.math.BigDecimal) auto.get("arrearsAmount") : arrearsAmount;
+        java.math.BigDecimal available = (java.math.BigDecimal) auto.get("depositAmount");
+        if (refund.compareTo(java.math.BigDecimal.ZERO) < 0) {
+            throw BizException.paramInvalid("应退押金不能为负");
+        }
+        if (available != null && refund.compareTo(available) > 0) {
+            throw BizException.paramInvalid("应退押金不能超过押金余额 " + available);
+        }
+        if (arrears.compareTo(java.math.BigDecimal.ZERO) < 0) {
+            throw BizException.paramInvalid("欠费金额不能为负");
+        }
         BigDecimal damage = nz(e.getDamageAmount());
         // 结算金额 = 押金退还 - 欠费 - 损坏赔偿（正数退还，负数补缴）
         BigDecimal settle = refund.subtract(arrears).subtract(damage)
@@ -532,17 +542,28 @@ public class TerminationServiceImpl implements TerminationService {
         java.math.BigDecimal arrears = java.math.BigDecimal.ZERO;
         if (jdbc != null) {
             try {
+                // 押金以台账实际余额为准（已抵扣/已退部分不能再退），无台账才回退合同金额
                 java.util.List<java.math.BigDecimal> d = jdbc.queryForList(
-                        "select deposit_amount from bp_biz_contract where id = ?",
+                        "select balance_amount from bp_fin_deposit "
+                                + "where contract_id = ? order by id desc limit 1",
                         java.math.BigDecimal.class, e.getContractId());
                 if (!d.isEmpty() && d.get(0) != null) {
                     deposit = d.get(0);
+                } else {
+                    java.util.List<java.math.BigDecimal> c = jdbc.queryForList(
+                            "select deposit_amount from bp_biz_contract where id = ?",
+                            java.math.BigDecimal.class, e.getContractId());
+                    if (!c.isEmpty() && c.get(0) != null) {
+                        deposit = c.get(0);
+                    }
                 }
+                // 欠费只算本合同的未结账单：应收 - 减免 + 滞纳金 - 已收 - 已免
                 java.util.List<java.math.BigDecimal> a = jdbc.queryForList(
-                        "select coalesce(sum(bill_amount - paid_amount - waived_amount),0) "
-                                + "from bp_fin_bill where house_id = ? and status in "
+                        "select coalesce(sum(bill_amount - discount_amount + late_fee "
+                                + "- paid_amount - waived_amount),0) "
+                                + "from bp_fin_bill where contract_id = ? and bill_status in "
                                 + "('UNPAID','PARTIAL','OVERDUE') and is_deleted = 0",
-                        java.math.BigDecimal.class, e.getHouseId());
+                        java.math.BigDecimal.class, e.getContractId());
                 if (!a.isEmpty() && a.get(0) != null) {
                     arrears = a.get(0);
                 }
