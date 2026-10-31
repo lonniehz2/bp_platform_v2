@@ -57,6 +57,17 @@ st, r2, _ = req('/fin/bills/generate', 'POST', {**body, 'dryRun': False})
 ok('批量出账幂等', r2['generated'] == 0 and r2['skipped'] >= r1['generated'],
    '首次 %s / 再次 %s 跳过 %s' % (r1['generated'], r2['generated'], r2['skipped']))
 
+# 回归自备数据：若无未出账读数，先补一条有正用量的读数，避免依赖历史数据
+_, stat0, _ = req('/fin/meter-readings?pageNum=1&pageSize=20&billed=false')
+if not stat0.get('rows'):
+    _, any0, _ = req('/fin/meter-readings?pageNum=1&pageSize=1')
+    if any0.get('rows'):
+        base0 = any0['rows'][0]
+        req('/fin/meter-readings', 'POST', {
+            'houseId': base0['houseId'], 'feeItemId': base0['feeItemId'],
+            'reading': float(base0['reading']) + 10, 'readDate': '2026-10-31',
+            'remark': '回归自动补数'
+        })
 _, stat, _ = req('/fin/meter-readings?pageNum=1&pageSize=20&billed=false')
 ids = [x['id'] for x in stat['rows'][:2]]
 st, br, _ = req('/fin/meter-readings/bill-batch', 'POST', ids)
