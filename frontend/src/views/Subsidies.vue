@@ -225,7 +225,7 @@ const keyword = ref('')
 const show = ref(false)
 const detail = ref(null)
 const batchVisible = ref(false)
-const bf = reactive({ subsidyPeriod: '', orgId: 1, payMode: 'BANK', dryRun: false })
+const bf = reactive({ subsidyPeriod: '', orgId: null, payMode: 'BANK', dryRun: false })
 
 async function load() {
   loading.value = true

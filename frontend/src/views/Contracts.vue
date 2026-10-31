@@ -461,6 +461,21 @@ function openCohabitant(row) {
 
 const spaceLabel = ref('')
 
+/** 选房源：带出空间/地址/面积/租金标准 */
+function onHousePicked(h) {
+  if (!h) return
+  c.spaceId = h.spaceId
+  spaceLabel.value = h.spaceName || (h.spaceId ? '空间 ' + h.spaceId : '')
+  if (!c.houseAddress) c.houseAddress = h.houseAddress || h.houseName || ''
+  if (!c.houseArea) c.houseArea = h.area
+  if (!c.rentPrice && h.rentStandard) c.rentPrice = h.rentStandard
+}
+
+const c = reactive({ contractType: 'PUBLIC_RENTAL', orgId: null, lessorOrgId: null, lesseePersonId: null,
+  lesseeName: '', lesseePhone: '', lesseeIdCardMask: '', houseId: null, spaceId: null,
+  houseAddress: '', houseArea: null, leaseStart: '', leaseEnd: '', rentPrice: null,
+  rentUnit: 'HOUSE_MONTH', monthlyRent: null, depositAmount: null, subsidyAmount: 0,
+  payCycle: 'MONTH', payDay: 5, allocationId: null, remark: '' })
 /** 选承租人：自动带出姓名/电话/脱敏证件 */
 watch(() => c.lesseePersonId, async (v) => {
   if (!v) return
@@ -472,21 +487,6 @@ watch(() => c.lesseePersonId, async (v) => {
   } catch (e) { /* 忽略 */ }
 })
 
-/** 选房源：带出空间/地址/面积/租金标准 */
-function onHousePicked(h) {
-  if (!h) return
-  c.spaceId = h.spaceId
-  spaceLabel.value = h.spaceName || (h.spaceId ? '空间 ' + h.spaceId : '')
-  if (!c.houseAddress) c.houseAddress = h.houseAddress || h.houseName || ''
-  if (!c.houseArea) c.houseArea = h.area
-  if (!c.rentPrice && h.rentStandard) c.rentPrice = h.rentStandard
-}
-
-const c = reactive({ contractType: 'PUBLIC_RENTAL', orgId: 1, lessorOrgId: 1, lesseePersonId: null,
-  lesseeName: '', lesseePhone: '', lesseeIdCardMask: '', houseId: null, spaceId: null,
-  houseAddress: '', houseArea: null, leaseStart: '', leaseEnd: '', rentPrice: null,
-  rentUnit: 'HOUSE_MONTH', monthlyRent: null, depositAmount: null, subsidyAmount: 0,
-  payCycle: 'MONTH', payDay: 5, allocationId: null, remark: '' })
 const sg = reactive({ signVendor: 'OFFLINE', signFileUrl: '', signFlowId: '', reason: '' })
 const rn = reactive({ newLeaseEnd: '', newMonthlyRent: null })
 const tm = reactive({ terminateType: 'AGREEMENT', reason: '' })

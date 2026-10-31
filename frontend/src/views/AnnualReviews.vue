@@ -110,7 +110,7 @@ const batchVisible = ref(false)
 const reviewVisible = ref(false)
 const current = ref(null)
 const b = reactive({ reviewYear: String(new Date().getFullYear()),
-  orgId: 1, reviewBatch: '', dryRun: false })
+  orgId: null, reviewBatch: '', dryRun: false })
 const r = reactive({ reviewResult: 'KEEP', newMonthlyRent: null, opinion: '' })
 
 async function load() {

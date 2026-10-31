@@ -36,9 +36,9 @@
       <el-table-column label="操作" width="250" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-          <el-button link type="primary" @click="actReason(row, '/api/v1/credits/{id}/revoke', '撤销')">撤销</el-button>
-          <el-button link type="primary" @click="actReason(row, '/api/v1/credits/{id}/expire', '失效')">标记失效</el-button>
-          <el-button link @click="actPlain(row, '/api/v1/credits/{id}/push', '推送')">推送</el-button>
+          <el-button link type="primary" @click="actReason(row, '/credits/{id}/revoke', '撤销')">撤销</el-button>
+          <el-button link type="primary" @click="actReason(row, '/credits/{id}/expire', '失效')">标记失效</el-button>
+          <el-button link @click="actPlain(row, '/credits/{id}/push', '推送')">推送</el-button>
         </template>
       </el-table-column>
     </el-table>

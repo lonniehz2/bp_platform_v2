@@ -36,7 +36,7 @@
           <el-button link type="primary" @click="doResolve(row)">处理</el-button>
           <el-button link type="warning" @click="doEvaluate(row)">评价</el-button>
           <el-button link type="success" @click="doToWorkOrder(row)">转工单</el-button>
-          <el-button link type="primary" @click="actReason(row, '/api/v1/complaints/{id}/close', '办结')">办结</el-button>
+          <el-button link type="primary" @click="actReason(row, '/complaints/{id}/close', '办结')">办结</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -113,7 +113,10 @@ import { ref, reactive, onMounted } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
+import { useAuthStore } from '@/store/auth'
 import OrgSelect from '@/components/OrgSelect.vue'
+
+const auth = useAuthStore()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -169,7 +172,7 @@ async function doResolve(row) {
   const { value } = await ElMessageBox.prompt('处理结果（可空）', '处理投诉',
     { inputValue: '已联系投诉人并处理' })
   await req.post(`/complaints/${row.id}/resolve`, {
-    handleUserId: 1, action: '处理', result: value || '已处理'
+    handleUserId: auth.user?.userId, action: '处理', result: value || '已处理'
   })
   ElMessage.success('已处理'); load()
 }
@@ -188,7 +191,7 @@ async function doEvaluate(row) {
 async function doToWorkOrder(row) {
   await ElMessageBox.confirm('确认将该投诉转为工单处理？', '转工单', { type: 'warning' })
   await req.post(`/complaints/${row.id}/to-workorder`,
-    { handleUserId: 1, action: '转工单' })
+    { handleUserId: auth.user?.userId, action: '转工单' })
   ElMessage.success('已转工单'); load()
 }
 

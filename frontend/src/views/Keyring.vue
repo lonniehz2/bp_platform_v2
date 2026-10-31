@@ -34,8 +34,8 @@
                      @click="freeze(row)" data-testid="row-freeze">冻结</el-button>
           <el-button v-if="row.keyStatus === 'FROZEN'" link type="success"
                      @click="unfreeze(row)" data-testid="row-unfreeze">解冻</el-button>
-          <el-button link @click="actPlain(row, '/api/v1/keyring/{id}/status', '改状态')">改状态</el-button>
-          <el-button link @click="actPlain(row, '/api/v1/keyring/{id}/remove', '回收')">回收</el-button>
+          <el-button link @click="actPlain(row, '/keyring/{id}/status', '改状态')">改状态</el-button>
+          <el-button link @click="actPlain(row, '/keyring/{id}/remove', '回收')">回收</el-button>
         </template>
       </el-table-column>
     </el-table>

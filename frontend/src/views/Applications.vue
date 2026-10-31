@@ -206,7 +206,7 @@ const query = reactive({ pageNum: 1, pageSize: 20, applicationStatus: '', person
 
 const createVisible = ref(false)
 const form = reactive({
-  orgId: 1, personId: null, securityType: 'PUBLIC', securityMode: 'HOUSE',
+  orgId: null, personId: null, securityType: 'PUBLIC', securityMode: 'HOUSE',
   applyChannel: 'ONLINE', familySize: 1, declaredIncome: null,
   complianceCommitFlag: 1, dataShareAgreeFlag: 1
 })

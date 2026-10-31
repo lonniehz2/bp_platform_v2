@@ -645,7 +645,7 @@ async function loadTrend() {
 const current = ref(null)
 
 const genVisible = ref(false)
-const g = reactive({ orgId: 1, billPeriod: '', dryRun: true })
+const g = reactive({ orgId: null, billPeriod: '', dryRun: true })
 
 /** 公摊分摊（物业管理） */
 const sharedVisible = ref(false)
@@ -696,7 +696,7 @@ async function loadPayOrgs() {
     payOrgs.value = (d && d.rows) || []
   } catch (e) { payOrgs.value = [] }
 }
-const p = reactive({ orgId: 1, personId: null, payerName: '', payAmount: null,
+const p = reactive({ orgId: null, personId: null, payerName: '', payAmount: null,
   payChannel: 'CASH', tradeNo: '', unknownFlag: 0, remark: '' })
 
 const allocVisible = ref(false)

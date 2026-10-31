@@ -33,15 +33,15 @@
       <el-table-column label="操作" width="210" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-          <el-button link type="warning" @click="actAction(row, '/api/v1/alerts/{id}/handle', '处理')">处理</el-button>
+          <el-button link type="warning" @click="actAction(row, '/alerts/{id}/handle', '处理')">处理</el-button>
           <el-dropdown trigger="click" style="margin-left:8px">
             <el-button link type="primary">更多▾</el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="actAction(row, '/api/v1/alerts/{id}/resolve', '解决')">解决</el-dropdown-item>
-                <el-dropdown-item @click="actAction(row, '/api/v1/alerts/{id}/ignore', '忽略')">忽略</el-dropdown-item>
-                <el-dropdown-item @click="actAction(row, '/api/v1/alerts/{id}/escalate', '升级')">升级</el-dropdown-item>
-                <el-dropdown-item @click="actAction(row, '/api/v1/alerts/{id}/to-workorder', '转工单')">转工单</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/alerts/{id}/resolve', '解决')">解决</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/alerts/{id}/ignore', '忽略')">忽略</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/alerts/{id}/escalate', '升级')">升级</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/alerts/{id}/to-workorder', '转工单')">转工单</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -313,8 +313,11 @@ import { ref, reactive, onMounted } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
+import { useAuthStore } from '@/store/auth'
 import HouseSelect from '@/components/HouseSelect.vue'
 import OrgSelect from '@/components/OrgSelect.vue'
+
+const auth = useAuthStore()
 
 const loading = ref(false)
 const saving = ref(false)
@@ -410,7 +413,7 @@ async function actPlain(row, path, label) {
 async function actAction(row, path, label) {
   const { value } = await ElMessageBox.prompt('处理结果', label, { inputValue: '' })
   await req.post(pathTpl(path, row.id),
-                 { handleUserId: 1, action: label, result: value })
+                 { handleUserId: auth.user?.userId, action: label, result: value })
   ElMessage.success(label + '成功'); load()
 }
 async function loadStats() {
