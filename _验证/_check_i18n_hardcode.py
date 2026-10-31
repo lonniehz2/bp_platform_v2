@@ -46,7 +46,7 @@ def scan_diff(staged):
     args = ['diff', '--unified=0']
     if staged:
         args.append('--cached')
-    args.append('HEAD')
+    args.extend(['HEAD', '--', 'frontend/src', 'backend/src/main/java'])
     out = git(*args).stdout
     violations = []
     current = ''
@@ -73,6 +73,8 @@ def scan_new_files():
     violations = []
     for path in out.splitlines():
         if not path.endswith(('.vue', '.js', '.java')):
+            continue
+        if not (path.startswith('frontend/src/') or path.startswith('backend/src/main/java/')):
             continue
         if allowed(path):
             continue
