@@ -1,22 +1,22 @@
 <template>
   <div>
     <div class="toolbar">
-      <el-select v-model="query.identifier" placeholder="事件类型" clearable
+      <el-select v-model="query.identifier" :placeholder="t('devEvent.eventType')" clearable
                  style="width:200px" @change="load">
         <el-option v-for="t in types" :key="t.code" :value="t.code"
                    :label="t.label + (t.level === 'CRITICAL' ? '（严重）' : '')" />
       </el-select>
-      <el-select v-model="query.eventLevel" placeholder="级别" clearable
+      <el-select v-model="query.eventLevel" :placeholder="t('devEvent.level')" clearable
                  style="width:120px" @change="load">
-        <el-option label="严重" value="CRITICAL" />
-        <el-option label="警告" value="WARN" />
-        <el-option label="信息" value="INFO" />
+        <el-option :label="t('devEvent.critical')" value="CRITICAL" />
+        <el-option :label="t('devEvent.warn')" value="WARN" />
+        <el-option :label="t('devEvent.info')" value="INFO" />
       </el-select>
       <DeviceSelect v-model="query.deviceId" width="240px" testid="device-select" />
       <el-checkbox v-model="query.alarmOnly" @change="load">只看告警</el-checkbox>
       <el-checkbox v-model="query.unhandledOnly" @change="load">只看未处理</el-checkbox>
-      <el-button type="primary" @click="load">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
+      <el-button type="primary" @click="load">{{ t('devEvent.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('devEvent.reset') }}</el-button>
     </div>
 
     <el-row :gutter="12" style="margin-bottom:12px">
@@ -57,12 +57,12 @@
     </el-row>
 
     <el-table empty-text="暂无设备事件" :data="rows" v-loading="loading" border size="small">
-      <el-table-column prop="eventTime" label="时间" width="170" />
-      <el-table-column prop="deviceId" label="设备编号" width="170" />
-      <el-table-column prop="identifier" label="类型" width="170">
+      <el-table-column prop="eventTime" :label="t('devEvent.time')" width="170" />
+      <el-table-column prop="deviceId" :label="t('devEvent.device')" width="170" />
+      <el-table-column prop="identifier" :label="t('devEvent.type')" width="170">
         <template #default="{ row }">{{ labelOf(row.identifier) }}</template>
       </el-table-column>
-      <el-table-column prop="eventLevel" label="级别" width="100">
+      <el-table-column prop="eventLevel" :label="t('devEvent.level')" width="100">
         <template #default="{ row }">
           <el-tag size="small" :type="row.eventLevel === 'CRITICAL' ? 'danger'
             : (row.eventLevel === 'WARN' ? 'warning' : 'info')">
@@ -70,20 +70,20 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="body" label="详情" min-width="260" show-overflow-tooltip>
+      <el-table-column prop="body" :label="t('devEvent.details')" min-width="260" show-overflow-tooltip>
         <template #default="{ row }">{{ fmtBody(row.body) }}</template>
       </el-table-column>
-      <el-table-column prop="handled" label="处理状态" width="110">
+      <el-table-column prop="handled" :label="t('devEvent.handled')" width="110">
         <template #default="{ row }">
           <el-tag size="small" :type="row.handled ? 'success' : 'danger'">
             {{ row.handled ? '已处理' : '未处理' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="handleRemark" label="处理说明" min-width="150" show-overflow-tooltip>
+      <el-table-column prop="handleRemark" :label="t('devEvent.remark')" min-width="150" show-overflow-tooltip>
         <template #default="{ row }">{{ row.handleRemark || '—' }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="110" fixed="right">
+      <el-table-column :label="t('devEvent.actions')" width="110" fixed="right">
         <template #default="{ row }">
           <el-button v-if="!row.handled" link type="primary"
                      @click="handle(row)" data-testid="ev-handle">标记处理</el-button>
@@ -100,6 +100,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /**
  * 设备告警与事件。
  *
@@ -111,6 +112,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 import DeviceSelect from '@/components/DeviceSelect.vue'
 
+const { t } = useI18n()
 const rows = ref([])
 const total = ref(0)
 const loading = ref(false)

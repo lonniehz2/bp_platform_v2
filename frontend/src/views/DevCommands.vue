@@ -1,66 +1,66 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">设备指令</h3>
+      <h3 style="margin:0">{{ t('devCmd.title') }}</h3>
       <el-tag size="small" type="info">经 IoT 平台下发 · 不直连设备</el-tag>
       <div class="spacer" />
-      <el-select v-model="query.status" placeholder="状态" clearable style="width:120px"
+      <el-select v-model="query.status" :placeholder="t('devCmd.status')" clearable style="width:120px"
                  @change="reload">
-        <el-option label="待下发" value="PENDING" />
-        <el-option label="已下发" value="SENT" />
-        <el-option label="成功" value="SUCCESS" />
-        <el-option label="失败" value="FAILED" />
-        <el-option label="超时" value="TIMEOUT" />
-        <el-option label="已取消" value="CANCELED" />
+        <el-option :label="t('devCmd.pending')" value="PENDING" />
+        <el-option :label="t('devCmd.sent')" value="SENT" />
+        <el-option :label="t('devCmd.success')" value="SUCCESS" />
+        <el-option :label="t('devCmd.failed')" value="FAILED" />
+        <el-option :label="t('devCmd.timeout')" value="TIMEOUT" />
+        <el-option :label="t('devCmd.canceled')" value="CANCELED" />
       </el-select>
-      <el-select v-model="query.commandType" placeholder="指令类型" clearable
+      <el-select v-model="query.commandType" :placeholder="t('devCmd.cmdType')" clearable
                  style="width:150px" @change="reload">
         <el-option v-for="t in TYPES" :key="t.value" :label="t.label" :value="t.value" />
       </el-select>
       <DeviceSelect v-model="query.deviceId" width="240px" testid="device-select" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="success" @click="openCreate">新建指令</el-button>
+      <el-button type="primary" @click="reload">{{ t('devCmd.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('devCmd.reset') }}</el-button>
+      <el-button type="success" @click="openCreate">{{ t('devCmd.create') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
               title="指令经 IoT 平台下发，回执由 IoT 回调回填；超时（默认 10 秒）会自动重试，最多 3 次。" />
 
     <el-table empty-text="暂无设备指令" :data="rows" v-loading="loading" border size="small">
-      <el-table-column prop="commandNo" label="指令号" width="180" />
-      <el-table-column label="类型" width="130">
+      <el-table-column prop="commandNo" :label="t('devCmd.no')" width="180" />
+      <el-table-column :label="t('devCmd.type')" width="130">
         <template #default="{ row }">{{ typeLabel(row.commandType) }}</template>
       </el-table-column>
-      <el-table-column prop="deviceId" label="设备" width="150" />
-      <el-table-column label="状态" width="100">
+      <el-table-column prop="deviceId" :label="t('devCmd.device')" width="150" />
+      <el-table-column :label="t('devCmd.status')" width="100">
         <template #default="{ row }">
           <el-tag size="small" :type="statusType(row.status)">{{ statusLabel(row.status) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="resultMsg" label="结果" min-width="180"
+      <el-table-column prop="resultMsg" :label="t('devCmd.result')" min-width="180"
                        show-overflow-tooltip>
         <template #default="{ row }">{{ row.resultMsg || '—' }}</template>
       </el-table-column>
-      <el-table-column prop="retryCount" label="重试" width="70" />
-      <el-table-column prop="costMs" label="耗时(ms)" width="90" />
-      <el-table-column prop="operatorName" label="操作人" width="110">
+      <el-table-column prop="retryCount" :label="t('devCmd.retry')" width="70" />
+      <el-table-column prop="costMs" :label="t('devCmd.cost')" width="90" />
+      <el-table-column prop="operatorName" :label="t('devCmd.operator')" width="110">
         <template #default="{ row }">{{ row.operatorName || '—' }}</template>
       </el-table-column>
-      <el-table-column prop="createTime" label="创建时间" min-width="165" />
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column prop="createTime" :label="t('devCmd.created')" min-width="165" />
+      <el-table-column :label="t('devCmd.actions')" width="200" fixed="right">
         <template #default="{ row }">
           <el-button v-if="row.commandType === 'METER_SWITCH'
                      && row.approveStatus === 'PENDING'"
-                     link type="warning" @click="approve(row, true)">通过</el-button>
+                     link type="warning" @click="approve(row, true)">{{ t('devCmd.approve') }}</el-button>
           <el-button v-if="row.commandType === 'METER_SWITCH'
                      && row.approveStatus === 'PENDING'"
-                     link type="danger" @click="approve(row, false)">驳回</el-button>
+                     link type="danger" @click="approve(row, false)">{{ t('devCmd.reject') }}</el-button>
           <el-button link type="primary"
                      :disabled="['SUCCESS', 'CANCELED'].includes(row.status)"
-                     @click="retry(row)">重试</el-button>
+                     @click="retry(row)">{{ t('devCmd.retryAction') }}</el-button>
           <el-button link :disabled="row.status !== 'PENDING'"
-                     @click="cancel(row)">取消</el-button>
-          <el-button link @click="detail = row; show = true">详情</el-button>
+                     @click="cancel(row)">{{ t('devCmd.cancel') }}</el-button>
+          <el-button link @click="detail = row; show = true">{{ t('devCmd.detail') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -69,55 +69,56 @@
                    :total="+total || 0" :page-size="query.pageSize" :current-page="query.pageNum"
                    @current-change="(p) => { query.pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { query.pageSize = s; query.pageNum = 1; load() }" />
 
-    <el-dialog v-model="createVisible" title="新建设备指令" width="560px">
+    <el-dialog v-model="createVisible" :title="t('devCmd.createTitle')" width="560px">
       <el-form :model="form" label-width="100px">
-        <el-form-item label="指令类型" required>
+        <el-form-item :label="t('devCmd.cmdType')" required>
           <el-select v-model="form.commandType" style="width:100%">
             <el-option v-for="t in TYPES" :key="t.value" :label="t.label" :value="t.value" />
           </el-select>
         </el-form-item>
-        <el-form-item label="设备" required>
+        <el-form-item :label="t('devCmd.device')" required>
           <el-select v-model="form.deviceId" filterable style="width:100%">
             <el-option v-for="d in devices" :key="d.deviceId"
                        :label="(d.deviceName || d.deviceId) + '（' + d.deviceId + '）'"
                        :value="d.deviceId" />
           </el-select>
         </el-form-item>
-        <el-form-item label="原因" required>
-          <el-input v-model="form.reason" placeholder="如：住户报修远程开门" />
+        <el-form-item :label="t('devCmd.reason')" required>
+          <el-input v-model="form.reason" :placeholder="t('devCmd.reasonHint')" />
         </el-form-item>
-        <el-form-item v-if="form.commandType === 'METER_SWITCH'" label="表号">
-          <el-input v-model="form.meterNo" placeholder="拉合闸时填写表号" />
+        <el-form-item v-if="form.commandType === 'METER_SWITCH'" :label="t('devCmd.meterNo')">
+          <el-input v-model="form.meterNo" :placeholder="t('devCmd.meterHint')" />
         </el-form-item>
       </el-form>
       <el-alert v-if="form.commandType === 'METER_SWITCH'" type="warning" :closable="false"
                 show-icon title="拉合闸需审批通过后才下发；拉闸默认延迟执行，可在窗口内取消。" />
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
+        <el-button @click="createVisible = false">{{ t('devCmd.cancelBtn') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('devCmd.submit') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="show" title="指令详情" size="480px">
+    <el-drawer v-model="show" :title="t('devCmd.drawer')" size="480px">
       <el-descriptions :column="1" border size="small">
-        <el-descriptions-item label="指令号">{{ detail?.commandNo }}</el-descriptions-item>
-        <el-descriptions-item label="请求号">{{ detail?.requestId }}</el-descriptions-item>
-        <el-descriptions-item label="类型">{{ typeLabel(detail?.commandType) }}</el-descriptions-item>
-        <el-descriptions-item label="设备">{{ detail?.deviceId }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ statusLabel(detail?.status) }}</el-descriptions-item>
-        <el-descriptions-item label="结果码">{{ detail?.resultCode || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="结果说明">{{ detail?.resultMsg || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="下发时间">{{ detail?.dispatchTime || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="回执时间">{{ detail?.ackTime || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="耗时(ms)">{{ detail?.costMs ?? '—' }}</el-descriptions-item>
-        <el-descriptions-item label="操作人">{{ detail?.operatorName || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="原因">{{ detail?.reason || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.no')">{{ detail?.commandNo }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.requestNo')">{{ detail?.requestId }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.type')">{{ typeLabel(detail?.commandType) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.device')">{{ detail?.deviceId }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.status')">{{ statusLabel(detail?.status) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.resultCode')">{{ detail?.resultCode || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.resultMsg')">{{ detail?.resultMsg || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.dispatchTime')">{{ detail?.dispatchTime || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.ackTime')">{{ detail?.ackTime || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.cost')">{{ detail?.costMs ?? '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.operator')">{{ detail?.operatorName || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.reasonLabel')">{{ detail?.reason || '—' }}</el-descriptions-item>
       </el-descriptions>
     </el-drawer>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /**
  * 设备指令：远程开锁 / 重启 / 校时 / 拉合闸。
  *
@@ -128,6 +129,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 import DeviceSelect from '@/components/DeviceSelect.vue'
 
+const { t } = useI18n()
 const TYPES = [
   { value: 'LOCK_OPEN', label: '远程开锁' },
   { value: 'DEVICE_REBOOT', label: '远程重启' },
