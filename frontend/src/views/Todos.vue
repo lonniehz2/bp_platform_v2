@@ -20,7 +20,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
-              title="{{ t('todo.tip') }}" />
+              :title="t('todo.tip')" />
 
     <!-- 四个总览指标 -->
     <el-row :gutter="12" style="margin-bottom:6px">

@@ -103,6 +103,7 @@ export default {
     exportFailed: '导出失败'
   },
   contract: {
+    effective: '生效中',
     title: '合同管理',
     keyword: '合同号 / 承租人',
     org: '组织名称',
@@ -966,6 +967,7 @@ export default {
     moreFilters: '更多筛选'
   },
   todo: {
+    detail: '待办明细',
     title: '待办中心', batchDone: '批量完成', batchRead: '批量已读', refresh: '刷新',
     tip: '这里只汇总「需要人动手」的待办；点卡片进入对应模块处理，明细不重复维护',
     keyword: '标题 / 内容关键字', type: '类型', approval: '审批', remind: '提醒',
@@ -1195,6 +1197,8 @@ export default {
     hoursSilent: '静默(小时)', lastReport: '最后上报'
   },
   alert: {
+    rulesetHint: '规则集 = 一组规则；规则 = 一条判定',
+    addRule: '新增规则',
     title: '告警处理', keyword: '关键字', search: '查询', reset: '清空',
     stats: '告警统计', create: '新建告警', empty: '暂无数据，可调整筛选条件',
     tip: '阈值告警由规则引擎产生；可转工单、升级或忽略',
@@ -1209,6 +1213,7 @@ export default {
     createTitle: '新建规则集', description: '说明'
   },
   workorder: {
+    normal: '正常',
     title: '工单与维保', status: '状态', plans: '巡检计划', autoAssign: '自动派单',
     escalate: '超时升级', refresh: '刷新', planTitle: '巡检计划', newPlan: '新建计划',
     runDue: '执行到期计划', planName: '计划名称', type: '巡检类型', frequency: '周期',
@@ -1267,6 +1272,8 @@ export default {
     bank: '银行转账', cancel: '取消', save: '保存'
   },
   subsidy: {
+    confirmIssue: '确认发放',
+    markFail: '发放失败',
     title: '补贴管理', keyword: '关键字', search: '查询', reset: '清空', batch: '批量发放',
     recordNo: '补贴单号', person: '人员', payMode: '发放方式', period: '周期',
     standard: '补贴标准', contract: '合同', amount: '金额', status: '状态',
