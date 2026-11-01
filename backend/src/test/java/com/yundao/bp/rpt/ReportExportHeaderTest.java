@@ -39,6 +39,11 @@ class ReportExportHeaderTest {
         csv.setAccessible(true);
         String text = (String) csv.invoke(null, cols, List.of());
         assertEquals("Housing Code,Housing Name,Housing Type,Area (m²),Housing Status", text.split("\\n")[0].replace("\uFEFF", ""));
+        Method xls = ReportServiceImpl.class.getDeclaredMethod("toXls", List.class, List.class);
+        xls.setAccessible(true);
+        String xml = (String) xls.invoke(null, cols, List.of());
+        org.junit.jupiter.api.Assertions.assertTrue(xml.contains(">Housing Code<"));
+        org.junit.jupiter.api.Assertions.assertTrue(xml.contains(">Housing Status<"));
     }
 
     @Test

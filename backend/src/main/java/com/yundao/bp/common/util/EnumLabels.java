@@ -384,7 +384,7 @@ public final class EnumLabels {
             case "PENDING" -> "Pending";
             case "SUCCESS" -> "Success";
             case "FAILED" -> "Failed";
-            default -> of(field, value);
+            default -> v;
         };
     }
 }
