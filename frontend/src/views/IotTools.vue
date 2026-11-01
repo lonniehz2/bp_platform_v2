@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('iot.title') }}</h3>
-      <el-tag size="small" type="info">验签 / 回调日志 / 重放</el-tag>
+      <el-tag size="small" type="info">{{ t('sysAdminX.verifyTab') }}</el-tag>
       <div class="spacer" />
       <el-button @click="loadLogs">{{ t('iot.refreshLogs') }}</el-button>
     </div>
@@ -10,7 +10,7 @@
     <el-tabs v-model="tab">
       <el-tab-pane :label="t('iot.signTab')" name="sign">
         <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
-                  title="用于与 IoT 方对照签名：填写同样的 appId/时间戳/nonce/body，双方算出的 signature 应完全一致。" />
+                  :title="t('sysAdminX.verifyTip')" />
         <el-form :model="sf" label-width="110px" style="max-width:720px">
           <el-form-item :label="t('iot.action')">
             <el-select v-model="sf.action" style="width:100%">
@@ -28,7 +28,7 @@
             <el-input v-model="sf.appId" :placeholder="t('iot.blankParam')" />
           </el-form-item>
           <el-form-item :label="t('iot.appSecret')">
-            <el-input v-model="sf.appSecret" placeholder="留空用系统参数" show-password />
+            <el-input v-model="sf.appSecret" :placeholder="t('sysAdminX.secretHint')" show-password />
           </el-form-item>
           <el-form-item :label="t('iot.timestamp')">
             <el-input v-model="sf.timestamp" :placeholder="t('iot.blankTimestamp')" />
@@ -57,16 +57,16 @@
 
       <el-tab-pane :label="t('iot.capTab')" name="cap">
         <el-alert type="info" :closable="false" show-icon
-                  title="展示当前接入模式、凭证配置与仍需 IoT 提供的能力（联调/上线切换前先看这里）"
+                  :title="t('sysAdminX.modeTip')"
                   style="margin-bottom:10px" />
         <el-row :gutter="12">
           <el-col :span="12">
-            <div class="card-title">客户端模式</div>
+            <div class="card-title">{{ t('sysAdminX.clientMode') }}</div>
             <el-table :data="capModeRows" size="small" border>
               <el-table-column prop="name" :label="t('iot.client')" width="140" />
               <el-table-column prop="mode" :label="t('iot.mode')" />
             </el-table>
-            <div class="card-title" style="margin-top:12px">回调配置</div>
+            <div class="card-title" style="margin-top:12px">{{ t('sysAdminX.callbackConfig') }}</div>
             <el-descriptions :column="1" border size="small">
               <el-descriptions-item :label="t('iot.verify')">{{ cap.callback?.verify }}</el-descriptions-item>
               <el-descriptions-item :label="t('iot.callbackAppId')">{{ cap.callback?.appId || '—' }}</el-descriptions-item>
@@ -80,17 +80,17 @@
             </el-descriptions>
           </el-col>
           <el-col :span="12">
-            <div class="card-title">平台凭证</div>
+            <div class="card-title">{{ t('sysAdminX.platformCredential') }}</div>
             <el-descriptions :column="1" border size="small">
               <el-descriptions-item :label="t('iot.iotUrl')">{{ cap.iotCredential?.baseUrl || '—' }}</el-descriptions-item>
               <el-descriptions-item :label="t('iot.appId')">
-                {{ cap.iotCredential?.appIdConfigured ? '已配置' : '未配置' }}
+                {{ cap.iotCredential?.appIdConfigured ? t('sysAdminX.configured') : t('sysAdminX.notConfigured') }}
               </el-descriptions-item>
               <el-descriptions-item :label="t('iot.secret')">
-                {{ cap.iotCredential?.appSecretConfigured ? '已配置' : '未配置' }}
+                {{ cap.iotCredential?.appSecretConfigured ? t('sysAdminX.configured') : t('sysAdminX.notConfigured') }}
               </el-descriptions-item>
               <el-descriptions-item :label="t('iot.canSwitch')">
-                {{ cap.readyForReal ? '是' : '否（凭证未配齐）' }}
+                {{ cap.readyForReal ? t('sysAdminX.readyReal') : t('sysAdminX.notReady') }}
               </el-descriptions-item>
             </el-descriptions>
 

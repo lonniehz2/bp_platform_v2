@@ -39,7 +39,7 @@
                            show-overflow-tooltip />
         </el-table>
         <div class="muted" style="margin-top:8px">
-          审计日志只追加，不提供修改与删除接口
+          {{ t('sysAdminX.auditAppendOnly') }}
         </div>
       </el-tab-pane>
 
@@ -66,7 +66,7 @@
           </el-table-column>
         </el-table>
         <div class="muted" style="margin-top:8px">
-          系统内置 dict_type 的 tenant_id 为空；租户新增同名编码会覆盖内置项
+          {{ t('sysAdminX.dictBuiltin') }}
         </div>
       </el-tab-pane>
 
@@ -75,12 +75,12 @@
         <el-card shadow="never" style="margin-bottom:14px"
                  body-style="padding:12px 14px">
           <div class="toolbar" style="margin-bottom:10px">
-            <h4 style="margin:0">IoT 对接参数</h4>
-            <el-tag size="small" type="info">分组 IOT · 与 IoT 平台联调前先确认</el-tag>
+            <h4 style="margin:0">{{ t('sysAdminX.iotTitle') }}</h4>
+            <el-tag size="small" type="info">{{ t('sysAdminX.iotGroup') }}</el-tag>
             <div class="spacer" />
             <el-button size="small" @click="loadIotConfigs">{{ t('sys.reloadIot') }}</el-button>
             <el-button size="small" type="primary" :loading="iotSaving"
-                       @click="saveIotAll">保存全部</el-button>
+                       @click="saveIotAll">{{ t('sysAdminX.saveAll') }}</el-button>
           </div>
           <el-table :data="iotRows" border size="small">
             <el-table-column prop="label" :label="t('sys.param')" width="230" />
@@ -103,9 +103,7 @@
             </el-table-column>
           </el-table>
           <div class="muted" style="margin-top:8px">
-            默认值：签名 v2-hmac-sha256、时间容忍 300 秒、指令超时 10 秒 / 重试 3 次、
-            授权任务超时 180 秒、心跳 60 秒 / 离线 180 秒、表计上报 每日。
-            修改后立即生效，无需重启。
+            {{ t('sysAdminX.iotDefaults') }} {{ t('sysAdminX.iotEffective') }}
           </div>
         </el-card>
 
