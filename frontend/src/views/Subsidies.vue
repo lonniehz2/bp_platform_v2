@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('subsidy.title') }}</h3>
-      <el-tag size="small" type="info">4 种方式 · 月度封顶 · 抵扣租金</el-tag>
+      <el-tag size="small" type="info">{{ t('misc.subsidySubtitle') }}</el-tag>
       <div class="spacer" />
       <el-input v-model="keyword" :placeholder="t('subsidy.keyword')" clearable style="width:160px"
                 @keyup.enter="reload" />
@@ -12,10 +12,10 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon
-              title="补贴：FIXED 定额 / BY_AREA 按面积 / BY_PERSON 按人 / RATIO 按租金比例；封顶与抵扣规则由标准配置"
+              :title="t('misc.methodTip')"
               style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+    <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('misc.emptyDefault')">
       <el-table-column type="expand">
         <template #default="{ row }">
           <DetailView :row="row" />
@@ -65,15 +65,15 @@
     <!-- ==================== 补贴标准 ==================== -->
     <div class="page-card">
       <div class="toolbar">
-        <h4 style="margin:0">补贴标准</h4>
-        <el-tag size="small" type="info">按保障类型 + 补贴方式配置，停用后不再参与发放</el-tag>
+        <h4 style="margin:0">{{ t('misc.standardTitle') }}</h4>
+        <el-tag size="small" type="info">{{ t('misc.standardHint') }}</el-tag>
         <div class="spacer" />
         <el-select v-model="stQuery.securityType" :placeholder="t('subsidy.securityType')" clearable
                    style="width:130px" @change="loadStandards">
-          <el-option label="公租房" value="PUBLIC" />
-          <el-option label="保障性租赁住房" value="AFFORDABLE" />
-          <el-option label="人才公寓" value="TALENT" />
-          <el-option label="廉租房" value="LOW_RENT" />
+          <el-option :label="t('misc.publicRental')" value="PUBLIC" />
+          <el-option :label="t('misc.affordable')" value="AFFORDABLE" />
+          <el-option :label="t('misc.talent')" value="TALENT" />
+          <el-option :label="t('misc.lowRent')" value="LOW_RENT" />
         </el-select>
         <el-select v-model="stQuery.subsidyMode" :placeholder="t('subsidy.subsidyMode')" clearable
                    style="width:140px" @change="loadStandards">
@@ -86,7 +86,7 @@
                   style="width:160px" @keyup.enter="loadStandards" />
         <el-button type="primary" @click="loadStandards">{{ t('subsidy.search') }}</el-button>
         <el-button type="success" @click="openStandard">{{ t('subsidy.newStandard') }}</el-button>
-        <span class="muted">共 {{ stTotal }} 条</span>
+        <span class="muted">{{ t('misc.total', { n: stTotal }) }}</span>
       </div>
 
       <el-table :data="standards" v-loading="stLoading" border size="small">

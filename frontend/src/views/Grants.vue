@@ -7,7 +7,7 @@
           : (stats.riskLevel === 'MEDIUM' ? 'warning' : 'success')">
           对账风险 {{ stats.riskLevel || '-' }}
         </el-tag>
-        <span class="muted">差异待处置 {{ stats.pending ?? 0 }} 条</span>
+        <span class="muted">{{ t('misc.grantPending', { n: stats.pending ?? 0 }) }}</span>
       </div>
 
       <el-tabs v-model="tab" @tab-change="onTabChange">
@@ -27,7 +27,7 @@
             <span class="muted">共 {{ grantTotal }} 条</span>
           </div>
 
-          <el-table empty-text="暂无授权记录" :data="grants" v-loading="grantLoading" border size="small">
+          <el-table :empty-text="t('misc.grantEmpty')" :data="grants" v-loading="grantLoading" border size="small">
             <el-table-column prop="grantNo" :label="t('grant.grantNo')" width="180" />
             <el-table-column prop="personIdName" :label="t('grant.person')" width="130">
               <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
@@ -46,7 +46,7 @@
                 <span v-if="row.visitLimitTimes">
                   {{ row.visitUsedTimes || 0 }}/{{ row.visitLimitTimes }}
                 </span>
-                <span v-else class="muted">不限</span>
+                <span v-else class="muted">{{ t('misc.unlimited') }}</span>
               </template>
             </el-table-column>
             <el-table-column prop="grantStatus" :label="t('grant.statusCol')" width="110">
@@ -109,12 +109,12 @@
                 <el-button link type="primary" @click="openDetail(row)">详情</el-button>
                 <el-button v-if="row.diffType === 'LOCAL_MISSING'" link type="primary"
                            :disabled="row.handleStatus !== 'PENDING'"
-                           @click="handle(row, 'REGRANT')">重新授权</el-button>
+                           @click="handle(row, 'REGRANT')">{{ t('misc.regrant') }}</el-button>
                 <el-button v-if="row.diffType === 'IOT_EXTRA'" link type="danger"
                            :disabled="row.handleStatus !== 'PENDING'"
-                           @click="handle(row, 'REVOKE')">撤销</el-button>
+                           @click="handle(row, 'REVOKE')">{{ t('misc.revoke') }}</el-button>
                 <el-button link :disabled="row.handleStatus !== 'PENDING'"
-                           @click="handle(row, 'IGNORED')">忽略</el-button>
+                           @click="handle(row, 'IGNORED')">{{ t('misc.ignore') }}</el-button>
               </template>
             </el-table-column>
           </el-table>

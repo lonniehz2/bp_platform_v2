@@ -11,11 +11,11 @@
 
     <el-row :gutter="12" style="margin-bottom:12px">
       <el-col :span="12">
-        <div style="font-weight:600;margin-bottom:2px">逾期金额趋势（近 6 月）</div>
+        <div style="font-weight:600;margin-bottom:2px">{{ t('misc.overdueAmountTrend') }}</div>
         <LineTrend :rows="overdueTrend" color="#f56c6c" :height="170" />
       </el-col>
       <el-col :span="12">
-        <div style="font-weight:600;margin-bottom:2px">逾期账单数趋势</div>
+        <div style="font-weight:600;margin-bottom:2px">{{ t('misc.overdueCountTrend') }}</div>
         <LineTrend :rows="countTrend" color="#e6a23c" :height="170" />
       </el-col>
     </el-row>
@@ -44,7 +44,7 @@
         <span class="muted">共 {{ actionTotal }} 条</span>
       </div>
 
-      <el-table empty-text="暂无欠费记录" :data="actions" v-loading="actionLoading" border size="small">
+      <el-table :empty-text="t('misc.noArrears')" :data="actions" v-loading="actionLoading" border size="small">
         <el-table-column prop="actionNo" :label="t('arrears.actionNo')" width="170" />
         <el-table-column prop="contractId" :label="t('arrears.contract')" width="160">
           <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
@@ -156,7 +156,7 @@
         <el-table-column prop="billCount" :label="t('arrears.billCount')" width="90" />
         <el-table-column prop="freezeRecommended" :label="t('arrears.recommend')" width="100">
           <template #default="{ row }">
-            <el-tag v-if="row.freezeRecommended" type="danger" size="small">建议</el-tag>
+            <el-tag v-if="row.freezeRecommended" type="danger" size="small">{{ t('misc.suggest') }}</el-tag>
             <span v-else class="muted">—</span>
           </template>
         </el-table-column>

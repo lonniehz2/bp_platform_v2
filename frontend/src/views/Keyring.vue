@@ -11,10 +11,10 @@
 
     </div>
 
-    <el-alert type="info" :closable="false" show-icon :title="'钥匙包绑定人员与通行介质；状态变更与回收需留痕'"
+    <el-alert type="info" :closable="false" show-icon :title="t('misc.keyringTip')"
               style="margin-bottom:12px" />
 
-    <el-table empty-text="暂无钥匙，先在「人员档案」建档再入包" :data="rows" v-loading="loading" border size="small">
+    <el-table :empty-text="t('misc.noKeys')" :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">
         <template #default="{ row }">
           <DetailView :row="row" />
@@ -31,9 +31,9 @@
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('keyring.detail') }}</el-button>
           <el-button v-if="row.keyStatus === 'ACTIVE'" link type="warning"
-                     @click="freeze(row)" data-testid="row-freeze">冻结</el-button>
+                     @click="freeze(row)" data-testid="row-freeze">{{ t('misc.freeze') }}</el-button>
           <el-button v-if="row.keyStatus === 'FROZEN'" link type="success"
-                     @click="unfreeze(row)" data-testid="row-unfreeze">解冻</el-button>
+                     @click="unfreeze(row)" data-testid="row-unfreeze">{{ t('misc.unfreeze') }}</el-button>
           <el-button link @click="actPlain(row, '/keyring/{id}/status', '改状态')">{{ t('keyring.changeStatus') }}</el-button>
           <el-button link @click="actPlain(row, '/keyring/{id}/remove', '回收')">{{ t('keyring.recycle') }}</el-button>
         </template>

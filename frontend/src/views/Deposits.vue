@@ -62,7 +62,7 @@
     </div>
 
     <div class="page-card">
-      <h4 style="margin:0 0 12px">退款单</h4>
+      <h4 style="margin:0 0 12px">{{ t('misc.refundList') }}</h4>
       <el-table :data="refunds" border size="small">
         <el-table-column prop="refundNo" :label="t('deposit.refundNo')" width="170" />
         <el-table-column prop="contractId" label="合同" width="130">
@@ -85,11 +85,11 @@
         <el-table-column :label="t('deposit.actions')" width="240" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" :disabled="row.refundStatus !== 'PENDING'"
-                       @click="approve(row)">批准</el-button>
+                       @click="approve(row)">{{ t('misc.approve') }}</el-button>
             <el-button link type="danger" :disabled="row.refundStatus !== 'PENDING'"
                        @click="reject(row)">{{ t('deposit.reject') }}</el-button>
             <el-button link type="success" :disabled="row.refundStatus !== 'APPROVED'"
-                       @click="complete(row)">打款完成</el-button>
+                       @click="complete(row)">{{ t('misc.payComplete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -113,7 +113,7 @@
         <el-form-item :label="t('deposit.paidAmount')"><el-input v-model.number="dp.paidAmount" />
         </el-form-item>
         <el-form-item :label="t('deposit.cap')"><el-input v-model.number="dp.capAmount" />
-          <span class="muted">超上限会告警（成都标准 1000 元）</span>
+          <span class="muted">{{ t('misc.capHint') }}</span>
         </el-form-item>
         <el-form-item :label="t('deposit.exempt')">
           <el-switch v-model="dp.isExempt" :active-value="1" :inactive-value="0" />
@@ -170,7 +170,7 @@
           <el-input v-model="rf.refundReason" type="textarea" :rows="2" /></el-form-item>
       </el-form>
       <el-alert type="warning" :closable="false" show-icon
-                title="金额必填（不提供默认值，避免误退）；超余额会被拒绝" />
+                :title="t('misc.refundTip')" />
       <template #footer>
         <el-button @click="refVisible = false">{{ t('deposit.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doRefund">{{ t('deposit.submit') }}</el-button>

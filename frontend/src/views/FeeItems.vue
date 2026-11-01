@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('fee.title') }}</h3>
-      <el-tag size="small" type="info">7 种计费方式 · 规则+试算</el-tag>
+      <el-tag size="small" type="info">{{ t('misc.feeSubtitle') }}</el-tag>
       <div class="spacer" />
       <el-button type="success" @click="openCreate">{{ t('fee.create') }}</el-button>
       <el-button @click="openRule">{{ t('fee.newRule') }}</el-button>
@@ -23,7 +23,7 @@
       </template>
     </FilterBar>
 
-    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+    <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('misc.emptyDefault')">
       <el-table-column prop="itemCode" :label="t('fee.code')" width="150" />
       <el-table-column prop="itemName" :label="t('fee.name')" min-width="140" />
       <el-table-column :label="t('fee.type')" width="110">
@@ -88,15 +88,15 @@
                              data-testid="fee-price" style="width:100%" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('fee.unit')">
             <el-select v-model="f.unit" filterable allow-create default-first-option
-                       placeholder="选择或输入" style="width:100%">
+                       :placeholder="t('misc.unitPlaceholder')" style="width:100%">
               <el-option v-for="u in UNIT_OPTIONS" :key="u" :label="u" :value="u" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('fee.securityType')">
             <el-select v-model="f.securityType" style="width:100%" clearable>
-              <el-option label="公租房" value="PUBLIC" />
-              <el-option label="保租房" value="AFFORDABLE" />
-              <el-option label="人才房" value="TALENT" />
-              <el-option label="廉租房" value="LOW_RENT" />
+              <el-option :label="t('misc.publicRental')" value="PUBLIC" />
+              <el-option :label="t('misc.affordable')" value="AFFORDABLE" />
+              <el-option :label="t('misc.talent')" value="TALENT" />
+              <el-option :label="t('misc.lowRent')" value="LOW_RENT" />
             </el-select></el-form-item></el-col>
         </el-row>
       </el-form>
