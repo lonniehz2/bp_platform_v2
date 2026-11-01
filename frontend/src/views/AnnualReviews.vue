@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('review.title') }}</h3>
-      <el-tag size="small" type="info">保留 / 调租 / 退出</el-tag>
+      <el-tag size="small" type="info">{{ t('annual.tagline') }}</el-tag>
       <div class="spacer" />
       <el-button type="success" @click="batchVisible = true">{{ t('review.batch') }}</el-button>
       <el-button @click="load">{{ t('review.refresh') }}</el-button>

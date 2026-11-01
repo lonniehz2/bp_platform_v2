@@ -23,7 +23,7 @@
           <el-option :label="t('cash.expense')" value="EXPENSE" />
         </el-select>
         <el-select v-model="flowFilter.bizType" :placeholder="t('cash.bizType')" clearable style="width:130px">
-          <el-option v-for="(v, k) in BIZ_LABEL" :key="k" :label="v" :value="k" />
+          <el-option v-for="(v, k) in BIZ_LABEL" :key="k" :label="t('cash.biz.' + k)" :value="k" />
         </el-select>
         <el-date-picker v-model="flowFilter.dateRange" type="daterange" unlink-panels
                         value-format="YYYY-MM-DD" :start-placeholder="t('cash.startDate')"
@@ -38,7 +38,7 @@
         </el-table-column>
         <el-table-column prop="flowNo" :label="t('cash.flowNo')" width="170" />
         <el-table-column prop="bizType" :label="t('cash.bizType')" width="130">
-          <template #default="{ row }">{{ row.bizTypeLabel || enumLabel('bizType', row.bizType) }}</template>
+          <template #default="{ row }">{{ enumLabel('bizType', row.bizType) || row.bizTypeLabel }}</template>
         </el-table-column>
         <el-table-column prop="flowType" :label="t('cash.flowType')" width="100">
           <template #default="{ row }">{{ row.flowTypeLabel || enumLabel('flowType', row.flowType) }}</template>
@@ -269,7 +269,7 @@ const loading = ref(false)
 const rows = ref([])
 const BIZ_LABEL = { PAYMENT: '收款单', REFUND: '退款单', DEPOSIT: '押金', BILL: '账单',
   SUBSIDY: '补贴', WAIVE: '减免', ADJUST: '调整', OTHER: '其他' }
-function bizKind(t) { return BIZ_LABEL[t] || t || '—' }
+function bizKind(v) { return BIZ_LABEL[v] ? t('cash.biz.' + v) : (v || '—') }
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(20)

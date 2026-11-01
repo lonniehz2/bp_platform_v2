@@ -58,7 +58,7 @@
             <li>{{ t('misc5.scopeLessee') }}</li>
           </ul>
           <div class="side-title" style="margin-top:14px">{{ t('misc5.createdTitle') }}</div>
-          <div class="muted">创建时间：{{ form.createTime || '—' }}</div>
+          <div class="muted">{{ t('platformInfo.createdAt') }}: {{ form.createTime || '—' }}</div>
         </div>
       </el-col>
     </el-row>

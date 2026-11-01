@@ -31,7 +31,7 @@
         </el-select>
       </FilterBar>
 
-      <el-table empty-text="暂无配租单，摇号完成后点「生成配租单」" :data="batches" v-loading="loading" border size="small"
+      <el-table :empty-text="t('alloc.emptyBatches')" :data="batches" v-loading="loading" border size="small"
                 highlight-current-row @row-click="(row) => selectBatch(row)">
 
         <el-table-column prop="batchNo" :label="t('alloc.batchNo')" width="170" />
@@ -43,7 +43,7 @@
           <template #default="{ row }">{{ enumLabel('securityType', row.securityType) || row.securityType }}</template>
         </el-table-column>
         <el-table-column prop="batchStatus" :label="t('alloc.statusCol')" width="110">
-          <template #default="{ row }">{{ row.batchStatusLabel || enumLabel('batchStatus', row.batchStatus) }}</template>
+          <template #default="{ row }">{{ enumLabel('batchStatus', row.batchStatus) || row.batchStatusLabel }}</template>
         </el-table-column>
         <el-table-column prop="houseCount" :label="t('alloc.houseCount')" width="90" />
         <el-table-column prop="applicantCount" :label="t('alloc.applicantCount')" width="100" />
@@ -53,13 +53,13 @@
             <el-button link type="primary" @click="openAddHouses(row)" data-testid="batch-add-house">{{ t('alloc.addHouses') }}</el-button>
             <el-button v-if="row.batchStatus === 'DRAFT'" link type="success"
                        @click="doTransition(row, 'PUBLISHED')"
-                       data-testid="batch-publish">发布</el-button>
+                       data-testid="batch-publish">{{ t('alloc.publish') }}</el-button>
             <el-button v-if="row.batchStatus === 'PUBLISHED'" link type="primary"
                        @click="doTransition(row, 'SIGNUP')"
-                       data-testid="batch-signup">开始报名</el-button>
+                       data-testid="batch-signup">{{ t('alloc.startSignup') }}</el-button>
             <el-button v-if="row.batchStatus === 'SIGNUP'" link type="warning"
                        @click="doTransition(row, 'LOTTERY')"
-                       data-testid="batch-to-lottery">结束报名</el-button>
+                       data-testid="batch-to-lottery">{{ t('alloc.endSignup') }}</el-button>
             <el-dropdown trigger="click" style="margin-left:8px">
               <el-button link type="primary">{{ t('alloc.more') }}</el-button>
               <template #dropdown>
@@ -73,7 +73,7 @@
             <el-button link type="primary" @click="runLottery(row)">{{ t('alloc.runLottery') }}</el-button>
             <el-button v-if="['LOTTERY_DONE','ALLOCATED','SELECTING'].includes(row.batchStatus)"
                        link type="success" data-testid="batch-gen-alloc"
-                       @click="genAllocations(row)">生成配租单</el-button>
+                       @click="genAllocations(row)">{{ t('alloc.genAllocations') }}</el-button>
 
           </template>
         </el-table-column>
@@ -84,7 +84,7 @@
       <div class="toolbar" style="margin-bottom:12px">
         <h3 style="margin:0">{{ t('alloc.allocTitle') }}</h3>
         <span class="muted" v-if="currentBatch">
-          当前批次：{{ currentBatch.batchNo }} {{ currentBatch.batchName }}
+          {{ t('alloc.currentBatch', { no: currentBatch.batchNo, name: currentBatch.batchName }) }}
         </span>
         <div class="spacer" />
         <el-button v-if="currentBatch" @click="clearBatch">{{ t('alloc.showAll') }}</el-button>
@@ -102,9 +102,9 @@
         <el-table-column prop="lockRemainHours" :label="t('alloc.lockRemain')" width="130" />
         <el-table-column :label="t('alloc.actions')" width="160" fixed="right">
           <template #default="{ row }">
-            <el-tag v-if="row.allocationStatus === 'SIGNED'" size="small" type="success">已签约</el-tag>
+            <el-tag v-if="row.allocationStatus === 'SIGNED'" size="small" type="success">{{ t('alloc.signed') }}</el-tag>
             <el-button v-else link type="success" :disabled="!!row.lockOverdue"
-                       @click="sign(row)">去签约</el-button>
+                       @click="sign(row)">{{ t('alloc.goSign') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -117,10 +117,10 @@
         <el-table-column prop="waitingId" :label="t('alloc.waitingId')" width="140">
           <template #default="{ row }">{{ row.waitingId }}</template>
         </el-table-column>
-        <el-table-column prop="personId" label="人员" width="150">
+        <el-table-column prop="personId" :label="t('alloc.person')" width="150">
           <template #default="{ row }">{{ row.personName || row.personId }}</template>
         </el-table-column>
-        <el-table-column prop="phoneMask" label="手机号" width="130" />
+        <el-table-column prop="phoneMask" :label="t('alloc.phone')" width="130" />
         <el-table-column prop="totalScore" :label="t('alloc.totalScore')" width="100" />
         <el-table-column prop="selectSeq" :label="t('alloc.selectSeq')" width="90" />
         <el-table-column prop="resultType" :label="t('alloc.result')" width="100">
@@ -131,7 +131,7 @@
   </div>
 
     <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('alloc.detail')" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
 
@@ -181,7 +181,7 @@
                            :value="h.id" />
               </el-select>
               <div class="muted" style="font-size:12px;margin-top:4px">
-                已选 {{ (bf.houseIds || []).length }} 套；仅显示所选组织下「待分配」房源
+                {{ t('alloc.selectedHint', { n: (bf.houseIds || []).length }) }}
               </div>
             </div>
           </el-form-item></el-col>
@@ -196,16 +196,16 @@
     </el-dialog>
 
     <!-- 批次加房源 -->
-    <el-dialog v-model="addHouseVisible" title="管理批次房源" width="900px">
+    <el-dialog v-model="addHouseVisible" :title="t('alloc.manageHouses')" width="900px">
       <div class="toolbar" style="margin-bottom:8px">
-        <span>批次：<b>{{ addHouseBatch?.batchNo }}</b> {{ addHouseBatch?.batchName }}</span>
+        <span>{{ t('alloc.batchLabel', { no: addHouseBatch?.batchNo, name: addHouseBatch?.batchName }) }}</span>
         <div class="spacer" />
-        <el-input v-model="houseKeyword" placeholder="房源编号/名称" clearable style="width:200px"
+        <el-input v-model="houseKeyword" :placeholder="t('alloc.searchHouse')" clearable style="width:200px"
                   @keyup.enter="loadCandidateHouses" />
-        <el-button type="primary" @click="loadCandidateHouses">搜索可添加房源</el-button>
+        <el-button type="primary" @click="loadCandidateHouses">{{ t('alloc.searchHouse') }}</el-button>
       </div>
 
-      <h4 style="margin:8px 0">可添加房源（{{ addHouseBatch?.orgIdName || '本组织' }} · 待分配）</h4>
+      <h4 style="margin:8px 0">{{ t('alloc.addable', { org: addHouseBatch?.orgIdName || t('alloc.addableDefault') }) }}</h4>
       <el-table :data="candidateHouses" v-loading="houseLoading" border size="small"
                 max-height="240" @selection-change="(rows) => selectedHouses = rows">
         <el-table-column type="selection" width="45" />
@@ -217,15 +217,15 @@
         </el-table-column>
       </el-table>
 
-      <h4 style="margin:14px 0 8px">已加入本批次（{{ batchHouses.length }} 套）</h4>
+      <h4 style="margin:14px 0 8px">{{ t('alloc.added', { n: batchHouses.length }) }}</h4>
       <el-table :data="batchHouses" border size="small" max-height="220">
         <el-table-column prop="houseCode" label="房源编号" width="150" />
         <el-table-column prop="houseName" label="房源名称" show-overflow-tooltip />
-        <el-table-column prop="inPoolStatus" label="池状态" width="110" />
+        <el-table-column prop="inPoolStatus" :label="t('alloc.poolStatus')" width="110" />
         <el-table-column label="操作" width="100">
           <template #default="{ row }">
             <el-button link type="danger" :disabled="row.inPoolStatus !== 'AVAILABLE'"
-                       @click="removeHouse(row)">移除</el-button>
+                       @click="removeHouse(row)">{{ t('alloc.remove') }}</el-button>
           </template>
         </el-table-column>
       </el-table>

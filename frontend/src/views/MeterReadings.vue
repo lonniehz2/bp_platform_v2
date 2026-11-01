@@ -9,7 +9,7 @@
       <el-select v-model="query.feeItemId" :placeholder="t('meter.feeItemHint')" clearable
                  style="width:220px" @change="load">
         <el-option v-for="m in meterItems" :key="m.id" :value="m.id"
-                   :label="m.itemName + '（' + m.unitPrice + ' 元/' + (m.unit || '度') + '）'" />
+                   :label="m.itemName + ' (' + m.unitPrice + ' CNY/' + (m.unit || t('meter.unitDefault')) + ')'" />
       </el-select>
       <el-select v-model="query.orgId" :placeholder="t('meter.org')" clearable filterable
                  style="width:200px" @change="load">
@@ -32,7 +32,7 @@
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
               :title="t('meter.tip')" />
 
-    <el-table empty-text="暂无抄表记录，可人工录入或从 IoT 拉取" :data="rows"
+    <el-table :empty-text="t('meter.empty')" :data="rows"
               @selection-change="(v) => (meterSelected = v)"
               v-loading="loading" border size="small">
       <el-table-column type="selection" width="42" />
@@ -56,19 +56,19 @@
         <template #default="{ row }">{{ row.amount != null ? row.amount : '—' }}</template>
       </el-table-column>
       <el-table-column prop="deviceId" :label="t('meter.device')" width="160">
-        <template #default="{ row }">{{ row.deviceId || '人工录入' }}</template>
+        <template #default="{ row }">{{ row.deviceId || t('meter.manualEntry') }}</template>
       </el-table-column>
       <el-table-column prop="billId" :label="t('meter.billStatus')" width="110">
         <template #default="{ row }">
           <el-tag size="small" :type="row.billId ? 'success' : 'info'">
-            {{ row.billId ? '已出账' : '未出账' }}
+            {{ row.billId ? t('meter.billedYes') : t('meter.unbilled') }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column :label="t('meter.actions')" width="110" fixed="right">
         <template #default="{ row }">
           <el-button v-if="!row.billId" link type="primary"
-                     @click="doBill(row)" data-testid="meter-bill">出账</el-button>
+                     @click="doBill(row)" data-testid="meter-bill">{{ t('meter.bill') }}</el-button>
           <span v-else class="muted">—</span>
         </template>
       </el-table-column>
@@ -99,7 +99,7 @@
         </el-form-item>
       </el-form>
       <el-alert v-if="devices.length" type="info" :closable="false" show-icon
-                :title="'该房源在此计量项目下共 ' + devices.length + ' 台设备，逐台录入读数'" />
+                :title="t('meter.recordHint', { n: devices.length })" />
       <el-table v-if="devices.length" :data="deviceRows" size="small" border style="margin-top:8px">
         <el-table-column prop="deviceType" :label="t('meter.deviceType')" width="110" />
         <el-table-column prop="deviceId" :label="t('meter.deviceId')" width="170" />
@@ -116,7 +116,7 @@
           <el-input v-model="rf.reading" />
         </el-form-item>
         <el-alert type="warning" :closable="false" style="margin-top:4px"
-                  title="该房源在此计量项目下未绑定设备：可手工选择设备或留空按人工录入" />
+                  :title="t('meter.noDeviceHint')" />
       </el-form>
       <template #footer>
         <el-button @click="recordVisible = false">{{ t('meter.cancel') }}</el-button>
@@ -148,7 +148,7 @@
         </el-form-item>
       </el-form>
       <el-alert type="info" :closable="false" show-icon
-                title="导出的表格含组织/空间/房源/计费项目/设备信息，读数留空；填好后直接导入即可。" />
+                :title="t('meter.exportHint')" />
       <template #footer>
         <el-button @click="exportVisible = false">{{ t('meter.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doExport">{{ t('meter.export') }}</el-button>
@@ -156,36 +156,36 @@
     </el-dialog>
 
     <!-- 批量录入 / CSV 导入 -->
-    <el-dialog v-model="batchVisible" title="批量录入 / 导入抄表" width="1180px">
+    <el-dialog v-model="batchVisible" :title="t('meter.batchTitle')" width="1180px">
       <div class="toolbar" style="margin-bottom:8px">
-        <el-button size="small" type="primary" plain @click="openExport">导出 CSV 模板</el-button>
-        <el-button size="small" @click="addBatchRow">添加一行</el-button>
+        <el-button size="small" type="primary" plain @click="openExport">{{ t('meter.exportTemplate') }}</el-button>
+        <el-button size="small" @click="addBatchRow">{{ t('meter.addRow') }}</el-button>
         <el-upload :auto-upload="false" :limit="1" accept=".csv" :show-file-list="false"
                    :on-change="onCsv">
-          <el-button size="small">导入 CSV</el-button>
+          <el-button size="small">{{ t('meter.importCsv') }}</el-button>
         </el-upload>
         <span class="muted" style="font-size:12px">
-          导出 → 填读数 → 原样导入（列：组织,空间,房源编号,房源名称,计费项目,设备编号,设备名称,设备类型,读数,抄表日期）
+          {{ t('meter.batchHint') }}
         </span>
       </div>
       <el-table :data="batchRows" size="small" border max-height="380">
-        <el-table-column label="组织" width="170">
+        <el-table-column :label="t('meter.org')" width="170">
           <template #default="{ row }">
             <el-select v-model="row.orgId" size="small" filterable clearable
-                       style="width:100%" placeholder="按名称搜索"
+                       style="width:100%" :placeholder="t('meter.searchName')"
                        @change="fillRowDevice(row)">
               <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName"
                          :value="String(o.id)" />
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column label="房源" width="200">
+        <el-table-column :label="t('meter.house')" width="200">
           <template #default="{ row }">
             <HouseSelect :model-value="row.houseId" :org-id="row.orgId" width="100%"
                          @update:model-value="(v) => onRowHouse(row, v)" />
           </template>
         </el-table-column>
-        <el-table-column label="计量项目" width="150">
+        <el-table-column :label="t('meter.feeItem')" width="150">
           <template #default="{ row }">
             <el-select v-model="row.feeItemId" size="small" style="width:100%"
                        @change="fillRowDevice(row)">
@@ -194,12 +194,12 @@
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column label="设备编号" width="180">
+        <el-table-column :label="t('meter.deviceId')" width="180">
           <template #default="{ row }">
             <el-select v-model="row.deviceId" size="small" filterable remote clearable
                        :remote-method="(kw) => searchDevice(row, kw)"
                        :loading="row.deviceLoading" style="width:100%"
-                       placeholder="按设备名称/编号搜索"
+                       :placeholder="t('meter.searchDevice')"
                        @change="(v) => pickSearchDevice(row, v)">
               <el-option v-for="d in (row.deviceOptions || [])" :key="d.device_id"
                          :label="d.device_id + '（' + (d.device_name || '') + '）'"
@@ -207,8 +207,8 @@
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column prop="deviceName" label="设备名称" width="170" />
-        <el-table-column prop="deviceType" label="设备类型" width="120" />
+        <el-table-column prop="deviceName" :label="t('meter.deviceName')" width="170" />
+        <el-table-column prop="deviceType" :label="t('meter.deviceType')" width="120" />
         <el-table-column label="读数" width="100">
           <template #default="{ row }"><el-input v-model="row.reading" size="small" /></template>
         </el-table-column>
