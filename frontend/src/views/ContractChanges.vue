@@ -140,7 +140,8 @@ import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
 import DetailView from '@/components/DetailView.vue'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const isEn = () => locale.value === 'en-US'
 const statuses = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']
 const loading = ref(false)
 const rows = ref([])
@@ -149,6 +150,9 @@ const total = ref(0)
 const KV_LABEL = { monthlyRent: '月租金', leaseEnd: '止租日', leaseStart: '起租日',
   lesseePersonId: '承租人ID', lesseeName: '承租人', depositAmount: '押金',
   contractNo: '合同号', houseId: '房源', remark: '备注', rentPrice: '租金单价' }
+const KV_LABEL_EN = { monthlyRent: 'Monthly Rent', leaseEnd: 'Lease End', leaseStart: 'Lease Start',
+  lesseePersonId: 'Lessee ID', lesseeName: 'Lessee', depositAmount: 'Deposit',
+  contractNo: 'Contract No.', houseId: 'Housing', remark: 'Remark', rentPrice: 'Rent Price' }
 
 function kvText(raw) {
   if (raw == null || raw === '') return '—'
@@ -157,7 +161,7 @@ function kvText(raw) {
     try { obj = JSON.parse(raw) } catch (e) { return raw }
   }
   if (!obj || typeof obj !== 'object') return String(obj)
-  return Object.keys(obj).map((k) => (KV_LABEL[k] || k) + '：' + obj[k]).join('；')
+  return Object.keys(obj).map((k) => ((isEn() ? KV_LABEL_EN[k] : KV_LABEL[k]) || k) + (isEn() ? ': ' : '：') + obj[k]).join(isEn() ? '; ' : '；')
 }
 function beforeText(row) { return kvText(row.beforeJson ?? row.before) }
 function afterText(row) { return kvText(row.afterJson ?? row.after) }
@@ -172,17 +176,23 @@ const FIELD_LABEL = {
   payDay: '账单日', rentPrice: '租金单价', actualPay: '实付', subsidyAmount: '补贴',
   houseId: '房源', remark: '备注'
 }
+const FIELD_LABEL_EN = {
+  monthlyRent: 'Monthly Rent', depositAmount: 'Deposit', leaseStart: 'Lease Start',
+  leaseEnd: 'Lease End', lesseePersonId: 'Lessee', lesseeName: 'Lessee Name',
+  payCycle: 'Payment Cycle', payDay: 'Billing Day', rentPrice: 'Rent Price',
+  actualPay: 'Actual Pay', subsidyAmount: 'Subsidy', houseId: 'Housing', remark: 'Remark'
+}
 
 function pretty(raw) {
   if (raw == null || raw === '') return {}
   let obj = raw
   if (typeof raw === 'string') {
-    try { obj = JSON.parse(raw) } catch (e) { return { 内容: raw } }
+    try { obj = JSON.parse(raw) } catch (e) { return { [isEn() ? 'Content' : '内容']: raw } }
   }
-  if (Array.isArray(obj)) return { 内容: obj.join('、') }
-  if (typeof obj !== 'object') return { 内容: String(obj) }
+  if (Array.isArray(obj)) return { [isEn() ? 'Content' : '内容']: obj.join(isEn() ? ', ' : '、') }
+  if (typeof obj !== 'object') return { [isEn() ? 'Content' : '内容']: String(obj) }
   const out = {}
-  Object.keys(obj).forEach((k) => { out[FIELD_LABEL[k] || k] = obj[k] })
+  Object.keys(obj).forEach((k) => { out[(isEn() ? FIELD_LABEL_EN[k] : FIELD_LABEL[k]) || k] = obj[k] })
   return out
 }
 
