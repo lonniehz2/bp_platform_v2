@@ -1,10 +1,10 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">用户与权限</h3>
+      <h3 style="margin:0">{{ t('rbac.title') }}</h3>
       <el-tag size="small" type="info">RBAC：用户 → 角色 → 权限</el-tag>
       <div class="spacer" />
-      <el-button type="primary" @click="load">刷新</el-button>
+      <el-button type="primary" @click="load">{{ t('rbac.refresh') }}</el-button>
     </div>
 
     <el-alert type="warning" :closable="false" show-icon
@@ -13,87 +13,87 @@
 
     <el-tabs v-model="tab">
       <!-- ================= 用户 ================= -->
-      <el-tab-pane label="用户" name="user">
+      <el-tab-pane :label="t('rbac.userTab')" name="user">
         <div class="toolbar">
-          <el-button type="success" @click="userVisible = true">新增用户</el-button>
-          <el-input v-model="ukeyword" placeholder="账号 / 姓名" clearable style="width:180px"
+          <el-button type="success" @click="userVisible = true">{{ t('rbac.newUser') }}</el-button>
+          <el-input v-model="ukeyword" :placeholder="t('rbac.keyword')" clearable style="width:180px"
                     data-testid="rbac-user-keyword" @keyup.enter="load" />
-          <el-button type="primary" @click="load">查询</el-button>
-          <el-button @click="resetUserQuery" data-testid="rbac-user-reset">清空</el-button>
+          <el-button type="primary" @click="load">{{ t('rbac.search') }}</el-button>
+          <el-button @click="resetUserQuery" data-testid="rbac-user-reset">{{ t('rbac.reset') }}</el-button>
           <span class="muted">共 {{ users.length }} 个</span>
         </div>
         <el-table :data="users" v-loading="loading" border size="small" max-height="460">
-          <el-table-column prop="username" label="账号" width="140" />
-          <el-table-column prop="realName" label="姓名" width="120" />
-          <el-table-column label="角色" min-width="180">
+          <el-table-column prop="username" :label="t('rbac.username')" width="140" />
+          <el-table-column prop="realName" :label="t('rbac.realName')" width="120" />
+          <el-table-column :label="t('rbac.roles')" min-width="180">
             <template #default="{ row }">
               <span v-if="row.roleNames">{{ row.roleNames }}</span>
               <span v-else class="muted">未分配</span>
             
 </template>
           </el-table-column>
-          <el-table-column prop="orgId" label="组织" width="180">
+          <el-table-column prop="orgId" :label="t('rbac.org')" width="180">
             <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
 
 
           </el-table-column>
-          <el-table-column label="类型" width="110">
+          <el-table-column :label="t('rbac.type')" width="110">
             <template #default="{ row }">{{ enumLabel('userType', row.userType) }}</template>
           </el-table-column>
-          <el-table-column label="状态" width="100">
+          <el-table-column :label="t('rbac.status')" width="100">
             <template #default="{ row }">
               <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">
                 {{ enumLabel('status', row.status) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="管理员" width="90">
+          <el-table-column :label="t('rbac.admin')" width="90">
             <template #default="{ row }">
               <el-tag v-if="row.isAdmin == 1" size="small" type="danger">是</el-tag>
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="300" fixed="right">
+          <el-table-column :label="t('rbac.actions')" width="300" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openUserDetail(row)">详情</el-button>
-              <el-button link type="primary" @click="openUserEdit(row)">编辑</el-button>
-              <el-button link type="primary" @click="openGrantRoles(row)">授权角色</el-button>
+              <el-button link type="primary" @click="openUserDetail(row)">{{ t('rbac.detail') }}</el-button>
+              <el-button link type="primary" @click="openUserEdit(row)">{{ t('rbac.edit') }}</el-button>
+              <el-button link type="primary" @click="openGrantRoles(row)">{{ t('rbac.grantRoles') }}</el-button>
               <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
                          @click="toggleUserStatus(row)">
                 {{ row.status === 'ENABLED' ? '停用' : '启用' }}
               </el-button>
-              <el-button link type="danger" @click="removeUser(row)">删除</el-button>
+              <el-button link type="danger" @click="removeUser(row)">{{ t('rbac.delete') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
       </el-tab-pane>
 
       <!-- ================= 角色 ================= -->
-      <el-tab-pane label="角色" name="role">
+      <el-tab-pane :label="t('rbac.roleTab')" name="role">
         <div class="toolbar">
-          <el-button type="success" @click="roleVisible = true">新增角色</el-button>
-          <el-input v-model="rkeyword" placeholder="角色编码 / 名称" clearable style="width:180px"
+          <el-button type="success" @click="roleVisible = true">{{ t('rbac.newRole') }}</el-button>
+          <el-input v-model="rkeyword" :placeholder="t('rbac.roleKeyword')" clearable style="width:180px"
                     data-testid="rbac-role-keyword" @keyup.enter="load" />
           <el-button type="primary" @click="load">查询</el-button>
-          <el-button @click="resetRoleQuery" data-testid="rbac-role-reset">清空</el-button>
+          <el-button @click="resetRoleQuery" data-testid="rbac-role-reset">{{ t('rbac.reset') }}</el-button>
           <span class="muted">共 {{ roles.length }} 个</span>
         </div>
         <el-table :data="roles" v-loading="loading" border size="small" max-height="460">
-          <el-table-column prop="roleCode" label="角色编码" width="170" />
-          <el-table-column prop="roleName" label="角色名称" min-width="160" />
-          <el-table-column label="数据范围" width="130">
+          <el-table-column prop="roleCode" :label="t('rbac.roleCode')" width="170" />
+          <el-table-column prop="roleName" :label="t('rbac.roleName')" min-width="160" />
+          <el-table-column :label="t('rbac.dataScope')" width="130">
             <template #default="{ row }">{{ enumLabel('dataScope', row.dataScope) }}</template>
           </el-table-column>
-          <el-table-column label="状态" width="100">
+          <el-table-column :label="t('rbac.status')" width="100">
             <template #default="{ row }">
               <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">
                 {{ enumLabel('status', row.status) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="250" fixed="right">
+          <el-table-column :label="t('rbac.actions')" width="250" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openRoleConfig(row)" data-testid="role-config">配置</el-button>
+              <el-button link type="primary" @click="openRoleConfig(row)" data-testid="role-config">{{ t('rbac.configure') }}</el-button>
               <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
                          @click="toggleRoleStatus(row)">
                 {{ row.status === 'ENABLED' ? '停用' : '启用' }}
@@ -104,23 +104,23 @@
       </el-tab-pane>
 
       <!-- ================= 权限 ================= -->
-      <el-tab-pane label="权限" name="perm">
+      <el-tab-pane :label="t('rbac.permTab')" name="perm">
         <div class="toolbar">
-          <el-button type="success" @click="permVisible = true">新增权限</el-button>
-          <el-input v-model="pkeyword" placeholder="权限码 / 名称" clearable style="width:180px"
+          <el-button type="success" @click="permVisible = true">{{ t('rbac.newPerm') }}</el-button>
+          <el-input v-model="pkeyword" :placeholder="t('rbac.permKeyword')" clearable style="width:180px"
                     data-testid="rbac-perm-keyword" @keyup.enter="load" />
           <el-button type="primary" @click="load">查询</el-button>
-          <el-button @click="resetPermQuery" data-testid="rbac-perm-reset">清空</el-button>
+          <el-button @click="resetPermQuery" data-testid="rbac-perm-reset">{{ t('rbac.reset') }}</el-button>
           <span class="muted">共 {{ perms.length }} 个权限码</span>
         </div>
         <el-table :data="perms" v-loading="loading" border size="small" max-height="460">
-          <el-table-column prop="permCode" label="权限码" width="240" />
-          <el-table-column prop="permName" label="名称" min-width="150" />
+          <el-table-column prop="permCode" :label="t('rbac.permCode')" width="240" />
+          <el-table-column prop="permName" :label="t('rbac.permName')" min-width="150" />
           <el-table-column label="类型" width="110">
             <template #default="{ row }">{{ enumLabel('permType', row.permType) }}</template>
           </el-table-column>
-          <el-table-column prop="routePath" label="路由" width="170" />
-          <el-table-column label="状态" width="100">
+          <el-table-column prop="routePath" :label="t('rbac.route')" width="170" />
+          <el-table-column :label="t('rbac.status')" width="100">
             <template #default="{ row }">
               <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">
                 {{ enumLabel('status', row.status) }}
@@ -140,29 +140,29 @@
     </el-tabs>
 
     <!-- 新增用户 -->
-    <el-dialog v-model="userVisible" title="新增用户" width="560px">
+    <el-dialog v-model="userVisible" :title="t('rbac.createUserTitle')" width="560px">
       <el-form :model="uf" label-width="110px">
-        <el-form-item label="账号" required>
-          <el-input v-model="uf.username" placeholder="登录名，唯一" /></el-form-item>
-        <el-form-item label="密码" required>
+        <el-form-item :label="t('rbac.account')" required>
+          <el-input v-model="uf.username" :placeholder="t('rbac.accountHint')" /></el-form-item>
+        <el-form-item :label="t('rbac.password')" required>
           <el-input v-model="uf.password" type="password" show-password
-                    placeholder="PBKDF2 加密存储" /></el-form-item>
-        <el-form-item label="姓名" required>
+                    :placeholder="t('rbac.passwordHint')" /></el-form-item>
+        <el-form-item :label="t('rbac.realName')" required>
           <el-input v-model="uf.realName" /></el-form-item>
-        <el-form-item label="所属组织" required>
+        <el-form-item :label="t('rbac.org')" required>
           <el-select v-model="uf.orgId" filterable clearable style="width:100%"
-                     placeholder="选择组织（决定数据归属）" data-testid="user-org">
+                     :placeholder="t('rbac.org')" data-testid="user-org">
             <el-option v-for="o in orgOptions" :key="o.id"
                        :label="o.orgName" :value="String(o.id)" />
           </el-select></el-form-item>
-        <el-form-item label="角色" required>
+        <el-form-item :label="t('rbac.roles')" required>
           <el-select v-model="uf.roleIds" multiple filterable style="width:100%"
                      placeholder="选择角色（决定该账号能看到什么、能做什么）"
                      data-testid="user-roles">
             <el-option v-for="r in roles" :key="r.id"
                        :label="`${r.roleName}（${r.roleCode}）`" :value="String(r.id)" />
           </el-select></el-form-item>
-        <el-form-item label="绑定人员">
+        <el-form-item :label="t('rbac.bindPerson')">
           <PersonPicker v-model="uf.personId" />
           <div class="muted" style="font-size:12px;line-height:1.5">
             角色数据范围为「仅本人」时（如租户），必须绑定人员档案，否则登录后看不到自己的数据
@@ -170,55 +170,55 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="userVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreateUser">保存</el-button>
+        <el-button @click="userVisible = false">{{ t('rbac.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreateUser">{{ t('rbac.save') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 新增角色 -->
-    <el-dialog v-model="roleVisible" title="新增角色" width="500px">
+    <el-dialog v-model="roleVisible" :title="t('rbac.roleCreateTitle')" width="500px">
       <el-form :model="rf" label-width="110px">
-        <el-form-item label="角色编码" required>
-          <el-input v-model="rf.roleCode" placeholder="大写英文，如 REVIEWER" />
+        <el-form-item :label="t('rbac.roleCode')" required>
+          <el-input v-model="rf.roleCode" :placeholder="t('rbac.roleCodeHint')" />
         </el-form-item>
-        <el-form-item label="角色名称" required>
+        <el-form-item :label="t('rbac.roleName')" required>
           <el-input v-model="rf.roleName" /></el-form-item>
-        <el-form-item label="数据范围">
+        <el-form-item :label="t('rbac.dataScope')">
           <el-select v-model="rf.dataScope" style="width:100%">
-            <el-option label="全部 ALL" value="ALL" />
-            <el-option label="本部门 DEPT" value="DEPT" />
-            <el-option label="仅本人 SELF" value="SELF" />
+            <el-option :label="t('rbac.scopeAllData')" value="ALL" />
+            <el-option :label="t('rbac.scopeDept')" value="DEPT" />
+            <el-option :label="t('rbac.scopeSelf')" value="SELF" />
           </el-select></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="roleVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreateRole">保存</el-button>
+        <el-button @click="roleVisible = false">{{ t('rbac.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreateRole">{{ t('rbac.save') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 新增权限 -->
-    <el-dialog v-model="permVisible" title="新增权限" width="560px">
+    <el-dialog v-model="permVisible" :title="t('rbac.permCreateTitle')" width="560px">
       <el-form :model="pf" label-width="110px">
-        <el-form-item label="权限码" required>
+        <el-form-item :label="t('rbac.permCode')" required>
           <el-input v-model="pf.permCode" placeholder="如 fin:audit:view" /></el-form-item>
-        <el-form-item label="权限名称" required>
+        <el-form-item :label="t('rbac.permName')" required>
           <el-input v-model="pf.permName" /></el-form-item>
-        <el-form-item label="权限类型">
+        <el-form-item :label="t('rbac.permType')">
           <el-select v-model="pf.permType" style="width:100%">
-            <el-option label="接口 API" value="API" />
-            <el-option label="菜单 MENU" value="MENU" />
-            <el-option label="按钮 BUTTON" value="BUTTON" />
-            <el-option label="数据 DATA" value="DATA" />
+            <el-option :label="t('rbac.api')" value="API" />
+            <el-option :label="t('rbac.menu')" value="MENU" />
+            <el-option :label="t('rbac.button')" value="BUTTON" />
+            <el-option :label="t('rbac.data')" value="DATA" />
           </el-select></el-form-item>
-        <el-form-item label="路由路径">
+        <el-form-item :label="t('rbac.routePath')">
           <el-input v-model="pf.routePath" placeholder="/xxx" /></el-form-item>
         <el-form-item label="排序">
           <el-input-number v-model="pf.sortNo" :min="1" style="width:100%" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="permVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreatePerm">保存</el-button>
+        <el-button @click="permVisible = false">{{ t('rbac.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreatePerm">{{ t('rbac.save') }}</el-button>
       </template>
     </el-dialog>
 
@@ -226,21 +226,21 @@
     <el-dialog v-model="roleCfgVisible" :title="`配置角色：${roleCfg.roleName || ''}`" width="760px">
       <el-form :model="roleCfg" label-width="90px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="角色编码">
+          <el-col :span="12"><el-form-item :label="t('rbac.roleCode')">
             <el-input :model-value="roleCfg.roleCode" disabled /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="角色名称">
+          <el-col :span="12"><el-form-item :label="t('rbac.roleName')">
             <el-input v-model="roleCfg.roleName" data-testid="role-cfg-name" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="数据范围">
             <el-select v-model="roleCfg.dataScope" style="width:100%" data-testid="role-cfg-scope">
-              <el-option label="全部数据 ALL" value="ALL" />
-              <el-option label="本组织 ORG" value="ORG" />
-              <el-option label="本组织及下级 ORG_SUB" value="ORG_SUB" />
-              <el-option label="仅本人 SELF" value="SELF" />
+              <el-option :label="t('rbac.scopeAllData')" value="ALL" />
+              <el-option :label="t('rbac.scopeOrg')" value="ORG" />
+              <el-option :label="t('rbac.scopeOrgSub')" value="ORG_SUB" />
+              <el-option :label="t('rbac.scopeSelf')" value="SELF" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="状态">
             <el-select v-model="roleCfg.status" style="width:100%">
-              <el-option label="启用" value="ENABLED" />
-              <el-option label="停用" value="DISABLED" />
+              <el-option :label="t('rbac.enable')" value="ENABLED" />
+              <el-option :label="t('rbac.disable')" value="DISABLED" />
             </el-select></el-form-item></el-col>
         </el-row>
       </el-form>
@@ -249,12 +249,12 @@
         <b>权限配置</b>
         <span class="muted">已选 {{ checkedPerms.length }} / {{ perms.length }}</span>
         <div class="spacer" />
-        <el-button size="small" @click="checkAllPerms">全选</el-button>
-        <el-button size="small" @click="checkedPerms = []">清空</el-button>
+        <el-button size="small" @click="checkAllPerms">{{ t('rbac.selectAll') }}</el-button>
+        <el-button size="small" @click="checkedPerms = []">{{ t('rbac.clear') }}</el-button>
       </div>
 
       <el-tabs v-model="permTab" style="margin-top:4px">
-        <el-tab-pane label="页面权限（菜单）" name="page">
+        <el-tab-pane :label="t('rbac.pagePerm')" name="page">
           <div class="muted" style="margin-bottom:6px">
             控制该角色能看到哪些菜单与页面；勾选后对应菜单才会出现
           </div>
@@ -280,7 +280,7 @@
             </div>
           </el-scrollbar>
         </el-tab-pane>
-        <el-tab-pane label="功能权限（操作）" name="func">
+        <el-tab-pane :label="t('rbac.funcPerm')" name="func">
           <div class="muted" style="margin-bottom:6px">
             控制该角色能执行哪些操作（新增/修改/审核/导出等按钮级权限）
           </div>
@@ -322,8 +322,8 @@
       </el-tabs>
 
       <template #footer>
-        <el-button @click="roleCfgVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="saveRoleConfig">保存</el-button>
+        <el-button @click="roleCfgVisible = false">{{ t('rbac.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="saveRoleConfig">{{ t('rbac.save') }}</el-button>
       </template>
     </el-dialog>
 
@@ -337,21 +337,21 @@
                    :value="o.value" />
       </el-select>
       <template #footer>
-        <el-button @click="grantVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doGrant">保存</el-button>
+        <el-button @click="grantVisible = false">{{ t('rbac.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doGrant">{{ t('rbac.save') }}</el-button>
       </template>
     </el-dialog>
   </div>
-    <el-dialog v-model="userDetailVisible" title="用户详情" width="560px">
+    <el-dialog v-model="userDetailVisible" :title="t('rbac.userDetailTitle')" width="560px">
       <el-descriptions :column="2" border size="small">
-        <el-descriptions-item label="账号">{{ userDetail.username }}</el-descriptions-item>
-        <el-descriptions-item label="姓名">{{ userDetail.realName || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="手机">{{ userDetail.phone || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="邮箱">{{ userDetail.email || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('rbac.account')">{{ userDetail.username }}</el-descriptions-item>
+        <el-descriptions-item :label="t('rbac.realName')">{{ userDetail.realName || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('rbac.phone')">{{ userDetail.phone || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('rbac.email')">{{ userDetail.email || '—' }}</el-descriptions-item>
         <el-descriptions-item label="状态">{{ enumLabel('status', userDetail.status) }}</el-descriptions-item>
         <el-descriptions-item label="类型">{{ enumLabel('userType', userDetail.userType) }}</el-descriptions-item>
-        <el-descriptions-item label="最近登录">{{ userDetail.lastLoginTime || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="登录次数">{{ userDetail.loginCount || 0 }}</el-descriptions-item>
+        <el-descriptions-item :label="t('rbac.lastLogin')">{{ userDetail.lastLoginTime || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('rbac.loginCount')">{{ userDetail.loginCount || 0 }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
 
@@ -369,6 +369,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -376,6 +377,7 @@ import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
 import PersonPicker from '@/components/PersonPicker.vue'
 
+const { t } = useI18n()
 const TABS = ['user', 'role', 'perm']
 const route = useRoute()
 const router = useRouter()
