@@ -128,73 +128,73 @@
                              style="width:100%" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('house.buildType')">
             <el-select v-model="f.structType" style="width:100%">
-              <el-option label="多层" value="MULTI" />
-              <el-option label="小高层" value="SMALL_HIGH" />
-              <el-option label="高层" value="HIGH" />
-              <el-option label="超高层" value="SUPER_HIGH" />
-              <el-option label="别墅" value="VILLA" />
+              <el-option :label="t('misc8.multi')" value="MULTI" />
+              <el-option :label="t('misc8.smallHigh')" value="SMALL_HIGH" />
+              <el-option :label="t('misc8.high')" value="HIGH" />
+              <el-option :label="t('misc8.superHigh')" value="SUPER_HIGH" />
+              <el-option :label="t('misc8.villa')" value="VILLA" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('house.purpose')">
             <el-select v-model="f.useType" style="width:100%">
-              <el-option label="民用" value="CIVIL" />
-              <el-option label="商用" value="COMMERCIAL" />
+              <el-option :label="t('misc8.civil')" value="CIVIL" />
+              <el-option :label="t('misc8.commercial')" value="COMMERCIAL" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="户型">
-            <el-input v-model="f.unitLayout" placeholder="如 2室1厅" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="楼层">
+          <el-col :span="12"><el-form-item :label="t('misc8.layout')">
+            <el-input v-model="f.unitLayout" :placeholder="t('misc8.layoutHint')" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item :label="t('misc8.floor')">
             <el-input-number v-model="f.floorNo" style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="朝向">
+          <el-col :span="12"><el-form-item :label="t('misc8.orientation')">
             <el-select v-model="f.orientation" clearable style="width:100%"
-                       placeholder="请选择朝向">
+                       :placeholder="t('misc8.orientationHint')">
               <el-option v-for="o in ORIENTATIONS" :key="o.value" :label="o.label"
                          :value="o.value" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="装修标准">
+          <el-col :span="12"><el-form-item :label="t('misc8.decoration')">
             <el-select v-model="f.decorateLevel" style="width:100%">
-              <el-option label="毛坯" value="ROUGH" />
-              <el-option label="简装" value="SIMPLE" />
-              <el-option label="精装" value="FINE" />
+              <el-option :label="t('misc8.rough')" value="ROUGH" />
+              <el-option :label="t('misc8.simple')" value="SIMPLE" />
+              <el-option :label="t('misc8.fine')" value="FINE" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="租金标准">
+          <el-col :span="12"><el-form-item :label="t('misc8.rentStandard')">
             <el-input-number v-model="f.rentStandard" :precision="2"
                              style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="计价单位">
+          <el-col :span="12"><el-form-item :label="t('misc8.rentUnit')">
             <el-select v-model="f.rentUnit" style="width:100%">
-              <el-option label="元/㎡·月" value="AREA_MONTH" />
-              <el-option label="元/套·月" value="HOUSE_MONTH" />
-              <el-option label="元/床·月" value="BED_MONTH" />
-              <el-option label="元/套·夜" value="HOUSE_NIGHT" />
-              <el-option label="元/床·夜" value="BED_NIGHT" />
+              <el-option :label="t('misc8.areaMonth')" value="AREA_MONTH" />
+              <el-option :label="t('misc8.houseMonth')" value="HOUSE_MONTH" />
+              <el-option :label="t('misc8.bedMonth')" value="BED_MONTH" />
+              <el-option :label="t('misc8.houseNight')" value="HOUSE_NIGHT" />
+              <el-option :label="t('misc8.bedNight')" value="BED_NIGHT" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="计量模式">
+          <el-col :span="12"><el-form-item :label="t('misc8.meterMode')">
             <el-select v-model="f.meterMode" style="width:100%">
-              <el-option label="独立表（每间独立计量）" value="INDEPENDENT" />
-              <el-option label="整户分摊（一表按间分摊）" value="SHARED" />
-              <el-option label="独立表 + 公区分摊" value="MIXED" />
+              <el-option :label="t('misc8.independent')" value="INDEPENDENT" />
+              <el-option :label="t('misc8.shared')" value="SHARED" />
+              <el-option :label="t('misc8.mixed')" value="MIXED" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="最大入住">
+          <el-col :span="12"><el-form-item :label="t('misc8.maxCapacity')">
             <el-input-number v-model="f.maxCapacity" :min="1" style="width:100%" />
           </el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">保存</el-button>
+        <el-button @click="createVisible = false">{{ t('person.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('misc8.save') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="show" title="房源详情" size="560px">
+    <el-drawer v-model="show" :title="t('misc8.detail')" size="560px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
 
     <!-- 批量导入房源（CSV）：选择 → 校验预览 → 提交 -->
-    <el-dialog v-model="importVisible" title="批量导入房源" width="820px"
+    <el-dialog v-model="importVisible" :title="t('misc8.importTitle')" width="820px"
                @close="resetImport">
       <el-steps :active="importStep" simple style="margin-bottom:14px">
-        <el-step title="选择文件" />
-        <el-step title="校验预览" />
-        <el-step title="提交结果" />
+        <el-step :title="t('misc8.stepFile')" />
+        <el-step :title="t('misc8.stepPreview')" />
+        <el-step :title="t('misc8.stepResult')" />
       </el-steps>
 
       <div v-if="importStep === 1">
