@@ -3,7 +3,7 @@
     <div class="page-card">
       <div class="toolbar">
         <h3 style="margin:0">{{ t('message.title') }}</h3>
-        <el-tag type="danger" size="small" v-if="unread > 0">未读 {{ unread }}</el-tag>
+        <el-tag type="danger" size="small" v-if="unread > 0">{{ t('misc4.unread', { n: unread }) }}</el-tag>
         <div class="spacer" />
         <el-select v-model="query.status" :placeholder="t('message.status')" clearable
                    style="width:130px" @change="load">
@@ -11,7 +11,7 @@
           <el-option :label="t('message.read')" value="READ" />
           <el-option :label="t('message.done')" value="DONE" />
         </el-select>
-        <el-switch v-model="onlyMine" active-text="只看我的" inline-prompt
+        <el-switch v-model="onlyMine" :active-text="t('misc4.onlyMine')" inline-prompt
                    data-testid="msg-only-mine" @change="load" />
         <el-button type="primary" @click="load">{{ t('message.refresh') }}</el-button>
       </div>
@@ -38,9 +38,9 @@
           <template #default="{ row }">
             <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('message.detail') }}</el-button>
             <el-button link type="primary" :disabled="row.todoStatus !== 'PENDING'"
-                       @click="markRead(row)">已读</el-button>
+                       @click="markRead(row)">{{ t('misc4.markRead') }}</el-button>
             <el-button link type="success" :disabled="row.todoStatus === 'DONE'"
-                       @click="markDone(row)">办结</el-button>
+                       @click="markDone(row)">{{ t('misc4.markDone') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -52,7 +52,7 @@
     </div>
 
     <div class="page-card">
-      <h4 style="margin:0 0 12px">发送通知</h4>
+      <h4 style="margin:0 0 12px">{{ t('misc4.sendTitle') }}</h4>
       <el-form :model="form" label-width="100px" style="max-width:620px">
         <el-form-item :label="t('message.recipient')">
           <el-input v-model="form.userId" />
@@ -65,9 +65,9 @@
         </el-form-item>
         <el-form-item :label="t('message.priority')">
           <el-radio-group v-model="form.priority">
-            <el-radio value="URGENT">紧急</el-radio>
-            <el-radio value="IMPORTANT">重要</el-radio>
-            <el-radio value="NORMAL">普通</el-radio>
+            <el-radio value="URGENT">{{ t('misc4.urgent') }}</el-radio>
+            <el-radio value="IMPORTANT">{{ t('misc4.important') }}</el-radio>
+            <el-radio value="NORMAL">{{ t('misc4.normal') }}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item>

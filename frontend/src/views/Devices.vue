@@ -94,9 +94,9 @@
                      :label="t.label + (t.level === 'CRITICAL' ? '（严重）' : '')" />
         </el-select>
         <el-checkbox v-model="evQuery.alarmOnly" @change="loadEvents">{{ t('misc2.alarmOnly') }}</el-checkbox>
-        <el-checkbox v-model="evQuery.unhandledOnly" @change="loadEvents">只看未处理</el-checkbox>
+        <el-checkbox v-model="evQuery.unhandledOnly" @change="loadEvents">{{ t('misc4.unhandledOnly') }}</el-checkbox>
         <span class="muted" style="font-size:12px">
-          共 {{ evTotal }} 条，未处理 {{ evStats.unhandled || 0 }} 条
+          {{ t('misc4.eventStats', { total: evTotal, unhandled: evStats.unhandled || 0 }) }}
         </span>
       </div>
       <el-table :data="evRows" v-loading="evLoading" size="small" border max-height="420">
@@ -118,7 +118,7 @@
         <el-table-column prop="handled" :label="t('device.handled')" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="row.handled ? 'success' : 'danger'">
-              {{ row.handled ? '已处理' : '未处理' }}
+              {{ row.handled ? t('misc4.handled') : t('misc4.unhandled') }}
             </el-tag>
           </template>
         </el-table-column>
@@ -152,7 +152,7 @@
     </el-dialog>
 
     <!-- 设备批量导入 -->
-    <el-dialog v-model="impVisible" title="设备批量导入" width="820px" @close="resetImport">
+    <el-dialog v-model="impVisible" :title="t('misc4.importTitle')" width="820px" @close="resetImport">
       <el-steps :active="impStep" simple style="margin-bottom:14px">
         <el-step title="选择文件" />
         <el-step title="校验预览" />

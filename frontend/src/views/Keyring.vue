@@ -46,7 +46,7 @@
 
     <el-dialog v-model="createVisible" :title="t('keyring.createTitle')" width="700px">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
-                title="字段与后端 KeyringService.KeyringCmd 一致；带 * 为必填" />
+                :title="t('misc4.cmdHint')" />
       <el-form :model="form" label-width="120px">
         <el-row :gutter="12">
           <el-col :span="12"><el-form-item :label="t('keyring.personId')" required>
@@ -68,11 +68,11 @@
             <el-input v-model="form.channelValue" data-testid="f-channelValue"
                       :placeholder="t('keyring.mediaHint')" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('keyring.source')">
-            <el-input v-model="form.keySource" placeholder="如 ALLOCATION / EXTRA" /></el-form-item></el-col>
+            <el-input v-model="form.keySource" :placeholder="t('misc4.keySourceHint')" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('keyring.verifyWay')">
-            <el-input v-model="form.verifyWay" placeholder="如 PASSWORD / CARD / FACE" /></el-form-item></el-col>
+            <el-input v-model="form.verifyWay" :placeholder="t('misc4.verifyHint')" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('keyring.syncScope')">
-            <el-input v-model="form.syncScope" placeholder="如 HOUSE / BUILDING" /></el-form-item></el-col>
+            <el-input v-model="form.syncScope" :placeholder="t('misc4.scopeHint')" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('keyring.expire')" required>
             <el-date-picker v-model="form.expireTime" type="datetime"
                             value-format="YYYY-MM-DD HH:mm:ss" style="width:100%"
@@ -86,7 +86,7 @@
       </template>
     </el-dialog>
 
-    <el-drawer v-model="show" title="明细（原始数据）" size="520px">
+    <el-drawer v-model="show" :title="t('keyring.detail')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
@@ -152,13 +152,13 @@ function reload() { pageNum.value = 1; load() }
 
 async function doCreate() {
   const missing = []
-  if (!form.personId) missing.push('人员 ID')
-  if (!form.channelValue) missing.push('介质值')
-  if (missing.length) { ElMessage.warning('请填写：' + missing.join('、')); return }
+  if (!form.personId) missing.push(t('misc4.personId'))
+  if (!form.channelValue) missing.push(t('misc4.medium'))
+  if (missing.length) { ElMessage.warning(t('misc4.missing', { fields: missing.join(', ') })); return }
   saving.value = true
   try {
     await req.post('/keyring', { ...form })
-    ElMessage.success('创建成功')
+    ElMessage.success(t('misc4.createSuccess'))
     createVisible.value = false; load()
   } finally { saving.value = false }
 }

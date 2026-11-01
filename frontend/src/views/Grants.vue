@@ -5,7 +5,7 @@
         <h3 style="margin:0">{{ t('grant.title') }}</h3>
         <el-tag size="small" :type="stats.riskLevel === 'HIGH' ? 'danger'
           : (stats.riskLevel === 'MEDIUM' ? 'warning' : 'success')">
-          对账风险 {{ stats.riskLevel || '-' }}
+          {{ t('misc4.risk', { level: stats.riskLevel || '-' }) }}
         </el-tag>
         <span class="muted">{{ t('misc.grantPending', { n: stats.pending ?? 0 }) }}</span>
       </div>
@@ -24,7 +24,7 @@
             <el-button type="primary" @click="loadGrants">{{ t('grant.search') }}</el-button>
             <el-button @click="resetGrantQuery">{{ t('grant.reset') }}</el-button>
             <el-button type="success" @click="openCreate">{{ t('grant.create') }}</el-button>
-            <span class="muted">共 {{ grantTotal }} 条</span>
+            <span class="muted">{{ t('misc4.total', { n: grantTotal }) }}</span>
           </div>
 
           <el-table :empty-text="t('misc.grantEmpty')" :data="grants" v-loading="grantLoading" border size="small">
@@ -38,7 +38,7 @@
             </el-table-column>
             <el-table-column :label="t('grant.validity')" min-width="230">
               <template #default="{ row }">
-                {{ row.validStart || '—' }} ~ {{ row.validEnd || '长期' }}
+                {{ row.validStart || '—' }} ~ {{ row.validEnd || t('misc4.longTerm') }}
               </template>
             </el-table-column>
             <el-table-column prop="visitLimitTimes" :label="t('grant.visitorTimes')" width="110">
@@ -81,7 +81,7 @@
             <el-button @click="loadDiffs">{{ t('grant.refresh') }}</el-button>
           </div>
           <el-alert type="info" :closable="false" show-icon
-                    title="LOCAL_MISSING = 本地有效但设备未下发（住户刷不开门）；IOT_EXTRA = 已撤销但设备仍存在（安全风险）"
+                    :title="t('misc4.diffTip')"
                     style="margin-bottom:12px" />
           <el-table :data="diffs" v-loading="loading" border size="small">
             <el-table-column prop="diffType" :label="t('grant.diffType')" width="150">
@@ -106,7 +106,7 @@
             </el-table-column>
             <el-table-column :label="t('grant.actions')" width="200" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" @click="openDetail(row)">详情</el-button>
+                <el-button link type="primary" @click="openDetail(row)">{{ t('misc4.detail') }}</el-button>
                 <el-button v-if="row.diffType === 'LOCAL_MISSING'" link type="primary"
                            :disabled="row.handleStatus !== 'PENDING'"
                            @click="handle(row, 'REGRANT')">{{ t('misc.regrant') }}</el-button>
