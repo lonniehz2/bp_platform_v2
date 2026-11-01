@@ -17,7 +17,7 @@
           <el-button type="success" :disabled="!previewData" @click="confirm">{{ t('energy.confirm') }}</el-button>
         </div>
         <el-alert v-if="previewData" type="info" :closable="false" show-icon
-                  :title="`整表用量 ${previewData.totalUsage}，整表费用 ${previewData.totalAmount}，运营方承担 ${previewData.operatorBearAmount}`" />
+                  :title="t('energy.summary', { usage: previewData.totalUsage, amount: previewData.totalAmount, operator: previewData.operatorBearAmount })" />
         <el-table v-if="previewData" :data="previewData.shares" border size="small" style="margin-top:10px">
           <el-table-column prop="contractNo" :label="t('energy.contract')" width="180" />
           <el-table-column prop="lesseeName" :label="t('energy.lessee')" width="120" />

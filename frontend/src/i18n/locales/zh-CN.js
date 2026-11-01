@@ -1,5 +1,21 @@
 export default {
   common: {
+    edit: '编辑',
+    enable: '启用',
+    disable: '停用',
+    success: '成功',
+    failed: '失败',
+    submit: '提交',
+    reselect: '重新选择',
+    refresh: '刷新',
+    startImport: '开始导入',
+    unassigned: '未指派',
+    longTerm: '长期',
+    detail: '详情',
+    select: '请选择',
+    upload: '上传附件',
+    delete: '删除',
+    noFiles: '暂无附件（支持 jpg/png/pdf，≤10MB）',
     confirm: '确定',
     cancel: '取消',
     save: '保存',
@@ -17,7 +33,18 @@ export default {
     en: 'English',
     changed: '语言已切换'
   },
+  opsLogin: {
+    adminTitle: '平台运营台',
+    adminUser: '运营账号',
+    adminPwd: '密码',
+    adminLogin: '登 录',
+    adminHint: '运营超管与业务账号相互独立；初始密码首次登录需修改。',
+    backBusiness: '返回业务登录',
+  },
   login: {
+    tenantTip1: '平台编码是数据隔离标识，既不是组织编码，也不是承租人。',
+    tenantTip2: '一个平台下可有多级组织与承租人；登录后右上角显示你的组织，',
+    tenantTip3: '未限定组织（全局范围）时显示「平台」。',
     brand: '租赁性保障用房管理平台',
     brandSub: 'Leased Affordable Housing Management Platform',
     slogan: '房源、合同、收费、物联一体化的保障房运营中枢',
@@ -50,6 +77,25 @@ export default {
     requiredPassword: '请输入密码'
   },
   bill: {
+    meterTitle: '抄表录入',
+    meterTip: '录入本次读数后自动带出上次读数、用量与金额；确认无误再点「出账生成账单」',
+    recordReading: '录入读数',
+    pendingBill: '待出账',
+    billAction: '出账',
+    close: '关闭',
+    payTitle: '登记收款',
+    paymentsTitle: '收款单',
+    usageDetail: '使用明细（核销到账单）',
+    noUsage: '尚未核销到任何账单',
+    last3: '近 3 月',
+    last6: '近 6 月',
+    last12: '近 12 月',
+    energyFormula: '用量 = 本次读数 − 上次读数（跨月衔接）；金额 = 用量 × 收费项单价',
+    monthlyTrend: '月度趋势',
+    buildingSummary: '楼栋汇总',
+    topHouses: '用量 TOP 10 房源',
+    pendingAmount: '待缴',
+    balancePrefix: '余额',
     waiveTitle: '账单减免',
     cancelPrompt: '请输入取消原因',
     cancelTitle: '取消账单',
@@ -173,6 +219,7 @@ export default {
     removed: '已移除',
   },
   contract: {
+    houseSearchHint: '输入房源编号或名称搜索；也可直接粘贴房源 ID',
     cancelPrompt: '请输入取消原因',
     cancelTitle: '取消合同',
     searchHint: '输入合同号/承租人搜索',
@@ -572,6 +619,8 @@ export default {
     order: '订单',
   },
   ops: {
+    tag: '人员/房源状态 · 工单全流程',
+    extraTag: '消息 · 规则 · 开放 · 权限 · 授权 · 房态',
     select: '选中',
     title: '运维操作台',
     refresh: '刷新',
@@ -1195,6 +1244,10 @@ export default {
     runDone: '已补跑 {n} 个待执行任务',
   },
   meter: {
+    readingDate: '抄表日期',
+    delete: '删除',
+    close: '关闭',
+    submit: '提交',
     unitDefault: '度',
     empty: '暂无抄表记录，可人工录入或从 IoT 拉取',
     manualEntry: '人工录入',
@@ -1506,6 +1559,10 @@ export default {
     opinion: '复核意见', submit: '提交'
   },
   publicity: {
+    winnerCount: '共 {n} 人',
+    noWinnersShort: '暂无中签记录（需先关联批次并完成摇号）',
+    signed: '已签约',
+    goSign: '去签约',
     title: '公示管理', keyword: '关键字', search: '查询', reset: '清空',
     tip: '配租公示必须 ≥7 自然日且已结束才能签约', lotterySeq: '摇号序号',
     name: '姓名', idCard: '身份证（脱敏）', phone: '手机（脱敏）', org: '组织',
@@ -1737,6 +1794,11 @@ export default {
     dialogTitle: '翻译维护', cancel: '取消', save: '保存', empty: '暂无翻译'
   },
   iot: {
+    pendingIot: '仍需 IoT 提供（{n}）',
+    credSummary: '共 {n} 条 ｜ 密码/卡/人脸/离线码下发记录',
+    pendingSync: '待同步',
+    passed: '通过',
+    failedShort: '失败',
     seconds: '秒',
     minutes: '分钟',
     commandMode: '指令下发',
@@ -1965,6 +2027,20 @@ export default {
     expireHint: '卡/密码等弱安全介质必填', cancel: '取消', submit: '提交'
   },
   grant: {
+    personId: '人员ID',
+    spaceId: '空间ID',
+    spaceHint: '授权到哪个空间（房间/楼栋）',
+    ownership: '产权级（可管理、可转授）',
+    management: '管理级（可管理）',
+    usage: '使用级（仅可开门）',
+    visitLevel: '访客级（限次通行）',
+    validStart: '生效时间',
+    validEnd: '失效时间',
+    startHint: '留空=立即生效',
+    endHint: '留空=长期',
+    remark: '备注',
+    cancel: '取消',
+    saveIssue: '保存并下发',
     title: '通行授权', grantTab: '授权管理', diffTab: '对账差异', auditTab: '授权审计',
     status: '状态', search: '查询', reset: '清空', create: '新建授权',
     grantNo: '授权号', person: '人员', space: '空间', level: '权限层级',
@@ -2002,6 +2078,8 @@ export default {
     issue: '问题',
   },
   binding: {
+    startBind: '开始绑定',
+    refreshDevices: '刷新设备',
     searchHint: '搜索房源编号 / 名称', search: '搜索房源', batchBind: '批量绑定',
     code: '编号', name: '名称', status: '状态', refresh: '刷新',
     ownTab: '本房源设备', inheritTab: '继承设备（上级空间）',
@@ -2206,6 +2284,9 @@ export default {
     detailTitle: '明细（原始数据）'
   },
   fee: {
+    operation: '操作',
+    edit: '编辑',
+    typeHint: '停用后新增计费项目时不再出现在下拉里，历史项目不受影响。',
     title: '计费项目', create: '新增项目', newRule: '新增计费规则', ruleList: '规则列表',
     keyword: '项目编码 / 名称', itemType: '项目类型 如 RENT', calcMode: '计费方式 如 BY_AREA',
     code: '项目编码', name: '名称', type: '类型', method: '计费方式', price: '单价',
@@ -2239,6 +2320,25 @@ export default {
     submit: '提交申请'
   },
   arrears: {
+    riskConfirm: '确认安全风险',
+    mainDoorHint: '停用大门需勾选',
+    cancel: '取消',
+    save: '保存',
+    detailTitle: '欠费处置详情',
+    unpaidBills: '欠费账单（未缴）',
+    billNo: '账单号',
+    period: '账期',
+    feeRange: '费用区间',
+    dueDate: '截止日',
+    billingDetail: '计费明细',
+    item: '项目',
+    value: '值',
+    notify: '通知催缴',
+    freeze: '冻结权限',
+    unfreeze: '解冻',
+    restrict: '限制续租',
+    expire: '到期不续',
+    legal: '司法程序',
     title: '催缴管理', actionTab: '欠费处置', noticeTab: '催缴通知',
     status: '状态', pending: '待执行', executed: '已执行', revoked: '已撤销',
     search: '查询', reset: '清空', scan: '扫描建议', create: '新建处置',
@@ -2299,6 +2399,9 @@ export default {
     submitVerify: '提交核验',
   },
   person: {
+    passVerify: '核验通过',
+    verified: '已通过',
+    searchHint: '输入姓名 / 手机 / 证件号搜索；也可直接粘贴 19 位人员ID',
     normal: '正常',
     blacklist: '黑名单',
     cancelled: '已注销',
@@ -2389,6 +2492,7 @@ export default {
     recordsTitle: '审核轨迹', noRecords: '暂无审核记录', detailTitle: '详情'
   },
   house: {
+    confirmSwap: '确认调换',
     title: '房源台账',
     org: '组织名称',
     keyword: '房源编号/名称',
@@ -2526,6 +2630,13 @@ export default {
     classicName: '风格1 · 宽侧栏',
     railName: '风格2 · 图标窄栏',
     styleTip: '当前：{name}（点击切换）',
-    admin: '管理员'
+    admin: '管理员',
+    pwdTitle: '修改初始密码',
+    pwdTip: '首次登录需要修改密码后才能继续使用。',
+    oldPwd: '原密码',
+    newPwd: '新密码',
+    confirmPwd: '确认新密码',
+    saveContinue: '保存并继续',
+
   }
 }

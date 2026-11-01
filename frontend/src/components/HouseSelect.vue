@@ -21,7 +21,7 @@
     </el-option>
     <template #empty>
       <div style="padding:8px;font-size:12px;color:#909399">
-        输入房源编号或名称搜索；也可直接粘贴房源 ID
+        {{ t('contract.houseSearchHint') }}
       </div>
     </template>
   </el-select>

@@ -4,7 +4,7 @@
       <el-col v-for="f in schema" :key="f.key" :span="f.span || 12">
         <el-form-item :label="f.label" :required="!!f.required">
           <el-select v-if="f.type === 'select'" :model-value="model[f.key]"
-                     :placeholder="f.placeholder || '请选择'" clearable
+                     :placeholder="f.placeholder || t('common.select')" clearable
                      style="width:100%" :data-testid="'f-' + f.key"
                      @update:model-value="(v) => setField(f.key, v)">
             <el-option v-for="o in f.options || []" :key="o.value"
@@ -31,6 +31,8 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 /**
  * 表单向导：用 schema 描述字段，替代原来的「JSON 文本框」。
  *

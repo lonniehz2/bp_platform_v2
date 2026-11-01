@@ -96,7 +96,7 @@
               <el-button link type="primary" @click="openRoleConfig(row)" data-testid="role-config">{{ t('rbac.configure') }}</el-button>
               <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
                          @click="toggleRoleStatus(row)">
-                {{ row.status === 'ENABLED' ? '停用' : '启用' }}
+                {{ row.status === 'ENABLED' ? t('common.disable') : t('common.enable') }}
               </el-button>
             </template>
           </el-table-column>
@@ -131,7 +131,7 @@
             <template #default="{ row }">
               <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
                          @click="togglePermStatus(row)">
-                {{ row.status === 'ENABLED' ? '停用' : '启用' }}
+                {{ row.status === 'ENABLED' ? t('common.disable') : t('common.enable') }}
               </el-button>
             </template>
           </el-table-column>

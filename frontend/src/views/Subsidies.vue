@@ -108,13 +108,13 @@
         </el-table-column>
         <el-table-column :label="t('subsidy.effective')" min-width="200">
           <template #default="{ row }">
-            {{ row.effectiveStart || '—' }} ~ {{ row.effectiveEnd || '长期' }}
+            {{ row.effectiveStart || '—' }} ~ {{ row.effectiveEnd || t('common.longTerm') }}
           </template>
         </el-table-column>
         <el-table-column prop="status" :label="t('subsidy.status')" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">
-              {{ row.status === 'ENABLED' ? '启用' : '停用' }}
+              {{ row.status === 'ENABLED' ? t('common.enable') : t('common.disable') }}
             </el-tag>
           </template>
         </el-table-column>
@@ -122,7 +122,7 @@
           <template #default="{ row }">
             <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
                        @click="toggleStandard(row)">
-              {{ row.status === 'ENABLED' ? '停用' : '启用' }}
+              {{ row.status === 'ENABLED' ? t('common.disable') : t('common.enable') }}
             </el-button>
           </template>
         </el-table-column>

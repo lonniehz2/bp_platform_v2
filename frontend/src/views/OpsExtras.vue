@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('opsX.title') }}</h3>
-      <el-tag size="small" type="info">消息 · 规则 · 开放 · 权限 · 授权 · 房态</el-tag>
+      <el-tag size="small" type="info">{{ t('ops.extraTag') }}</el-tag>
       <div class="spacer" />
       <el-button @click="refresh">{{ t('opsX.refresh') }}</el-button>
     </div>
@@ -84,7 +84,7 @@
         <el-table :data="apps" border size="small" max-height="420">
           <el-table-column prop="appName" :label="t('opsX.appName')" min-width="150" />
           <el-table-column prop="appCode" :label="t('opsX.appCode')" width="160" />
-          <el-table-column label="状态" width="110">
+          <el-table-column :label="t('common.status')" width="110">
             <template #default="{ row }">
               <el-tag size="small" :type="row.appStatus === 'ENABLED' ? 'success' : 'info'">
                 {{ enumLabel('appStatus', row.appStatus) }}
@@ -157,10 +157,10 @@
           </el-table-column>
           <el-table-column prop="validStart" :label="t('opsX.validStart')" width="160" />
           <el-table-column prop="validEnd" :label="t('opsX.validEnd')" width="160" />
-          <el-table-column label="状态" width="110">
+          <el-table-column :label="t('common.status')" width="110">
             <template #default="{ row }">{{ enumLabel('grantStatus', row.grantStatus) }}</template>
           </el-table-column>
-          <el-table-column label="操作" width="130">
+          <el-table-column :label="t('common.operation')" width="130">
             <template #default="{ row }">
               <el-button link type="danger" @click="revokeGrant(row)">{{ t('opsX.revoke') }}</el-button>
             </template>
@@ -208,16 +208,16 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="jsonVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submitJson">提交</el-button>
+        <el-button @click="jsonVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="submitJson">{{ t('common.submit') }}</el-button>
       </template>
     </el-dialog>
 
     <el-dialog v-model="pickVisible" :title="pickTitle" width="480px">
       <el-input v-model="pickValue" placeholder="输入 ID，多个用英文逗号分隔" />
       <template #footer>
-        <el-button @click="pickVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submitPick">提交</el-button>
+        <el-button @click="pickVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="submitPick">{{ t('common.submit') }}</el-button>
       </template>
     </el-dialog>
   </div>

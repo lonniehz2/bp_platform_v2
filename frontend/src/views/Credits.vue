@@ -14,7 +14,7 @@
     <el-alert type="info" :closable="false" show-icon :title="t('miscPage.creditsTip')"
               style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+    <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('misc.emptyDefault')">
       <el-table-column type="expand">
         <template #default="{ row }">
           <DetailView :row="row" />

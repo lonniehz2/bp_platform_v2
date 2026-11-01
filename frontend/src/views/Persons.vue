@@ -180,10 +180,10 @@
           <el-table-column :label="t('person.actions')" width="200" fixed="right">
             <template #default="{ row }">
               <el-button v-if="Number(row.verifyPass) !== 1" link type="primary"
-                         @click="openVerifyFor(row)">实名核验</el-button>
+                         @click="openVerifyFor(row)">{{ t('misc7.verifyButton') }}</el-button>
               <el-button v-if="Number(row.verifyPass) !== 1" link type="success"
-                         @click="manualPass(row.personId)">核验通过</el-button>
-              <span v-else class="muted">已通过</span>
+                         @click="manualPass(row.personId)">{{ t('person.passVerify') }}</el-button>
+              <span v-else class="muted">{{ t('person.verified') }}</span>
             </template>
           </el-table-column>
         </el-table>

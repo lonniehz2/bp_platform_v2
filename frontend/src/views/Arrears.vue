@@ -207,35 +207,35 @@
             <el-option :label="t('misc6.allDoors')" value="ALL" />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="nf.actionType === 'FREEZE'" label="确认安全风险">
+        <el-form-item v-if="nf.actionType === 'FREEZE'" :label="t('arrears.riskConfirm')">
           <el-switch v-model="nf.confirmSafetyRisk" />
-          <span class="muted" style="margin-left:8px">停用大门需勾选</span>
+          <span class="muted" style="margin-left:8px">{{ t('arrears.mainDoorHint') }}</span>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="actionVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreateAction">保存</el-button>
+        <el-button @click="actionVisible = false">{{ t('arrears.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreateAction">{{ t('arrears.save') }}</el-button>
       </template>
     </el-dialog>
 
     
 
-    <el-drawer v-model="show" title="欠费处置详情" size="720px">
+    <el-drawer v-model="show" :title="t('arrears.detailTitle')" size="720px">
       <div v-if="arrearBills.length" style="margin-bottom:12px">
-        <div style="font-weight:600;margin-bottom:6px">欠费账单（未缴）</div>
+        <div style="font-weight:600;margin-bottom:6px">{{ t('arrears.unpaidBills') }}</div>
         <el-table :data="arrearBills" size="small" border max-height="240">
-          <el-table-column prop="billNo" label="账单号" width="165" />
-          <el-table-column prop="billPeriod" label="账期" width="85" />
-          <el-table-column label="费用区间" width="185">
+          <el-table-column prop="billNo" :label="t('arrears.billNo')" width="165" />
+          <el-table-column prop="billPeriod" :label="t('arrears.period')" width="85" />
+          <el-table-column :label="t('arrears.feeRange')" width="185">
             <template #default="{ row }">{{ row.periodStart }} ~ {{ row.periodEnd }}</template>
           </el-table-column>
-          <el-table-column label="待缴" width="85" >
+          <el-table-column :label="t('arrears.pending')" width="85" >
           <template #default="{ row }">{{ $money(row.payableAmount) }}</template>
         </el-table-column>
-          <el-table-column prop="dueDate" label="截止日" width="100" />
+          <el-table-column prop="dueDate" :label="t('arrears.dueDate')" width="100" />
           <el-table-column label="" width="90">
             <template #default="{ row }">
-              <el-button link type="primary" @click="showExplain(row)">计费明细</el-button>
+              <el-button link type="primary" @click="showExplain(row)">{{ t('arrears.billingDetail') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -243,11 +243,11 @@
       <DetailView :row="detail || {}" />
     </el-drawer>
 
-    <el-dialog v-model="explainVisible" title="计费明细" width="640px" append-to-body>
+    <el-dialog v-model="explainVisible" :title="t('arrears.billingDetail')" width="640px" append-to-body>
       <div style="font-weight:600;margin-bottom:8px">{{ explainBillNo }}</div>
       <el-table :data="explainRows" size="small" border>
-        <el-table-column prop="label" label="项目" width="130" />
-        <el-table-column prop="value" label="值" />
+        <el-table-column prop="label" :label="t('arrears.item')" width="130" />
+        <el-table-column prop="value" :label="t('arrears.value')" />
       </el-table>
     </el-dialog>
   </div>
@@ -275,12 +275,12 @@ const tab = ref('action')
 
 // ---------------- 欠费处置 ----------------
 const ACTION_TYPES = [
-  { value: 'NOTIFY', label: '通知催缴' },
-  { value: 'FREEZE', label: '冻结权限' },
-  { value: 'UNFREEZE', label: '解冻' },
-  { value: 'RESTRICT', label: '限制续租' },
-  { value: 'EXPIRE', label: '到期不续' },
-  { value: 'LEGAL', label: '司法程序' }
+  { value: 'NOTIFY', label: t('arrears.notify') },
+  { value: 'FREEZE', label: t('arrears.freeze') },
+  { value: 'UNFREEZE', label: t('arrears.unfreeze') },
+  { value: 'RESTRICT', label: t('arrears.restrict') },
+  { value: 'EXPIRE', label: t('arrears.expire') },
+  { value: 'LEGAL', label: t('arrears.legal') }
 ]
 
 const actions = ref([])

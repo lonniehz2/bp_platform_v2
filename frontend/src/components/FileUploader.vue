@@ -10,7 +10,7 @@
       name="file"
     >
       <el-button size="small" :loading="loading">
-        <el-icon><Upload /></el-icon>上传附件
+        <el-icon><Upload /></el-icon>{{ t('common.upload') }}
       </el-button>
     </el-upload>
 
@@ -19,17 +19,20 @@
         <el-icon><Document /></el-icon>
         <a :href="downloadUrl(f.id)" target="_blank">{{ f.fileName }}</a>
         <span class="muted">{{ (f.fileSize / 1024).toFixed(0) }} KB</span>
-        <el-button link type="danger" size="small" @click="remove(f)">删除</el-button>
+        <el-button link type="danger" size="small" @click="remove(f)">{{ t('common.delete') }}</el-button>
       </div>
-      <div v-if="!files.length" class="muted">暂无附件（支持 jpg/png/pdf，≤10MB）</div>
+      <div v-if="!files.length" class="muted">{{ t('common.noFiles') }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import req, { getToken, getTenant } from '@/api/request'
+
+const { t } = useI18n()
 
 const props = defineProps({
   bizType: { type: String, required: true },

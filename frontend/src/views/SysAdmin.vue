@@ -121,7 +121,7 @@
             <template #default="{ row }">{{ row.valueTypeLabel || enumLabel('valueType', row.valueType) }}</template>
           </el-table-column>
           <el-table-column prop="description" :label="t('sys.desc')" min-width="240" />
-          <el-table-column label="操作" width="90" fixed="right">
+          <el-table-column :label="t('common.operation')" width="90" fixed="right">
             <template #default="{ row }">
               <el-button link type="primary" data-testid="sys-config-edit"
                          @click="openConfigEdit(row)">修改</el-button>

@@ -212,7 +212,7 @@
         <el-table-column label="读数" width="100">
           <template #default="{ row }"><el-input v-model="row.reading" size="small" /></template>
         </el-table-column>
-        <el-table-column label="抄表日期" width="135">
+        <el-table-column :label="t('meter.readingDate')" width="135">
           <template #default="{ row }">
             <el-date-picker v-model="row.readDate" type="date" value-format="YYYY-MM-DD"
                             size="small" style="width:100%" />
@@ -220,7 +220,7 @@
         </el-table-column>
         <el-table-column label="" width="60">
           <template #default="{ $index }">
-            <el-button link type="danger" @click="batchRows.splice($index, 1)">删除</el-button>
+            <el-button link type="danger" @click="batchRows.splice($index, 1)">{{ t('meter.delete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -229,8 +229,8 @@
                 :title="'共 ' + batchResult.total + ' 行，成功 ' + batchResult.created
                   + '，失败 ' + batchResult.failed" />
       <template #footer>
-        <el-button @click="batchVisible = false">关闭</el-button>
-        <el-button type="primary" :loading="saving" @click="doBatch">提交</el-button>
+        <el-button @click="batchVisible = false">{{ t('meter.close') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doBatch">{{ t('meter.submit') }}</el-button>
       </template>
     </el-dialog>
   </div>

@@ -95,7 +95,7 @@
             </el-descriptions>
 
             <div class="card-title" style="margin-top:12px">
-              仍需 IoT 提供（{{ (cap.pendingFromIot || []).length }}）
+              {{ t('iot.pendingIot', { n: (cap.pendingFromIot || []).length }) }}
             </div>
             <el-table :data="cap.pendingFromIot || []" size="small" border>
               <el-table-column prop="name" :label="t('iot.item')" min-width="180" show-overflow-tooltip />
@@ -114,7 +114,7 @@
             <el-option :label="t('iot.pending')" value="PENDING" />
           </el-select>
           <el-button type="primary" @click="reloadCred">{{ t('iot.search') }}</el-button>
-          <span class="muted">共 {{ credTotal }} 条 ｜ 密码/卡/人脸/离线码下发记录</span>
+          <span class="muted">{{ t('iot.credSummary', { n: credTotal }) }}</span>
         </div>
         <el-table :data="creds" border size="small">
           <el-table-column prop="createTime" :label="t('iot.time')" width="170" />
@@ -126,7 +126,7 @@
             <template #default="{ row }">
               <el-tag size="small" :type="row.status === 'SUCCESS' ? 'success'
                 : (row.status === 'FAILED' ? 'danger' : 'info')">
-                {{ row.status === 'SUCCESS' ? '成功' : (row.status === 'FAILED' ? '失败' : '待同步') }}
+                {{ row.status === 'SUCCESS' ? t('common.success') : (row.status === 'FAILED' ? t('common.failed') : t('iot.pendingSync')) }}
               </el-tag>
             </template>
           </el-table-column>
@@ -164,7 +164,7 @@
           <el-table-column label="验签" width="80">
             <template #default="{ row }">
               <el-tag size="small" :type="row.signOk ? 'success' : 'danger'">
-                {{ row.signOk ? '通过' : '失败' }}
+                {{ row.signOk ? t('iot.passed') : t('common.failed') }}
               </el-tag>
             </template>
           </el-table-column>

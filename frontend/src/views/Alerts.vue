@@ -144,7 +144,7 @@
               <el-button link type="primary" @click="openRule(row)">{{ t('alert.edit') }}</el-button>
               <el-button link :type="row.ruleStatus === 'ENABLED' ? 'warning' : 'success'"
                          @click="toggleRule(row)">
-                {{ row.ruleStatus === 'ENABLED' ? '停用' : '启用' }}
+                {{ row.ruleStatus === 'ENABLED' ? t('common.disable') : t('common.enable') }}
               </el-button>
             </template>
           </el-table-column>
@@ -281,8 +281,8 @@
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
+        <el-button @click="createVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('common.submit') }}</el-button>
       </template>
     </el-dialog>
 

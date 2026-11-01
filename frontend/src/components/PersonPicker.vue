@@ -32,7 +32,7 @@
     </el-option>
     <template #empty>
       <div style="padding:8px;font-size:12px;color:#909399">
-        输入姓名 / 手机 / 证件号搜索；也可直接粘贴 19 位人员ID
+        {{ t('person.searchHint') }}
       </div>
     </template>
   </el-select>

@@ -5,41 +5,43 @@
       <div class="logo-row">
         <div class="logo"><span /></div>
         <div>
-          <h1>平台运营台</h1>
+          <h1>{{ t('opsLogin.adminTitle') }}</h1>
           <p>Platform Operations Console</p>
         </div>
       </div>
 
       <el-form :model="form" @keyup.enter="submit">
         <el-form-item>
-          <el-input v-model="form.username" size="large" placeholder="运营账号">
+          <el-input v-model="form.username" size="large" :placeholder="t('opsLogin.adminUser')">
             <template #prefix><el-icon><User /></el-icon></template>
           </el-input>
         </el-form-item>
         <el-form-item>
           <el-input v-model="form.password" size="large" type="password" show-password
-                    placeholder="密码">
+                    :placeholder="t('opsLogin.adminPwd')">
             <template #prefix><el-icon><Lock /></el-icon></template>
           </el-input>
         </el-form-item>
         <el-button class="submit" size="large" :loading="loading" @click="submit">
-          登 录
+          {{ t('opsLogin.adminLogin') }}
         </el-button>
       </el-form>
 
-      <p class="hint">运营超管与业务账号相互独立；初始密码首次登录需修改。</p>
-      <el-link type="primary" style="font-size:12px" @click="toBusiness">返回业务登录</el-link>
+      <p class="hint">{{ t('opsLogin.adminHint') }}</p>
+      <el-link type="primary" style="font-size:12px" @click="toBusiness">{{ t('opsLogin.backBusiness') }}</el-link>
     </div>
   </div>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { operatorApi, setOperatorToken, setOperatorName } from '@/api/operator'
 
 const router = useRouter()
+const { t } = useI18n()
 const loading = ref(false)
 const form = reactive({ username: '', password: '' })
 

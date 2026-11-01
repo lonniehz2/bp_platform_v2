@@ -11,7 +11,7 @@
               :title="t('misc3.annualTip')"
               style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+    <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('misc.emptyDefault')">
       <el-table-column prop="reviewNo" :label="t('review.no')" width="170" />
       <el-table-column prop="contractId" :label="t('review.contract')" width="130">
         <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>

@@ -149,40 +149,40 @@
     <!-- 新建授权 -->
     <el-dialog v-model="createVisible" :title="t('grant.createTitle')" width="560px">
       <el-form :model="gf" label-width="110px">
-        <el-form-item label="人员ID" required>
+        <el-form-item :label="t('grant.personId')" required>
           <PersonPicker v-model="gf.personId" width="200px" testid="picker" />
         </el-form-item>
-        <el-form-item label="空间ID" required>
-          <el-input v-model.number="gf.spaceId" placeholder="授权到哪个空间（房间/楼栋）" />
+        <el-form-item :label="t('grant.spaceId')" required>
+          <el-input v-model.number="gf.spaceId" :placeholder="t('grant.spaceHint')" />
         </el-form-item>
-        <el-form-item label="权限层级" required>
+        <el-form-item :label="t('grant.level')" required>
           <el-select v-model="gf.grantLevel" style="width:100%">
-            <el-option label="产权级（可管理、可转授）" value="OWNERSHIP" />
-            <el-option label="管理级（可管理）" value="MANAGEMENT" />
-            <el-option label="使用级（仅可开门）" value="USAGE" />
-            <el-option label="访客级（限次通行）" value="VISIT" />
+            <el-option :label="t('grant.ownership')" value="OWNERSHIP" />
+            <el-option :label="t('grant.management')" value="MANAGEMENT" />
+            <el-option :label="t('grant.usage')" value="USAGE" />
+            <el-option :label="t('grant.visitLevel')" value="VISIT" />
           </el-select>
         </el-form-item>
-        <el-form-item label="生效时间">
+        <el-form-item :label="t('grant.validStart')">
           <el-date-picker v-model="gf.validStart" type="datetime" style="width:100%"
-                          value-format="YYYY-MM-DDTHH:mm:ss" placeholder="留空=立即生效" />
+                          value-format="YYYY-MM-DDTHH:mm:ss" :placeholder="t('grant.startHint')" />
         </el-form-item>
-        <el-form-item label="失效时间">
+        <el-form-item :label="t('grant.validEnd')">
           <el-date-picker v-model="gf.validEnd" type="datetime" style="width:100%"
-                          value-format="YYYY-MM-DDTHH:mm:ss" placeholder="留空=长期" />
+                          value-format="YYYY-MM-DDTHH:mm:ss" :placeholder="t('grant.endHint')" />
         </el-form-item>
-        <el-form-item label="备注">
+        <el-form-item :label="t('grant.remark')">
           <el-input v-model="gf.remark" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">保存并下发</el-button>
+        <el-button @click="createVisible = false">{{ t('grant.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('grant.saveIssue') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('grant.detail')" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
   </div>

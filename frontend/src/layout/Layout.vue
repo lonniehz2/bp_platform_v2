@@ -1,33 +1,35 @@
 <template>
   <component :is="shell" />
 
-  <el-dialog v-model="pwdVisible" title="修改初始密码" width="440px"
+  <el-dialog v-model="pwdVisible" :title="t('layout.pwdTitle')" width="440px"
              :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
     <el-alert type="warning" :closable="false" show-icon
-              title="首次登录需要修改密码后才能继续使用。" />
+              :title="t('layout.pwdTip')" />
     <el-form :model="pwd" label-width="90px" style="margin-top:12px">
-      <el-form-item label="原密码">
+      <el-form-item :label="t('layout.oldPwd')">
         <el-input v-model="pwd.oldPassword" type="password" show-password />
       </el-form-item>
-      <el-form-item label="新密码">
+      <el-form-item :label="t('layout.newPwd')">
         <el-input v-model="pwd.newPassword" type="password" show-password />
       </el-form-item>
-      <el-form-item label="确认新密码">
+      <el-form-item :label="t('layout.confirmPwd')">
         <el-input v-model="pwd.confirm" type="password" show-password />
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button type="primary" :loading="saving" @click="savePwd">保存并继续</el-button>
+      <el-button type="primary" :loading="saving" @click="savePwd">{{ t('layout.saveContinue') }}</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, reactive, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { uiState } from './uiState'
 import LayoutClassic from './LayoutClassic.vue'
 import LayoutRail from './LayoutRail.vue'
+const { t } = useI18n()
 import { useTodoStore } from '@/store/todo'
 import { useAuthStore } from '@/store/auth'
 import req from '@/api/request'

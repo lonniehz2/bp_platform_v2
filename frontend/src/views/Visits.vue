@@ -14,13 +14,13 @@
     <el-alert type="info" :closable="false" show-icon
               :title="t('miscPage.visitsTip')" style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+    <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('misc.emptyDefault')">
       <el-table-column type="expand">
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
       <el-table-column prop="visitNo" :label="t('visit.no')" width="170" />
       <el-table-column prop="visitUserName" :label="t('visit.visitor')" width="120">
-            <template #default="{ row }">{{ row.visitUserName || row.visitUserId || '未指派' }}</template>
+            <template #default="{ row }">{{ row.visitUserName || row.visitUserId || t('common.unassigned') }}</template>
           </el-table-column>
       <el-table-column prop="personIdName" :label="t('visit.person')" width="120">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>

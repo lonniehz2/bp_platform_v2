@@ -18,7 +18,7 @@
           <div style="margin-bottom:6px">
             <strong>{{ t('misc2.winners') }}</strong>
             <span class="muted" style="margin-left:8px;font-size:12px">
-              {{ winnersOf(row.id).length ? `共 ${winnersOf(row.id).length} 人` : '暂无中签记录（需先关联批次并完成摇号）' }}
+              {{ winnersOf(row.id).length ? t('publicity.winnerCount', { n: winnersOf(row.id).length }) : t('publicity.noWinnersShort') }}
             </span>
           </div>
           <el-table v-if="winnersOf(row.id).length" :data="winnersOf(row.id)"
@@ -33,10 +33,10 @@
             <el-table-column :label="t('publicity.actions')" width="110" fixed="right">
               <template #default="{ row: w }">
                 <el-tag v-if="w.allocationStatus === 'SIGNED'" size="small" type="success">
-                  已签约
+                  {{ t('publicity.signed') }}
                 </el-tag>
                 <el-button v-else link type="primary" @click="goSignFromWinner(w)"
-                           data-testid="winner-sign">去签约</el-button>
+                           data-testid="winner-sign">{{ t('publicity.goSign') }}</el-button>
               </template>
             </el-table-column>
             <el-table-column prop="resultTypeLabel" :label="t('publicity.result')" width="90">

@@ -15,7 +15,7 @@
       <PersonPicker v-model="df.personId" width="240px" testid="person-picker" />
     </FilterBar>
 
-    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+    <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('misc.emptyDefault')">
         <el-table-column prop="contractId" :label="t('deposit.contract')" width="130">
           <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
         </el-table-column>

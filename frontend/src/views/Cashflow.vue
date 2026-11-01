@@ -164,7 +164,7 @@
         <el-table-column :label="t('cash.payAmount')" width="110" >
           <template #default="{ row }">{{ $money(row.payAmount) }}</template>
         </el-table-column>
-        <el-table-column prop="payChannel" label="渠道" width="110">
+        <el-table-column prop="payChannel" :label="labelOf('channel')" width="110">
           <template #default="{ row }">{{ enumLabel('payChannel', row.payChannel) }}</template>
         </el-table-column>
         <el-table-column prop="payTime" :label="t('cash.payTime')" width="170" />
@@ -184,7 +184,7 @@
           <template #default="{ row }">
             <el-button link type="success" :disabled="row.payStatus !== 'PENDING'"
                        @click="doConfirm(row)">{{ t('cash.confirmPay') }}</el-button>
-            <el-button link @click="detail = row; show = true">详情</el-button>
+            <el-button link @click="detail = row; show = true">{{ t('common.detail') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -234,8 +234,8 @@
       <el-alert type="info" :closable="false" show-icon
                 title="系统金额留空时按「日期 + 渠道」汇总已确认收款；两者不一致时对账单状态为「有差异」" />
       <template #footer>
-        <el-button @click="reconcileVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreateReconcile">保存</el-button>
+        <el-button @click="reconcileVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreateReconcile">{{ t('common.save') }}</el-button>
       </template>
     </el-dialog>
 

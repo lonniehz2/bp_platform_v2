@@ -4,7 +4,7 @@
       <el-select v-model="query.identifier" :placeholder="t('devEvent.eventType')" clearable
                  style="width:200px" @change="load">
         <el-option v-for="t in types" :key="t.code" :value="t.code"
-                   :label="t.label + (t.level === 'CRITICAL' ? '（严重）' : '')" />
+                   :label="t.label + (t.level === 'CRITICAL' ? ' (' + t('devEvent.critical') + ')' : '')" />
       </el-select>
       <el-select v-model="query.eventLevel" :placeholder="t('devEvent.level')" clearable
                  style="width:120px" @change="load">

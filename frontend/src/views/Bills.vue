@@ -244,9 +244,9 @@
     </el-dialog>
 
     <!-- 抄表录入（水电燃气按实际用量出账） -->
-    <el-dialog v-model="meterVisible" title="抄表录入" width="860px">
+    <el-dialog v-model="meterVisible" :title="t('bill.meterTitle')" width="860px">
       <el-alert type="info" :closable="false" show-icon
-                title="录入本次读数后自动带出上次读数、用量与金额；确认无误再点「出账生成账单」"
+                :title="t('bill.meterTip')"
                 style="margin-bottom:12px" />
       <el-form :model="mf" label-width="96px" inline>
         <el-form-item :label="labelOf('houseName')">
@@ -270,7 +270,7 @@
                           style="width:150px" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="saving" @click="doMeterRecord">录入读数</el-button>
+          <el-button type="primary" :loading="saving" @click="doMeterRecord">{{ t('bill.recordReading') }}</el-button>
         </el-form-item>
       </el-form>
 
@@ -288,24 +288,24 @@
         <el-table-column prop="billStatus" :label="labelOf('status')" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="row.billStatus === 'BILLED' ? 'success' : 'warning'">
-              {{ row.billStatus === 'BILLED' ? '已出账' : '待出账' }}
+              {{ row.billStatus === 'BILLED' ? t('bill.billedYes') : t('bill.pendingBill') }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column :label="labelOf('actions')" width="90">
           <template #default="{ row }">
             <el-button link type="primary" :disabled="row.billStatus === 'BILLED'"
-                       @click="doMeterBill(row)">出账</el-button>
+                       @click="doMeterBill(row)">{{ t('bill.billAction') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
       <template #footer>
-        <el-button @click="meterVisible = false">关闭</el-button>
+        <el-button @click="meterVisible = false">{{ t('bill.close') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 登记收款 PaymentCreateCmd -->
-    <el-dialog v-model="payVisible" title="登记收款" width="520px">
+    <el-dialog v-model="payVisible" :title="t('bill.payTitle')" width="520px">
       <el-form :model="p" label-width="110px">
         <el-form-item :label="labelOf('orgName')">
           <el-select v-model="p.orgId" filterable clearable style="width:100%"
@@ -345,7 +345,7 @@
     </el-dialog>
 
     <!-- 收款单列表 -->
-    <el-dialog v-model="paymentsVisible" title="收款单" width="1120px" top="5vh">
+    <el-dialog v-model="paymentsVisible" :title="t('bill.paymentsTitle')" width="1120px" top="5vh">
       <div class="toolbar" style="margin-bottom:8px">
         <el-input v-model="payKeyword" :placeholder="t('bill.paymentSearch')" clearable style="width:240px"
                   @keyup.enter="loadPayments" />
@@ -370,7 +370,7 @@
         <el-table-column prop="payTime" :label="labelOf('payTime')" width="170" />
         <el-table-column :label="labelOf('actions')" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openPaymentDetail(row)">详情</el-button>
+            <el-button link type="primary" @click="openPaymentDetail(row)">{{ t('bill.detail') }}</el-button>
             <el-button link type="success" :disabled="!Number(row.remainAmount)"
                        @click="usePayment(row)">核销到账单</el-button>
           </template>
@@ -401,9 +401,9 @@
         </el-descriptions-item>
         <el-descriptions-item :label="labelOf('remark')" :span="2">{{ payDetail.remark || '—' }}</el-descriptions-item>
       </el-descriptions>
-      <div style="font-weight:600;margin:12px 0 6px">使用明细（核销到账单）</div>
+      <div style="font-weight:600;margin:12px 0 6px">{{ t('bill.usageDetail') }}</div>
       <el-table :data="payUsage" border size="small"
-                empty-text="尚未核销到任何账单">
+                :empty-text="t('bill.noUsage')">
         <el-table-column prop="bill_no" :label="labelOf('billNo')" width="190" />
         <el-table-column prop="allocate_amount" :label="labelOf('allocateAmount')" width="120" />
         <el-table-column prop="create_time" :label="labelOf('allocateTime')" />
@@ -425,7 +425,7 @@
           <el-select v-model="useBillId" filterable style="width:100%"
                      :placeholder="t('bill.selectBill')" @change="onUseBillChange">
             <el-option v-for="b in useBills" :key="b.id"
-                       :label="b.billNo + ' · ' + (b.billPeriod || '') + ' · 待缴 ' + b.payableAmount"
+                       :label="b.billNo + ' · ' + (b.billPeriod || '') + ' · ' + t('bill.pendingAmount') + ' ' + b.payableAmount"
                        :value="String(b.id)" />
           </el-select>
         </el-form-item>
@@ -452,7 +452,7 @@
           <el-select v-model="a.paymentId" filterable style="width:100%"
                      :placeholder="t('bill.selectPayment')">
             <el-option v-for="x in openPaymentsList" :key="x.id"
-                       :label="x.paymentNo + ' · ' + (x.payerName || x.personIdName || x.personId || '—') + ' · 余额 ' + (x.remainAmount ?? 0)"
+                       :label="x.paymentNo + ' · ' + (x.payerName || x.personIdName || x.personId || '—') + ' · ' + t('bill.balancePrefix') + ' ' + (x.remainAmount ?? 0)"
                        :value="String(x.id)" />
           </el-select>
           <span class="muted" style="font-size:12px">
@@ -560,20 +560,20 @@
     </el-dialog>
 
     <!-- 能耗分析 -->
-    <el-dialog v-model="energyVisible" title="能耗分析" width="860px">
+    <el-dialog v-model="energyVisible" :title="t('bill.energyTitle')" width="860px">
       <div style="margin-bottom:8px">
         <el-radio-group v-model="energyMonths" size="small" @change="loadEnergy">
-          <el-radio-button :value="3">近 3 月</el-radio-button>
-          <el-radio-button :value="6">近 6 月</el-radio-button>
-          <el-radio-button :value="12">近 12 月</el-radio-button>
+          <el-radio-button :value="3">{{ t('bill.last3') }}</el-radio-button>
+          <el-radio-button :value="6">{{ t('bill.last6') }}</el-radio-button>
+          <el-radio-button :value="12">{{ t('bill.last12') }}</el-radio-button>
         </el-radio-group>
         <span class="muted" style="font-size:12px;margin-left:8px">
-          用量 = 本次读数 − 上次读数（跨月衔接）；金额 = 用量 × 收费项单价
+          {{ t('bill.energyFormula') }}
         </span>
       </div>
       <el-row :gutter="12">
         <el-col :span="12">
-          <div style="font-weight:600;margin-bottom:6px">月度趋势</div>
+          <div style="font-weight:600;margin-bottom:6px">{{ t('bill.monthlyTrend') }}</div>
           <el-table :data="energyMonths0" size="small" border max-height="240">
             <el-table-column prop="month" :label="labelOf('month')" width="100" />
             <el-table-column prop="reading" :label="labelOf('readCount')" width="90" />
@@ -584,14 +584,14 @@
           </el-table>
         </el-col>
         <el-col :span="12">
-          <div style="font-weight:600;margin-bottom:6px">楼栋汇总</div>
+          <div style="font-weight:600;margin-bottom:6px">{{ t('bill.buildingSummary') }}</div>
           <el-table :data="energyBuildings" size="small" border max-height="240">
             <el-table-column prop="building" :label="labelOf('building')" />
             <el-table-column prop="usage" :label="labelOf('usage')" width="120" />
           </el-table>
         </el-col>
       </el-row>
-      <div style="font-weight:600;margin:12px 0 6px">用量 TOP 10 房源</div>
+      <div style="font-weight:600;margin:12px 0 6px">{{ t('bill.topHouses') }}</div>
       <el-table :data="energyTop" size="small" border max-height="260">
         <el-table-column prop="houseCode" :label="labelOf('houseCode')" width="150" />
         <el-table-column prop="houseName" :label="labelOf('houseName')" min-width="180" />
@@ -599,7 +599,7 @@
         <el-table-column prop="usage" :label="labelOf('usage')" width="100" />
       </el-table>
       <template #footer>
-        <el-button @click="energyVisible = false">关闭</el-button>
+        <el-button @click="energyVisible = false">{{ t('bill.close') }}</el-button>
       </template>
     </el-dialog>
 </template>

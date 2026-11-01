@@ -90,7 +90,7 @@
         <el-select v-model="evQuery.identifier" :placeholder="t('device.eventType')" clearable
                    style="width:200px" @change="loadEvents">
           <el-option v-for="t in evTypes" :key="t.code" :value="t.code"
-                     :label="t.label + (t.level === 'CRITICAL' ? '（严重）' : '')" />
+                     :label="t.label + (t.level === 'CRITICAL' ? ' (' + t('devEvent.critical') + ')' : '')" />
         </el-select>
         <el-checkbox v-model="evQuery.alarmOnly" @change="loadEvents">{{ t('misc2.alarmOnly') }}</el-checkbox>
         <el-checkbox v-model="evQuery.unhandledOnly" @change="loadEvents">{{ t('misc4.unhandledOnly') }}</el-checkbox>
@@ -215,12 +215,12 @@
       </div>
 
       <template #footer>
-        <el-button @click="impVisible = false">关闭</el-button>
-        <el-button v-if="impStep === 2" @click="impStep = 1">重新选择</el-button>
-        <el-button v-if="impStep === 3" @click="load">刷新列表</el-button>
+        <el-button @click="impVisible = false">{{ t('common.close') }}</el-button>
+        <el-button v-if="impStep === 2" @click="impStep = 1">{{ t('common.reselect') }}</el-button>
+        <el-button v-if="impStep === 3" @click="load">{{ t('common.refresh') }}</el-button>
         <el-button v-if="impStep === 2" type="primary" :loading="impSaving"
                    :disabled="!impFile || !!impProblems.length" @click="doImport">
-          开始导入
+          {{ t('common.startImport') }}
         </el-button>
       </template>
     </el-dialog>

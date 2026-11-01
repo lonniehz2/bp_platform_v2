@@ -2,13 +2,13 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('ops.title') }}</h3>
-      <el-tag size="small" type="info">人员/房源状态 · 工单全流程</el-tag>
+      <el-tag size="small" type="info">{{ t('ops.tag') }}</el-tag>
       <div class="spacer" />
       <el-button @click="loadAll">{{ t('ops.refresh') }}</el-button>
     </div>
 
     <el-alert type="warning" :closable="false" show-icon
-              title="状态变更会同步影响门禁授权与业务校验，请谨慎操作"
+              :title="t('ops.tip')"
               style="margin-bottom:12px" />
 
     <el-tabs v-model="tab">
@@ -22,7 +22,7 @@
             <el-option :label="t('ops.cancelled')" value="CANCELLED" />
           </el-select>
           <el-button type="primary" :loading="saving" @click="setPersonStatus">
-            变更人员状态
+            {{ t('ops.setStatus') }}
           </el-button>
         </div>
                 <div class="toolbar" style="margin-bottom:8px">

@@ -55,9 +55,9 @@
         <div style="font-weight:600;margin-bottom:6px">{{ t('energyAnalysis.monthly') }}</div>
         <el-table :data="monthRows" size="small" border max-height="300">
           <el-table-column prop="month" :label="t('energyAnalysis.month')" width="110" />
-          <el-table-column prop="readings" label="读数次数" width="100" />
-          <el-table-column prop="usage" label="用量" />
-          <el-table-column label="金额" >
+          <el-table-column prop="readings" :label="t('energyAnalysis.readings')" width="100" />
+          <el-table-column prop="usage" :label="t('energyAnalysis.usage')" />
+          <el-table-column :label="t('energyAnalysis.amount')" >
           <template #default="{ row }">{{ $money(row.amount) }}</template>
         </el-table-column>
         </el-table>
@@ -66,7 +66,7 @@
         <div style="font-weight:600;margin-bottom:6px">{{ t('energyAnalysis.buildingSummary') }}</div>
         <el-table :data="buildings" size="small" border max-height="300">
           <el-table-column prop="building" :label="t('energyAnalysis.building')" />
-          <el-table-column prop="usage" label="用量" width="140" />
+          <el-table-column prop="usage" :label="t('energyAnalysis.usage')" width="140" />
         </el-table>
       </el-col>
     </el-row>
@@ -75,8 +75,8 @@
     <el-table :data="top" size="small" border max-height="360">
       <el-table-column prop="houseCode" :label="t('energyAnalysis.houseCode')" width="170" />
       <el-table-column prop="houseName" :label="t('energyAnalysis.houseName')" min-width="200" />
-      <el-table-column prop="building" label="楼栋" width="120" />
-      <el-table-column prop="usage" label="用量" width="110" />
+      <el-table-column prop="building" :label="t('energyAnalysis.building')" width="120" />
+      <el-table-column prop="usage" :label="t('energyAnalysis.usage')" width="110" />
     </el-table>
   </div>
 </template>

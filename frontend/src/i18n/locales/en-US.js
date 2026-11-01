@@ -1,5 +1,21 @@
 export default {
   common: {
+    edit: 'Edit',
+    enable: 'Enable',
+    disable: 'Disable',
+    success: 'Success',
+    failed: 'Failed',
+    submit: 'Submit',
+    reselect: 'Choose Again',
+    refresh: 'Refresh',
+    startImport: 'Start Import',
+    unassigned: 'Unassigned',
+    longTerm: 'No expiry',
+    detail: 'Detail',
+    select: 'Select',
+    upload: 'Upload Attachment',
+    delete: 'Delete',
+    noFiles: 'No attachments (jpg/png/pdf, ≤10MB)',
     moreFilters: 'More Filters',
     confirm: 'Confirm',
     cancel: 'Cancel',
@@ -18,7 +34,18 @@ export default {
     en: 'English',
     changed: 'Language switched'
   },
+  opsLogin: {
+    adminTitle: 'Platform Operations Console',
+    adminUser: 'Operator Account',
+    adminPwd: 'Password',
+    adminLogin: 'Sign in',
+    adminHint: 'Operator admins are separate from business accounts; the initial password must be changed at first login.',
+    backBusiness: 'Back to Business Login',
+  },
   login: {
+    tenantTip1: 'Platform code is a data isolation key, not an organization code or lessee.',
+    tenantTip2: 'A platform contains multiple organizations and lessees; your organization appears at top right after login.',
+    tenantTip3: 'A platform-level user without an organization sees “Platform”.',
     brand: 'Leased Affordable Housing Management Platform',
     brandSub: 'Leased Affordable Housing Management Platform',
     slogan: 'An integrated operations hub for housing, contracts, billing and IoT',
@@ -51,6 +78,25 @@ export default {
     requiredPassword: 'Password is required'
   },
   bill: {
+    meterTitle: 'Meter Reading Entry',
+    meterTip: 'Enter the current reading to derive previous reading, usage and amount; then generate the bill.',
+    recordReading: 'Save Reading',
+    pendingBill: 'Unbilled',
+    billAction: 'Bill',
+    close: 'Close',
+    payTitle: 'Register Payment',
+    paymentsTitle: 'Payments',
+    usageDetail: 'Usage Detail (allocated to bills)',
+    noUsage: 'Not allocated to any bill',
+    last3: 'Last 3 months',
+    last6: 'Last 6 months',
+    last12: 'Last 12 months',
+    energyFormula: 'Usage = current reading − previous reading; amount = usage × fee item price',
+    monthlyTrend: 'Monthly Trend',
+    buildingSummary: 'Building Summary',
+    topHouses: 'Top 10 Housing by Usage',
+    pendingAmount: 'Pending',
+    balancePrefix: 'Balance',
     waiveTitle: 'Bill Waiver',
     cancelPrompt: 'Enter cancellation reason',
     cancelTitle: 'Cancel Bill',
@@ -174,6 +220,7 @@ export default {
     removed: 'Removed',
   },
   contract: {
+    houseSearchHint: 'Search housing code/name; you can also paste a housing ID',
     cancelPrompt: 'Enter cancellation reason',
     cancelTitle: 'Cancel Contract',
     searchHint: 'Search contract no. / lessee',
@@ -573,6 +620,8 @@ export default {
     order: 'Order',
   },
   ops: {
+    tag: 'Person/Housing Status · Full Work Order Flow',
+    extraTag: 'Messages · Rules · Open Platform · Permissions · Grants · Calendar',
     select: 'Select',
     title: 'Operations Console',
     refresh: 'Refresh',
@@ -1196,6 +1245,10 @@ export default {
     runDone: 'Ran {n} pending tasks',
   },
   meter: {
+    readingDate: 'Reading Date',
+    delete: 'Delete',
+    close: 'Close',
+    submit: 'Submit',
     unitDefault: 'unit',
     empty: 'No meter readings; enter manually or pull from IoT',
     manualEntry: 'Manual Entry',
@@ -1509,6 +1562,10 @@ export default {
     opinion: 'Review Opinion', submit: 'Submit'
   },
   publicity: {
+    winnerCount: '{n} winners',
+    noWinnersShort: 'No winners yet (link a batch and run the lottery first)',
+    signed: 'Signed',
+    goSign: 'Go Sign',
     title: 'Publicity', keyword: 'Keyword', search: 'Search', reset: 'Reset',
     tip: 'Allocation publicity must last at least 7 calendar days before signing',
     lotterySeq: 'Lottery No.', name: 'Name', idCard: 'ID Card (masked)',
@@ -1753,6 +1810,11 @@ export default {
     dialogTitle: 'Translation', cancel: 'Cancel', save: 'Save', empty: 'No translations'
   },
   iot: {
+    pendingIot: 'Still required from IoT ({n})',
+    credSummary: '{n} records | password/card/face/offline-code issuance',
+    pendingSync: 'Pending Sync',
+    passed: 'Passed',
+    failedShort: 'Failed',
     seconds: 's',
     minutes: 'min',
     commandMode: 'Command Dispatch',
@@ -1990,6 +2052,20 @@ export default {
     cancel: 'Cancel', submit: 'Submit'
   },
   grant: {
+    personId: 'Person ID',
+    spaceId: 'Space ID',
+    spaceHint: 'Space to grant (room/building)',
+    ownership: 'Ownership (manage & delegate)',
+    management: 'Management (manage)',
+    usage: 'Usage (unlock only)',
+    visitLevel: 'Visitor (limited access)',
+    validStart: 'Valid From',
+    validEnd: 'Valid To',
+    startHint: 'Blank = effective immediately',
+    endHint: 'Blank = no expiry',
+    remark: 'Remark',
+    cancel: 'Cancel',
+    saveIssue: 'Save & Issue',
     title: 'Access Grants', grantTab: 'Grants', diffTab: 'Reconciliation Diff',
     auditTab: 'Grant Audit', status: 'Status', search: 'Search', reset: 'Reset',
     create: 'New Grant', grantNo: 'Grant No.', person: 'Person', space: 'Space',
@@ -2028,6 +2104,8 @@ export default {
     issue: 'Issue',
   },
   binding: {
+    startBind: 'Start Binding',
+    refreshDevices: 'Refresh Devices',
     searchHint: 'Search housing code / name', search: 'Search Housing', batchBind: 'Batch Bind',
     code: 'Code', name: 'Name', status: 'Status', refresh: 'Refresh',
     ownTab: 'Devices in This Housing', inheritTab: 'Inherited Devices (parent spaces)',
@@ -2235,6 +2313,9 @@ export default {
     detailTitle: 'Details (raw data)'
   },
   fee: {
+    operation: 'Actions',
+    edit: 'Edit',
+    typeHint: 'Disabled fee types no longer appear in new fee item dropdowns; existing items are unaffected.',
     title: 'Fee Items', create: 'New Item', newRule: 'New Billing Rule', ruleList: 'Rules',
     keyword: 'Item code / name', itemType: 'Item type, e.g. RENT', calcMode: 'Calc mode, e.g. BY_AREA',
     code: 'Item Code', name: 'Name', type: 'Type', method: 'Calc Mode', price: 'Unit Price',
@@ -2268,6 +2349,25 @@ export default {
     submit: 'Submit Request'
   },
   arrears: {
+    riskConfirm: 'Confirm Safety Risk',
+    mainDoorHint: 'Check to disable the main door',
+    cancel: 'Cancel',
+    save: 'Save',
+    detailTitle: 'Arrears Action Detail',
+    unpaidBills: 'Unpaid Bills',
+    billNo: 'Bill No.',
+    period: 'Billing Period',
+    feeRange: 'Fee Period',
+    dueDate: 'Due Date',
+    billingDetail: 'Billing Detail',
+    item: 'Item',
+    value: 'Value',
+    notify: 'Dunning Notice',
+    freeze: 'Freeze Access',
+    unfreeze: 'Unfreeze',
+    restrict: 'Restrict Renewal',
+    expire: 'No Renewal',
+    legal: 'Legal Process',
     title: 'Dunning', actionTab: 'Arrears Actions', noticeTab: 'Dunning Notices',
     status: 'Status', pending: 'Pending', executed: 'Executed', revoked: 'Revoked',
     search: 'Search', reset: 'Reset', scan: 'Scan Suggestions', create: 'New Action',
@@ -2329,6 +2429,9 @@ export default {
     submitVerify: 'Submit Verification',
   },
   person: {
+    passVerify: 'Pass Verification',
+    verified: 'Verified',
+    searchHint: 'Search name / phone / ID number; you can also paste a 19-digit person ID',
     normal: 'Normal',
     blacklist: 'Blacklist',
     cancelled: 'Cancelled',
@@ -2419,6 +2522,7 @@ export default {
     recordsTitle: 'Review History', noRecords: 'No review records', detailTitle: 'Detail'
   },
   house: {
+    confirmSwap: 'Confirm Swap',
     title: 'Housing',
     org: 'Organization',
     keyword: 'Housing code / name',
@@ -2556,6 +2660,13 @@ export default {
     classicName: 'Style 1 · Wide sidebar',
     railName: 'Style 2 · Icon rail',
     styleTip: 'Current: {name} (click to switch)',
-    admin: 'Administrator'
+    admin: 'Administrator',
+    pwdTitle: 'Change Initial Password',
+    pwdTip: 'You must change the password before continuing.',
+    oldPwd: 'Current Password',
+    newPwd: 'New Password',
+    confirmPwd: 'Confirm New Password',
+    saveContinue: 'Save and Continue',
+
   }
 }

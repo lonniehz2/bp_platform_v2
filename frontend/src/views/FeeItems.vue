@@ -145,7 +145,7 @@
                   <el-button link type="danger" @click="tiers.splice(i, 1)">{{ t('misc5.delete') }}</el-button>
                 </div>
                 <el-button size="small" @click="tiers.push({ upTo: null, price: null })">
-                  新增一档
+                  {{ t('misc6.addTier') }}
                 </el-button>
               </div>
               <!-- 折扣：折扣率 -->
@@ -239,11 +239,11 @@
         <el-table-column :label="t('fee.actions')" width="200" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" :disabled="row.approveStatus === 'APPROVED'"
-                       @click="editRule(row)">编辑</el-button>
+                       @click="editRule(row)">{{ t('common.edit') }}</el-button>
             <el-button link type="danger" :disabled="row.approveStatus === 'APPROVED'"
-                       @click="removeRule(row)">删除</el-button>
+                       @click="removeRule(row)">{{ t('common.delete') }}</el-button>
             <el-button link type="success" :disabled="row.approveStatus === 'APPROVED'"
-                       @click="approveRule(row)">审批</el-button>
+                       @click="approveRule(row)">{{ t('fee.approve') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -288,26 +288,26 @@
         <el-table-column label="状态" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">
-              {{ row.status === 'ENABLED' ? '启用' : '停用' }}
+              {{ row.status === 'ENABLED' ? t('misc5.enable') : t('misc5.disable') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150">
+        <el-table-column :label="t('fee.operation')" width="150">
           <template #default="{ row }">
-            <el-button link type="primary" @click="editFeeType(row)">编辑</el-button>
+            <el-button link type="primary" @click="editFeeType(row)">{{ t('fee.edit') }}</el-button>
             <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
                        @click="toggleFeeType(row)">
-              {{ row.status === 'ENABLED' ? '停用' : '启用' }}
+              {{ row.status === 'ENABLED' ? t('misc5.disable') : t('misc5.enable') }}
             </el-button>
           </template>
         </el-table-column>
       </el-table>
       <el-alert type="info" :closable="false" show-icon style="margin-top:10px"
-                title="停用后新增计费项目时不再出现在下拉里，历史项目不受影响。" />
+                :title="t('fee.typeHint')" />
     </el-dialog>
 
     <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('fee.detail')" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
 </template>

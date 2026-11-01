@@ -48,9 +48,9 @@
                 <el-tooltip placement="top">
                   <template #content>
                     <div style="max-width:260px;line-height:1.7">
-                      平台编码是<b>数据隔离标识</b>，既不是组织编码，也不是承租人。<br />
-                      一个平台下可有多级组织与承租人；登录后右上角显示你的<b>组织</b>，<br />
-                      未限定组织（全局范围）时显示「平台」。
+                      {{ t('login.tenantTip1') }}<br />
+                      {{ t('login.tenantTip2') }}<br />
+                      {{ t('login.tenantTip3') }}
                     </div>
                   </template>
                   <el-icon style="cursor:help"><InfoFilled /></el-icon>

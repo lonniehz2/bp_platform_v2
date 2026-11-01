@@ -156,7 +156,7 @@
           <el-table-column label="结果" width="90">
             <template #default="{ row }">
               <el-tag size="small" :type="row.success ? 'success' : 'danger'">
-                {{ row.success ? '成功' : '失败' }}
+                {{ row.success ? t('common.success') : t('common.failed') }}
               </el-tag>
             </template>
           </el-table-column>
@@ -166,12 +166,12 @@
 
       <template #footer>
         <el-button @click="batchVisible = false">{{ t('binding.close') }}</el-button>
-        <el-button v-if="batchStep === 2" @click="batchStep = 1">重新选择</el-button>
+        <el-button v-if="batchStep === 2" @click="batchStep = 1">{{ t('common.reselect') }}</el-button>
         <el-button v-if="batchStep === 2" type="primary" :loading="batchSaving"
                    :disabled="!bindRows.length || !!bindProblems.length" @click="doBatchBind">
-          开始绑定
+          {{ t('binding.startBind') }}
         </el-button>
-        <el-button v-if="batchStep === 3" @click="loadDevices">刷新设备</el-button>
+        <el-button v-if="batchStep === 3" @click="loadDevices">{{ t('binding.refreshDevices') }}</el-button>
       </template>
     </el-dialog>
   </div>

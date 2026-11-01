@@ -340,8 +340,8 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="swapVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doSwapBed">确认调换</el-button>
+        <el-button @click="swapVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doSwapBed">{{ t('house.confirmSwap') }}</el-button>
       </template>
     </el-dialog>
 </template>
