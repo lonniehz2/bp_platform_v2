@@ -157,6 +157,32 @@ export default {
     unauthorized: 'Not authorized: contact administrator',
     fullscreen: 'Full-screen display',
   },
+  keyring: {
+    title: 'Keyring', keyword: 'Keyword', search: 'Search', reset: 'Reset',
+    create: 'New Key', tip: 'Keys bind a person to access media; status changes and recycling are audited',
+    alias: 'Key Alias', holder: 'Holder', status: 'Status', actions: 'Actions',
+    detail: 'Detail', freeze: 'Freeze', unfreeze: 'Unfreeze', changeStatus: 'Change Status',
+    recycle: 'Recycle', createTitle: 'New Key', personId: 'Person ID', keyType: 'Key Type',
+    face: 'Face', fingerprint: 'Fingerprint', palm: 'Palm Vein', password: 'Password',
+    card: 'Card', idcard: 'ID Card', qrcode: 'QR Code',
+    aliasHint: 'Name for recognition, e.g. Building 1-502 door',
+    media: 'Credential', mediaHint: 'Card number / face ID / password',
+    source: 'Key Source', verifyWay: 'Verification Method', syncScope: 'Sync Scope',
+    expire: 'Expires At', expireHint: 'Required for card/password and other weak credentials',
+    cancel: 'Cancel', submit: 'Submit'
+  },
+  grant: {
+    title: 'Access Grants', grantTab: 'Grants', diffTab: 'Reconciliation Diff',
+    auditTab: 'Grant Audit', status: 'Status', search: 'Search', reset: 'Reset',
+    create: 'New Grant', grantNo: 'Grant No.', person: 'Person', space: 'Space',
+    level: 'Access Level', validity: 'Validity', visitorTimes: 'Visitor Uses',
+    statusCol: 'Status', actions: 'Actions', detail: 'Detail', revoke: 'Revoke',
+    runReconcile: 'Run Reconciliation', refresh: 'Refresh', diffType: 'Diff Type',
+    lock: 'Lock', localValue: 'Local Value', iotValue: 'IoT Value',
+    handleStatus: 'Handling Status', reapply: 'Re-push', closeDiff: 'Close Diff',
+    markHandled: 'Mark Handled', bizType: 'Type', operator: 'Operator',
+    reason: 'Reason', result: 'Result', time: 'Time', createTitle: 'New Access Grant'
+  },
   binding: {
     searchHint: 'Search housing code / name', search: 'Search Housing', batchBind: 'Batch Bind',
     code: 'Code', name: 'Name', status: 'Status', refresh: 'Refresh',

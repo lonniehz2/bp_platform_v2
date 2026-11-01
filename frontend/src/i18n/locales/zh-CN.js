@@ -158,6 +158,29 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  keyring: {
+    title: '钥匙包', keyword: '关键字', search: '查询', reset: '清空',
+    create: '新建钥匙', tip: '钥匙包绑定人员与通行介质；状态变更与回收需留痕',
+    alias: '钥匙别名', holder: '持有人', status: '状态', actions: '操作',
+    detail: '详情', freeze: '冻结', unfreeze: '解冻', changeStatus: '改状态',
+    recycle: '回收', createTitle: '新建钥匙', personId: '人员 ID', keyType: '钥匙类型',
+    face: '人脸', fingerprint: '指纹', palm: '掌静脉', password: '密码',
+    card: '卡片', idcard: '身份证', qrcode: '二维码', aliasHint: '便于识别的名称，如「1-502 大门」',
+    media: '介质值', mediaHint: '卡号/人脸 ID/密码等实际凭据', source: '钥匙来源',
+    verifyWay: '核验方式', syncScope: '同步范围', expire: '失效时间',
+    expireHint: '卡/密码等弱安全介质必填', cancel: '取消', submit: '提交'
+  },
+  grant: {
+    title: '通行授权', grantTab: '授权管理', diffTab: '对账差异', auditTab: '授权审计',
+    status: '状态', search: '查询', reset: '清空', create: '新建授权',
+    grantNo: '授权号', person: '人员', space: '空间', level: '权限层级',
+    validity: '有效期', visitorTimes: '访客次数', statusCol: '状态', actions: '操作',
+    detail: '详情', revoke: '撤销', runReconcile: '执行对账', refresh: '刷新',
+    diffType: '差异类型', lock: '门锁', localValue: '本地值', iotValue: 'IoT 值',
+    handleStatus: '处置状态', reapply: '重新下发', closeDiff: '关闭差异',
+    markHandled: '标记已处理', bizType: '类型', operator: '操作人',
+    reason: '原因', result: '结果', time: '时间', createTitle: '新建通行授权'
+  },
   binding: {
     searchHint: '搜索房源编号 / 名称', search: '搜索房源', batchBind: '批量绑定',
     code: '编号', name: '名称', status: '状态', refresh: '刷新',

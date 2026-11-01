@@ -2,7 +2,7 @@
   <div>
     <div class="page-card">
       <div class="toolbar">
-        <h3 style="margin:0">通行授权</h3>
+        <h3 style="margin:0">{{ t('grant.title') }}</h3>
         <el-tag size="small" :type="stats.riskLevel === 'HIGH' ? 'danger'
           : (stats.riskLevel === 'MEDIUM' ? 'warning' : 'success')">
           对账风险 {{ stats.riskLevel || '-' }}
@@ -12,36 +12,36 @@
 
       <el-tabs v-model="tab" @tab-change="onTabChange">
         <!-- ============ 授权管理 ============ -->
-        <el-tab-pane label="授权管理" name="grant">
+        <el-tab-pane :label="t('grant.grantTab')" name="grant">
           <div class="toolbar" style="margin-bottom:10px">
             <PersonPicker v-model="gq.personId" width="240px" testid="picker" />
             <SpaceSelect v-model="gq.spaceId" width="240px" testid="spaceselect" />
-            <el-select v-model="gq.grantStatus" placeholder="状态" clearable
+            <el-select v-model="gq.grantStatus" :placeholder="t('grant.status')" clearable
                        style="width:140px">
               <el-option v-for="s in GRANT_STATUS" :key="s" :label="enumLabel('grantStatus', s)"
                          :value="s" />
             </el-select>
-            <el-button type="primary" @click="loadGrants">查询</el-button>
-            <el-button @click="resetGrantQuery">清空</el-button>
-            <el-button type="success" @click="openCreate">新建授权</el-button>
+            <el-button type="primary" @click="loadGrants">{{ t('grant.search') }}</el-button>
+            <el-button @click="resetGrantQuery">{{ t('grant.reset') }}</el-button>
+            <el-button type="success" @click="openCreate">{{ t('grant.create') }}</el-button>
             <span class="muted">共 {{ grantTotal }} 条</span>
           </div>
 
           <el-table empty-text="暂无授权记录" :data="grants" v-loading="grantLoading" border size="small">
-            <el-table-column prop="grantNo" label="授权号" width="180" />
-            <el-table-column prop="personIdName" label="人员" width="130">
+            <el-table-column prop="grantNo" :label="t('grant.grantNo')" width="180" />
+            <el-table-column prop="personIdName" :label="t('grant.person')" width="130">
               <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
             </el-table-column>
-            <el-table-column prop="spaceId" label="空间" width="120" />
-            <el-table-column prop="grantLevel" label="权限层级" width="110">
+            <el-table-column prop="spaceId" :label="t('grant.space')" width="120" />
+            <el-table-column prop="grantLevel" :label="t('grant.level')" width="110">
               <template #default="{ row }">{{ enumLabel('grantLevel', row.grantLevel) }}</template>
             </el-table-column>
-            <el-table-column label="有效期" min-width="230">
+            <el-table-column :label="t('grant.validity')" min-width="230">
               <template #default="{ row }">
                 {{ row.validStart || '—' }} ~ {{ row.validEnd || '长期' }}
               </template>
             </el-table-column>
-            <el-table-column prop="visitLimitTimes" label="访客次数" width="110">
+            <el-table-column prop="visitLimitTimes" :label="t('grant.visitorTimes')" width="110">
               <template #default="{ row }">
                 <span v-if="row.visitLimitTimes">
                   {{ row.visitUsedTimes || 0 }}/{{ row.visitLimitTimes }}
@@ -49,18 +49,18 @@
                 <span v-else class="muted">不限</span>
               </template>
             </el-table-column>
-            <el-table-column prop="grantStatus" label="状态" width="110">
+            <el-table-column prop="grantStatus" :label="t('grant.statusCol')" width="110">
               <template #default="{ row }">
                 <el-tag size="small" :type="statusTagType(row.grantStatus)">
                   {{ row.grantStatusLabel || enumLabel('grantStatus', row.grantStatus) }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="170" fixed="right">
+            <el-table-column :label="t('grant.actions')" width="170" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" @click="openDetail(row)">详情</el-button>
+                <el-button link type="primary" @click="openDetail(row)">{{ t('grant.detail') }}</el-button>
                 <el-button link type="danger" :disabled="row.grantStatus === 'REVOKED'"
-                           @click="revoke(row)">撤销</el-button>
+                           @click="revoke(row)">{{ t('grant.revoke') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -72,39 +72,39 @@
         </el-tab-pane>
 
         <!-- ============ 对账差异 ============ -->
-        <el-tab-pane label="对账差异" name="diff">
+        <el-tab-pane :label="t('grant.diffTab')" name="diff">
           <div class="toolbar" style="margin-bottom:10px">
             <DeviceSelect v-model="lockId" width="240px" testid="device-select" />
             <el-button type="primary" :loading="running" @click="runReconcile">
               执行对账
             </el-button>
-            <el-button @click="loadDiffs">刷新</el-button>
+            <el-button @click="loadDiffs">{{ t('grant.refresh') }}</el-button>
           </div>
           <el-alert type="info" :closable="false" show-icon
                     title="LOCAL_MISSING = 本地有效但设备未下发（住户刷不开门）；IOT_EXTRA = 已撤销但设备仍存在（安全风险）"
                     style="margin-bottom:12px" />
           <el-table :data="diffs" v-loading="loading" border size="small">
-            <el-table-column prop="diffType" label="差异类型" width="150">
+            <el-table-column prop="diffType" :label="t('grant.diffType')" width="150">
               <template #default="{ row }">
                 <el-tag size="small" :type="row.diffType === 'IOT_EXTRA' ? 'danger' : 'warning'">
                   {{ row.diffTypeLabel || enumLabel('diffType', row.diffType) }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="lockId" label="门锁" width="170">
+            <el-table-column prop="lockId" :label="t('grant.lock')" width="170">
               <template #default="{ row }">{{ row.lockIdName || row.lockId }}</template>
             </el-table-column>
-            <el-table-column prop="personId" label="人员" width="120">
+            <el-table-column prop="personId" :label="t('grant.person')" width="120">
               <template #default="{ row }">{{ row.personIdName || row.personId || '—' }}</template>
             </el-table-column>
-            <el-table-column prop="localValue" label="本地值" min-width="200" show-overflow-tooltip />
-            <el-table-column prop="iotValue" label="IoT 值" min-width="180" show-overflow-tooltip />
-            <el-table-column prop="handleStatus" label="处置状态" width="110">
+            <el-table-column prop="localValue" :label="t('grant.localValue')" min-width="200" show-overflow-tooltip />
+            <el-table-column prop="iotValue" :label="t('grant.iotValue')" min-width="180" show-overflow-tooltip />
+            <el-table-column prop="handleStatus" :label="t('grant.handleStatus')" width="110">
               <template #default="{ row }">
                 {{ row.handleStatusLabel || enumLabel('handleStatus', row.handleStatus) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="200" fixed="right">
+            <el-table-column :label="t('grant.actions')" width="200" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" @click="openDetail(row)">详情</el-button>
                 <el-button v-if="row.diffType === 'LOCAL_MISSING'" link type="primary"
@@ -125,29 +125,29 @@
         </el-tab-pane>
 
         <!-- ============ 授权审计 ============ -->
-        <el-tab-pane label="授权审计" name="audit">
+        <el-tab-pane :label="t('grant.auditTab')" name="audit">
           <el-alert type="info" :closable="false" show-icon
                     title="授权审计只追加、不可修改删除，用于事后追溯谁在何时授权/撤销了谁" />
           <el-table :data="audits" border size="small" style="margin-top:10px">
-            <el-table-column prop="bizType" label="类型" width="120">
+            <el-table-column prop="bizType" :label="t('grant.bizType')" width="120">
               <template #default="{ row }">
                 {{ row.bizTypeLabel || enumLabel('bizType', row.bizType) }}
               </template>
             </el-table-column>
-            <el-table-column prop="personId" label="人员" width="120">
+            <el-table-column prop="personId" :label="t('grant.person')" width="120">
               <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
             </el-table-column>
-            <el-table-column prop="operatorName" label="操作人" width="120" />
-            <el-table-column prop="reason" label="原因" min-width="200" />
-            <el-table-column prop="result" label="结果" width="100" />
-            <el-table-column prop="createTime" label="时间" width="170" />
+            <el-table-column prop="operatorName" :label="t('grant.operator')" width="120" />
+            <el-table-column prop="reason" :label="t('grant.reason')" min-width="200" />
+            <el-table-column prop="result" :label="t('grant.result')" width="100" />
+            <el-table-column prop="createTime" :label="t('grant.time')" width="170" />
           </el-table>
         </el-tab-pane>
       </el-tabs>
     </div>
 
     <!-- 新建授权 -->
-    <el-dialog v-model="createVisible" title="新建通行授权" width="560px">
+    <el-dialog v-model="createVisible" :title="t('grant.createTitle')" width="560px">
       <el-form :model="gf" label-width="110px">
         <el-form-item label="人员ID" required>
           <PersonPicker v-model="gf.personId" width="200px" testid="picker" />
@@ -189,6 +189,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /**
  * 通行授权：授权管理（新建/撤销/查询） + 对账差异 + 授权审计。
  *
@@ -204,6 +205,7 @@ import DeviceSelect from '@/components/DeviceSelect.vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import SpaceSelect from '@/components/SpaceSelect.vue'
 
+const { t } = useI18n()
 const tab = ref('grant')
 
 // ---------------- 授权管理 ----------------

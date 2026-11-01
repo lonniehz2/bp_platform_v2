@@ -1,13 +1,13 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">钥匙包</h3>
+      <h3 style="margin:0">{{ t('keyring.title') }}</h3>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字" clearable style="width:160px"
+      <el-input v-model="keyword" :placeholder="t('keyring.keyword')" clearable style="width:160px"
                 @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="success" @click="createVisible = true">新建钥匙</el-button>
+      <el-button type="primary" @click="reload">{{ t('keyring.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('keyring.reset') }}</el-button>
+      <el-button type="success" @click="createVisible = true">{{ t('keyring.create') }}</el-button>
 
     </div>
 
@@ -20,22 +20,22 @@
           <DetailView :row="row" />
         </template>
       </el-table-column>
-      <el-table-column prop="keyAlias" label="钥匙别名" width="140" />
-      <el-table-column prop="personIdName" label="持有人" width="120">
+      <el-table-column prop="keyAlias" :label="t('keyring.alias')" width="140" />
+      <el-table-column prop="personIdName" :label="t('keyring.holder')" width="120">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column prop="keyStatus" label="状态" width="110">
+      <el-table-column prop="keyStatus" :label="t('keyring.status')" width="110">
         <template #default="{ row }">{{ row.keyStatusLabel || enumLabel('keyStatus', row.keyStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="260" fixed="right">
+      <el-table-column :label="t('keyring.actions')" width="260" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
+          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('keyring.detail') }}</el-button>
           <el-button v-if="row.keyStatus === 'ACTIVE'" link type="warning"
                      @click="freeze(row)" data-testid="row-freeze">冻结</el-button>
           <el-button v-if="row.keyStatus === 'FROZEN'" link type="success"
                      @click="unfreeze(row)" data-testid="row-unfreeze">解冻</el-button>
-          <el-button link @click="actPlain(row, '/keyring/{id}/status', '改状态')">改状态</el-button>
-          <el-button link @click="actPlain(row, '/keyring/{id}/remove', '回收')">回收</el-button>
+          <el-button link @click="actPlain(row, '/keyring/{id}/status', '改状态')">{{ t('keyring.changeStatus') }}</el-button>
+          <el-button link @click="actPlain(row, '/keyring/{id}/remove', '回收')">{{ t('keyring.recycle') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -44,45 +44,45 @@
                    :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
                    @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
 
-    <el-dialog v-model="createVisible" title="新建钥匙" width="700px">
+    <el-dialog v-model="createVisible" :title="t('keyring.createTitle')" width="700px">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
                 title="字段与后端 KeyringService.KeyringCmd 一致；带 * 为必填" />
       <el-form :model="form" label-width="120px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="人员 ID" required>
+          <el-col :span="12"><el-form-item :label="t('keyring.personId')" required>
             <PersonPicker v-model="form.personId" width="240px" testid="person-picker" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="钥匙类型">
+          <el-col :span="12"><el-form-item :label="t('keyring.keyType')">
             <el-select v-model="form.keyType" style="width:100%" clearable data-testid="f-keyType">
-              <el-option label="人脸" value="FACE" />
-              <el-option label="指纹" value="FINGERPRINT" />
-              <el-option label="掌静脉" value="PALM_VEIN" />
-              <el-option label="密码" value="PASSWORD" />
-              <el-option label="卡片" value="CARD" />
-              <el-option label="身份证" value="IDCARD" />
-              <el-option label="二维码" value="QRCODE" />
+              <el-option :label="t('keyring.face')" value="FACE" />
+              <el-option :label="t('keyring.fingerprint')" value="FINGERPRINT" />
+              <el-option :label="t('keyring.palm')" value="PALM_VEIN" />
+              <el-option :label="t('keyring.password')" value="PASSWORD" />
+              <el-option :label="t('keyring.card')" value="CARD" />
+              <el-option :label="t('keyring.idcard')" value="IDCARD" />
+              <el-option :label="t('keyring.qrcode')" value="QRCODE" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="钥匙别名">
+          <el-col :span="12"><el-form-item :label="t('keyring.alias')">
             <el-input v-model="form.keyAlias" data-testid="f-keyAlias"
-                      placeholder="便于识别的名称，如「1-502 大门」" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="介质值" required>
+                      :placeholder="t('keyring.aliasHint')" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item :label="t('keyring.media')" required>
             <el-input v-model="form.channelValue" data-testid="f-channelValue"
-                      placeholder="卡号/人脸 ID/密码等实际凭据" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="钥匙来源">
+                      :placeholder="t('keyring.mediaHint')" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item :label="t('keyring.source')">
             <el-input v-model="form.keySource" placeholder="如 ALLOCATION / EXTRA" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="核验方式">
+          <el-col :span="12"><el-form-item :label="t('keyring.verifyWay')">
             <el-input v-model="form.verifyWay" placeholder="如 PASSWORD / CARD / FACE" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="同步范围">
+          <el-col :span="12"><el-form-item :label="t('keyring.syncScope')">
             <el-input v-model="form.syncScope" placeholder="如 HOUSE / BUILDING" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="失效时间" required>
+          <el-col :span="12"><el-form-item :label="t('keyring.expire')" required>
             <el-date-picker v-model="form.expireTime" type="datetime"
                             value-format="YYYY-MM-DD HH:mm:ss" style="width:100%"
                             data-testid="f-expireTime"
-                            placeholder="卡/密码等弱安全介质必填" /></el-form-item></el-col>
+                            :placeholder="t('keyring.expireHint')" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
+        <el-button @click="createVisible = false">{{ t('keyring.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('keyring.submit') }}</el-button>
       </template>
     </el-dialog>
 
@@ -92,13 +92,15 @@
   </div>
 
     <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('keyring.detail')" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView，字段与中文名来自后端字段字典） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {
