@@ -4,7 +4,7 @@
       <div class="toolbar">
         <HouseSelect v-model="query.houseId" width="210px" testid="house-select" />
         <PersonPicker v-model="query.personId" width="240px" testid="person-picker" />
-        <el-checkbox v-model="query.abnormalOnly">只看异常</el-checkbox>
+        <el-checkbox v-model="query.abnormalOnly">{{ t('misc2.abnormalOnly') }}</el-checkbox>
         <el-button type="primary" @click="load">{{ t('access.search') }}</el-button>
         <el-button @click="resetQuery">{{ t('access.reset') }}</el-button>
         <div class="spacer" />
@@ -14,7 +14,7 @@
         <el-button @click="openRatio">{{ t('access.ratio') }}</el-button>
       </div>
 
-      <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+      <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('misc.emptyDefault')">
         <el-table-column prop="openTime" :label="t('access.openTime')" width="170" />
         <el-table-column prop="openTypeName" :label="t('access.method')" width="100" />
         <el-table-column prop="houseId" :label="t('access.house')" width="110">
@@ -24,9 +24,9 @@
           <template #default="{ row }">
             <span v-if="row.personIdName">{{ row.personIdName }}</span>
             <span v-else-if="row.targetUserMobile" class="muted">
-              {{ row.targetUserMobile }}（未匹配人员）
+              {{ row.targetUserMobile }}{{ t('misc2.unmatchedPerson') }}
             </span>
-            <span v-else class="muted">未匹配</span>
+            <span v-else class="muted">{{ t('misc2.unmatched') }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="lockId" :label="t('access.lock')" width="170">
@@ -35,13 +35,13 @@
         <el-table-column prop="trusted" :label="t('access.trusted')" width="80">
           <template #default="{ row }">
             <el-tag size="small" :type="row.trusted ? 'success' : 'warning'">
-              {{ row.trusted ? '可信' : '不可信' }}
+              {{ row.trusted ? t('misc2.trusted') : t('misc2.untrusted') }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="abnormal" :label="t('access.abnormal')" width="90">
           <template #default="{ row }">
-            <el-tag v-if="row.abnormal" type="danger" size="small">异常</el-tag>
+            <el-tag v-if="row.abnormal" type="danger" size="small">{{ t('misc2.abnormal') }}</el-tag>
             <span v-else class="muted">-</span>
           </template>
         </el-table-column>
@@ -85,7 +85,7 @@
         <el-table-column prop="suspectIdle" :label="t('access.suspectIdle')" width="110">
           <template #default="{ row }">
             <el-tag size="small" :type="row.suspectIdle ? 'danger' : 'success'">
-              {{ row.suspectIdle ? '是' : '否' }}
+              {{ row.suspectIdle ? t('misc2.yes') : t('misc2.no') }}
             </el-tag>
           </template>
         </el-table-column>
@@ -99,7 +99,7 @@
         <el-descriptions-item :label="t('access.untrusted')">{{ ratio.untrusted }}</el-descriptions-item>
         <el-descriptions-item :label="t('access.ratio')">{{ ratio.untrustedRatio }}%</el-descriptions-item>
         <el-descriptions-item :label="t('access.threshold')">{{ ratio.threshold }}%</el-descriptions-item>
-        <el-descriptions-item label="是否达标">
+        <el-descriptions-item :label="t('misc2.meetTarget')">
           <el-tag :type="ratio.pass ? 'success' : 'danger'" size="small">
             {{ ratio.pass ? '达标' : '超标' }}
           </el-tag>

@@ -11,12 +11,12 @@
     </div>
     <el-alert v-if="'配租公示必须 ≥7 自然日且已结束才能签约'" type="info" :closable="false" show-icon :title="'配租公示必须 ≥7 自然日且已结束才能签约'"
               style="margin-bottom:12px" />
-    <el-table empty-text="暂无公示，配租/资格公示从这里发起" :data="rows" v-loading="loading" border size="small">
+    <el-table :empty-text="t('misc2.pubEmpty')" :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">
       <template #default="{ row }">
         <div style="padding:8px 12px">
           <div style="margin-bottom:6px">
-            <strong>中签名单</strong>
+            <strong>{{ t('misc2.winners') }}</strong>
             <span class="muted" style="margin-left:8px;font-size:12px">
               {{ winnersOf(row.id).length ? `共 ${winnersOf(row.id).length} 人` : '暂无中签记录（需先关联批次并完成摇号）' }}
             </span>
@@ -66,8 +66,8 @@
       <el-table-column :label="t('publicity.actions')" width="200" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" :disabled="row.publicityStatus === 'PUBLISHED'"
-                     @click="doPublish(row)">发布</el-button>
-          <el-button link @click="detail = row; show = true">详情</el-button>
+                     @click="doPublish(row)">{{ t('misc2.publish') }}</el-button>
+          <el-button link @click="detail = row; show = true">{{ t('publicity.detail') }}</el-button>
         </template>
       </el-table-column>
     </el-table>

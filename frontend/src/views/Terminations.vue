@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('termination.title') }}</h3>
-      <el-tag size="small" type="info">过渡期 3 月 / 1.5 倍（可配）</el-tag>
+      <el-tag size="small" type="info">{{ t('misc2.termTag') }}</el-tag>
       <div class="spacer" />
       <el-button type="success" @click="openCreate">{{ t('termination.create') }}</el-button>
       <el-button @click="load">{{ t('termination.refresh') }}</el-button>
@@ -36,7 +36,7 @@
       </template>
     </FilterBar>
 
-    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+    <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('misc.emptyDefault')">
       <el-table-column type="expand">
         <template #default="{ row }">
           <DetailView :row="row" />
@@ -65,7 +65,7 @@
         <template #default="{ row }">
           <span v-if="row.actualExitDate">{{ row.actualExitDate }}</span>
           <span v-else-if="row.planExitDate" class="muted">
-            计划 {{ row.planExitDate }}
+            {{ t('misc2.plan', { date: row.planExitDate }) }}
           </span>
           <span v-else class="muted">—</span>
         </template>
@@ -86,22 +86,22 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="doSubmit(row)">提交</el-dropdown-item>
-                <el-dropdown-item @click="approve(row)">审批</el-dropdown-item>
+                <el-dropdown-item @click="approve(row)">{{ t('misc2.approve') }}</el-dropdown-item>
                 <el-dropdown-item @click="doReject(row)">驳回</el-dropdown-item>
-                <el-dropdown-item @click="doCancel(row)">取消</el-dropdown-item>
+                <el-dropdown-item @click="doCancel(row)">{{ t('misc2.cancel') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
           <el-button v-if="row.inspectStatus && row.inspectStatus !== 'PENDING'"
-                     link type="success" @click="openDetail(row)">已查验</el-button>
+                     link type="success" @click="openDetail(row)">{{ t('misc2.inspected') }}</el-button>
           <el-button v-else link @click="openInspect(row)">{{ t('termination.inspect') }}</el-button>
           <el-button v-if="row.settleStatus === 'SETTLED'" link type="success"
-                     @click="openDetail(row)">结算单</el-button>
+                     @click="openDetail(row)">{{ t('misc2.settleBill') }}</el-button>
           <el-button v-else link type="primary" @click="openEnergy(row)">{{ t('termination.energy') }}</el-button>
           <el-button v-if="row.settleStatus !== 'SETTLED'" link type="warning" :disabled="!row.inspectStatus
-                     || row.inspectStatus === 'PENDING'" @click="openSettle(row)">结算</el-button>
+                     || row.inspectStatus === 'PENDING'" @click="openSettle(row)">{{ t('misc2.settle') }}</el-button>
           <el-button v-if="row.settleStatus === 'SETTLED'" link type="success"
-                     @click="doComplete(row)">办结</el-button>
+                     @click="doComplete(row)">{{ t('misc2.complete') }}</el-button>
         </template>
       </el-table-column>
     </el-table>

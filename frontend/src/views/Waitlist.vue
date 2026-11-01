@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('waitlist.title') }}</h3>
-      <el-tag size="small" type="info">总分 = 优先附加分 + 轮候天数 × 0.1</el-tag>
+      <el-tag size="small" type="info">{{ t('misc2.waitTag') }}</el-tag>
       <div class="spacer" />
       <el-select v-model="orgId" :placeholder="t('waitlist.orgHint')" clearable filterable
                  style="width:200px" data-testid="wait-org" @change="reload">
@@ -20,7 +20,7 @@
               title="摇号按总分降序、入队时间升序取前 N 名；优先附加分用于优抚对象加分"
               style="margin-bottom:12px" />
 
-    <el-table empty-text="轮候库为空，审核通过后会自动入队" :data="rows" v-loading="loading" border size="small">
+    <el-table :empty-text="t('misc2.waitEmpty')" :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>

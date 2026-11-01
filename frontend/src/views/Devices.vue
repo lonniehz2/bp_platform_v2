@@ -3,7 +3,7 @@
     <div class="toolbar">
       <h3 style="margin:0">{{ t('device.title') }}</h3>
       <el-tag size="small" type="info">
-        在线 {{ stats.online ?? 0 }} / 共 {{ stats.total ?? 0 }}
+        {{ t('misc2.onlineOf', { online: stats.online ?? 0, total: stats.total ?? 0 }) }}
         （{{ stats.onlineRate ?? 0 }}%）
       </el-tag>
       <div class="spacer" />
@@ -40,7 +40,7 @@
       </template>
     </el-alert>
 
-    <el-table empty-text="暂无设备，可点「同步设备」从 IoT 拉取" :data="rows" v-loading="loading" border size="small">
+    <el-table :empty-text="t('misc2.deviceEmpty')" :data="rows" v-loading="loading" border size="small">
       <el-table-column prop="deviceId" :label="t('device.id')" width="200">
         <template #default="{ row }">{{ row.deviceIdName || row.deviceId }}</template>
       </el-table-column>
@@ -58,7 +58,7 @@
       <el-table-column prop="onlineStatus" :label="t('device.onlineCol')" width="90">
         <template #default="{ row }">
           <el-tag size="small" :type="row.onlineStatus === 1 ? 'success' : 'info'">
-            {{ row.onlineStatus === 1 ? '在线' : '离线' }}
+            {{ row.onlineStatus === 1 ? t('misc2.online') : t('misc2.offline') }}
           </el-tag>
         </template>
       </el-table-column>
@@ -93,7 +93,7 @@
           <el-option v-for="t in evTypes" :key="t.code" :value="t.code"
                      :label="t.label + (t.level === 'CRITICAL' ? '（严重）' : '')" />
         </el-select>
-        <el-checkbox v-model="evQuery.alarmOnly" @change="loadEvents">只看告警</el-checkbox>
+        <el-checkbox v-model="evQuery.alarmOnly" @change="loadEvents">{{ t('misc2.alarmOnly') }}</el-checkbox>
         <el-checkbox v-model="evQuery.unhandledOnly" @change="loadEvents">只看未处理</el-checkbox>
         <span class="muted" style="font-size:12px">
           共 {{ evTotal }} 条，未处理 {{ evStats.unhandled || 0 }} 条

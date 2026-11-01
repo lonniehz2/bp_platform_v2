@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('change.title') }}</h3>
-      <el-tag size="small" type="info">调租 / 租期 / 承租人变更，批准后写回合同</el-tag>
+      <el-tag size="small" type="info">{{ t('misc2.changeTag') }}</el-tag>
       <div class="spacer" />
       <el-select v-model="query.changeStatus" :placeholder="t('change.status')" clearable
                  style="width:150px" @change="reload">
@@ -12,7 +12,7 @@
       <el-button @click="resetQuery">{{ t('change.reset') }}</el-button>
     </div>
 
-    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+    <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('misc.emptyDefault')">
       <el-table-column type="expand">
         <template #default="{ row }">
           <div style="display:flex;gap:24px;padding:8px 12px">
@@ -69,14 +69,14 @@
       </el-descriptions>
       <el-row :gutter="12" style="margin-top:10px">
         <el-col :span="12">
-          <div class="card-title">变更前</div>
+          <div class="card-title">{{ t('misc2.before') }}</div>
           <div class="kv">
             <div v-for="(v, k) in beforeObj" :key="k"><b>{{ k }}</b>：{{ v }}</div>
             <div v-if="!Object.keys(beforeObj).length" class="muted">—</div>
           </div>
         </el-col>
         <el-col :span="12">
-          <div class="card-title">变更后</div>
+          <div class="card-title">{{ t('misc2.after') }}</div>
           <div class="kv">
             <div v-for="(v, k) in afterObj" :key="k"><b>{{ k }}</b>：{{ v }}</div>
             <div v-if="!Object.keys(afterObj).length" class="muted">—</div>
