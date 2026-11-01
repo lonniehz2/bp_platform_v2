@@ -104,7 +104,7 @@
       <el-table-column prop="assignUserName" :label="t('workorder.assignee')" width="110">
         <template #default="{ row }">{{ row.assignUserName || '—' }}</template>
       </el-table-column>
-      <el-table-column prop="slaStatus" label="SLA" width="100">
+      <el-table-column prop="slaStatus" :label="t('workorder.sla')" width="100">
         <template #default="{ row }">
           <el-tag v-if="row.responseOverdue || row.finishOverdue" type="danger" size="small">
              {{ t('workorder.overdue') }}

@@ -2110,7 +2110,7 @@ export default {
     cycle: '周期', firstRun: '首次执行', ownerHint: '可空', remark: '备注',
     cancel: '取消', create: '创建',
     no: '工单号', orderType: '类型', orderTitle: '标题', source: '来源',
-    orderStatus: '状态', assignee: '处理人', sla: 'SLA', created: '创建时间',
+    orderStatus: '状态', assignee: '处理人', sla: '服务时效', created: '创建时间',
     actions: '操作', assign: '派单', accept: '接单', finish: '完成', more: '更多▾',
     batchAssign: '批量派单',
     daily: '每日',
