@@ -1,14 +1,14 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">信用惩戒</h3>
+      <h3 style="margin:0">{{ t('credit.title') }}</h3>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字" clearable style="width:160px"
+      <el-input v-model="keyword" :placeholder="t('credit.keyword')" clearable style="width:160px"
                 @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="success" @click="createVisible = true">新建惩戒</el-button>
-      <el-button @click="scanExpired">扫描到期</el-button>
+      <el-button type="primary" @click="reload">{{ t('credit.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('credit.reset') }}</el-button>
+      <el-button type="success" @click="createVisible = true">{{ t('credit.create') }}</el-button>
+      <el-button @click="scanExpired">{{ t('credit.scan') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon :title="'失信限制再申请 5 年；到期可扫描自动失效'"
@@ -20,25 +20,25 @@
           <DetailView :row="row" />
         </template>
       </el-table-column>
-      <el-table-column prop="personId" label="人员" width="120">
+      <el-table-column prop="personId" :label="t('credit.person')" width="120">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column prop="violationType" label="类型" width="140">
+      <el-table-column prop="violationType" :label="t('credit.type')" width="140">
         <template #default="{ row }">{{ row.violationTypeLabel || enumLabel('creditType', row.violationType) }}</template>
       </el-table-column>
-      <el-table-column prop="sanctionType" label="级别" width="100">
+      <el-table-column prop="sanctionType" :label="t('credit.level')" width="100">
         <template #default="{ row }">{{ row.sanctionTypeLabel || enumLabel('creditLevel', row.sanctionType) }}</template>
       </el-table-column>
-      <el-table-column prop="status" label="状态" width="110">
+      <el-table-column prop="status" :label="t('credit.status')" width="110">
         <template #default="{ row }">{{ row.statusLabel || enumLabel('creditStatus', row.status) }}</template>
       </el-table-column>
-      <el-table-column prop="banEndDate" label="惩戒截止" width="110" />
-      <el-table-column label="操作" width="250" fixed="right">
+      <el-table-column prop="banEndDate" :label="t('credit.banEnd')" width="110" />
+      <el-table-column :label="t('credit.actions')" width="250" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-          <el-button link type="primary" @click="actReason(row, '/credits/{id}/revoke', '撤销')">撤销</el-button>
-          <el-button link type="primary" @click="actReason(row, '/credits/{id}/expire', '失效')">标记失效</el-button>
-          <el-button link @click="actPlain(row, '/credits/{id}/push', '推送')">推送</el-button>
+          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('credit.detail') }}</el-button>
+          <el-button link type="primary" @click="actReason(row, '/credits/{id}/revoke', t('credit.revoke'))">{{ t('credit.revoke') }}</el-button>
+          <el-button link type="primary" @click="actReason(row, '/credits/{id}/expire', t('credit.expire'))">{{ t('credit.expire') }}</el-button>
+          <el-button link @click="actPlain(row, '/credits/{id}/push', t('credit.push'))">{{ t('credit.push') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -47,60 +47,60 @@
                    :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
                    @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
 
-    <el-dialog v-model="createVisible" title="新建信用惩戒" width="720px">
+    <el-dialog v-model="createVisible" :title="t('credit.createTitle')" width="720px">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
                 title="字段与后端 CreditCreateCmd 一致；带 * 为必填" />
       <el-form :model="form" label-width="120px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="人员 ID" required>
+          <el-col :span="12"><el-form-item :label="t('credit.personId')" required>
             <PersonPicker v-model="form.personId" width="240px" testid="person-picker" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="违规类型" required>
+          <el-col :span="12"><el-form-item :label="t('credit.violationType')" required>
             <el-select v-model="form.violationType" style="width:100%" data-testid="f-violationType">
-              <el-option label="虚假申报" value="FALSE_INFO" />
-              <el-option label="转租转借" value="SUBLEASE" />
-              <el-option label="擅自改造" value="STRUCTURE" />
-              <el-option label="改变用途" value="CHANGE_USE" />
-              <el-option label="长期空置" value="VACANT" />
-              <el-option label="违法违规" value="ILLEGAL" />
-              <el-option label="欠缴租金" value="ARREARS" />
-              <el-option label="其他" value="OTHER" />
+              <el-option :label="t('credit.falseInfo')" value="FALSE_INFO" />
+              <el-option :label="t('credit.sublease')" value="SUBLEASE" />
+              <el-option :label="t('credit.structure')" value="STRUCTURE" />
+              <el-option :label="t('credit.changeUse')" value="CHANGE_USE" />
+              <el-option :label="t('credit.vacant')" value="VACANT" />
+              <el-option :label="t('credit.illegal')" value="ILLEGAL" />
+              <el-option :label="t('credit.arrears')" value="ARREARS" />
+              <el-option :label="t('credit.other')" value="OTHER" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="惩戒措施" required>
+          <el-col :span="12"><el-form-item :label="t('credit.measure')" required>
             <el-select v-model="form.sanctionType" style="width:100%" data-testid="f-sanctionType">
-              <el-option label="终止合同" value="TERMINATE" />
-              <el-option label="限制申请" value="BAN_APPLY" />
-              <el-option label="上报信用平台" value="CREDIT_PLATFORM" />
-              <el-option label="罚款" value="FINE" />
-              <el-option label="其他" value="OTHER" />
+              <el-option :label="t('credit.terminate')" value="TERMINATE" />
+              <el-option :label="t('credit.banApply')" value="BAN_APPLY" />
+              <el-option :label="t('credit.creditPlatform')" value="CREDIT_PLATFORM" />
+              <el-option :label="t('credit.fine')" value="FINE" />
+              <el-option :label="t('credit.other')" value="OTHER" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="限制年限">
+          <el-col :span="12"><el-form-item :label="t('credit.banYears')">
             <el-input v-model="form.banYears" type="number" data-testid="f-banYears" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="关联业务类型">
+          <el-col :span="12"><el-form-item :label="t('credit.bizType')">
             <el-select v-model="form.bizType" style="width:100%" clearable>
-              <el-option label="退出" value="EXIT" />
-              <el-option label="合同" value="CONTRACT" />
-              <el-option label="申请" value="APPLICATION" />
+              <el-option :label="t('credit.exit')" value="EXIT" />
+              <el-option :label="t('credit.contract')" value="CONTRACT" />
+              <el-option :label="t('credit.application')" value="APPLICATION" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="关联业务 ID">
+          <el-col :span="12"><el-form-item :label="t('credit.bizId')">
             <el-input v-model="form.bizId" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="违规说明">
+          <el-col :span="24"><el-form-item :label="t('credit.desc')">
             <el-input v-model="form.violationDesc" type="textarea" :rows="3"
                       data-testid="f-violationDesc" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="决定组织 ID">
+          <el-col :span="12"><el-form-item :label="t('credit.decideOrg')">
             <el-input v-model="form.decideOrgId" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="法律文书号">
+          <el-col :span="12"><el-form-item :label="t('credit.legalNo')">
             <el-input v-model="form.legalDocNo" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="上报信用平台">
+          <el-col :span="24"><el-form-item :label="t('credit.reportCredit')">
             <el-switch v-model="form.pushToPlatform" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
+        <el-button @click="createVisible = false">{{ t('credit.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('credit.submit') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="show" title="明细（原始数据）" size="520px">
+    <el-drawer v-model="show" :title="t('credit.drawer')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
@@ -112,7 +112,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView，字段与中文名来自后端字段字典） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {

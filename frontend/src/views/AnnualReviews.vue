@@ -1,26 +1,26 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">年审复核</h3>
+      <h3 style="margin:0">{{ t('review.title') }}</h3>
       <el-tag size="small" type="info">保留 / 调租 / 退出</el-tag>
       <div class="spacer" />
-      <el-button type="success" @click="batchVisible = true">批量发起年审</el-button>
-      <el-button @click="load">刷新</el-button>
+      <el-button type="success" @click="batchVisible = true">{{ t('review.batch') }}</el-button>
+      <el-button @click="load">{{ t('review.refresh') }}</el-button>
     </div>
     <el-alert type="info" :closable="false" show-icon
               title="年审判定为「退出」会自动生成腾退单（类型用 OTHER，避免误触发 5 年禁申）"
               style="margin-bottom:12px" />
 
     <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
-      <el-table-column prop="reviewNo" label="年审单号" width="170" />
-      <el-table-column prop="contractId" label="合同" width="130">
+      <el-table-column prop="reviewNo" :label="t('review.no')" width="170" />
+      <el-table-column prop="contractId" :label="t('review.contract')" width="130">
         <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
       </el-table-column>
-      <el-table-column prop="personId" label="人员" width="110">
+      <el-table-column prop="personId" :label="t('review.person')" width="110">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column prop="reviewYear" label="年度" width="90" />
-      <el-table-column prop="reviewResult" label="结论" width="110">
+      <el-table-column prop="reviewYear" :label="t('review.year')" width="90" />
+      <el-table-column prop="reviewResult" :label="t('review.result')" width="110">
         <template #default="{ row }">
           <el-tag size="small" :type="row.reviewResult === 'EXIT' ? 'danger'
             : (row.reviewResult === 'ADJUST' ? 'warning' : 'success')">
@@ -28,14 +28,14 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="reviewStatus" label="状态" width="110">
+      <el-table-column prop="reviewStatus" :label="t('review.status')" width="110">
         <template #default="{ row }">{{ row.reviewStatusLabel || enumLabel('reviewStatus', row.reviewStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column :label="t('review.actions')" width="200" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-          <el-button link type="primary" @click="openReview(row)">复核</el-button>
-          <el-button link type="warning" @click="openRent(row)">调租</el-button>
+          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('review.detail') }}</el-button>
+          <el-button link type="primary" @click="openReview(row)">{{ t('review.review') }}</el-button>
+          <el-button link type="warning" @click="openRent(row)">{{ t('review.rentAdjust') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -43,49 +43,51 @@
                    :total="+total || 0" :page-size="q.pageSize" :current-page="q.pageNum"
                    @current-change="(p) => { q.pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { q.pageSize = s; q.pageNum = 1; load() }" />
 
-    <el-dialog v-model="batchVisible" title="批量发起年审" width="480px">
+    <el-dialog v-model="batchVisible" :title="t('review.batchTitle')" width="480px">
       <el-form :model="b" label-width="110px">
-        <el-form-item label="复核年度"><el-input v-model="b.reviewYear"
+        <el-form-item :label="t('review.reviewYear')"><el-input v-model="b.reviewYear"
           placeholder="2026" /></el-form-item>
-        <el-form-item label="组织"><OrgSelect v-model="b.orgId" width="100%" /></el-form-item>
-        <el-form-item label="批次号"><el-input v-model="b.reviewBatch" /></el-form-item>
-        <el-form-item label="试算（不落库）">
+        <el-form-item :label="t('review.org')"><OrgSelect v-model="b.orgId" width="100%" /></el-form-item>
+        <el-form-item :label="t('review.batchNo')"><el-input v-model="b.reviewBatch" /></el-form-item>
+        <el-form-item :label="t('review.dryRun')">
           <el-switch v-model="b.dryRun" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="batchVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doBatch">发起</el-button>
+        <el-button @click="batchVisible = false">{{ t('review.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doBatch">{{ t('review.start') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="reviewVisible" title="年审复核" width="500px">
+    <el-dialog v-model="reviewVisible" :title="t('review.reviewTitle')" width="500px">
       <el-form :model="r" label-width="110px">
-        <el-form-item label="复核结论">
+        <el-form-item :label="t('review.conclusion')">
           <el-select v-model="r.reviewResult" style="width:100%">
-            <el-option label="保留资格" value="KEEP" />
-            <el-option label="调整租金/补贴" value="ADJUST" />
-            <el-option label="退出保障" value="EXIT" />
+            <el-option :label="t('review.keep')" value="KEEP" />
+            <el-option :label="t('review.adjust')" value="ADJUST" />
+            <el-option :label="t('review.exit')" value="EXIT" />
           </el-select></el-form-item>
-        <el-form-item label="新租金（调租时）">
+        <el-form-item :label="t('review.newRent')">
           <el-input v-model.number="r.newMonthlyRent" /></el-form-item>
-        <el-form-item label="复核意见">
+        <el-form-item :label="t('review.opinion')">
           <el-input v-model="r.opinion" type="textarea" :rows="3" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="reviewVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doReview">提交</el-button>
+        <el-button @click="reviewVisible = false">{{ t('review.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doReview">{{ t('review.submit') }}</el-button>
       </template>
     </el-dialog>
   </div>
 
     <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('review.detail')" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {
