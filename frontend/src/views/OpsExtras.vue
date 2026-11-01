@@ -1,35 +1,35 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">扩展操作台</h3>
+      <h3 style="margin:0">{{ t('opsX.title') }}</h3>
       <el-tag size="small" type="info">消息 · 规则 · 开放 · 权限 · 授权 · 房态</el-tag>
       <div class="spacer" />
-      <el-button @click="refresh">刷新</el-button>
+      <el-button @click="refresh">{{ t('opsX.refresh') }}</el-button>
     </div>
 
     <el-tabs v-model="tab">
       <!-- ================= 消息待办 ================= -->
-      <el-tab-pane label="消息待办" name="msg">
+      <el-tab-pane :label="t('opsX.msgTab')" name="msg">
         <div class="toolbar">
           <UserSelect v-model="msg.userId" width="210px" testid="userselect" />
-          <el-input v-model="msgKeyword" placeholder="标题关键字" clearable style="width:210px"
+          <el-input v-model="msgKeyword" :placeholder="t('opsX.keyword')" clearable style="width:210px"
                     data-testid="oe-msg-keyword" @keyup.enter="loadTodos" />
-          <el-select v-model="msgStatus" placeholder="状态" clearable style="width:120px">
-            <el-option label="待处理" value="PENDING" />
-            <el-option label="已完成" value="DONE" />
+          <el-select v-model="msgStatus" :placeholder="t('opsX.status')" clearable style="width:120px">
+            <el-option :label="t('opsX.pending')" value="PENDING" />
+            <el-option :label="t('opsX.done')" value="DONE" />
           </el-select>
-          <el-button type="primary" @click="loadTodos" data-testid="oe-msg-search">查询</el-button>
-          <el-button @click="resetMsgQuery" data-testid="oe-msg-reset">清空</el-button>
+          <el-button type="primary" @click="loadTodos" data-testid="oe-msg-search">{{ t('opsX.search') }}</el-button>
+          <el-button @click="resetMsgQuery" data-testid="oe-msg-reset">{{ t('opsX.reset') }}</el-button>
           <div class="spacer" />
-          <el-button type="success" @click="openMsgSend()">发送消息</el-button>
-          <el-button @click="broadcast">批量广播</el-button>
-          <el-button @click="retryFailed">重推失败</el-button>
-          <el-button @click="openTodoCreate()">新增待办</el-button>
+          <el-button type="success" @click="openMsgSend()">{{ t('opsX.sendMsg') }}</el-button>
+          <el-button @click="broadcast">{{ t('opsX.broadcast') }}</el-button>
+          <el-button @click="retryFailed">{{ t('opsX.retryFailed') }}</el-button>
+          <el-button @click="openTodoCreate()">{{ t('opsX.addTodo') }}</el-button>
         </div>
         <el-table :data="todos" border size="small" max-height="420">
-          <el-table-column prop="title" label="标题" min-width="180" />
-          <el-table-column prop="todoType" label="类型" width="120" />
-          <el-table-column label="状态" width="110">
+          <el-table-column prop="title" :label="t('opsX.titleCol')" min-width="180" />
+          <el-table-column prop="todoType" :label="t('opsX.type')" width="120" />
+          <el-table-column :label="t('opsX.statusCol')" width="110">
             <template #default="{ row }">
               <el-tag size="small" :type="row.todoStatus === 'DONE' ? 'success'
                 : (row.todoStatus === 'READ' ? 'info' : 'warning')">
@@ -37,53 +37,53 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="170">
+          <el-table-column :label="t('opsX.actions')" width="170">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-              <el-button link type="primary" @click="markRead(row)">标记已读</el-button>
-              <el-button link type="success" @click="markDone(row)">办结</el-button>
+              <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('opsX.detail') }}</el-button>
+              <el-button link type="primary" @click="markRead(row)">{{ t('opsX.markRead') }}</el-button>
+              <el-button link type="success" @click="markDone(row)">{{ t('opsX.markDone') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
       </el-tab-pane>
 
       <!-- ================= 规则引擎 ================= -->
-      <el-tab-pane label="告警规则" name="rule">
+      <el-tab-pane :label="t('opsX.ruleTab')" name="rule">
         <div class="toolbar">
-          <el-button type="success" @click="openRulesetCreate()">新增规则集</el-button>
-          <el-button @click="openRuleCreate()">新增规则</el-button>
-          <el-button @click="loadRulesets">刷新</el-button>
+          <el-button type="success" @click="openRulesetCreate()">{{ t('opsX.addRuleset') }}</el-button>
+          <el-button @click="openRuleCreate()">{{ t('opsX.addRule') }}</el-button>
+          <el-button @click="loadRulesets">{{ t('opsX.refresh') }}</el-button>
         </div>
         <el-table :data="rulesets" border size="small" max-height="420">
-          <el-table-column prop="code" label="编码" width="150" />
-          <el-table-column prop="name" label="名称" min-width="160" />
-          <el-table-column prop="domain" label="领域" width="120" />
-          <el-table-column prop="rulesetStatus" label="状态" width="110">
+          <el-table-column prop="code" :label="t('opsX.code')" width="150" />
+          <el-table-column prop="name" :label="t('opsX.name')" min-width="160" />
+          <el-table-column prop="domain" :label="t('opsX.domain')" width="120" />
+          <el-table-column prop="rulesetStatus" :label="t('opsX.statusCol')" width="110">
             <template #default="{ row }">
               <el-tag size="small">{{ enumLabel('status', row.rulesetStatus) }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="300" fixed="right">
+          <el-table-column :label="t('opsX.actions')" width="300" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="publishRuleset(row)">发布</el-button>
-              <el-button link type="warning" @click="disableRuleset(row)">停用</el-button>
-              <el-button link @click="openRuleFor(row)">加规则</el-button>
-              <el-button link type="success" @click="execRuleset(row)">执行测试</el-button>
+              <el-button link type="primary" @click="publishRuleset(row)">{{ t('opsX.publish') }}</el-button>
+              <el-button link type="warning" @click="disableRuleset(row)">{{ t('opsX.disable') }}</el-button>
+              <el-button link @click="openRuleFor(row)">{{ t('opsX.addRuleTo') }}</el-button>
+              <el-button link type="success" @click="execRuleset(row)">{{ t('opsX.execTest') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
       </el-tab-pane>
 
       <!-- ================= 开放平台 ================= -->
-      <el-tab-pane label="开放平台" name="open">
+      <el-tab-pane :label="t('opsX.openTab')" name="open">
         <div class="toolbar">
-          <el-button @click="loadOpen">刷新应用</el-button>
-          <el-button type="success" @click="openHookCreate()">新增 Webhook</el-button>
-          <el-button @click="openHookList">Webhook 列表</el-button>
+          <el-button @click="loadOpen">{{ t('opsX.refreshApps') }}</el-button>
+          <el-button type="success" @click="openHookCreate()">{{ t('opsX.addWebhook') }}</el-button>
+          <el-button @click="openHookList">{{ t('opsX.hookList') }}</el-button>
         </div>
         <el-table :data="apps" border size="small" max-height="420">
-          <el-table-column prop="appName" label="应用名称" min-width="150" />
-          <el-table-column prop="appCode" label="应用编码" width="160" />
+          <el-table-column prop="appName" :label="t('opsX.appName')" min-width="150" />
+          <el-table-column prop="appCode" :label="t('opsX.appCode')" width="160" />
           <el-table-column label="状态" width="110">
             <template #default="{ row }">
               <el-tag size="small" :type="row.appStatus === 'ENABLED' ? 'success' : 'info'">
@@ -93,30 +93,30 @@
           </el-table-column>
           <el-table-column label="操作" width="260" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="toggleApp(row)">启停</el-button>
-              <el-button link type="warning" @click="resetSecret(row)">重置密钥</el-button>
+              <el-button link type="primary" @click="toggleApp(row)">{{ t('opsX.toggle') }}</el-button>
+              <el-button link type="warning" @click="resetSecret(row)">{{ t('opsX.resetSecret') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
       </el-tab-pane>
 
       <!-- ================= 权限管理 ================= -->
-      <el-tab-pane label="权限管理" name="rbac">
+      <el-tab-pane :label="t('opsX.rbacTab')" name="rbac">
         <div class="toolbar">
-          <el-button type="success" @click="openUserCreate()">新增用户</el-button>
-          <el-button @click="openRoleCreate()">新增角色</el-button>
-          <el-button @click="openPermCreate()">新增权限</el-button>
-          <el-button @click="loadRbac">刷新</el-button>
+          <el-button type="success" @click="openUserCreate()">{{ t('opsX.addUser') }}</el-button>
+          <el-button @click="openRoleCreate()">{{ t('opsX.addRole') }}</el-button>
+          <el-button @click="openPermCreate()">{{ t('opsX.addPerm') }}</el-button>
+          <el-button @click="loadRbac">{{ t('opsX.refresh') }}</el-button>
         </div>
         <el-row :gutter="12">
           <el-col :span="8">
             <h4>用户</h4>
             <el-table :data="users" border size="small" max-height="360">
-              <el-table-column prop="username" label="账号" width="110" />
-              <el-table-column prop="realName" label="姓名" width="100" />
+              <el-table-column prop="username" :label="t('opsX.username')" width="110" />
+              <el-table-column prop="realName" :label="t('opsX.realName')" width="100" />
               <el-table-column label="操作" width="110">
                 <template #default="{ row }">
-                  <el-button link type="primary" @click="grantUserRoles(row)">授权角色</el-button>
+                  <el-button link type="primary" @click="grantUserRoles(row)">{{ t('opsX.grantRoles') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -124,11 +124,11 @@
           <el-col :span="8">
             <h4>角色</h4>
             <el-table :data="roles" border size="small" max-height="360">
-              <el-table-column prop="roleCode" label="编码" width="110" />
-              <el-table-column prop="roleName" label="名称" min-width="100" />
+              <el-table-column prop="roleCode" :label="t('opsX.roleCode')" width="110" />
+              <el-table-column prop="roleName" :label="t('opsX.roleName')" min-width="100" />
               <el-table-column label="操作" width="110">
                 <template #default="{ row }">
-                  <el-button link type="primary" @click="grantRolePerms(row)">授权权限</el-button>
+                  <el-button link type="primary" @click="grantRolePerms(row)">{{ t('opsX.grantPerms') }}</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -136,58 +136,58 @@
           <el-col :span="8">
             <h4>权限</h4>
             <el-table :data="perms" border size="small" max-height="360">
-              <el-table-column prop="permCode" label="权限码" min-width="140" />
-              <el-table-column prop="permName" label="名称" width="110" />
+              <el-table-column prop="permCode" :label="t('opsX.permCode')" min-width="140" />
+              <el-table-column prop="permName" :label="t('opsX.permName')" width="110" />
             </el-table>
           </el-col>
         </el-row>
       </el-tab-pane>
 
       <!-- ================= 通行授权 ================= -->
-      <el-tab-pane label="授权撤销" name="grant">
+      <el-tab-pane :label="t('opsX.grantTab')" name="grant">
         <div class="toolbar">
-          <el-button @click="loadGrants">刷新</el-button>
+          <el-button @click="loadGrants">{{ t('opsX.refresh') }}</el-button>
         </div>
         <el-table :data="grants" border size="small" max-height="440">
-          <el-table-column prop="personId" label="人员" width="180">
+          <el-table-column prop="personId" :label="t('opsX.person')" width="180">
             <template #default="{ row }">{{ row.personName || row.personId }}</template>
           </el-table-column>
-          <el-table-column label="层级" width="110">
+          <el-table-column :label="t('opsX.level')" width="110">
             <template #default="{ row }">{{ enumLabel('grantLevel', row.grantLevel) }}</template>
           </el-table-column>
-          <el-table-column prop="validStart" label="生效" width="160" />
-          <el-table-column prop="validEnd" label="失效" width="160" />
+          <el-table-column prop="validStart" :label="t('opsX.validStart')" width="160" />
+          <el-table-column prop="validEnd" :label="t('opsX.validEnd')" width="160" />
           <el-table-column label="状态" width="110">
             <template #default="{ row }">{{ enumLabel('grantStatus', row.grantStatus) }}</template>
           </el-table-column>
           <el-table-column label="操作" width="130">
             <template #default="{ row }">
-              <el-button link type="danger" @click="revokeGrant(row)">撤销</el-button>
+              <el-button link type="danger" @click="revokeGrant(row)">{{ t('opsX.revoke') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
       </el-tab-pane>
 
       <!-- ================= 日房态 ================= -->
-      <el-tab-pane label="日房态" name="calendar">
+      <el-tab-pane :label="t('opsX.calendarTab')" name="calendar">
         <div class="toolbar">
           <HouseSelect v-model="cal.houseId" width="210px" testid="houseselect" />
           <el-date-picker v-model="cal.month" type="month" value-format="YYYY-MM"
-                          placeholder="月份" style="width:140px" />
-          <el-button type="primary" @click="ensureCalendar">生成当月房态</el-button>
+                          :placeholder="t('opsX.month')" style="width:140px" />
+          <el-button type="primary" @click="ensureCalendar">{{ t('opsX.genCalendar') }}</el-button>
           <div class="spacer" />
-          <el-button @click="openCalPrice()">改价</el-button>
-          <el-button @click="openCalStatus()">改状态</el-button>
-          <el-button @click="openCalBook()">预订</el-button>
-          <el-button @click="openCalRelease()">释放</el-button>
+          <el-button @click="openCalPrice()">{{ t('misc.calendar.price') }}</el-button>
+          <el-button @click="openCalStatus()">{{ t('misc5.detail') }}</el-button>
+          <el-button @click="openCalBook()">{{ t('opsX.book') }}</el-button>
+          <el-button @click="openCalRelease()">{{ t('opsX.release') }}</el-button>
         </div>
         <el-table :data="calendar" border size="small" max-height="420">
-          <el-table-column prop="calendarDate" label="日期" width="130" />
+          <el-table-column prop="calendarDate" :label="t('opsX.date')" width="130" />
           <el-table-column label="状态" width="120">
             <template #default="{ row }">{{ enumLabel('dayStatus', row.dayStatus) }}</template>
           </el-table-column>
-          <el-table-column prop="price" label="价格" width="110" />
-          <el-table-column prop="orderId" label="订单" width="180" />
+          <el-table-column prop="price" :label="t('opsX.price')" width="110" />
+          <el-table-column prop="orderId" :label="t('opsX.order')" width="180" />
         </el-table>
       </el-tab-pane>
     </el-tabs>
@@ -229,7 +229,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {
