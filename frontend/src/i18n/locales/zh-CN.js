@@ -157,6 +157,20 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  arrears: {
+    title: '催缴管理', actionTab: '欠费处置', noticeTab: '催缴通知',
+    status: '状态', pending: '待执行', executed: '已执行', revoked: '已撤销',
+    search: '查询', reset: '清空', scan: '扫描建议', create: '新建处置',
+    actionNo: '处置号', contract: '合同', person: '人员', amount: '欠费',
+    overdueDays: '逾期天数', action: '动作', scope: '冻结范围', statusCol: '状态',
+    executeTime: '执行时间', actions: '操作', execute: '执行', revoke: '撤销',
+    detail: '详情', history: '历史催缴通知', keyword: '关键字',
+    overdueMin: '逾期天数≥', scanOverdue: '扫描逾期（只读核对）',
+    billId: '账单ID', method: '催缴方式', level: '催缴级别', time: '时间', remark: '备注',
+    scanTitle: '扫描建议（逾期合同）', billCount: '账单数', recommend: '建议冻结',
+    generate: '生成处置', close: '关闭', newTitle: '新建欠费处置', org: '组织',
+    contractRequired: '合同', personRequired: '人员', amountRequired: '欠费金额'
+  },
   person: {
     title: '保障对象', allOrg: '全部组织', search: '查询', reset: '清空',
     tabPerson: '人员档案', tabProfile: '保障档案', tabVerify: '实名核验',

@@ -157,6 +157,21 @@ export default {
     unauthorized: 'Not authorized: contact administrator',
     fullscreen: 'Full-screen display',
   },
+  arrears: {
+    title: 'Dunning', actionTab: 'Arrears Actions', noticeTab: 'Dunning Notices',
+    status: 'Status', pending: 'Pending', executed: 'Executed', revoked: 'Revoked',
+    search: 'Search', reset: 'Reset', scan: 'Scan Suggestions', create: 'New Action',
+    actionNo: 'Action No.', contract: 'Contract', person: 'Person', amount: 'Arrears',
+    overdueDays: 'Overdue Days', action: 'Action', scope: 'Freeze Scope', statusCol: 'Status',
+    executeTime: 'Executed At', actions: 'Actions', execute: 'Execute', revoke: 'Revoke',
+    detail: 'Detail', history: 'Dunning Notice History', keyword: 'Keyword',
+    overdueMin: 'Overdue days ≥', scanOverdue: 'Scan Overdue (read-only)',
+    billId: 'Bill ID', method: 'Method', level: 'Level', time: 'Time', remark: 'Remark',
+    scanTitle: 'Scan Suggestions (overdue contracts)', billCount: 'Bills',
+    recommend: 'Freeze Suggested', generate: 'Create Action', close: 'Close',
+    newTitle: 'New Arrears Action', org: 'Organization', contractRequired: 'Contract',
+    personRequired: 'Person', amountRequired: 'Arrears Amount'
+  },
   person: {
     title: 'Eligible Persons', allOrg: 'All Organizations', search: 'Search', reset: 'Reset',
     tabPerson: 'Person Profiles', tabProfile: 'Eligibility Profiles', tabVerify: 'Identity Verification',

@@ -1,11 +1,11 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">催缴管理</h3>
+      <h3 style="margin:0">{{ t('arrears.title') }}</h3>
       <div class="spacer" />
       <el-radio-group v-model="tab" size="small" @change="onTab">
-        <el-radio-button label="action">欠费处置</el-radio-button>
-        <el-radio-button label="notice">催缴通知</el-radio-button>
+        <el-radio-button label="action">{{ t('arrears.actionTab') }}</el-radio-button>
+        <el-radio-button label="notice">{{ t('arrears.noticeTab') }}</el-radio-button>
       </el-radio-group>
     </div>
 
@@ -29,37 +29,37 @@
       <div class="toolbar" style="margin-bottom:10px">
         <ContractSelect v-model="af.contractId" width="240px" testid="contract-select" />
         <PersonPicker v-model="af.personId" width="240px" testid="picker" />
-        <el-select v-model="af.actionType" placeholder="动作类型" clearable style="width:140px">
+        <el-select v-model="af.actionType" :placeholder="t('arrears.action')" clearable style="width:140px">
           <el-option v-for="t in ACTION_TYPES" :key="t.value" :label="t.label" :value="t.value" />
         </el-select>
-        <el-select v-model="af.status" placeholder="状态" clearable style="width:120px">
-          <el-option label="待执行" value="PENDING" />
-          <el-option label="已执行" value="EXECUTED" />
-          <el-option label="已撤销" value="REVOKED" />
+        <el-select v-model="af.status" :placeholder="t('arrears.status')" clearable style="width:120px">
+          <el-option :label="t('arrears.pending')" value="PENDING" />
+          <el-option :label="t('arrears.executed')" value="EXECUTED" />
+          <el-option :label="t('arrears.revoked')" value="REVOKED" />
         </el-select>
-        <el-button type="primary" @click="loadActions">查询</el-button>
-        <el-button @click="resetActionQuery">清空</el-button>
-        <el-button type="warning" @click="openScan">扫描建议</el-button>
-        <el-button type="success" @click="openAction">新建处置</el-button>
+        <el-button type="primary" @click="loadActions">{{ t('arrears.search') }}</el-button>
+        <el-button @click="resetActionQuery">{{ t('arrears.reset') }}</el-button>
+        <el-button type="warning" @click="openScan">{{ t('arrears.scan') }}</el-button>
+        <el-button type="success" @click="openAction">{{ t('arrears.create') }}</el-button>
         <span class="muted">共 {{ actionTotal }} 条</span>
       </div>
 
       <el-table empty-text="暂无欠费记录" :data="actions" v-loading="actionLoading" border size="small">
-        <el-table-column prop="actionNo" label="处置号" width="170" />
-        <el-table-column prop="contractId" label="合同" width="160">
+        <el-table-column prop="actionNo" :label="t('arrears.actionNo')" width="170" />
+        <el-table-column prop="contractId" :label="t('arrears.contract')" width="160">
           <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
         </el-table-column>
-        <el-table-column prop="personId" label="人员" width="150">
+        <el-table-column prop="personId" :label="t('arrears.person')" width="150">
           <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
         </el-table-column>
-        <el-table-column label="欠费" width="110" >
+        <el-table-column :label="t('arrears.amount')" width="110" >
           <template #default="{ row }">{{ $money(row.arrearsAmount) }}</template>
         </el-table-column>
-        <el-table-column prop="overdueDays" label="逾期天数" width="100" />
-        <el-table-column prop="actionType" label="动作" width="120">
+        <el-table-column prop="overdueDays" :label="t('arrears.overdueDays')" width="100" />
+        <el-table-column prop="actionType" :label="t('arrears.action')" width="120">
           <template #default="{ row }">{{ enumLabel('arrearsActionType', row.actionType) }}</template>
         </el-table-column>
-        <el-table-column prop="freezeScope" label="冻结范围" width="150">
+        <el-table-column prop="freezeScope" :label="t('arrears.scope')" width="150">
           <template #default="{ row }">
             <span v-if="row.actionType === 'FREEZE'">
               {{ row.freezeScopeLabel || enumLabel('freezeScope', row.freezeScope) }}
@@ -67,21 +67,21 @@
             <span v-else class="muted">—</span>
           </template>
         </el-table-column>
-        <el-table-column prop="actionStatus" label="状态" width="100">
+        <el-table-column prop="actionStatus" :label="t('arrears.statusCol')" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="statusType(row.actionStatus)">
               {{ enumLabel('arrearsActionStatus', row.actionStatus) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="executeTime" label="执行时间" width="170" />
-        <el-table-column label="操作" width="190" fixed="right">
+        <el-table-column prop="executeTime" :label="t('arrears.executeTime')" width="170" />
+        <el-table-column :label="t('arrears.actions')" width="190" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" :disabled="row.actionStatus !== 'PENDING'"
-                       @click="doExecute(row)">执行</el-button>
+                       @click="doExecute(row)">{{ t('arrears.execute') }}</el-button>
             <el-button link type="danger" :disabled="row.actionStatus === 'REVOKED'"
-                       @click="doRevoke(row)">撤销</el-button>
-            <el-button link @click="openArrearsDetail(row)">详情</el-button>
+                       @click="doRevoke(row)">{{ t('arrears.revoke') }}</el-button>
+            <el-button link @click="openArrearsDetail(row)">{{ t('arrears.detail') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -95,37 +95,37 @@
     <!-- ================= 催缴通知（历史记录，只读 + 登记） ================= -->
     <div v-show="tab === 'notice'">
       <el-alert type="info" :closable="false" show-icon
-                title="历史催缴通知（只读）：自本版起催缴统一走「欠费处置」，通知类动作请选择「通知催缴」"
+                :title="t('arrears.history')"
                 style="margin-bottom:10px" />
       <div class="toolbar" style="margin-bottom:10px">
-        <el-input v-model="keyword" placeholder="关键字" clearable style="width:160px"
+        <el-input v-model="keyword" :placeholder="t('arrears.keyword')" clearable style="width:160px"
                   @keyup.enter="reload" />
-        <el-button type="primary" @click="reload">查询</el-button>
-        <el-button @click="resetQuery">清空</el-button>
-        <el-input v-model.number="overdueDays" placeholder="逾期天数≥" style="width:120px"
+        <el-button type="primary" @click="reload">{{ t('arrears.search') }}</el-button>
+        <el-button @click="resetQuery">{{ t('arrears.reset') }}</el-button>
+        <el-input v-model.number="overdueDays" :placeholder="t('arrears.overdueMin')" style="width:120px"
                   data-testid="arrears-days" />
-        <el-button @click="scan">扫描逾期（只读核对）</el-button>
+        <el-button @click="scan">{{ t('arrears.scanOverdue') }}</el-button>
       </div>
 
       <el-table :data="rows" v-loading="loading" border size="small">
         <el-table-column type="expand">
           <template #default="{ row }"><DetailView :row="row" /></template>
         </el-table-column>
-        <el-table-column prop="billId" label="账单ID" width="150">
+        <el-table-column prop="billId" :label="t('arrears.billId')" width="150">
           <template #default="{ row }">{{ row.billIdName || row.billId }}</template>
         </el-table-column>
-        <el-table-column prop="personId" label="人员" width="120">
+        <el-table-column prop="personId" :label="t('arrears.person')" width="120">
           <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
         </el-table-column>
-        <el-table-column prop="actionType" label="催缴方式" width="120">
+        <el-table-column prop="actionType" :label="t('arrears.method')" width="120">
           <template #default="{ row }">{{ row.actionTypeLabel || enumLabel('actionType', row.actionType) }}</template>
         </el-table-column>
-        <el-table-column prop="triggerType" label="催缴级别" width="120">
+        <el-table-column prop="triggerType" :label="t('arrears.level')" width="120">
           <template #default="{ row }">{{ row.dunningLevelLabel || enumLabel('dunningLevel', row.dunningLevel) }}</template>
         </el-table-column>
-        <el-table-column prop="executeTime" label="时间" width="170" />
-        <el-table-column prop="remark" label="备注" min-width="160" />
-        <el-table-column label="操作" width="90" fixed="right">
+        <el-table-column prop="executeTime" :label="t('arrears.time')" width="170" />
+        <el-table-column prop="remark" :label="t('arrears.remark')" min-width="160" />
+        <el-table-column :label="t('arrears.actions')" width="90" fixed="right">
           <template #default="{ row }">
             <el-button link @click="detail = row; show = true">详情</el-button>
           </template>
@@ -138,23 +138,23 @@
     </div>
 
     <!-- 扫描建议 -->
-    <el-dialog v-model="scanVisible" title="扫描建议（逾期合同）" width="740px">
+    <el-dialog v-model="scanVisible" :title="t('arrears.scanTitle')" width="740px">
       <el-alert type="warning" :closable="false" show-icon
                 title="按逾期天数聚合欠费合同；「建议冻结」= 逾期较久或欠费较多，需确认安全风险后再执行" />
       <el-table :data="suggestions" border size="small" style="margin-top:10px"
                 max-height="360">
-        <el-table-column prop="contractId" label="合同" width="160">
+        <el-table-column prop="contractId" :label="t('arrears.contract')" width="160">
           <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
         </el-table-column>
-        <el-table-column prop="personId" label="人员" width="150">
+        <el-table-column prop="personId" :label="t('arrears.person')" width="150">
           <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
         </el-table-column>
         <el-table-column label="欠费" width="110" >
           <template #default="{ row }">{{ $money(row.arrearsAmount) }}</template>
         </el-table-column>
-        <el-table-column prop="overdueDays" label="逾期天数" width="100" />
-        <el-table-column prop="billCount" label="账单数" width="90" />
-        <el-table-column prop="freezeRecommended" label="建议冻结" width="100">
+        <el-table-column prop="overdueDays" :label="t('arrears.overdueDays')" width="100" />
+        <el-table-column prop="billCount" :label="t('arrears.billCount')" width="90" />
+        <el-table-column prop="freezeRecommended" :label="t('arrears.recommend')" width="100">
           <template #default="{ row }">
             <el-tag v-if="row.freezeRecommended" type="danger" size="small">建议</el-tag>
             <span v-else class="muted">—</span>
@@ -162,34 +162,34 @@
         </el-table-column>
         <el-table-column label="操作" width="120" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="createFromSuggestion(row)">生成处置</el-button>
+            <el-button link type="primary" @click="createFromSuggestion(row)">{{ t('arrears.generate') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
       <template #footer>
-        <el-button @click="scanVisible = false">关闭</el-button>
+        <el-button @click="scanVisible = false">{{ t('arrears.close') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 新建处置 -->
-    <el-dialog v-model="actionVisible" title="新建欠费处置" width="560px">
+    <el-dialog v-model="actionVisible" :title="t('arrears.newTitle')" width="560px">
       <el-form :model="nf" label-width="120px">
-        <el-form-item label="组织">
+        <el-form-item :label="t('arrears.org')">
           <el-select v-model="nf.orgId" filterable clearable style="width:100%"
                      placeholder="按名称搜索组织">
             <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName"
                        :value="String(o.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="合同" required>
+        <el-form-item :label="t('arrears.contractRequired')" required>
           <ContractSelect v-model="nf.contractId" width="100%"
                           @update:model-value="() => fillFromArrears('contract')" />
         </el-form-item>
-        <el-form-item label="人员" required>
+        <el-form-item :label="t('arrears.personRequired')" required>
           <PersonPicker v-model="nf.personId" width="100%"
                         @update:model-value="() => fillFromArrears('person')" />
         </el-form-item>
-        <el-form-item label="欠费金额" required>
+        <el-form-item :label="t('arrears.amountRequired')" required>
           <el-input v-model.number="nf.arrearsAmount" />
         </el-form-item>
         <el-form-item label="逾期天数">
@@ -254,6 +254,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /**
  * 催缴管理：
  *  - 欠费处置（主线）：/fin/arrears 动作可执行（通知/冻结/限制/司法），执行与撤销留痕
@@ -269,6 +270,7 @@ import req from '@/api/request'
 import ContractSelect from '@/components/ContractSelect.vue'
 import LineTrend from '@/components/LineTrend.vue'
 
+const { t } = useI18n()
 const tab = ref('action')
 
 // ---------------- 欠费处置 ----------------
