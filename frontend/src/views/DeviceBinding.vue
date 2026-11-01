@@ -1,12 +1,10 @@
 <template>
   <div>
     <div class="toolbar">
-      <el-input v-model="keyword" placeholder="搜索房源编号 / 名称" clearable
+      <el-input v-model="keyword" :placeholder="t('binding.searchHint')" clearable
                 style="width:240px" @keyup.enter="loadHouses" />
-      <el-button type="primary" @click="loadHouses">搜索房源</el-button>
-      <el-button type="success" plain @click="openBatchBind" data-testid="device-batch-bind">
-        批量绑定
-      </el-button>
+      <el-button type="primary" @click="loadHouses">{{ t('binding.search') }}</el-button>
+      <el-button type="success" plain @click="openBatchBind" data-testid="device-batch-bind">{{ t('binding.batchBind') }}</el-button>
       <span class="muted" style="font-size:12px">
         设备只绑定空间；房源通过「房源 → 空间」定位，床位/房间继承上级设备
       </span>
@@ -21,9 +19,9 @@
           </div>
           <el-table :data="houses" height="520" size="small" highlight-current-row
                     @current-change="pickHouse">
-            <el-table-column prop="houseCode" label="编号" width="140" />
-            <el-table-column prop="houseName" label="名称" min-width="120" />
-            <el-table-column prop="houseStatus" label="状态" width="90">
+            <el-table-column prop="houseCode" :label="t('binding.code')" width="140" />
+            <el-table-column prop="houseName" :label="t('binding.name')" min-width="120" />
+            <el-table-column prop="houseStatus" :label="t('binding.status')" width="90">
               <template #default="{ row }">
                 {{ enumLabel('houseStatus', row.houseStatus) }}
               </template>
@@ -43,38 +41,38 @@
             <div class="spacer" />
             <el-button v-if="current" type="primary" plain size="small"
                        @click="openBind">绑定设备</el-button>
-            <el-button v-if="current" size="small" @click="loadDevices">刷新</el-button>
+            <el-button v-if="current" size="small" @click="loadDevices">{{ t('binding.refresh') }}</el-button>
           </div>
 
           <el-tabs v-model="tab" @tab-change="loadDevices">
-            <el-tab-pane label="本房源设备" name="own" />
-            <el-tab-pane label="继承设备（上级空间）" name="inherit" />
+            <el-tab-pane :label="t('binding.ownTab')" name="own" />
+            <el-tab-pane :label="t('binding.inheritTab')" name="inherit" />
           </el-tabs>
 
           <el-table :data="rows" v-loading="loading" size="small" border max-height="430">
-            <el-table-column prop="deviceName" label="设备名称" min-width="160" />
-            <el-table-column prop="deviceId" label="设备编号" width="170" />
-            <el-table-column prop="deviceType" label="分类" width="110">
+            <el-table-column prop="deviceName" :label="t('binding.deviceName')" min-width="160" />
+            <el-table-column prop="deviceId" :label="t('binding.deviceId')" width="170" />
+            <el-table-column prop="deviceType" :label="t('binding.category')" width="110">
               <template #default="{ row }">{{ typeLabel(row.deviceType) }}</template>
             </el-table-column>
-            <el-table-column prop="spaceId" label="绑定空间" width="150">
+            <el-table-column prop="spaceId" :label="t('binding.space')" width="150">
               <template #default="{ row }">
                 {{ row.spaceName || row.spaceIdName || row.spaceId || '—' }}
               </template>
             </el-table-column>
-            <el-table-column v-if="tab === 'inherit'" prop="scope" label="来源" width="100">
+            <el-table-column v-if="tab === 'inherit'" prop="scope" :label="t('binding.source')" width="100">
               <template #default="{ row }">{{ row.scope || '继承' }}</template>
             </el-table-column>
-            <el-table-column prop="onlineStatus" label="在线" width="80">
+            <el-table-column prop="onlineStatus" :label="t('binding.online')" width="80">
               <template #default="{ row }">
                 <el-tag size="small" :type="row.onlineStatus === 1 ? 'success' : 'info'">
                   {{ row.onlineStatus === 1 ? '在线' : '离线' }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column v-if="tab === 'own'" label="操作" width="90" fixed="right">
+            <el-table-column v-if="tab === 'own'" :label="t('binding.actions')" width="90" fixed="right">
               <template #default="{ row }">
-                <el-button link type="danger" @click="unbind(row)">解绑</el-button>
+                <el-button link type="danger" @click="unbind(row)">{{ t('binding.unbind') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -83,9 +81,9 @@
     </el-row>
 
     <!-- 绑定设备 -->
-    <el-dialog v-model="bindVisible" title="绑定设备到该房源空间" width="680px">
+    <el-dialog v-model="bindVisible" :title="t('binding.bindTitle')" width="680px">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
-                title="只显示尚未绑定空间的设备；绑定后住户可通过继承链获得该设备使用权限" />
+                :title="t('binding.bindHint')" />
       <el-table :data="unbound" v-loading="bindLoading" size="small" border max-height="330"
                 @selection-change="(v) => (picked = v)">
         <el-table-column type="selection" width="46" />
@@ -96,14 +94,14 @@
         </el-table-column>
       </el-table>
       <template #footer>
-        <el-button @click="bindVisible = false">取消</el-button>
+        <el-button @click="bindVisible = false">{{ t('binding.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" :disabled="!picked.length"
                    @click="doBind">绑定选中（{{ picked.length }}）</el-button>
       </template>
     </el-dialog>
 
     <!-- 设备批量绑定：选择 → 校验预览 → 结果 -->
-    <el-dialog v-model="batchVisible" title="设备批量绑定" width="820px" @close="resetBatch">
+    <el-dialog v-model="batchVisible" :title="t('binding.batchTitle')" width="820px" @close="resetBatch">
       <el-steps :active="batchStep" simple style="margin-bottom:14px">
         <el-step title="选择文件" />
         <el-step title="校验预览" />
@@ -168,7 +166,7 @@
       </div>
 
       <template #footer>
-        <el-button @click="batchVisible = false">关闭</el-button>
+        <el-button @click="batchVisible = false">{{ t('binding.close') }}</el-button>
         <el-button v-if="batchStep === 2" @click="batchStep = 1">重新选择</el-button>
         <el-button v-if="batchStep === 2" type="primary" :loading="batchSaving"
                    :disabled="!bindRows.length || !!bindProblems.length" @click="doBatchBind">
@@ -181,6 +179,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /**
  * 空间（房源）与设备对应关系管理。
  *
@@ -192,6 +191,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
 
+const { t } = useI18n()
 const keyword = ref('')
 const houses = ref([])
 const current = ref(null)

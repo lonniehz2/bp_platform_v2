@@ -157,6 +157,26 @@ export default {
     unauthorized: 'Not authorized: contact administrator',
     fullscreen: 'Full-screen display',
   },
+  binding: {
+    searchHint: 'Search housing code / name', search: 'Search Housing', batchBind: 'Batch Bind',
+    code: 'Code', name: 'Name', status: 'Status', refresh: 'Refresh',
+    ownTab: 'Devices in This Housing', inheritTab: 'Inherited Devices (parent spaces)',
+    deviceName: 'Device Name', deviceId: 'Device ID', category: 'Category',
+    space: 'Bound Space', source: 'Source', online: 'Online', actions: 'Actions',
+    unbind: 'Unbind', bindTitle: 'Bind Devices to This Housing',
+    bindHint: 'Only devices without a bound space are shown; residents inherit access through the space chain',
+    cancel: 'Cancel', bind: 'Bind', batchTitle: 'Batch Device Binding', close: 'Close'
+  },
+  access: {
+    search: 'Search', reset: 'Reset', idle: 'Idle Detection', ratio: 'Untrusted Ratio',
+    openTime: 'Opened At', method: 'Method', house: 'Housing', person: 'Person',
+    lock: 'Lock', trusted: 'Trusted', abnormal: 'Abnormal', abnormalType: 'Abnormal Type',
+    trace: 'Trace', view: 'View', traceTitle: 'Behavior Trace', idleTitle: 'Idle Detection',
+    idleHint: 'Consecutive days without door opening beyond threshold indicates suspected vacancy',
+    lastOpen: 'Last Opened', idleDays: 'Consecutive Days', suspectIdle: 'Suspected Idle',
+    remark: 'Description', ratioTitle: 'Untrusted Opening Ratio', total: 'Total Openings',
+    untrusted: 'Untrusted Count', threshold: 'Threshold'
+  },
   device: {
     title: 'Devices', type: 'Device Type', onlineStatus: 'Online Status', online: 'Online',
     offline: 'Offline', search: 'Search', reset: 'Reset', events: 'Device Events',

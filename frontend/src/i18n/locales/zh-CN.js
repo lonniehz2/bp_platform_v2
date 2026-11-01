@@ -158,6 +158,26 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  binding: {
+    searchHint: '搜索房源编号 / 名称', search: '搜索房源', batchBind: '批量绑定',
+    code: '编号', name: '名称', status: '状态', refresh: '刷新',
+    ownTab: '本房源设备', inheritTab: '继承设备（上级空间）',
+    deviceName: '设备名称', deviceId: '设备编号', category: '分类',
+    space: '绑定空间', source: '来源', online: '在线', actions: '操作',
+    unbind: '解绑', bindTitle: '绑定设备到该房源空间',
+    bindHint: '只显示尚未绑定空间的设备；绑定后住户可通过继承链获得该设备使用权限',
+    cancel: '取消', bind: '绑定', batchTitle: '设备批量绑定', close: '关闭'
+  },
+  access: {
+    search: '查询', reset: '清空', idle: '空置判定', ratio: '不可信占比',
+    openTime: '开门时间', method: '方式', house: '房源', person: '人员',
+    lock: '门锁', trusted: '可信', abnormal: '异常', abnormalType: '异常类型',
+    trace: '轨迹', view: '查看', traceTitle: '行为轨迹', idleTitle: '空置判定',
+    idleHint: '连续无开门天数超过阈值即判定疑似空置，可作为「长期空置」违规的客观依据',
+    lastOpen: '最近开门', idleDays: '连续天数', suspectIdle: '疑似空置',
+    remark: '说明', ratioTitle: '不可信开门占比（考核指标）', total: '总开门次数',
+    untrusted: '不可信次数', threshold: '阈值'
+  },
   device: {
     title: '设备管理', type: '设备类型', onlineStatus: '在线状态', online: '在线',
     offline: '离线', search: '查询', reset: '清空', events: '设备事件',
