@@ -10,36 +10,36 @@
       </div>
       <div class="spacer" />
       <span class="who">{{ operatorName }}</span>
-      <el-button text @click="pwdVisible = true">修改密码</el-button>
-      <el-button text @click="logout">退出</el-button>
+      <el-button text @click="pwdVisible = true">{{ t('platform.changePwd') }}</el-button>
+      <el-button text @click="logout">{{ t('platform.logout') }}</el-button>
     </header>
 
     <main class="ops-main">
       <el-tabs v-model="tab">
-        <el-tab-pane label="平台管理" name="platforms">
+        <el-tab-pane :label="t('platform.platformTab')" name="platforms">
           <div class="toolbar">
-            <el-input v-model="query.keyword" placeholder="平台名称/编码" clearable
+            <el-input v-model="query.keyword" :placeholder="t('platform.keyword')" clearable
                       style="width:200px" @keyup.enter="load" />
-            <el-select v-model="query.status" placeholder="状态" clearable style="width:130px">
-              <el-option label="启用" value="ENABLED" />
-              <el-option label="停用" value="DISABLED" />
-              <el-option label="已归档" value="ARCHIVED" />
+            <el-select v-model="query.status" :placeholder="t('platform.status')" clearable style="width:130px">
+              <el-option :label="t('platform.enabled')" value="ENABLED" />
+              <el-option :label="t('platform.disabled')" value="DISABLED" />
+              <el-option :label="t('platform.archived')" value="ARCHIVED" />
             </el-select>
-            <el-button type="primary" @click="load">查询</el-button>
-            <el-button @click="resetQuery">清空</el-button>
+            <el-button type="primary" @click="load">{{ t('platform.search') }}</el-button>
+            <el-button @click="resetQuery">{{ t('platform.reset') }}</el-button>
             <div class="spacer" />
-            <el-button type="success" @click="openCreate">新建平台</el-button>
+            <el-button type="success" @click="openCreate">{{ t('platform.create') }}</el-button>
           </div>
 
           <el-table :data="rows" v-loading="loading" border size="small"
                     empty-text="暂无平台，点击右上角「新建平台」">
-            <el-table-column prop="tenantCode" label="平台编码" width="130" />
-            <el-table-column prop="tenantName" label="平台名称" min-width="180" show-overflow-tooltip />
-            <el-table-column label="类型" width="100">
+            <el-table-column prop="tenantCode" :label="t('platform.code')" width="130" />
+            <el-table-column prop="tenantName" :label="t('platform.name')" min-width="180" show-overflow-tooltip />
+            <el-table-column :label="t('platform.type')" width="100">
               <template #default="{ row }">{{ typeText(row.tenantType) }}</template>
             </el-table-column>
-            <el-table-column prop="regionCode" label="区域" width="100" />
-            <el-table-column label="状态" width="100">
+            <el-table-column prop="regionCode" :label="t('platform.region')" width="100" />
+            <el-table-column :label="t('platform.status')" width="100">
               <template #default="{ row }">
                 <el-tag size="small" :type="row.status === 'ENABLED' ? 'success'
                   : (row.status === 'ARCHIVED' ? 'info' : 'warning')">
@@ -47,11 +47,11 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="adminCount" label="管理员" width="80" align="right" />
-            <el-table-column prop="createTime" label="创建时间" width="160" />
-            <el-table-column label="操作" width="230" fixed="right">
+            <el-table-column prop="adminCount" :label="t('platform.admin')" width="80" align="right" />
+            <el-table-column prop="createTime" :label="t('platform.created')" width="160" />
+            <el-table-column :label="t('platform.actions')" width="230" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" @click="openDetail(row)">详情</el-button>
+                <el-button link type="primary" @click="openDetail(row)">{{ t('platform.detail') }}</el-button>
                 <el-button v-if="row.status === 'ENABLED'" link type="warning"
                            @click="setStatus(row, 'disable')">停用</el-button>
                 <el-button v-if="row.status === 'DISABLED'" link type="success"
@@ -65,16 +65,16 @@
           </el-table>
         </el-tab-pane>
 
-        <el-tab-pane label="运营审计" name="audits">
+        <el-tab-pane :label="t('platform.auditTab')" name="audits">
           <div class="toolbar">
-            <el-button @click="loadAudits">刷新</el-button>
+            <el-button @click="loadAudits">{{ t('platform.refresh') }}</el-button>
           </div>
           <el-table :data="audits" border size="small" empty-text="暂无审计记录">
-            <el-table-column prop="createTime" label="时间" width="170" />
-            <el-table-column prop="operatorName" label="操作人" width="120" />
-            <el-table-column prop="platformCode" label="平台" width="120" />
-            <el-table-column prop="action" label="动作" width="170" />
-            <el-table-column prop="detail" label="详情" min-width="220" show-overflow-tooltip />
+            <el-table-column prop="createTime" :label="t('platform.time')" width="170" />
+            <el-table-column prop="operatorName" :label="t('platform.operator')" width="120" />
+            <el-table-column prop="platformCode" :label="t('platform.platform')" width="120" />
+            <el-table-column prop="action" :label="t('platform.action')" width="170" />
+            <el-table-column prop="detail" :label="t('platform.detailCol')" min-width="220" show-overflow-tooltip />
             <el-table-column prop="ip" label="IP" width="130" />
           </el-table>
         </el-tab-pane>
@@ -82,99 +82,99 @@
     </main>
 
     <!-- 新建平台 -->
-    <el-dialog v-model="createVisible" title="新建平台" width="560px">
+    <el-dialog v-model="createVisible" :title="t('platform.createTitle')" width="560px">
       <el-form :model="createForm" label-width="100px">
-        <el-form-item label="平台名称" required>
-          <el-input v-model="createForm.tenantName" maxlength="100" placeholder="如：XX 市住房保障中心" />
+        <el-form-item :label="t('platform.name')" required>
+          <el-input v-model="createForm.tenantName" maxlength="100" :placeholder="t('platform.name')" />
         </el-form-item>
-        <el-form-item label="行政区划" required>
+        <el-form-item :label="t('platform.regionCode')" required>
           <el-input v-model="createForm.regionCode" maxlength="6"
-                    placeholder="6 位行政区划编码，如 350600" />
+                    :placeholder="t('platform.regionHint')" />
         </el-form-item>
-        <el-form-item label="平台类型">
+        <el-form-item :label="t('platform.platformType')">
           <el-select v-model="createForm.tenantType" style="width:100%">
-            <el-option label="政府" value="GOV" />
-            <el-option label="运营机构" value="ORG" />
-            <el-option label="企业" value="ENTERPRISE" />
+            <el-option :label="t('platform.gov')" value="GOV" />
+            <el-option :label="t('platform.org')" value="ORG" />
+            <el-option :label="t('platform.enterprise')" value="ENTERPRISE" />
           </el-select>
         </el-form-item>
-        <el-form-item label="联系人">
+        <el-form-item :label="t('platform.contact')">
           <el-input v-model="createForm.contactName" />
         </el-form-item>
-        <el-form-item label="联系电话">
+        <el-form-item :label="t('platform.phone')">
           <el-input v-model="createForm.contactPhone" />
         </el-form-item>
         <el-divider content-position="left">平台管理员</el-divider>
-        <el-form-item label="管理员账号" required>
-          <el-input v-model="createForm.adminUsername" placeholder="登录账号，如 admin" />
+        <el-form-item :label="t('platform.adminUsername')" required>
+          <el-input v-model="createForm.adminUsername" :placeholder="t('platform.adminUsernameHint')" />
         </el-form-item>
-        <el-form-item label="管理员姓名">
+        <el-form-item :label="t('platform.adminName')">
           <el-input v-model="createForm.adminRealName" />
         </el-form-item>
         <el-alert type="info" :closable="false" show-icon
                   title="平台编码将按「行政区划 + 3 位序列」自动生成；初始密码仅在创建成功后显示一次。" />
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="createPlatform">创建</el-button>
+        <el-button @click="createVisible = false">{{ t('platform.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="createPlatform">{{ t('platform.createBtn') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 创建结果 / 初始密码 -->
-    <el-dialog v-model="resultVisible" title="初始密码（仅显示一次）" width="460px">
+    <el-dialog v-model="resultVisible" :title="t('platform.passwordTitle')" width="460px">
       <el-alert type="warning" :closable="false" show-icon
                 title="请立即复制并通过安全渠道交给对应人员；关闭后无法再次查看。" />
       <el-descriptions :column="1" border size="small" style="margin-top:12px">
-        <el-descriptions-item label="平台编码">{{ result.code || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="平台名称">{{ result.name || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="管理员账号">{{ result.username }}</el-descriptions-item>
-        <el-descriptions-item label="初始密码">
+        <el-descriptions-item :label="t('platform.code')">{{ result.code || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('platform.name')">{{ result.name || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('platform.adminAccount')">{{ result.username }}</el-descriptions-item>
+        <el-descriptions-item :label="t('platform.initialPwd')">
           <b style="letter-spacing:1px">{{ result.password }}</b>
         </el-descriptions-item>
       </el-descriptions>
       <template #footer>
-        <el-button @click="copyPwd">复制密码</el-button>
-        <el-button type="primary" @click="resultVisible = false">我已保存</el-button>
+        <el-button @click="copyPwd">{{ t('platform.copyPwd') }}</el-button>
+        <el-button type="primary" @click="resultVisible = false">{{ t('platform.saved') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 平台详情 -->
-    <el-drawer v-model="detailVisible" title="平台详情" size="720px">
+    <el-drawer v-model="detailVisible" :title="t('platform.detailTitle')" size="720px">
       <div v-if="current">
         <el-descriptions :column="2" border size="small">
           <el-descriptions-item label="平台编码">{{ current.tenantCode }}</el-descriptions-item>
           <el-descriptions-item label="平台名称">{{ current.tenantName }}</el-descriptions-item>
-          <el-descriptions-item label="类型">{{ typeText(current.tenantType) }}</el-descriptions-item>
-          <el-descriptions-item label="区域">{{ current.regionCode }}</el-descriptions-item>
-          <el-descriptions-item label="状态">{{ statusText(current.status) }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ current.createTime }}</el-descriptions-item>
-          <el-descriptions-item label="联系人">{{ current.contactName || '—' }}</el-descriptions-item>
-          <el-descriptions-item label="联系电话">{{ current.contactPhone || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('platform.type')">{{ typeText(current.tenantType) }}</el-descriptions-item>
+          <el-descriptions-item :label="t('platform.region')">{{ current.regionCode }}</el-descriptions-item>
+          <el-descriptions-item :label="t('platform.status')">{{ statusText(current.status) }}</el-descriptions-item>
+          <el-descriptions-item :label="t('platform.created')">{{ current.createTime }}</el-descriptions-item>
+          <el-descriptions-item :label="t('platform.contact')">{{ current.contactName || '—' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('platform.phone')">{{ current.contactPhone || '—' }}</el-descriptions-item>
         </el-descriptions>
 
         <div class="toolbar" style="margin-top:16px">
           <b>平台管理员</b>
           <div class="spacer" />
-          <el-button type="primary" plain size="small" @click="openAddAdmin">新增管理员</el-button>
+          <el-button type="primary" plain size="small" @click="openAddAdmin">{{ t('platform.addAdmin') }}</el-button>
         </div>
         <el-table :data="admins" border size="small" empty-text="暂无管理员">
-          <el-table-column prop="username" label="账号" width="130" />
-          <el-table-column prop="realName" label="姓名" width="110" />
+          <el-table-column prop="username" :label="t('platform.username')" width="130" />
+          <el-table-column prop="realName" :label="t('platform.realName')" width="110" />
           <el-table-column label="状态" width="90">
             <template #default="{ row }">{{ row.status === 'ENABLED' ? '启用' : '停用' }}</template>
           </el-table-column>
-          <el-table-column label="待改密" width="80">
+          <el-table-column :label="t('platform.pendingPwd')" width="80">
             <template #default="{ row }">{{ row.mustChangePassword ? '是' : '否' }}</template>
           </el-table-column>
-          <el-table-column prop="lastLoginTime" label="最近登录" width="160" />
-          <el-table-column label="操作" width="240" fixed="right">
+          <el-table-column prop="lastLoginTime" :label="t('platform.lastLogin')" width="160" />
+          <el-table-column :label="t('platform.actions')" width="240" fixed="right">
             <template #default="{ row }">
-              <el-button link type="warning" @click="resetPwd(row)">重置密码</el-button>
+              <el-button link type="warning" @click="resetPwd(row)">{{ t('platform.resetPwd') }}</el-button>
               <el-button v-if="row.status === 'ENABLED'" link type="danger"
                          @click="setAdmin(row, 'disable')">停用</el-button>
               <el-button v-else link type="success"
                          @click="setAdmin(row, 'enable')">启用</el-button>
-              <el-button v-if="row.lockedUntil" link @click="unlock(row)">解锁</el-button>
+              <el-button v-if="row.lockedUntil" link @click="unlock(row)">{{ t('platform.unlock') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -182,38 +182,39 @@
     </el-drawer>
 
     <!-- 新增管理员 -->
-    <el-dialog v-model="addAdminVisible" title="新增平台管理员" width="460px">
+    <el-dialog v-model="addAdminVisible" :title="t('platform.addAdminTitle')" width="460px">
       <el-form :model="adminForm" label-width="90px">
-        <el-form-item label="账号" required><el-input v-model="adminForm.username" /></el-form-item>
-        <el-form-item label="姓名"><el-input v-model="adminForm.realName" /></el-form-item>
-        <el-form-item label="手机"><el-input v-model="adminForm.phone" /></el-form-item>
-        <el-form-item label="邮箱"><el-input v-model="adminForm.email" /></el-form-item>
+        <el-form-item :label="t('platform.username')" required><el-input v-model="adminForm.username" /></el-form-item>
+        <el-form-item :label="t('platform.realName')"><el-input v-model="adminForm.realName" /></el-form-item>
+        <el-form-item :label="t('platform.phone')"><el-input v-model="adminForm.phone" /></el-form-item>
+        <el-form-item :label="t('platform.email')"><el-input v-model="adminForm.email" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="addAdminVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="addAdmin">创建</el-button>
+        <el-button @click="addAdminVisible = false">{{ t('platform.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="addAdmin">{{ t('platform.createBtn') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 修改密码 -->
-    <el-dialog v-model="pwdVisible" title="修改运营账号密码" width="440px"
+    <el-dialog v-model="pwdVisible" :title="t('platform.changePwdTitle')" width="440px"
                :close-on-click-modal="false">
       <el-form :model="pwdForm" label-width="90px">
-        <el-form-item label="原密码"><el-input v-model="pwdForm.oldPassword" type="password" show-password /></el-form-item>
-        <el-form-item label="新密码"><el-input v-model="pwdForm.newPassword" type="password" show-password /></el-form-item>
-        <el-form-item label="确认新密码"><el-input v-model="pwdForm.confirm" type="password" show-password /></el-form-item>
+        <el-form-item :label="t('platform.oldPwd')"><el-input v-model="pwdForm.oldPassword" type="password" show-password /></el-form-item>
+        <el-form-item :label="t('platform.newPwd')"><el-input v-model="pwdForm.newPassword" type="password" show-password /></el-form-item>
+        <el-form-item :label="t('platform.confirmPwd')"><el-input v-model="pwdForm.confirm" type="password" show-password /></el-form-item>
       </el-form>
       <el-alert v-if="forcePwd" type="warning" :closable="false" show-icon
                 title="首次登录必须修改密码后才能继续操作。" />
       <template #footer>
-        <el-button v-if="!forcePwd" @click="pwdVisible = false">取消</el-button>
-        <el-button type="primary" @click="changePwd">保存</el-button>
+        <el-button v-if="!forcePwd" @click="pwdVisible = false">{{ t('platform.cancel') }}</el-button>
+        <el-button type="primary" @click="changePwd">{{ t('platform.save') }}</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { reactive, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -221,6 +222,7 @@ import {
   operatorApi, getOperatorToken, getOperatorName, setOperatorToken, setOperatorName
 } from '@/api/operator'
 
+const { t } = useI18n()
 const router = useRouter()
 const operatorName = ref(getOperatorName() || '运营管理员')
 const tab = ref('platforms')
