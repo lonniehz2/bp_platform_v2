@@ -62,13 +62,13 @@
     </div>
 
     <el-dialog v-model="traceVisible" :title="t('access.traceTitle')" width="640px">
-      <el-alert type="info" :closable="false" show-icon :title="trace?.summary || ''" />
+      <el-alert type="info" :closable="false" show-icon :title="traceText" />
       <el-timeline style="margin-top:14px;max-height:420px;overflow:auto">
         <el-timeline-item v-for="t in trace?.timeline || []" :key="t.id"
                           :timestamp="t.openTime" placement="top"
                           :type="t.abnormal ? 'danger' : 'primary'">
-          {{ t.openTypeName }} — 房源 {{ t.houseId }}
-          <span v-if="t.abnormal" class="muted">（{{ t.abnormalType }}）</span>
+          {{ t.openTypeName }} — {{ t('access.housePrefix', { id: t.houseId }) }}
+          <span v-if="t.abnormal" class="muted">({{ t.abnormalType }})</span>
         </el-timeline-item>
       </el-timeline>
     </el-dialog>
@@ -112,7 +112,7 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { enumLabel } from '@/constants/enums'
-import { ref, reactive, onMounted } from 'vue'
+import { computed, ref, reactive, onMounted } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { devApi } from '@/api/modules'
 

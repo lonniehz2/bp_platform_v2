@@ -160,7 +160,7 @@
       </el-form>
       <template #footer>
         <el-button @click="createVisible = false">{{ t('termination.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('termination.submit') }}</el-button>
       </template>
     </el-dialog>
 
@@ -400,47 +400,47 @@ function resetQuery() {
 
 async function doCreate() {
   if (!c.contractId || !c.personId) {
-    ElMessage.warning('合同与人员为必填'); return
+    ElMessage.warning(t('termination.contractPersonRequired')); return
   }
   saving.value = true
   try {
     await terminationApi.create({ ...c })
-    ElMessage.success('退租单已创建')
+    ElMessage.success(t('termination.created'))
     createVisible.value = false; load()
   } finally { saving.value = false }
 }
 
 async function doSubmit(row) {
-  await ElMessageBox.confirm('确认提交该退租申请进入审批？', '提交', { type: 'warning' })
+  await ElMessageBox.confirm(t('termination.submitConfirm'), t('termination.submitTitle'), { type: 'warning' })
   await terminationApi.submit(row.id)
-  ElMessage.success('已提交'); load()
+  ElMessage.success(t('termination.submitted')); load()
 }
 
 async function doReject(row) {
-  const { value } = await ElMessageBox.prompt('驳回原因', '驳回退租申请',
-    { inputValidator: (v) => (v && v.trim() ? true : '请填写驳回原因') })
+  const { value } = await ElMessageBox.prompt(t('termination.rejectPrompt'), t('termination.rejectTitle'),
+    { inputValidator: (v) => (v && v.trim() ? true : t('termination.rejectRequired')) })
   await terminationApi.reject(row.id, value)
-  ElMessage.success('已驳回'); load()
+  ElMessage.success(t('termination.rejected')); load()
 }
 
 async function doCancel(row) {
-  const { value } = await ElMessageBox.prompt('取消原因', '取消退租申请',
-    { inputPlaceholder: '必填', inputValidator: (v) => (v && v.trim() ? true : '请填写取消原因') })
+  const { value } = await ElMessageBox.prompt(t('termination.cancelPrompt'), t('termination.cancelTitle'),
+    { inputPlaceholder: t('termination.required'), inputValidator: (v) => (v && v.trim() ? true : t('termination.cancelRequired')) })
   await terminationApi.cancel(row.id, value)
-  ElMessage.success('已取消'); load()
+  ElMessage.success(t('termination.cancelled')); load()
 }
 
 async function doComplete(row) {
-  const { value } = await ElMessageBox.prompt('实际退房日期（YYYY-MM-DD，可空）', '办结退租单',
+  const { value } = await ElMessageBox.prompt(t('termination.completePrompt'), t('termination.completeTitle'),
     { inputValue: new Date().toISOString().slice(0, 10) })
   await terminationApi.complete(row.id, value || null)
-  ElMessage.success('已办结'); load()
+  ElMessage.success(t('termination.completed')); load()
 }
 
 async function approve(row) {
-  await ElMessageBox.confirm('确认审批通过该退租单？', '审批', { type: 'warning' })
+  await ElMessageBox.confirm(t('termination.approveConfirm'), t('termination.approveTitle'), { type: 'warning' })
   await terminationApi.approve(row.id, {})
-  ElMessage.success('已审批'); load()
+  ElMessage.success(t('termination.approved')); load()
 }
 
 function openInspect(row) { current.value = row; inspectVisible.value = true }

@@ -101,6 +101,8 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
+import { getLocale } from '@/i18n'
+import { humanizeKey } from '@/i18n/labels'
 /**
  * 设备告警与事件。
  *
@@ -129,7 +131,7 @@ const EV_LABEL = {
 }
 const LEVEL_LABEL = { INFO: '信息', WARN: '警告', CRITICAL: '严重' }
 
-function labelOf(code) { return EV_LABEL[code] || code }
+function labelOf(code) { return getLocale() === 'en-US' ? humanizeKey(code) : (EV_LABEL[code] || code) }
 
 /** 事件 body 是 JSON 字符串，这里转成「中文键：值」便于阅读 */
 const BODY_KEY_LABEL = {
@@ -147,16 +149,16 @@ function fmtBody(body) {
     const o = JSON.parse(t)
     if (Array.isArray(o)) return o.map((x) => fmtBody(JSON.stringify(x))).join('；')
     return Object.entries(o).map(([k, v]) => {
-      const key = BODY_KEY_LABEL[k] || k
+      const key = getLocale() === 'en-US' ? humanizeKey(k) : (BODY_KEY_LABEL[k] || k)
       const val = (v !== null && typeof v === 'object')
         ? JSON.stringify(v) : String(v)
-      return key + '：' + val
-    }).join('；')
+      return key + (getLocale() === 'en-US' ? ': ' : '：') + val
+    }).join(getLocale() === 'en-US' ? '; ' : '；')
   } catch (e) {
     return t
   }
 }
-function levelLabel(code) { return LEVEL_LABEL[code] || code }
+function levelLabel(code) { return getLocale() === 'en-US' ? humanizeKey(code) : (LEVEL_LABEL[code] || code) }
 
 const criticalCount = computed(() => {
   const byLevel = stats.value.byLevel || {}

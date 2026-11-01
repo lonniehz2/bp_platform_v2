@@ -23,7 +23,7 @@
         <el-table-column v-for="c in columns" :key="c.key"
                          :prop="c.key" :label="colLabel(c.title)" show-overflow-tooltip />
         <el-table-column v-if="!columns.length" :label="t('report.hint')">
-          <template #default>请选择报表后查询</template>
+          <template #default>{{ t('report.selectReport') }}</template>
         </el-table-column>
       </el-table>
 
@@ -44,7 +44,7 @@
 
     <div class="page-card">
       <div class="toolbar" style="margin-bottom:12px">
-        <h4 style="margin:0">导出任务</h4>
+        <h4 style="margin:0">{{ t('report.exportTasks') }}</h4>
         <div class="spacer" />
         <el-select v-model="taskStatusFilter" :placeholder="t('report.taskStatus')" clearable
                    style="width:120px" @change="applyTaskFilter">
@@ -58,8 +58,8 @@
         </el-button>
       </div>
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
-                title="导出文件保存在服务器 /var/lib/bp-export/ 目录；点「下载」可保存到本机「下载」目录。任务列表为空表示还没有导出记录。" />
-      <el-table :data="filteredTasks" border size="small" empty-text="暂无导出任务，请点右上角「导出」生成">
+                :title="t('report.taskTip')" />
+      <el-table :data="filteredTasks" border size="small" :empty-text="t('report.noTasks')">
         <el-table-column prop="taskNo" :label="t('report.taskNo')" width="160" />
         <el-table-column prop="fileName" :label="t('report.fileName')" min-width="200" />
         <el-table-column prop="rowCount" :label="t('report.rowCount')" width="80" />
@@ -110,7 +110,7 @@
     </el-dialog>
 
     <el-dialog v-model="previewVisible"
-               :title="`导出文件内容（${previewText.length.toLocaleString('zh-CN')} 字符）`"
+               :title="t('report.previewTitle', { n: previewText.length.toLocaleString(getLocale()) })"
                width="820px">
       <pre class="csv-preview">{{ previewText }}</pre>
     </el-dialog>
@@ -280,7 +280,7 @@ async function runPending() {
     ElMessage.success(t('report.runDone', { n }))
     loadTasks()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '补跑失败')
+    ElMessage.error(e?.response?.data?.message || t('report.recoverFailed'))
   } finally { runningPending.value = false }
 }
 </script>

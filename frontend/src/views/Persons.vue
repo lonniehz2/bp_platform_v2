@@ -207,7 +207,7 @@
           <el-col :span="12"><el-form-item :label="t('person.phone')">
             <el-input v-model="pf.phone" data-testid="person-phone"
                       :placeholder="t('person.phoneHint')" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="所属组织">
+          <el-col :span="12"><el-form-item :label="t('person.org')">
             <el-select v-model="pf.orgId" filterable clearable style="width:100%"
                        :placeholder="t('person.orgHint')" data-testid="person-org">
               <el-option v-for="o in orgOptions" :key="o.id"
@@ -586,9 +586,9 @@ const statusTarget = ref(null)
 const statusValue = ref('NORMAL')
 
 const PERSON_STATUS = [
-  { value: 'NORMAL', label: '正常' },
-  { value: 'BLACKLIST', label: '黑名单' },
-  { value: 'CANCELLED', label: '已注销' }
+  { value: 'NORMAL', label: t('person.normal') },
+  { value: 'BLACKLIST', label: t('person.blacklist') },
+  { value: 'CANCELLED', label: t('person.cancelled') }
 ]
 
 function changeStatus(row) {
@@ -600,7 +600,7 @@ function changeStatus(row) {
 async function doChangeStatus() {
   await req.post(`/persons/${statusTarget.value.id}/status`,
     { status: statusValue.value })
-  ElMessage.success('状态已更新')
+  ElMessage.success(t('person.statusUpdated'))
   statusVisible.value = false
   loadPersons()
 }

@@ -10,7 +10,7 @@
       </div>
 
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
-                title="报名即轮候：进入「开始报名」后，同保障类型（同组织）的轮候人员自动参与本批次，无需逐人报名；摇号完成后点「生成配租单」按中签顺序配房。" />
+                :title="t('alloc.tip')" />
       <FilterBar @search="load" @reset="resetQuery">
         <el-select v-model="af.status" :placeholder="t('alloc.status')" clearable style="width:160px"
                    data-testid="alloc-status">
@@ -112,7 +112,7 @@
 
     <el-dialog v-model="resultVisible" :title="t('alloc.resultTitle')" width="700px">
       <el-alert type="info" :closable="false" show-icon
-                title="中签数 = 房源数；中签之后 3 名为递补。相同种子可完全复现，可用于公证复核。" />
+                :title="t('alloc.resultTip')" />
       <el-table :data="results" border size="small" style="margin-top:12px">
         <el-table-column prop="waitingId" :label="t('alloc.waitingId')" width="140">
           <template #default="{ row }">{{ row.waitingId }}</template>
@@ -209,20 +209,20 @@
       <el-table :data="candidateHouses" v-loading="houseLoading" border size="small"
                 max-height="240" @selection-change="(rows) => selectedHouses = rows">
         <el-table-column type="selection" width="45" />
-        <el-table-column prop="houseCode" label="房源编号" width="150" />
-        <el-table-column prop="houseName" label="房源名称" show-overflow-tooltip />
-        <el-table-column prop="area" label="面积(㎡)" width="100" />
-        <el-table-column label="状态" width="100">
+        <el-table-column prop="houseCode" :label="t('alloc.houseCode')" width="150" />
+        <el-table-column prop="houseName" :label="t('alloc.houseName')" show-overflow-tooltip />
+        <el-table-column prop="area" :label="t('alloc.area')" width="100" />
+        <el-table-column :label="t('alloc.status')" width="100">
           <template #default="{ row }">{{ enumLabel('houseStatus', row.houseStatus) || row.houseStatus }}</template>
         </el-table-column>
       </el-table>
 
       <h4 style="margin:14px 0 8px">{{ t('alloc.added', { n: batchHouses.length }) }}</h4>
       <el-table :data="batchHouses" border size="small" max-height="220">
-        <el-table-column prop="houseCode" label="房源编号" width="150" />
-        <el-table-column prop="houseName" label="房源名称" show-overflow-tooltip />
+        <el-table-column prop="houseCode" :label="t('alloc.houseCode')" width="150" />
+        <el-table-column prop="houseName" :label="t('alloc.houseName')" show-overflow-tooltip />
         <el-table-column prop="inPoolStatus" :label="t('alloc.poolStatus')" width="110" />
-        <el-table-column label="操作" width="100">
+        <el-table-column :label="t('alloc.actions')" width="100">
           <template #default="{ row }">
             <el-button link type="danger" :disabled="row.inPoolStatus !== 'AVAILABLE'"
                        @click="removeHouse(row)">{{ t('alloc.remove') }}</el-button>
@@ -231,9 +231,9 @@
       </el-table>
 
       <template #footer>
-        <el-button @click="addHouseVisible = false">关闭</el-button>
+        <el-button @click="addHouseVisible = false">{{ t('alloc.close') }}</el-button>
         <el-button type="primary" :loading="saving" :disabled="!selectedHouses.length"
-                   @click="doAddSelectedHouses">加入所选（{{ selectedHouses.length }}）</el-button>
+                   @click="doAddSelectedHouses">{{ t('alloc.addSelected', { n: selectedHouses.length }) }}</el-button>
       </template>
     </el-dialog>
 </template>
@@ -313,27 +313,26 @@ async function runLottery(row) {
   // 参与人数以批次为准（同组织同类型轮候池），没有再回退全局统计
   const waiting = Number(row.applicantCount || 0) || await waitingCountOf(row.securityType)
   if (!waiting) {
-    ElMessage.warning('当前轮候池中没有该保障类型的待配租人员，无法摇号')
+    ElMessage.warning(t('alloc.noWaiting'))
     return
   }
   if (!houses) {
-    ElMessage.warning('本批次还没有房源，请先「加房源」')
+    ElMessage.warning(t('alloc.noHouses'))
     return
   }
   try {
     await ElMessageBox.confirm(
-      `本次将对 ${waiting} 名轮候人员与 ${houses} 套房源执行摇号（报名即轮候）。\n`
-      + '摇号结果生成后可在「结果」中查看，并用于公示。',
-      '确认摇号',
-      { type: 'warning', confirmButtonText: '开始摇号', cancelButtonText: '取消' })
+      t('alloc.lotteryConfirm', { waiting, houses }),
+      t('alloc.lotteryTitle'),
+      { type: 'warning', confirmButtonText: t('alloc.startLottery'), cancelButtonText: t('alloc.cancel') })
   } catch (e) { return }
   try {
     await req.post('/allocation/lottery', { batchId: row.id, seed: seed.value || undefined })
-    ElMessage.success('摇号完成')
+    ElMessage.success(t('alloc.lotteryDone'))
     load()
     viewResults(row)
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '摇号失败')
+    ElMessage.error(e?.response?.data?.message || t('alloc.lotteryFailed'))
   }
 }
 
@@ -344,11 +343,11 @@ async function viewResults(row) {
 
 async function sign(row) {
   await ElMessageBox.confirm(
-    '签约前系统会校验配租公示是否已完成（≥7 自然日且已结束）。确认继续？',
-    '签约确认', { type: 'warning' })
+    t('alloc.signConfirm'),
+    t('alloc.signTitle'), { type: 'warning' })
   try {
     await allocationApi.sign(row.id, {})
-    ElMessage.success('签约成功')
+    ElMessage.success(t('alloc.signSuccess'))
     load()
   } catch (e) {
     // 拦截器已提示（常见：公示未结束）
@@ -418,8 +417,8 @@ async function openBatchCreate() {
 }
 
 async function doCreateBatch() {
-  if (!bf.batchName) { ElMessage.warning('请填写批次名称'); return }
-  if (!bf.orgId) { ElMessage.warning('请选择项目组织'); return }
+  if (!bf.batchName) { ElMessage.warning(t('alloc.batchNameRequired')); return }
+  if (!bf.orgId) { ElMessage.warning(t('alloc.orgRequired')); return }
   const ids = (bf.houseIds || []).map(String)
   saving.value = true
   try {
@@ -434,11 +433,11 @@ async function doCreateBatch() {
       houseIds: ids.length ? ids : null,
       notaryInfo: bf.notaryInfo || null
     })
-    ElMessage.success('批次已创建')
+    ElMessage.success(t('alloc.batchCreated'))
     batchCreateVisible.value = false
     load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || e?.message || '创建失败')
+    ElMessage.error(e?.response?.data?.message || e?.message || t('alloc.createFailed'))
   } finally { saving.value = false }
 }
 
@@ -482,31 +481,31 @@ async function loadBatchHouses() {
 /** 加入所选房源 */
 async function doAddSelectedHouses() {
   const ids = selectedHouses.value.map((h) => String(h.id))
-  if (!ids.length) { ElMessage.warning('请先勾选房源'); return }
+  if (!ids.length) { ElMessage.warning(t('alloc.selectHouses')); return }
   saving.value = true
   try {
     const n = await req.post('/allocation/batches/' + addHouseBatch.value.id + '/houses', { houseIds: ids })
-    ElMessage.success('已加入 ' + (n == null ? ids.length : n) + ' 套')
+    ElMessage.success(t('alloc.addedCount', { n: n == null ? ids.length : n }))
     selectedHouses.value = []
     await loadBatchHouses(); await loadCandidateHouses(); load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '加入失败')
+    ElMessage.error(e?.response?.data?.message || t('alloc.addFailed'))
   } finally { saving.value = false }
 }
 
 /** 移除已加入房源 */
 async function removeHouse(row) {
   try {
-    await ElMessageBox.confirm('确认从本批次移除房源 ' + (row.houseCode || row.houseId) + '？', '移除房源',
+    await ElMessageBox.confirm(t('alloc.removeConfirm', { code: row.houseCode || row.houseId }), t('alloc.removeTitle'),
       { type: 'warning' })
   } catch (e) { return }
   try {
     const n = await req.post('/allocation/batches/' + addHouseBatch.value.id + '/houses/remove',
       { houseIds: [String(row.houseId)] })
-    ElMessage.success('已移除 ' + (n || 0) + ' 套')
+    ElMessage.success(t('alloc.removed', { n: n || 0 }))
     await loadBatchHouses(); await loadCandidateHouses(); load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '移除失败')
+    ElMessage.error(e?.response?.data?.message || t('alloc.removeFailed'))
   }
 }
 
@@ -525,26 +524,26 @@ async function doAddHouses() {
 
 /** 批次状态流转：发布 → 报名 → 摇号 */
 const TRANSITION_TIP = {
-  PUBLISHED: '发布后批次对外可见，可进入报名阶段',
-  SIGNUP: '开始报名后，本批次按「报名即轮候」处理：该保障类型的轮候人员自动参与本批次摇号',
-  LOTTERY: '结束报名并转入摇号，之后不可再报名；摇号对象为当前轮候池',
-  CANCELLED: '取消后批次作废，已入池房源释放'
+  PUBLISHED: t('alloc.transPublish'),
+  SIGNUP: t('alloc.transSignup'),
+  LOTTERY: t('alloc.transLottery'),
+  CANCELLED: t('alloc.transCancel')
 }
 
 /** 摇号完成 → 按中签顺序生成配租单 */
 async function genAllocations(row) {
   try {
     await ElMessageBox.confirm(
-      '将按中签顺序把本批次可用房源配给中签人，生成「待签约」配租单。确认？',
-      '生成配租单', { type: 'warning' })
+      t('alloc.genConfirm'),
+      t('alloc.genTitle'), { type: 'warning' })
   } catch (e) { return }
   try {
     const r = await req.post('/allocation/batches/' + row.id + '/generate-allocations')
-    ElMessage.success(r?.message || ('本次生成 ' + (r?.generated || 0) + ' 张配租单'))
+    ElMessage.success(r?.message || t('alloc.genDone', { n: r?.generated || 0 }))
     currentBatch.value = row
     await loadAllocations(); load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '生成失败')
+    ElMessage.error(e?.response?.data?.message || t('alloc.genFailed'))
   }
 }
 
@@ -570,7 +569,7 @@ async function doTransition(row, target) {
   } catch (e) { return }
   try {
     await req.post(`/allocation/batches/${row.id}/status`, { batchStatus: target })
-    ElMessage.success('状态已更新')
+    ElMessage.success(t('alloc.statusUpdated'))
     load()
   } catch (e) {
     ElMessage.error(e?.response?.data?.message || '状态变更失败')

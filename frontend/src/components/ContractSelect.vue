@@ -8,7 +8,7 @@
     reserve-keyword
     :remote-method="search"
     :loading="loading"
-    :placeholder="placeholder"
+    :placeholder="placeholderText"
     :style="{ width: width }"
     :data-testid="testid"
     @update:model-value="(v) => emit('update:modelValue', v)"
@@ -20,16 +20,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import req from '@/api/request'
 
-defineProps({
+const { t } = useI18n()
+
+const props = defineProps({
   modelValue: { type: [String, Number], default: '' },
-  placeholder: { type: String, default: '输入合同号/承租人搜索' },
+  placeholder: { type: String, default: '' },
   width: { type: String, default: '100%' },
   testid: { type: String, default: 'contract-select' }
 })
 const emit = defineEmits(['update:modelValue'])
+const placeholderText = computed(() => props.placeholder || t('contract.searchHint'))
 const options = ref([])
 const loading = ref(false)
 

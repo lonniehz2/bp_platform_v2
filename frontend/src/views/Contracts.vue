@@ -593,7 +593,7 @@ async function doTerminate() {
 }
 
 async function cancel(row) {
-  const { value } = await ElMessageBox.prompt('请输入取消原因', '取消合同')
+  const { value } = await ElMessageBox.prompt(t('contract.cancelPrompt'), t('contract.cancelTitle'))
   await contractApi.cancel(row.id, value)
   ElMessage.success(t('msg.cancelled')); load()
 }

@@ -469,7 +469,7 @@
     </el-dialog>
 
     <!-- 减免 WaiveCmd -->
-    <el-dialog v-model="waiveVisible" title="账单减免" width="460px">
+    <el-dialog v-model="waiveVisible" :title="t('bill.waiveTitle')" width="460px">
       <el-form :model="w" label-width="110px">
         <el-form-item :label="labelOf('billNo')">
           <el-input :model-value="current?.billNo" disabled /></el-form-item>
@@ -1055,7 +1055,7 @@ async function doWaive() {
 }
 
 async function cancelBill(row) {
-  const { value } = await ElMessageBox.prompt('请输入取消原因', '取消账单')
+  const { value } = await ElMessageBox.prompt(t('bill.cancelPrompt'), t('bill.cancelTitle'))
   await financeApi.cancelBill(row.id, value)
   ElMessage.success(t('msg.billCancelled')); load()
 }
