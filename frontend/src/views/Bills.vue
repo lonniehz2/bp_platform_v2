@@ -683,7 +683,7 @@ async function loadReadings() {
 
 async function doMeterRecord() {
   if (!mf.houseId || !mf.feeItemId || mf.reading === '' || mf.reading === null) {
-    ElMessage.warning('请选择房源、收费项目并填写读数'); return
+    ElMessage.warning(t('msg.meterRequired')); return
   }
   saving.value = true
   try {
@@ -691,10 +691,10 @@ async function doMeterRecord() {
       houseId: mf.houseId, feeItemId: mf.feeItemId,
       reading: Number(mf.reading), readDate: mf.readDate || undefined
     })
-    ElMessage.success(`已录入：用量 ${r?.usageAmount ?? '-'}，金额 ${r?.amount ?? '-'}`)
+    ElMessage.success(t('msg.meterSaved', { usage: r?.usageAmount ?? '-', amount: r?.amount ?? '-' }))
     await loadReadings()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '录入失败')
+    ElMessage.error(e?.response?.data?.message || t('msg.saveFailed'))
   } finally { saving.value = false }
 }
 
@@ -702,11 +702,11 @@ async function doMeterBill(row) {
   saving.value = true
   try {
     const b = await req.post(`/fin/meter-readings/${row.id}/bill`, {})
-    ElMessage.success(`已出账：${b?.billNo || ''}，应收 ${b?.payableAmount ?? ''}`)
+    ElMessage.success(t('msg.billGenerated', { no: b?.billNo || '', amount: b?.payableAmount ?? '' }))
     await loadReadings()
     load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '出账失败')
+    ElMessage.error(e?.response?.data?.message || t('msg.billFailed'))
   } finally { saving.value = false }
 }
 const rows = ref([])
@@ -835,10 +835,10 @@ async function openShared() {
 
 async function doShared() {
   if (!sf.orgId || !sf.feeItemId || !sf.totalAmount) {
-    ElMessage.warning('请填写组织、收费项目与总金额'); return
+    ElMessage.warning(t('msg.orgItemAmount')); return
   }
   if (!sf.periodStart || !sf.periodEnd || !sf.billPeriod) {
-    ElMessage.warning('请填写费用起止与账期'); return
+    ElMessage.warning(t('msg.periodRequired')); return
   }
   saving.value = true
   try {
@@ -847,11 +847,11 @@ async function doShared() {
       allocateBy: sf.allocateBy, periodStart: sf.periodStart, periodEnd: sf.periodEnd,
       billPeriod: sf.billPeriod, dueDate: sf.dueDate || undefined
     })
-    ElMessage.success(`已生成 ${r?.created || 0} 张分摊账单（跳过 ${r?.skipped || 0} 户无在租合同）`)
+    ElMessage.success(t('msg.allocationDone', { created: r?.created || 0, skipped: r?.skipped || 0 }))
     sharedVisible.value = false
     load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '分摊失败')
+    ElMessage.error(e?.response?.data?.message || t('msg.allocationFailed'))
   } finally { saving.value = false }
 }
 
@@ -949,11 +949,11 @@ function onUseBillChange(id) {
 }
 
 async function confirmUse() {
-  if (!useBillId.value) { ElMessage.warning('请选择目标账单'); return }
+  if (!useBillId.value) { ElMessage.warning(t('msg.selectBill')); return }
   saving.value = true
   try {
     await financeApi.allocate(usePaymentRow.value.id, useBillId.value, useAmount.value)
-    ElMessage.success('核销成功')
+    ElMessage.success(t('msg.verified'))
     useVisible.value = false
     load()
     loadPayments()
@@ -980,11 +980,11 @@ async function load() {
 function reload() { q.pageNum = 1; load() }
 
 async function doGenerate() {
-  if (!g.feeItemId) { ElMessage.warning('请选择收费项目'); return }
-  if (!g.periodStart || !g.periodEnd) { ElMessage.warning('请选择费用起止日'); return }
-  if (g.periodEnd <= g.periodStart) { ElMessage.warning('费用截止日必须晚于起始日'); return }
+  if (!g.feeItemId) { ElMessage.warning(t('msg.selectFeeItem')); return }
+  if (!g.periodStart || !g.periodEnd) { ElMessage.warning(t('msg.feeDates')); return }
+  if (g.periodEnd <= g.periodStart) { ElMessage.warning(t('msg.endAfterStart')); return }
   if (g.ruleMode === 'MANUAL' && !g.ruleId) {
-    ElMessage.warning('请选择指定的计费规则'); return
+    ElMessage.warning(t('msg.selectRule')); return
   }
   if (!g.dryRun) {
     await ElMessageBox.confirm(
@@ -1012,12 +1012,12 @@ function openPay() {
   payVisible.value = true
 }
 async function doPay() {
-  if (!p.payAmount || p.payAmount <= 0) { ElMessage.warning('收款金额必须大于 0'); return }
+  if (!p.payAmount || p.payAmount <= 0) { ElMessage.warning(t('msg.payPositive')); return }
   saving.value = true
   try {
     const created = await financeApi.createPayment({ ...p })
     const no = created && (created.paymentNo || created.id)
-    ElMessage.success('收款已登记' + (no ? ('：' + no + '（可在「收款单」查看）') : ''))
+    ElMessage.success(t('msg.paymentSaved', { no: no || '' }))
     payVisible.value = false
     loadPayments()
   } finally { saving.value = false }
@@ -1029,11 +1029,11 @@ function openAllocate(row) {
   allocVisible.value = true
 }
 async function doAllocate() {
-  if (!a.paymentId) { ElMessage.warning('请填写收款单ID'); return }
+  if (!a.paymentId) { ElMessage.warning(t('msg.paymentIdRequired')); return }
   saving.value = true
   try {
     await financeApi.allocate(a.paymentId, current.value.id, a.amount)
-    ElMessage.success('核销成功')
+    ElMessage.success(t('msg.verified'))
     allocVisible.value = false; load()
   } finally { saving.value = false }
 }
@@ -1043,11 +1043,11 @@ function openWaive(row) {
   waiveVisible.value = true
 }
 async function doWaive() {
-  if (!w.reason) { ElMessage.warning('请填写减免原因'); return }
+  if (!w.reason) { ElMessage.warning(t('msg.reductionReason')); return }
   saving.value = true
   try {
     await financeApi.waive(current.value.id, { ...w })
-    ElMessage.success('减免成功')
+    ElMessage.success(t('msg.reductionDone'))
     waiveVisible.value = false; load()
   } finally { saving.value = false }
 }
@@ -1055,7 +1055,7 @@ async function doWaive() {
 async function cancelBill(row) {
   const { value } = await ElMessageBox.prompt('请输入取消原因', '取消账单')
   await financeApi.cancelBill(row.id, value)
-  ElMessage.success('账单已取消'); load()
+  ElMessage.success(t('msg.billCancelled')); load()
 }
 
 async function dunning(row) {
@@ -1063,7 +1063,7 @@ async function dunning(row) {
     billId: row.id, personId: row.personId || undefined,
     dunningType: 'NOTICE', dunningContent: '账单 ' + (row.billNo || '') + ' 催缴'
   })
-  ElMessage.success('已生成催缴记录（可在催缴管理查看）')
+  ElMessage.success(t('msg.dunningCreated'))
   load()
 }
 
@@ -1074,7 +1074,7 @@ async function recalcBills() {
   try {
     const pre = await req.post('/fin/bills/recalculate', { dryRun: true })
     if (!pre.changed) {
-      ElMessage.info('没有需要重算的未缴自动账单（扫描 ' + pre.scanned + ' 张）')
+      ElMessage.info(t('msg.noRecalc', { scanned: pre.scanned }))
       return
     }
     await ElMessageBox.confirm(
@@ -1083,15 +1083,16 @@ async function recalcBills() {
         + '。将按「逐月天数折算」改写应收/待缴金额（已收/已缴不动）。是否继续？',
       '确认重算历史账单', { type: 'warning' })
     const r = await req.post('/fin/bills/recalculate', { dryRun: false })
-    ElMessage.success('重算完成：扫描 ' + r.scanned + '，变更 ' + r.changed
-      + '，合计 ' + r.oldTotal + ' → ' + r.newTotal)
+    ElMessage.success(t('msg.recalcDone', {
+      scanned: r.scanned, changed: r.changed, old: r.oldTotal, new: r.newTotal
+    }))
     load()
   } finally { saving.value = false }
 }
 
 async function batchDunning() {
   const picked = selected.value
-  if (!picked.length) { ElMessage.warning('请先勾选账单'); return }
+  if (!picked.length) { ElMessage.warning(t('msg.selectBills')); return }
   await ElMessageBox.confirm('将向已选 ' + picked.length + ' 张账单发起催缴，是否继续？',
     '确认批量催缴', { type: 'warning' })
   let ok = 0
@@ -1104,13 +1105,13 @@ async function batchDunning() {
       ok++
     } catch (e) { /* 忽略单条失败 */ }
   }
-  ElMessage.success('批量催缴完成：' + ok + ' 张')
+  ElMessage.success(t('msg.batchDunning', { count: ok }))
   load()
 }
 
 async function scanOverdue() {
   await financeApi.scanOverdue()
-  ElMessage.success('逾期扫描完成'); load()
+  ElMessage.success(t('msg.overdueScanned')); load()
 }
 
 function explainLabel(label) {
@@ -1181,7 +1182,7 @@ async function loadEnergy() {
     energyBuildings.value = (r && r.byBuilding) || []
     energyTop.value = (r && r.topHouses) || []
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '加载能耗数据失败')
+    ElMessage.error(e?.response?.data?.message || t('msg.energyLoadFailed'))
   }
 }
 

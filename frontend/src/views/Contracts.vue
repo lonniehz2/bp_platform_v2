@@ -526,12 +526,12 @@ async function doCreate() {
   if (c.rentPrice == null) missing.push('租金单价')
   if (c.monthlyRent == null) missing.push('月租金')
   if (missing.length) {
-    ElMessage.warning('请填写必填项：' + missing.join('、')); return
+    ElMessage.warning(t('msg.requiredFields', { fields: missing.join(', ') })); return
   }
   saving.value = true
   try {
     await contractApi.create({ ...c })
-    ElMessage.success('合同已创建')
+    ElMessage.success(t('msg.contractCreated'))
     createVisible.value = false; load()
   } catch (e) { /* 拦截器已提示 */ } finally { saving.value = false }
 }
@@ -542,7 +542,7 @@ async function doSubmitSign(row) {
   saving.value = true
   try {
     await contractApi.submitSign(row.id)
-    ElMessage.success('已提交待签')
+    ElMessage.success(t('msg.submitted'))
     load()
   } catch (e) { /* 拦截器已提示 */ } finally { saving.value = false }
 }
@@ -551,7 +551,7 @@ async function doStartSigning(row) {
   saving.value = true
   try {
     await contractApi.startSigning(row.id, { signVendor: 'OFFLINE' })
-    ElMessage.success('已进入签约中')
+    ElMessage.success(t('msg.signing'))
     load()
   } catch (e) { /* 拦截器已提示 */ } finally { saving.value = false }
 }
@@ -560,7 +560,7 @@ async function doSign() {
   saving.value = true
   try {
     await contractApi.sign(current.value.id, { ...sg })
-    ElMessage.success('签约成功')
+    ElMessage.success(t('msg.signed'))
     signVisible.value = false; load()
   } finally { saving.value = false }
 }
@@ -574,7 +574,7 @@ async function doRenew() {
   saving.value = true
   try {
     await contractApi.renew(current.value.id, { ...rn })
-    ElMessage.success('续签成功')
+    ElMessage.success(t('msg.renewed'))
     renewVisible.value = false; load()
   } finally { saving.value = false }
 }
@@ -583,11 +583,11 @@ function openTerminate(row) {
   current.value = row; tm.reason = ''; termVisible.value = true
 }
 async function doTerminate() {
-  if (!tm.reason) { ElMessage.warning('请填写终止原因'); return }
+  if (!tm.reason) { ElMessage.warning(t('msg.terminateReason')); return }
   saving.value = true
   try {
     await contractApi.terminate(current.value.id, { ...tm })
-    ElMessage.success('合同已终止')
+    ElMessage.success(t('msg.terminated'))
     termVisible.value = false; load()
   } finally { saving.value = false }
 }
@@ -595,12 +595,12 @@ async function doTerminate() {
 async function cancel(row) {
   const { value } = await ElMessageBox.prompt('请输入取消原因', '取消合同')
   await contractApi.cancel(row.id, value)
-  ElMessage.success('已取消'); load()
+  ElMessage.success(t('msg.cancelled')); load()
 }
 
 async function expireDue() {
   const r = await contractApi.expireDue()
-  ElMessage.success('到期处理完成：' + (r?.count ?? r ?? '已执行'))
+  ElMessage.success(t('msg.expiryDone', { count: r?.count ?? r ?? '' }))
   load()
 }
 
@@ -678,7 +678,7 @@ async function saveContractEdit() {
   saving.value = true
   try {
     await req.put(`/contracts/${editingId.value}`, { ...ef })
-    ElMessage.success('合同条款已更新')
+    ElMessage.success(t('msg.termsUpdated'))
     editVisible.value = false
     load()
   } finally { saving.value = false }
@@ -702,7 +702,7 @@ function openChangeDlg(row) {
 }
 
 async function doChange() {
-  if (!chg.contractId) { ElMessage.warning('缺少合同'); return }
+  if (!chg.contractId) { ElMessage.warning(t('msg.missingContract')); return }
   saving.value = true
   try {
     await req.post('/contracts/' + chg.contractId + '/changes', {
@@ -711,10 +711,10 @@ async function doChange() {
       newLeaseEnd: chg.newLeaseEnd || undefined,
       effectiveDate: chg.effectiveDate || undefined
     })
-    ElMessage.success('变更申请已提交，等待审批')
+    ElMessage.success(t('msg.changeSubmitted'))
     chgVisible.value = false
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '提交失败')
+    ElMessage.error(e?.response?.data?.message || t('msg.submitFailed'))
   } finally { saving.value = false }
 }
 
@@ -737,16 +737,16 @@ function openSwap(row) {
 }
 
 async function doSwap() {
-  if (!sw.targetHouseId) { ElMessage.warning('请选择目标房源'); return }
+  if (!sw.targetHouseId) { ElMessage.warning(t('msg.targetHouse')); return }
   saving.value = true
   try {
     await req.post('/contracts/' + sw.contractId + '/swap-bed',
       { targetHouseId: sw.targetHouseId, reason: sw.reason || undefined })
-    ElMessage.success('已换房')
+    ElMessage.success(t('msg.houseSwitched'))
     swapVisible.value = false
     load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '换房失败')
+    ElMessage.error(e?.response?.data?.message || t('msg.switchFailed'))
   } finally { saving.value = false }
 }
 
@@ -771,14 +771,14 @@ async function searchVacantHouse(kw) {
 }
 
 async function doQuickSign() {
-  if (!qf.personId) { ElMessage.warning('请选择承租人'); return }
-  if (!qf.houseId) { ElMessage.warning('请选择房源'); return }
-  if (!qf.leaseStart || !qf.leaseEnd) { ElMessage.warning('请填写起止租期'); return }
-  if (!qf.monthlyRent) { ElMessage.warning('请填写月租'); return }
+  if (!qf.personId) { ElMessage.warning(t('msg.selectLessee')); return }
+  if (!qf.houseId) { ElMessage.warning(t('msg.selectHouse')); return }
+  if (!qf.leaseStart || !qf.leaseEnd) { ElMessage.warning(t('msg.leaseDates')); return }
+  if (!qf.monthlyRent) { ElMessage.warning(t('msg.monthlyRent')); return }
   saving.value = true
   try {
     const c = await req.post('/contracts/quick-sign', { ...qf })
-    ElMessage.success(`已生成合同 ${c?.contractNo || ''}（草稿）`)
+    ElMessage.success(t('msg.contractGenerated', { no: c?.contractNo || '' }))
     quickSignVisible.value = false
     load()
   } finally { saving.value = false }
