@@ -1,20 +1,20 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">空间层级</h3>
+      <h3 style="margin:0">{{ t('space.title') }}</h3>
       <el-tag size="small" type="info">
         小区 → 楼栋 → 单元 → 楼层 → 房 → 床
       </el-tag>
       <div class="spacer" />
-      <el-select v-model="orgId" placeholder="选择组织（自动加载）"
+      <el-select v-model="orgId" :placeholder="t('space.orgHint')"
                  filterable style="width:230px" @change="load">
         <el-option v-for="o in orgs" :key="o.id" :label="o.orgName" :value="o.id" />
       </el-select>
-      <el-button type="primary" @click="load">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button @click="toggleExpand">{{ expandAll ? '全部收起' : '全部展开' }}</el-button>
-      <el-button @click="load">刷新</el-button>
-      <el-button type="success" @click="openCreate">新增空间</el-button>
+      <el-button type="primary" @click="load">{{ t('space.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('space.reset') }}</el-button>
+      <el-button @click="toggleExpand">{{ expandAll ? t('space.collapse') : t('space.expand') }}</el-button>
+      <el-button @click="load">{{ t('space.refresh') }}</el-button>
+      <el-button type="success" @click="openCreate">{{ t('space.create') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon
@@ -39,41 +39,41 @@
       </el-col>
       <el-col :span="15">
         <el-descriptions v-if="current" :column="2" border size="small"
-                         title="空间详情">
-          <el-descriptions-item label="ID">{{ current.id }}</el-descriptions-item>
-          <el-descriptions-item label="名称">{{ current.spaceName }}</el-descriptions-item>
-          <el-descriptions-item label="编码">{{ current.spaceCode }}</el-descriptions-item>
-          <el-descriptions-item label="类型">{{ current.spaceTypeLabel || current.spaceType }}</el-descriptions-item>
-          <el-descriptions-item label="路径编码">{{ current.pathCode }}</el-descriptions-item>
-          <el-descriptions-item label="层级">{{ current.spaceLevel }}</el-descriptions-item>
-          <el-descriptions-item label="面积">{{ current.area || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="状态">{{ current.status }}</el-descriptions-item>
+                         :title="t('space.detail')">
+          <el-descriptions-item :label="t('space.id')">{{ current.id }}</el-descriptions-item>
+          <el-descriptions-item :label="t('space.name')">{{ current.spaceName }}</el-descriptions-item>
+          <el-descriptions-item :label="t('space.code')">{{ current.spaceCode }}</el-descriptions-item>
+          <el-descriptions-item :label="t('space.type')">{{ current.spaceTypeLabel || current.spaceType }}</el-descriptions-item>
+          <el-descriptions-item :label="t('space.path')">{{ current.pathCode }}</el-descriptions-item>
+          <el-descriptions-item :label="t('space.level')">{{ current.spaceLevel }}</el-descriptions-item>
+          <el-descriptions-item :label="t('space.area')">{{ current.area || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('space.status')">{{ current.status }}</el-descriptions-item>
         </el-descriptions>
         <el-empty v-else description="点击左侧节点查看详情" :image-size="60" />
         <div v-if="current" class="toolbar" style="margin:8px 0 12px">
-          <el-button type="primary" plain @click="openEdit(current)">编辑</el-button>
-          <el-button type="danger" plain @click="removeSpace">删除</el-button>
-          <el-button plain @click="openCreateChild">在此节点下新增</el-button>
+          <el-button type="primary" plain @click="openEdit(current)">{{ t('space.edit') }}</el-button>
+          <el-button type="danger" plain @click="removeSpace">{{ t('space.delete') }}</el-button>
+          <el-button plain @click="openCreateChild">{{ t('space.addChild') }}</el-button>
         </div>
         <DetailView :row="detail || current || row || {}" />
       </el-col>
     </el-row>
 
-    <el-dialog v-model="createVisible" title="新增空间节点" width="560px">
+    <el-dialog v-model="createVisible" :title="t('space.createTitle')" width="560px">
       <el-form :model="f" label-width="120px">
-        <el-form-item label="所属组织" required>
+        <el-form-item :label="t('space.org')" required>
           <el-select v-model="f.orgId" filterable placeholder="选择组织（小区）"
                      style="width:100%" @change="onOrgChange">
             <el-option v-for="o in orgs" :key="o.id" :label="o.orgName" :value="o.id" />
           </el-select></el-form-item>
-        <el-form-item label="上级节点">
+        <el-form-item :label="t('space.parent')">
           <el-tree-select v-model="f.parentId" :data="tree" check-strictly clearable
                           filterable :render-after-expand="false"
                           :props="{ label: 'spaceName', value: 'id', children: 'children' }"
-                          placeholder="留空=顶级（只能是楼栋/片区）" style="width:100%"
+                          :placeholder="t('space.parentHint')" style="width:100%"
                           @change="onParentChange" />
         </el-form-item>
-        <el-form-item label="空间编码" required
+        <el-form-item :label="t('space.codeLabel')" required
                       :error="codeDupMsg ? codeDupMsg : ''">
           <el-input v-model="f.spaceCode" placeholder="只需补当前层级编码"
                     @blur="checkCodeDup" @input="codeDupMsg = ''" />
@@ -157,12 +157,14 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import DetailView from '@/components/DetailView.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { spaceApi, orgApi } from '@/api/modules'
 import { enumLabel } from '@/constants/enums'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+const { t } = useI18n()
 const tree = ref([])
 const current = ref(null)
 const orgId = ref(null)

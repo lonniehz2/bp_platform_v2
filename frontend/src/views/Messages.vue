@@ -2,41 +2,41 @@
   <div>
     <div class="page-card">
       <div class="toolbar">
-        <h3 style="margin:0">消息与待办</h3>
+        <h3 style="margin:0">{{ t('message.title') }}</h3>
         <el-tag type="danger" size="small" v-if="unread > 0">未读 {{ unread }}</el-tag>
         <div class="spacer" />
-        <el-select v-model="query.status" placeholder="状态" clearable
+        <el-select v-model="query.status" :placeholder="t('message.status')" clearable
                    style="width:130px" @change="load">
-          <el-option label="未读" value="PENDING" />
-          <el-option label="已读" value="READ" />
-          <el-option label="已办" value="DONE" />
+          <el-option :label="t('message.unread')" value="PENDING" />
+          <el-option :label="t('message.read')" value="READ" />
+          <el-option :label="t('message.done')" value="DONE" />
         </el-select>
         <el-switch v-model="onlyMine" active-text="只看我的" inline-prompt
                    data-testid="msg-only-mine" @change="load" />
-        <el-button type="primary" @click="load">刷新</el-button>
+        <el-button type="primary" @click="load">{{ t('message.refresh') }}</el-button>
       </div>
 
       <el-table :data="rows" v-loading="loading" border size="small">
-        <el-table-column prop="title" label="标题" min-width="220" />
-        <el-table-column prop="content" label="内容" min-width="260"
+        <el-table-column prop="title" :label="t('message.titleCol')" min-width="220" />
+        <el-table-column prop="content" :label="t('message.content')" min-width="260"
                          show-overflow-tooltip />
-        <el-table-column prop="todoType" label="类型" width="110">
+        <el-table-column prop="todoType" :label="t('message.type')" width="110">
           <template #default="{ row }">{{ row.todoTypeLabel || enumLabel('todoType', row.todoType) }}</template>
         </el-table-column>
-        <el-table-column prop="priority" label="优先级" width="100">
+        <el-table-column prop="priority" :label="t('message.priority')" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="priorityTone(row.priority)">
               {{ row.priorityLabel || enumLabel('priority', row.priority) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="todoStatus" label="状态" width="100">
+        <el-table-column prop="todoStatus" :label="t('message.statusCol')" width="100">
           <template #default="{ row }">{{ row.todoStatusLabel || enumLabel('todoStatus', row.todoStatus) }}</template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="170" />
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column prop="createTime" :label="t('message.created')" width="170" />
+        <el-table-column :label="t('message.actions')" width="280" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
+            <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('message.detail') }}</el-button>
             <el-button link type="primary" :disabled="row.todoStatus !== 'PENDING'"
                        @click="markRead(row)">已读</el-button>
             <el-button link type="success" :disabled="row.todoStatus === 'DONE'"
@@ -54,16 +54,16 @@
     <div class="page-card">
       <h4 style="margin:0 0 12px">发送通知</h4>
       <el-form :model="form" label-width="100px" style="max-width:620px">
-        <el-form-item label="接收人ID">
+        <el-form-item :label="t('message.recipient')">
           <el-input v-model="form.userId" />
         </el-form-item>
-        <el-form-item label="标题">
+        <el-form-item :label="t('message.titleCol')">
           <el-input v-model="form.title" />
         </el-form-item>
-        <el-form-item label="内容">
+        <el-form-item :label="t('message.contentLabel')">
           <el-input v-model="form.content" type="textarea" :rows="3" />
         </el-form-item>
-        <el-form-item label="优先级">
+        <el-form-item :label="t('message.priority')">
           <el-radio-group v-model="form.priority">
             <el-radio value="URGENT">紧急</el-radio>
             <el-radio value="IMPORTANT">重要</el-radio>
@@ -71,20 +71,22 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="saving" @click="send">创建待办</el-button>
+          <el-button type="primary" :loading="saving" @click="send">{{ t('message.create') }}</el-button>
         </el-form-item>
       </el-form>
     </div>
   </div>
 
     <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('message.detail')" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {

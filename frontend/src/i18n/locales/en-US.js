@@ -157,6 +157,36 @@ export default {
     unauthorized: 'Not authorized: contact administrator',
     fullscreen: 'Full-screen display',
   },
+  todo: {
+    title: 'My Todos', batchDone: 'Mark Done', batchRead: 'Mark Read', refresh: 'Refresh',
+    tip: 'Only actionable todos are listed; open the module to process the detail',
+    keyword: 'Title / content keyword', type: 'Type', approval: 'Approval',
+    remind: 'Reminder', task: 'Task', handle: 'Handle', start: 'Created from',
+    end: 'Created to', status: 'Status', pending: 'Pending', done: 'Done',
+    search: 'Search', reset: 'Reset', titleCol: 'Title', typeCol: 'Type',
+    statusCol: 'Status', biz: 'Related Business', created: 'Created At',
+    actions: 'Actions', deal: 'Open', markDone: 'Mark Done', read: 'Mark Read'
+  },
+  message: {
+    title: 'Messages & Todos', status: 'Status', unread: 'Unread', read: 'Read',
+    done: 'Done', refresh: 'Refresh', titleCol: 'Title', content: 'Content',
+    type: 'Type', priority: 'Priority', statusCol: 'Status', created: 'Created At',
+    actions: 'Actions', detail: 'Detail', markRead: 'Mark Read', markDone: 'Mark Done',
+    createTitle: 'Create Todo', recipient: 'Recipient ID', contentLabel: 'Content',
+    create: 'Create Todo'
+  },
+  space: {
+    title: 'Space Hierarchy', orgHint: 'Select organization (auto load)', search: 'Search',
+    reset: 'Reset', collapse: 'Collapse All', expand: 'Expand All', refresh: 'Refresh',
+    create: 'New Space',
+    tip: 'Select an organization to load the space tree: area/building → unit → floor → room → bed/parking',
+    detail: 'Space Details', id: 'ID', name: 'Name', code: 'Code', type: 'Type',
+    path: 'Path Code', level: 'Level', area: 'Area', status: 'Status', edit: 'Edit',
+    delete: 'Delete', addChild: 'Add Child', createTitle: 'New Space Node',
+    org: 'Organization', parent: 'Parent Node',
+    parentHint: 'Blank = top level (area/building only)', codeLabel: 'Space Code',
+    nameLabel: 'Space Name', typeLabel: 'Space Type', sort: 'Sort Order'
+  },
   help: {
     title: 'Help', hits: '{n} chapters matched', search: 'Search actions, e.g. "allocate" or "terminate"',
     downloadPdf: 'Download PDF', print: 'Print / Save as PDF', noMatch: 'No matching chapters'

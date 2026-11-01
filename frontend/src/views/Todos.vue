@@ -1,7 +1,7 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">待办中心</h3>
+      <h3 style="margin:0">{{ t('todo.title') }}</h3>
       <el-tag v-if="total > 0" type="danger" effect="dark" data-testid="todo-total">
         待办 {{ total }} 项
       </el-tag>
@@ -10,13 +10,13 @@
       <el-checkbox v-model="onlyMine" @change="search" data-testid="todo-only-mine">
         只看我的
       </el-checkbox>
-      <el-button type="success" :disabled="!selection.length" @click="batchDone">
+      <el-button type="success" :disabled="!selection.length" @click="batchDone">{{ t('todo.batchDone') }}
         批量完成{{ selection.length ? '（' + selection.length + '）' : '' }}
       </el-button>
-      <el-button :disabled="!selection.length" @click="batchRead">
+      <el-button :disabled="!selection.length" @click="batchRead">{{ t('todo.batchRead') }}
         批量已读{{ selection.length ? '（' + selection.length + '）' : '' }}
       </el-button>
-      <el-button @click="loadAll">刷新</el-button>
+      <el-button @click="loadAll">{{ t('todo.refresh') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
@@ -49,48 +49,48 @@
     <!-- 待办明细 -->
     <div class="sec-title">待办明细</div>
     <div class="filter-bar">
-      <el-input v-model="query.keyword" placeholder="标题 / 内容关键字" clearable
+      <el-input v-model="query.keyword" :placeholder="t('todo.keyword')" clearable
                 style="width:200px" data-testid="todo-keyword"
                 @keyup.enter="search" />
-      <el-select v-model="query.todoType" placeholder="类型" clearable style="width:130px">
-        <el-option label="审批" value="APPROVAL" />
-        <el-option label="提醒" value="REMIND" />
-        <el-option label="任务" value="TASK" />
-        <el-option label="处理" value="HANDLE" />
+      <el-select v-model="query.todoType" :placeholder="t('todo.type')" clearable style="width:130px">
+        <el-option :label="t('todo.approval')" value="APPROVAL" />
+        <el-option :label="t('todo.remind')" value="REMIND" />
+        <el-option :label="t('todo.task')" value="TASK" />
+        <el-option :label="t('todo.handle')" value="HANDLE" />
       </el-select>
       <el-date-picker v-model="query.dateRange" type="daterange" unlink-panels
                       value-format="YYYY-MM-DD" range-separator="~"
                       :shortcuts="dateShortcuts"
-                      start-placeholder="创建起" end-placeholder="创建止"
+                      :start-placeholder="t('todo.start')" :end-placeholder="t('todo.end')"
                       style="width:250px" data-testid="todo-range" />
-      <el-select v-model="query.status" placeholder="状态" clearable style="width:120px">
-        <el-option label="待处理" value="PENDING" />
-        <el-option label="已完成" value="DONE" />
+      <el-select v-model="query.status" :placeholder="t('todo.status')" clearable style="width:120px">
+        <el-option :label="t('todo.pending')" value="PENDING" />
+        <el-option :label="t('todo.done')" value="DONE" />
       </el-select>
-      <el-button type="primary" @click="search" data-testid="todo-search">查询</el-button>
-      <el-button @click="resetQuery" data-testid="todo-reset">清空</el-button>
+      <el-button type="primary" @click="search" data-testid="todo-search">{{ t('todo.search') }}</el-button>
+      <el-button @click="resetQuery" data-testid="todo-reset">{{ t('todo.reset') }}</el-button>
     </div>
 
     <el-table :data="rows" v-loading="loading" border size="small"
               @selection-change="(v) => (selection = v)">
       <el-table-column type="selection" width="42"
                        :selectable="(row) => row.todoStatus !== 'DONE'" />
-      <el-table-column prop="title" label="标题" min-width="220" />
-      <el-table-column label="类型" width="100">
+      <el-table-column prop="title" :label="t('todo.titleCol')" min-width="220" />
+      <el-table-column :label="t('todo.typeCol')" width="100">
         <template #default="{ row }">{{ row.todoTypeLabel || enumLabel('todoType', row.todoType) }}</template>
       </el-table-column>
-      <el-table-column label="状态" width="95">
+      <el-table-column :label="t('todo.statusCol')" width="95">
         <template #default="{ row }">
           <el-tag size="small" :type="row.todoStatus === 'DONE' ? 'success' : 'warning'">
             {{ row.todoStatusLabel || enumLabel('todoStatus', row.todoStatus) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="bizType" label="关联业务" width="120" />
-      <el-table-column prop="createTime" label="创建时间" width="165" />
-      <el-table-column label="操作" width="230" fixed="right">
+      <el-table-column prop="bizType" :label="t('todo.biz')" width="120" />
+      <el-table-column prop="createTime" :label="t('todo.created')" width="165" />
+      <el-table-column :label="t('todo.actions')" width="230" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="goDeal(row)" data-testid="todo-deal">去处理</el-button>
+          <el-button link type="primary" @click="goDeal(row)" data-testid="todo-deal">{{ t('todo.deal') }}</el-button>
           <el-button link type="primary" :disabled="row.todoStatus === 'DONE'"
                      @click="finish(row)">标记完成</el-button>
           <el-button link :disabled="row.todoStatus === 'DONE'"
@@ -106,6 +106,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -114,6 +115,7 @@ import { msgApi } from '@/api/modules'
 import { useTodoStore } from '@/store/todo'
 import { useAuthStore } from '@/store/auth'
 
+const { t } = useI18n()
 const router = useRouter()
 const todoStore = useTodoStore()
 const auth = useAuthStore()

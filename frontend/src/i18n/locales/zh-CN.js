@@ -158,6 +158,33 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  todo: {
+    title: '待办中心', batchDone: '批量完成', batchRead: '批量已读', refresh: '刷新',
+    tip: '这里只汇总「需要人动手」的待办；点卡片进入对应模块处理，明细不重复维护',
+    keyword: '标题 / 内容关键字', type: '类型', approval: '审批', remind: '提醒',
+    task: '任务', handle: '处理', start: '创建起', end: '创建止', status: '状态',
+    pending: '待处理', done: '已完成', search: '查询', reset: '清空',
+    titleCol: '标题', typeCol: '类型', statusCol: '状态', biz: '关联业务',
+    created: '创建时间', actions: '操作', deal: '去处理', markDone: '完成',
+    read: '标记已读'
+  },
+  message: {
+    title: '消息与待办', status: '状态', unread: '未读', read: '已读', done: '已办',
+    refresh: '刷新', titleCol: '标题', content: '内容', type: '类型',
+    priority: '优先级', statusCol: '状态', created: '创建时间', actions: '操作',
+    detail: '详情', markRead: '标记已读', markDone: '完成', createTitle: '创建待办',
+    recipient: '接收人ID', contentLabel: '内容', create: '创建待办'
+  },
+  space: {
+    title: '空间层级', orgHint: '选择组织（自动加载）', search: '查询', reset: '清空',
+    collapse: '全部收起', expand: '全部展开', refresh: '刷新', create: '新增空间',
+    tip: '选择组织后自动加载空间树；层级：片区/楼栋 → 单元 → 楼层 → 房间 → 床位/车位',
+    detail: '空间详情', id: 'ID', name: '名称', code: '编码', type: '类型',
+    path: '路径编码', level: '层级', area: '面积', status: '状态', edit: '编辑',
+    delete: '删除', addChild: '在此节点下新增', createTitle: '新增空间节点',
+    org: '所属组织', parent: '上级节点', parentHint: '留空=顶级（只能是楼栋/片区）',
+    codeLabel: '空间编码', nameLabel: '空间名称', typeLabel: '空间类型', sort: '排序'
+  },
   help: {
     title: '使用帮助', hits: '命中 {n} 章', search: '搜索操作，如「核销」「退租」',
     downloadPdf: '下载 PDF 版', print: '打印 / 另存 PDF', noMatch: '没有匹配的章节'
