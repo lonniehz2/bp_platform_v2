@@ -1,14 +1,14 @@
 <template>
   <div>
-    <div class="navbar">我的账单</div>
+    <div class="navbar">{{ t('h5.billsTitle') }}</div>
     <div class="card">
-      <div class="row"><b>待缴合计</b><div class="spacer" />
+      <div class="row"><b>{{ t('h5.billsTotal') }}</b><div class="spacer" />
         <span class="amount" style="font-size:18px">¥ {{ totalUnpaid }}</span></div>
     </div>
 
     <div v-for="b in rows" :key="b.id" class="card">
       <div class="row">
-        <b>{{ b.billPeriod }} 账单</b>
+        <b>{{ t('h5.billPeriod', { period: b.billPeriod }) }}</b>
         <div class="spacer" />
         <el-tag size="small" :type="b.billStatus === 'PAID' ? 'success'
           : (b.overdueNow ? 'danger' : 'warning')">
@@ -23,16 +23,18 @@
         </span>
       </div>
       <div class="muted" style="margin-top:6px">
-        应收 ¥{{ b.billAmount }} · 已缴 ¥{{ b.paidAmount }} · 截止 {{ b.dueDate }}
-        <span v-if="b.overdueDays > 0" style="color:#f53f3f"> · 逾期 {{ b.overdueDays }} 天</span>
+        {{ t('h5.billLine', { amount: b.billAmount, paid: b.paidAmount, due: b.dueDate }) }}
+        <span v-if="b.overdueDays > 0" style="color:#f53f3f"> {{ t('h5.overdue', { n: b.overdueDays }) }}</span>
       </div>
     </div>
 
-    <div v-if="!rows.length" class="empty">暂无账单</div>
+    <div v-if="!rows.length" class="empty">{{ t('h5.noBills') }}</div>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, computed, onMounted } from 'vue'
 import { financeApi } from '@/api/modules'
 

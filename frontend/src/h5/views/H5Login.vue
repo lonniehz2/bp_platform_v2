@@ -1,31 +1,33 @@
 <template>
   <div class="login">
-    <div class="logo">住房保障</div>
-    <div class="slogan">租客服务 · 掌上办理</div>
+    <div class="logo">{{ t('h5.loginTitle') }}</div>
+    <div class="slogan">{{ t('h5.slogan') }}</div>
 
     <div class="form card">
       <el-form :model="form">
         <el-form-item>
-          <el-input v-model="form.tenantId" placeholder="平台编码" size="large" />
+          <el-input v-model="form.tenantId" :placeholder="t('h5.tenant')" size="large" />
         </el-form-item>
         <el-form-item>
-          <el-input v-model="form.username" placeholder="账号" size="large" />
+          <el-input v-model="form.username" :placeholder="t('h5.account')" size="large" />
         </el-form-item>
         <el-form-item>
           <el-input v-model="form.password" type="password" show-password
-                    placeholder="密码" size="large" />
+                    :placeholder="t('h5.password')" size="large" />
         </el-form-item>
         <el-button type="primary" size="large" style="width:100%"
-                   :loading="loading" @click="onLogin">登 录</el-button>
+                   :loading="loading" @click="onLogin">{{ t('h5.login') }}</el-button>
       </el-form>
       <div class="muted" style="margin-top:14px;text-align:center">
-        演示账号 admin / admin123（租户 350600）
+        {{ t('h5.demo') }}
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'

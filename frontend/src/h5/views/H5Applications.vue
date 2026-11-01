@@ -1,12 +1,12 @@
 <template>
   <div>
-    <div class="navbar">申请进度</div>
+    <div class="navbar">{{ t('h5.appsTitle') }}</div>
 
     <el-steps v-if="current" :active="stepOf(current)" simple style="margin:12px">
-      <el-step title="提交" />
-      <el-step title="受理" />
-      <el-step title="审核" />
-      <el-step title="结果" />
+      <el-step :title="t('h5.stepSubmit')" />
+      <el-step :title="t('h5.stepAccept')" />
+      <el-step :title="t('h5.stepReview')" />
+      <el-step :title="t('h5.stepResult')" />
     </el-steps>
 
     <div v-for="a in rows" :key="a.id" class="card">
@@ -18,23 +18,25 @@
         </el-tag>
       </div>
       <div class="muted" style="margin-top:6px">
-        {{ a.securityType }} · 家庭 {{ a.familySize }} 人 · 人均收入 ¥{{ a.incomePerCapita }}
+        {{ t('h5.familyIncome', { type: a.securityType, size: a.familySize, income: a.incomePerCapita }) }}
       </div>
-      <div class="muted" style="margin-top:4px">当前环节：{{ a.currentNode || '-' }}</div>
+      <div class="muted" style="margin-top:4px">{{ t('h5.currentNode', { node: a.currentNode || '-' }) }}</div>
       <div v-if="a.rejectReason" style="margin-top:6px;color:#f53f3f;font-size:12px">
-        不通过原因：{{ a.rejectReason }}
+        {{ t('h5.rejectReason', { reason: a.rejectReason }) }}
       </div>
       <div v-if="a.supplementDemand" style="margin-top:6px;color:#ff7d00;font-size:12px">
-        需补件：{{ a.supplementDemand }}
+        {{ t('h5.supplement', { demand: a.supplementDemand }) }}
       </div>
-      <div class="muted" style="margin-top:6px">申请时间 {{ a.applyTime }}</div>
+      <div class="muted" style="margin-top:6px">{{ t('h5.applyTime', { time: a.applyTime }) }}</div>
     </div>
 
-    <div v-if="!rows.length" class="empty">暂无申请记录</div>
+    <div v-if="!rows.length" class="empty">{{ t('h5.noApps') }}</div>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, computed, onMounted } from 'vue'
 import { applicationApi } from '@/api/modules'
 

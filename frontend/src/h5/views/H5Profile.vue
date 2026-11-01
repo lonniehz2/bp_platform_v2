@@ -2,53 +2,55 @@
   <div>
     <div class="hero" style="padding-bottom:28px">
       <div class="title">{{ auth.displayName }}</div>
-      <div class="sub">{{ auth.user?.tenantId }} · {{ auth.user?.userType || '用户' }}</div>
+      <div class="sub">{{ auth.user?.tenantId }} · {{ auth.user?.userType || t('h5.profileUser') }}</div>
     </div>
 
     <div class="card">
-      <div class="row"><b>绑定保障对象</b><div class="spacer" />
+      <div class="row"><b>{{ t('h5.bindTarget') }}</b><div class="spacer" />
         <el-tag size="small" :type="bound ? 'success' : 'warning'">
-          {{ bound ? '已绑定' : '未绑定' }}
+          {{ bound ? t('h5.bound') : t('h5.unbound') }}
         </el-tag>
       </div>
       <div class="muted" style="margin-top:6px">
-        绑定后可查看本人账单、合同、申请与开门记录
+        {{ t('h5.bindHint') }}
       </div>
       <div class="row" style="margin-top:10px">
-        <el-input v-model="pid" placeholder="请输入保障对象 ID" />
-        <el-button type="primary" @click="bind">绑定</el-button>
+        <el-input v-model="pid" :placeholder="t('h5.pidHint')" />
+        <el-button type="primary" @click="bind">{{ t('h5.bind') }}</el-button>
       </div>
     </div>
 
     <div class="card">
-      <div class="row"><b>实名认证状态</b><div class="spacer" />
+      <div class="row"><b>{{ t('h5.verifyStatus') }}</b><div class="spacer" />
         <el-tag size="small" :type="verify.verified ? 'success' : 'danger'">
-          {{ verify.verified ? '已通过' : '未通过' }}
+          {{ verify.verified ? t('h5.verified') : t('h5.unverified') }}
         </el-tag>
       </div>
       <div class="muted" style="margin-top:6px">{{ verify.conclusion }}</div>
     </div>
 
     <div class="card">
-      <div class="row"><b>保障档案</b><div class="spacer" />
+      <div class="row"><b>{{ t('h5.profile') }}</b><div class="spacer" />
         <el-tag v-if="profile" size="small">{{ profile.profileStatus }}</el-tag>
       </div>
       <div v-if="profile" style="margin-top:8px">
-        <div class="muted">收入档位：{{ profile.incomeLevel }} · 家庭 {{ profile.familySize }} 人</div>
+        <div class="muted">{{ t('h5.incomeLevel', { level: profile.incomeLevel, n: profile.familySize }) }}</div>
         <div class="muted" style="margin-top:4px">
-          资格有效期至：{{ profile.qualifyExpire || '—' }}
+          {{ t('h5.qualifyExpire', { date: profile.qualifyExpire || '—' }) }}
         </div>
       </div>
-      <div v-else class="empty">无档案或未绑定</div>
+      <div v-else class="empty">{{ t('h5.noProfile') }}</div>
     </div>
 
     <div class="card">
-      <el-button style="width:100%" @click="logout">退出登录</el-button>
+      <el-button style="width:100%" @click="logout">{{ t('h5.logout') }}</el-button>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
