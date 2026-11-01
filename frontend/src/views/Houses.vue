@@ -37,7 +37,7 @@
       <el-table-column :label="t('house.space')" width="170" show-overflow-tooltip>
             <template #default="{ row }">
               <span v-if="row.spaceName">
-                <el-tag v-if="row.spaceType === 'BED'" size="small" type="warning">床位</el-tag>
+                <el-tag v-if="row.spaceType === 'BED'" size="small" type="warning">{{ t('misc7.bed') }}</el-tag>
                 {{ row.spaceName }}
               </span>
               <span v-else class="muted">—</span>
@@ -77,13 +77,13 @@
         <el-descriptions-item :label="t('house.phone')">{{ occ.tenantPhone || '—' }}</el-descriptions-item>
         <el-descriptions-item :label="t('house.tenants')">{{ occ.tenantCount }} 人</el-descriptions-item>
         <el-descriptions-item :label="t('house.cohabitants')">
-          <div v-if="!occ.cohabitants || !occ.cohabitants.length" class="muted">无</div>
+          <div v-if="!occ.cohabitants || !occ.cohabitants.length" class="muted">{{ t('misc7.none') }}</div>
           <div v-for="(c, i) in occ.cohabitants" :key="i">
-            {{ c.name }}（{{ c.relation || '同住' }}）{{ c.id_card_mask || '' }}
+            {{ c.name }}（{{ c.relation || t('misc7.cohabitant') }}）{{ c.id_card_mask || '' }}
           </div>
         </el-descriptions-item>
       </el-descriptions>
-      <el-empty v-else description="该房源当前无有效合同" />
+      <el-empty v-else :description="t('misc7.noContract')" />
       <template #footer>
         <el-button @click="occVisible = false">{{ t('house.close') }}</el-button>
       </template>
@@ -92,7 +92,7 @@
     <el-dialog v-model="createVisible" :title="t('house.createTitle')" width="640px">
       <el-form :model="f" label-width="120px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="所属组织">
+          <el-col :span="12"><el-form-item :label="t('house.orgCol')">
             <el-select v-model="f.orgId" filterable clearable style="width:100%"
                        :placeholder="t('house.selectOrg')"
                        @change="onOrgChange">
@@ -112,13 +112,13 @@
             <el-input v-model="f.houseName" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('house.houseType')" required>
             <el-select v-model="f.houseType" style="width:100%">
-              <el-option label="公租房" value="PUBLIC_RENTAL" />
-              <el-option label="保障性租赁住房" value="AFFORDABLE_RENTAL" />
-              <el-option label="人才公寓" value="TALENT" />
-              <el-option label="公寓" value="APARTMENT" />
-              <el-option label="宿舍" value="DORMITORY" />
-              <el-option label="出租房" value="RENTAL" />
-              <el-option label="酒店/民宿" value="HOTEL" />
+              <el-option :label="t('misc7.publicRental')" value="PUBLIC_RENTAL" />
+              <el-option :label="t('misc7.affordableRental')" value="AFFORDABLE_RENTAL" />
+              <el-option :label="t('misc7.talentApartment')" value="TALENT" />
+              <el-option :label="t('misc7.apartment')" value="APARTMENT" />
+              <el-option :label="t('misc7.dormitory')" value="DORMITORY" />
+              <el-option :label="t('misc7.rental')" value="RENTAL" />
+              <el-option :label="t('misc7.hotel')" value="HOTEL" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('house.buildArea')" required>
             <el-input-number v-model="f.area" :min="0.01" :precision="2"

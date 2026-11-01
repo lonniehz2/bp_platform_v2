@@ -26,7 +26,7 @@
                    @click="exportContracts">{{ t('contract.export') }}</el-button>
       </div>
 
-      <el-table empty-text="暂无合同，点右上「新建合同」或「快捷签约」" :data="rows" v-loading="loading" border size="small" max-height="560">
+      <el-table :empty-text="t('misc7.contractEmpty')" :data="rows" v-loading="loading" border size="small" max-height="560">
         <el-table-column prop="contractNo" :label="t('contract.no')" width="165" show-overflow-tooltip />
         <el-table-column prop="lesseeName" :label="t('contract.lessee')" width="100" />
         <el-table-column :label="t('contract.orgCol')" width="150" show-overflow-tooltip>
@@ -77,20 +77,20 @@
                 <el-dropdown-menu>
                   <el-dropdown-item @click="openCohabitant(row)">同住人</el-dropdown-item>
                   <el-dropdown-item v-if="row.contractStatus === 'DRAFT'"
-                                    @click="doSubmitSign(row)">提交待签</el-dropdown-item>
+                                    @click="doSubmitSign(row)">{{ t('misc7.submitSign') }}</el-dropdown-item>
                   <el-dropdown-item v-if="row.contractStatus === 'PENDING_SIGN'"
-                                    @click="doStartSigning(row)">开始签约</el-dropdown-item>
+                                    @click="doStartSigning(row)">{{ t('misc7.startSigning') }}</el-dropdown-item>
                   <el-dropdown-item v-if="row.contractStatus === 'SIGNING'"
-                                    @click="openSign(row)">签约</el-dropdown-item>
+                                    @click="openSign(row)">{{ t('misc7.sign') }}</el-dropdown-item>
                   <el-dropdown-item
                     v-if="row.contractStatus === 'EFFECTIVE' || row.contractStatus === 'RENEWING'"
-                    @click="openRenew(row)">续签</el-dropdown-item>
+                    @click="openRenew(row)">{{ t('misc7.renew') }}</el-dropdown-item>
                   <el-dropdown-item
                     v-if="row.contractStatus === 'EFFECTIVE' || row.contractStatus === 'RENEWING'"
-                    divided @click="openTerminate(row)">终止</el-dropdown-item>
+                    divided @click="openTerminate(row)">{{ t('misc7.terminate') }}</el-dropdown-item>
                   <el-dropdown-item
                     v-if="!['TERMINATED', 'EXPIRED', 'CANCELLED'].includes(row.contractStatus)"
-                    divided @click="cancel(row)">取消合同</el-dropdown-item>
+                    divided @click="cancel(row)">{{ t('misc7.cancelContract') }}</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -180,7 +180,7 @@
         </el-row>
       </el-form>
       <el-alert type="warning" :closable="false" show-icon
-                title="月租金/押金/补贴会按计费规则出账；关联配租单会做公示完成校验" />
+                :title="t('misc7.signTip')" />
       <template #footer>
         <el-button @click="createVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doCreate">{{ t('common.save') }}</el-button>
@@ -205,7 +205,7 @@
       </el-form>
       <template #footer>
         <el-button @click="signVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="doSign">确认签约</el-button>
+        <el-button type="primary" :loading="saving" @click="doSign">{{ t('misc7.confirmSign') }}</el-button>
       </template>
     </el-dialog>
 
@@ -221,7 +221,7 @@
       </el-form>
       <template #footer>
         <el-button @click="renewVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="doRenew">确认续签</el-button>
+        <el-button type="primary" :loading="saving" @click="doRenew">{{ t('misc7.confirmRenew') }}</el-button>
       </template>
     </el-dialog>
 

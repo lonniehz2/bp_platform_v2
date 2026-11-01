@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('person.title') }}</h3>
-      <el-tag size="small" type="info">建档 → 实名核验 → 保障档案 → 资格判定</el-tag>
+      <el-tag size="small" type="info">{{ t('misc7.personFlow') }}</el-tag>
       <div class="spacer" />
       <el-select v-model="orgId" filterable clearable :placeholder="t('person.allOrg')"
                  style="width:220px" data-testid="person-org-filter">
@@ -11,13 +11,13 @@
                    :label="orgOptionLabel(o)" :value="o.id" />
       </el-select>
       <el-checkbox v-model="includeChildren" :disabled="!orgId"
-                   data-testid="person-org-children">含下级</el-checkbox>
+                   data-testid="person-org-children">{{ t('misc7.includeChildren') }}</el-checkbox>
       <el-button type="primary" @click="reloadAll">{{ t('person.search') }}</el-button>
       <el-button @click="resetAllQuery">{{ t('person.reset') }}</el-button>
     </div>
 
     <el-alert type="warning" :closable="false" show-icon
-              title="顺序约束：申请前必须通过实名核验（D32）；审核通过前必须有保障档案（D33）"
+              :title="t('misc7.orderTip')"
               style="margin-bottom:12px" />
 
     <el-tabs v-model="tab" @tab-change="onTab">
@@ -32,7 +32,7 @@
           <div class="spacer" />
           <el-button type="success" @click="openPerson">{{ t('person.add') }}</el-button>
         </div>
-        <el-table :data="persons" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+        <el-table :data="persons" v-loading="loading" border size="small" :empty-text="t('misc.emptyDefault')">
           <el-table-column prop="id" :label="t('person.id')" width="190" />
         <el-table-column prop="personName" :label="t('person.name')" width="110" />
           <el-table-column :label="t('person.org')" min-width="160">
@@ -69,7 +69,7 @@
               <el-button link type="primary" @click="changeStatus(row)">{{ t('person.changeStatus') }}</el-button>
               <el-button link @click="openProfileFor(row)">{{ t('person.profile') }}</el-button>
               <el-button link :disabled="row.verifyStatus === 'VERIFIED'"
-                         @click="openVerifyFor(row)">实名核验</el-button>
+                         @click="openVerifyFor(row)">{{ t('misc7.verifyButton') }}</el-button>
               <el-button link type="danger" @click="removePerson(row)">{{ t('person.delete') }}</el-button>
             </template>
           </el-table-column>
@@ -94,7 +94,7 @@
           <el-button @click="profilePersonId = null; loadProfiles()">{{ t('person.all') }}</el-button>
         </div>
         <el-alert type="info" :closable="false" show-icon
-                  title="资格判定：按档案事实（收入档位、名下房产、人才认定有效期）判定是否具备保障资格，通过后档案置「已通过」并给 1 年有效期；不通过会列出具体原因。退出保障：档案置「已退出」，同时退出轮候队列，且不能再新增申请或入队（记录保留可查）。"
+                  :title="t('misc7.qualifyTip')"
                   style="margin-bottom:10px" />
         <el-table :data="profiles" v-loading="loading" border size="small">
           <el-table-column :label="t('person.target')" width="230">
@@ -119,7 +119,7 @@
               <el-tag v-if="row.incomeLevelLabel || row.incomeLevel" size="small">
                 {{ row.incomeLevelLabel || enumLabel('incomeLevel', row.incomeLevel) }}
               </el-tag>
-              <span v-else class="muted">未评定</span>
+              <span v-else class="muted">{{ t('misc7.unassessed') }}</span>
             </template>
           </el-table-column>
           <el-table-column :label="t('person.status')" width="100">
@@ -131,8 +131,8 @@
               <el-button link type="primary" @click="openRecalc(row)">{{ t('person.recalc') }}</el-button>
               <el-button link type="success" @click="qualify(row)">{{ t('person.qualify') }}</el-button>
               <el-button link type="danger" :disabled="row.profileStatus === 'EXITED'"
-                         :title="row.profileStatus === 'EXITED' ? '该人员已退出保障' : ''"
-                         @click="exitProfile(row)">退出保障</el-button>
+                         :title="row.profileStatus === 'EXITED' ? t('misc7.exitedTip') : ''"
+                         @click="exitProfile(row)">{{ t('misc7.exit') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -170,7 +170,7 @@
           <el-table-column :label="t('person.result')" width="110">
             <template #default="{ row }">
               <el-tag size="small" :type="Number(row.verifyPass) === 1 ? 'success' : 'danger'">
-                {{ Number(row.verifyPass) === 1 ? '通过' : '未通过' }}
+                {{ Number(row.verifyPass) === 1 ? t('misc7.pass') : t('misc7.notPass') }}
               </el-tag>
             </template>
           </el-table-column>
