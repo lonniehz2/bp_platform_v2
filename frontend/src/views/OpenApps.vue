@@ -1,14 +1,14 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">开放平台</h3>
+      <h3 style="margin:0">{{ t('open.title') }}</h3>
       <el-tag size="small" type="info">第三方/政务接入</el-tag>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字/ID" clearable
+      <el-input v-model="keyword" :placeholder="t('open.keyword')" clearable
                 style="width:170px" @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="success" @click="openCreate">创建应用</el-button>
+      <el-button type="primary" @click="reload">{{ t('open.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('open.reset') }}</el-button>
+      <el-button type="success" @click="openCreate">{{ t('open.create') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon
@@ -18,21 +18,21 @@
       <el-table-column type="expand">
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
-      <el-table-column prop="appKey" label="AppKey" width="200" />
-      <el-table-column prop="appName" label="应用名" width="150" />
-      <el-table-column prop="appType" label="类型" width="120">
+      <el-table-column prop="appKey" :label="t('open.appKey')" width="200" />
+      <el-table-column prop="appName" :label="t('open.appName')" width="150" />
+      <el-table-column prop="appType" :label="t('open.type')" width="120">
         <template #default="{ row }">{{ row.appTypeLabel || enumLabel('appType', row.appType) }}</template>
       </el-table-column>
-      <el-table-column prop="appStatus" label="状态" width="100">
+      <el-table-column prop="appStatus" :label="t('open.status')" width="100">
         <template #default="{ row }">{{ row.appStatusLabel || enumLabel('appStatus', row.appStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" :width="ROWACTIONS ? 300 : 250" fixed="right">
+      <el-table-column :label="t('open.actions')" :width="ROWACTIONS ? 300 : 250" fixed="right">
         <template #default="{ row }">
-          <el-button link type="warning" @click="resetSecret(row)">重置密钥</el-button>
-          <el-button link @click="openDetail(row)">详情</el-button>
+          <el-button link type="warning" @click="resetSecret(row)">{{ t('open.resetSecret') }}</el-button>
+          <el-button link @click="openDetail(row)">{{ t('open.detail') }}</el-button>
           <el-button link :type="row.appStatus === 'ENABLED' ? 'warning' : 'success'"
                      @click="toggleAppStatus(row)">
-            {{ row.appStatus === 'ENABLED' ? '停用' : '启用' }}
+            {{ row.appStatus === 'ENABLED' ? t('open.disable') : t('open.enable') }}
           </el-button>
         </template>
       </el-table-column>
@@ -65,8 +65,8 @@
       <el-alert v-if="formNote" :closable="false" show-icon type="warning"
                 :title="formNote" style="margin-top:8px" />
       <template #footer>
-        <el-button @click="formVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submit">提交</el-button>
+        <el-button @click="formVisible = false">{{ t('open.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="submit">{{ t('open.submit') }}</el-button>
       </template>
     </el-dialog>
 
@@ -74,25 +74,25 @@
     <!-- ==================== Webhook 订阅 ==================== -->
     <div class="page-card">
       <div class="toolbar">
-        <h4 style="margin:0">Webhook 订阅</h4>
-        <el-tag size="small" type="info">业务事件推送到第三方回调地址</el-tag>
+        <h4 style="margin:0">{{ t('open.hookTitle') }}</h4>
+        <el-tag size="small" type="info">{{ t('open.hookHint') }}</el-tag>
         <div class="spacer" />
-        <el-button type="success" @click="openHook">新建订阅</el-button>
-        <el-button @click="loadHooks">刷新</el-button>
+        <el-button type="success" @click="openHook">{{ t('open.newHook') }}</el-button>
+        <el-button @click="loadHooks">{{ t('open.refresh') }}</el-button>
       </div>
 
       <el-table :data="hooks" v-loading="hookLoading" border size="small">
-        <el-table-column prop="hookName" label="名称" width="160" />
-        <el-table-column prop="callbackUrl" label="回调地址" min-width="260"
+        <el-table-column prop="hookName" :label="t('open.hookName')" width="160" />
+        <el-table-column prop="callbackUrl" :label="t('open.callback')" min-width="260"
                          show-overflow-tooltip />
-        <el-table-column prop="eventTypes" label="订阅事件" min-width="180"
+        <el-table-column prop="eventTypes" :label="t('open.events')" min-width="180"
                          show-overflow-tooltip />
-        <el-table-column prop="retryTimes" label="重试次数" width="100" />
-        <el-table-column prop="timeoutMs" label="超时(ms)" width="100" />
-        <el-table-column prop="hookStatus" label="状态" width="100">
+        <el-table-column prop="retryTimes" :label="t('open.retries')" width="100" />
+        <el-table-column prop="timeoutMs" :label="t('open.timeout')" width="100" />
+        <el-table-column prop="hookStatus" :label="t('open.status')" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="row.hookStatus === 'ENABLED' ? 'success' : 'info'">
-              {{ row.hookStatus === 'ENABLED' ? '启用' : '停用' }}
+              {{ row.hookStatus === 'ENABLED' ? t('open.enabled') : t('open.disabled') }}
             </el-tag>
           </template>
         </el-table-column>
@@ -100,9 +100,9 @@
           <template #default="{ row }">
             <el-button link :type="row.hookStatus === 'ENABLED' ? 'warning' : 'success'"
                        @click="toggleHook(row)">
-              {{ row.hookStatus === 'ENABLED' ? '停用' : '启用' }}
+              {{ row.hookStatus === 'ENABLED' ? t('open.disable') : t('open.enable') }}
             </el-button>
-            <el-button link type="primary" @click="publishTest(row)">发布测试</el-button>
+            <el-button link type="primary" @click="publishTest(row)">{{ t('open.test') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -116,20 +116,20 @@
       <div class="toolbar">
         <h4 style="margin:0">投递日志</h4>
         <div class="spacer" />
-        <el-select v-model="logStatus" placeholder="投递状态" clearable style="width:130px"
+        <el-select v-model="logStatus" :placeholder="t('open.logStatus')" clearable style="width:130px"
                    @change="loadLogs">
-          <el-option label="待推送" value="PENDING" />
-          <el-option label="成功" value="SUCCESS" />
-          <el-option label="失败" value="FAILED" />
+          <el-option :label="t('open.pending')" value="PENDING" />
+          <el-option :label="t('open.success')" value="SUCCESS" />
+          <el-option :label="t('open.failed')" value="FAILED" />
         </el-select>
-        <el-button type="primary" @click="loadLogs">查询</el-button>
-        <el-button type="warning" :loading="retrying" @click="retryFailed">重试失败</el-button>
+        <el-button type="primary" @click="loadLogs">{{ t('open.search') }}</el-button>
+        <el-button type="warning" :loading="retrying" @click="retryFailed">{{ t('open.retryFailed') }}</el-button>
       </div>
 
       <el-table :data="logs" v-loading="logLoading" border size="small">
-        <el-table-column prop="eventType" label="事件类型" width="170" />
-        <el-table-column prop="eventId" label="事件ID" width="170" />
-        <el-table-column prop="pushStatus" label="状态" width="100">
+        <el-table-column prop="eventType" :label="t('open.eventType')" width="170" />
+        <el-table-column prop="eventId" :label="t('open.eventId')" width="170" />
+        <el-table-column prop="pushStatus" :label="t('open.status')" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="row.pushStatus === 'SUCCESS' ? 'success'
               : (row.pushStatus === 'FAILED' ? 'danger' : 'warning')">
@@ -138,11 +138,11 @@
           </template>
         </el-table-column>
         <el-table-column prop="httpStatus" label="HTTP" width="80" />
-        <el-table-column prop="retryCount" label="重试" width="80" />
-        <el-table-column prop="pushTime" label="推送时间" width="170" />
-        <el-table-column prop="responseBody" label="响应" min-width="220"
+        <el-table-column prop="retryCount" :label="t('open.retry')" width="80" />
+        <el-table-column prop="pushTime" :label="t('open.pushTime')" width="170" />
+        <el-table-column prop="responseBody" :label="t('open.response')" min-width="220"
                          show-overflow-tooltip />
-        <el-table-column prop="payload" label="报文" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="payload" :label="t('open.payload')" min-width="200" show-overflow-tooltip />
       </el-table>
       <el-pagination style="margin-top:12px" layout="total, prev, pager, next"
                      :total="+logTotal || 0" :page-size="logQuery.pageSize"
@@ -151,39 +151,40 @@
     </div>
 
     <!-- 新建 Webhook -->
-    <el-dialog v-model="hookVisible" title="新建 Webhook 订阅" width="560px">
+    <el-dialog v-model="hookVisible" :title="t('open.newHookTitle')" width="560px">
       <el-form :model="hf" label-width="110px">
-        <el-form-item label="名称" required>
-          <el-input v-model="hf.hookName" placeholder="如：住房局报送推送" />
+        <el-form-item :label="t('open.hookName')" required>
+          <el-input v-model="hf.hookName" :placeholder="t('open.hookNameHint')" />
         </el-form-item>
-        <el-form-item label="回调地址" required>
-          <el-input v-model="hf.callbackUrl" placeholder="https://example.com/webhook" />
+        <el-form-item :label="t('open.callback')" required>
+          <el-input v-model="hf.callbackUrl" :placeholder="t('open.callbackHint')" />
         </el-form-item>
-        <el-form-item label="订阅事件" required>
+        <el-form-item :label="t('open.events')" required>
           <el-input v-model="hf.eventTypes"
-                    placeholder="逗号分隔，如 CONTRACT_SIGNED,BILL_OVERDUE；* 表示全部" />
+                    :placeholder="t('open.eventHint')" />
         </el-form-item>
-        <el-form-item label="重试次数">
+        <el-form-item :label="t('open.retries')">
           <el-input-number v-model="hf.retryTimes" :min="0" :max="10" style="width:100%" />
         </el-form-item>
-        <el-form-item label="超时(ms)">
+        <el-form-item :label="t('open.timeout')">
           <el-input-number v-model="hf.timeoutMs" :min="1000" :step="1000"
                            style="width:100%" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="hookVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreateHook">保存</el-button>
+        <el-button @click="hookVisible = false">{{ t('open.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreateHook">{{ t('open.save') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="detailVisible" title="明细（原始数据）" size="520px">
+    <el-drawer v-model="detailVisible" :title="t('open.drawer')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
@@ -191,6 +192,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { openApi } from '@/api/modules'
 import req from '@/api/request'
 
+const { t } = useI18n()
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref([])
