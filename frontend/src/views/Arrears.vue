@@ -200,11 +200,11 @@
             <el-option v-for="t in ACTION_TYPES" :key="t.value" :label="t.label" :value="t.value" />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="nf.actionType === 'FREEZE'" label="冻结范围">
+        <el-form-item v-if="nf.actionType === 'FREEZE'" :label="t('misc6.freezeScope')">
           <el-select v-model="nf.freezeScope" style="width:100%">
-            <el-option label="仅门锁（不停大门，推荐）" value="EXCLUDE_MAIN_DOOR" />
-            <el-option label="仅房间门锁" value="ROOM_LOCK" />
-            <el-option label="全部（含大门，需确认风险）" value="ALL" />
+            <el-option :label="t('misc6.onlyLock')" value="EXCLUDE_MAIN_DOOR" />
+            <el-option :label="t('misc6.roomLock')" value="ROOM_LOCK" />
+            <el-option :label="t('misc6.allDoors')" value="ALL" />
           </el-select>
         </el-form-item>
         <el-form-item v-if="nf.actionType === 'FREEZE'" label="确认安全风险">

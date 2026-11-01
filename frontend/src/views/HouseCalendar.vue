@@ -32,7 +32,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon
-              :title="'日房态用于短租与预订占用；改价只影响指定日期；点月历格子可直接操作'"
+              :title="t('misc6.houseCalTip')"
               style="margin-bottom:12px" />
 
     <!-- 月历宫格：酒店/民宿前台视角 -->
@@ -51,10 +51,10 @@
               <span class="cal-more">⋯</span>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item command="book">预订这一天</el-dropdown-item>
-                  <el-dropdown-item command="close">标记停用</el-dropdown-item>
-                  <el-dropdown-item command="open">恢复可售</el-dropdown-item>
-                  <el-dropdown-item command="price" divided>设置价格</el-dropdown-item>
+                  <el-dropdown-item command="book">{{ t('misc6.bookDay') }}</el-dropdown-item>
+                  <el-dropdown-item command="close">{{ t('misc6.markClosed') }}</el-dropdown-item>
+                  <el-dropdown-item command="open">{{ t('misc6.restore') }}</el-dropdown-item>
+                  <el-dropdown-item command="price" divided>{{ t('misc6.setPrice') }}</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -225,7 +225,7 @@ import { calendarApi } from '@/api/modules'
 import req from '@/api/request'
 import HouseSelect from '@/components/HouseSelect.vue'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref([])
@@ -525,7 +525,9 @@ async function doRelease() {
 
 /** 视图模式：月历（酒店前台视角）/ 明细（逐日表格） */
 const viewMode = ref('grid')
-const WEEK = ['一', '二', '三', '四', '五', '六', '日']
+const WEEK = computed(() => locale.value === 'en-US'
+  ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  : ['一', '二', '三', '四', '五', '六', '日'])
 
 /** 月历格子：按当月 1 日星期补空格，保持 7 列对齐 */
 const gridCells = computed(() => {

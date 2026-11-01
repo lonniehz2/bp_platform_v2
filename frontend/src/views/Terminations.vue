@@ -135,8 +135,8 @@
             <el-input :model-value="auto.depositAmount" disabled /></el-form-item></el-col>
         </el-row>
         <el-alert v-if="c.personId && !auto.contractNo" type="warning" :closable="false"
-                  title="该人员当前没有生效合同，无法发起退租" style="margin-bottom:8px" />
-        <el-form-item label="退租类型">
+                  :title="t('misc6.noContract')" style="margin-bottom:8px" />
+        <el-form-item :label="t('misc6.terminationType')">
           <el-select v-model="c.terminationType" style="width:100%">
             <el-option :label="t('termination.normal')" value="NORMAL" />
             <el-option :label="t('termination.expel')" value="EXPEL" />
@@ -150,12 +150,12 @@
         <el-form-item :label="t('termination.exitReason')">
           <el-input v-model="c.exitReason" type="textarea" :rows="2" /></el-form-item>
         <el-form-item :label="t('termination.transitionMonths')">
-          <el-input v-model.number="c.transitionMonths" placeholder="默认 3" /></el-form-item>
-        <el-form-item label="过渡期租金倍率">
-          <el-input v-model.number="c.transitionRentMultiplier" placeholder="默认 1.5" />
+          <el-input v-model.number="c.transitionMonths" :placeholder="t('misc6.default3')" /></el-form-item>
+        <el-form-item :label="t('misc6.transitionMultiplier')">
+          <el-input v-model.number="c.transitionRentMultiplier" :placeholder="t('misc6.default15')" />
         </el-form-item>
-        <el-form-item label="搬迁期(月)">
-          <el-input v-model.number="c.relocationMonths" placeholder="成都上限 6" />
+        <el-form-item :label="t('misc6.relocationMonths')">
+          <el-input v-model.number="c.relocationMonths" :placeholder="t('misc6.relocationHint')" />
         </el-form-item>
       </el-form>
       <template #footer>

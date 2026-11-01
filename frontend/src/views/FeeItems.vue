@@ -152,7 +152,7 @@
               <div v-else-if="r.ruleType === 'DISCOUNT'" style="width:100%;display:flex;gap:8px">
                 <el-input-number v-model="discountRatio" :min="0" :max="1" :step="0.05"
                                  :precision="2" style="flex:1" />
-                <span class="muted" style="line-height:32px">0~1，如 0.8 表示 8 折</span>
+                <span class="muted" style="line-height:32px">{{ t('misc6.discountHint') }}</span>
               </div>
               <!-- 减免 -->
               <div v-else style="width:100%">
