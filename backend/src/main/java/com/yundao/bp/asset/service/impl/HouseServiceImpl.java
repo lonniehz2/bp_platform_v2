@@ -336,7 +336,8 @@ public class HouseServiceImpl implements HouseService {
                 String[] c = line.split("[,;]");
                 if (c.length < 5) {
                     skipped++;
-                    errors.add(err(lineNo, "列数不足（至少 5 列）"));
+                    errors.add(err(lineNo, com.yundao.bp.common.i18n.LocaleContext.isEnglish()
+                            ? "Too few columns (at least 5 required)" : "列数不足（至少 5 列）"));
                     continue;
                 }
                 String orgCode = c[0].trim();
@@ -348,18 +349,21 @@ public class HouseServiceImpl implements HouseService {
                     Long orgId = orgByCode.get(orgCode);
                     if (orgId == null) {
                         skipped++;
-                        errors.add(err(lineNo, "组织编码不存在：" + orgCode));
+                        errors.add(err(lineNo, com.yundao.bp.common.i18n.LocaleContext.isEnglish()
+                            ? "Organization code not found: " + orgCode : "组织编码不存在：" + orgCode));
                         continue;
                     }
                     com.yundao.bp.asset.entity.AssetSpace sp = spaceByCode.get(spaceCode);
                     if (sp == null) {
                         skipped++;
-                        errors.add(err(lineNo, "空间编码不存在：" + spaceCode));
+                        errors.add(err(lineNo, com.yundao.bp.common.i18n.LocaleContext.isEnglish()
+                            ? "Space code not found: " + spaceCode : "空间编码不存在：" + spaceCode));
                         continue;
                     }
                     if (!sp.getOrgId().equals(orgId)) {
                         skipped++;
-                        errors.add(err(lineNo, "空间不属于该组织：" + spaceCode));
+                        errors.add(err(lineNo, com.yundao.bp.common.i18n.LocaleContext.isEnglish()
+                            ? "Space does not belong to this organization: " + spaceCode : "空间不属于该组织：" + spaceCode));
                         continue;
                     }
                     Long dup = houseMapper.selectCount(
@@ -369,7 +373,8 @@ public class HouseServiceImpl implements HouseService {
                                             houseCode));
                     if (dup != null && dup > 0) {
                         skipped++;
-                        errors.add(err(lineNo, "房源编号已存在：" + houseCode));
+                        errors.add(err(lineNo, com.yundao.bp.common.i18n.LocaleContext.isEnglish()
+                            ? "Housing code already exists: " + houseCode : "房源编号已存在：" + houseCode));
                         continue;
                     }
                     com.yundao.bp.asset.entity.AssetHouse e =
@@ -405,7 +410,8 @@ public class HouseServiceImpl implements HouseService {
                     created++;
                 } catch (Exception ex) {
                     skipped++;
-                    errors.add(err(lineNo, ex.getMessage()));
+                    errors.add(err(lineNo, com.yundao.bp.common.i18n.LocaleContext.isEnglish()
+                            ? "Import failed" : ex.getMessage()));
                 }
             }
         } catch (java.io.IOException ex) {
