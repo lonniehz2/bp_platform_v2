@@ -158,6 +158,20 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  sys: {
+    title: '系统支撑', refresh: '刷新', auditTab: '审计日志', dictTab: '数据字典',
+    configTab: '系统参数', level: '级别', critical: '严重', important: '重要',
+    normal: '普通', operator: '操作人', search: '查询', reset: '清空',
+    time: '时间', type: '类型', levelCol: '级别', action: '动作',
+    operatorCol: '操作人', target: '目标方法', dictType: '字典类型', code: '编码',
+    label: '标签', sort: '排序', status: '状态', actions: '操作',
+    enable: '启用', disable: '停用', reloadIot: '重新读取', saveAll: '保存全部',
+    param: '参数', value: '值', unit: '单位', desc: '说明', save: '保存',
+    group: '参数分组', groupHint: '参数分组，如 SYSTEM / FINANCE',
+    configKey: '参数键', currentValue: '当前值', newValue: '新值',
+    newValueHint: '如 7', edit: '修改', configEditTitle: '修改系统参数',
+    cancel: '取消'
+  },
   platform: {
     title: '平台运营台', changePwd: '修改密码', logout: '退出',
     platformTab: '平台管理', auditTab: '运营审计', keyword: '平台名称/编码',

@@ -157,6 +157,21 @@ export default {
     unauthorized: 'Not authorized: contact administrator',
     fullscreen: 'Full-screen display',
   },
+  sys: {
+    title: 'System Support', refresh: 'Refresh', auditTab: 'Audit Log',
+    dictTab: 'Data Dictionary', configTab: 'System Parameters', level: 'Level',
+    critical: 'Critical', important: 'Important', normal: 'Normal',
+    operator: 'Operator', search: 'Search', reset: 'Reset', time: 'Time',
+    type: 'Type', levelCol: 'Level', action: 'Action', operatorCol: 'Operator',
+    target: 'Target Method', dictType: 'Dictionary Type', code: 'Code',
+    label: 'Label', sort: 'Sort Order', status: 'Status', actions: 'Actions',
+    enable: 'Enable', disable: 'Disable', reloadIot: 'Reload', saveAll: 'Save All',
+    param: 'Parameter', value: 'Value', unit: 'Unit', desc: 'Description',
+    save: 'Save', group: 'Parameter Group',
+    groupHint: 'Group, e.g. SYSTEM / FINANCE', configKey: 'Config Key',
+    currentValue: 'Current Value', newValue: 'New Value', newValueHint: 'e.g. 7',
+    edit: 'Edit', configEditTitle: 'Edit System Parameter', cancel: 'Cancel'
+  },
   platform: {
     title: 'Platform Console', changePwd: 'Change Password', logout: 'Log Out',
     platformTab: 'Platforms', auditTab: 'Operations Audit', keyword: 'Platform name / code',

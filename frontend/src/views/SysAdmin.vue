@@ -1,31 +1,31 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">系统支撑</h3>
+      <h3 style="margin:0">{{ t('sys.title') }}</h3>
       <div class="spacer" />
-      <el-button @click="load">刷新</el-button>
+      <el-button @click="load">{{ t('sys.refresh') }}</el-button>
     </div>
 
     <el-tabs v-model="tab">
-      <el-tab-pane label="审计日志" name="audit">
+      <el-tab-pane :label="t('sys.auditTab')" name="audit">
         <div class="toolbar">
-          <el-select v-model="auditQuery.level" placeholder="级别" clearable
+          <el-select v-model="auditQuery.level" :placeholder="t('sys.level')" clearable
                      style="width:140px" @change="loadAudit">
-            <el-option label="严重" value="CRITICAL" />
-            <el-option label="重要" value="IMPORTANT" />
-            <el-option label="普通" value="NORMAL" />
+            <el-option :label="t('sys.critical')" value="CRITICAL" />
+            <el-option :label="t('sys.important')" value="IMPORTANT" />
+            <el-option :label="t('sys.normal')" value="NORMAL" />
           </el-select>
-          <el-input v-model="auditQuery.operatorName" placeholder="操作人"
+          <el-input v-model="auditQuery.operatorName" :placeholder="t('sys.operator')"
                     clearable style="width:150px" @keyup.enter="loadAudit" />
-          <el-button type="primary" @click="loadAudit" data-testid="sys-audit-search">查询</el-button>
-          <el-button @click="resetAuditQuery" data-testid="sys-audit-reset">清空</el-button>
+          <el-button type="primary" @click="loadAudit" data-testid="sys-audit-search">{{ t('sys.search') }}</el-button>
+          <el-button @click="resetAuditQuery" data-testid="sys-audit-reset">{{ t('sys.reset') }}</el-button>
         </div>
         <el-table :data="audits" border size="small" v-loading="loading">
-          <el-table-column prop="auditTime" label="时间" width="170" />
-          <el-table-column prop="auditType" label="类型" width="110">
+          <el-table-column prop="auditTime" :label="t('sys.time')" width="170" />
+          <el-table-column prop="auditType" :label="t('sys.type')" width="110">
             <template #default="{ row }">{{ row.auditTypeLabel || enumLabel('auditType', row.auditType) }}</template>
           </el-table-column>
-          <el-table-column prop="auditLevel" label="级别" width="110">
+          <el-table-column prop="auditLevel" :label="t('sys.levelCol')" width="110">
             <template #default="{ row }">
               <el-tag size="small" :type="row.auditLevel === 'CRITICAL' ? 'danger'
                 : (row.auditLevel === 'IMPORTANT' ? 'warning' : 'info')">
@@ -33,9 +33,9 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="action" label="动作" min-width="160" />
-          <el-table-column prop="operatorName" label="操作人" width="120" />
-          <el-table-column prop="targetType" label="目标方法" min-width="200"
+          <el-table-column prop="action" :label="t('sys.action')" min-width="160" />
+          <el-table-column prop="operatorName" :label="t('sys.operatorCol')" width="120" />
+          <el-table-column prop="targetType" :label="t('sys.target')" min-width="200"
                            show-overflow-tooltip />
         </el-table>
         <div class="muted" style="margin-top:8px">
@@ -43,24 +43,24 @@
         </div>
       </el-tab-pane>
 
-      <el-tab-pane label="数据字典" name="dict">
+      <el-tab-pane :label="t('sys.dictTab')" name="dict">
         <div class="toolbar">
           <el-select v-model="dictType" style="width:240px" @change="loadDict">
             <el-option v-for="t in dictTypes" :key="t" :label="dictTypeLabel(t)" :value="t" />
           </el-select>
         </div>
         <el-table :data="dicts" border size="small">
-          <el-table-column prop="dictCode" label="编码" width="200" />
-          <el-table-column prop="dictLabel" label="标签" min-width="180" />
-          <el-table-column prop="sortNo" label="排序" width="90" />
-          <el-table-column prop="dictStatus" label="状态" width="110">
+          <el-table-column prop="dictCode" :label="t('sys.code')" width="200" />
+          <el-table-column prop="dictLabel" :label="t('sys.label')" min-width="180" />
+          <el-table-column prop="sortNo" :label="t('sys.sort')" width="90" />
+          <el-table-column prop="dictStatus" :label="t('sys.status')" width="110">
             <template #default="{ row }">{{ row.dictStatusLabel || enumLabel('dictStatus', row.dictStatus) }}</template>
           </el-table-column>
-          <el-table-column label="操作" width="110" fixed="right">
+          <el-table-column :label="t('sys.actions')" width="110" fixed="right">
             <template #default="{ row }">
               <el-button link :type="row.dictStatus === 'ENABLED' ? 'warning' : 'success'"
                          @click="toggleDictStatus(row)">
-                {{ row.dictStatus === 'ENABLED' ? '停用' : '启用' }}
+                {{ row.dictStatus === 'ENABLED' ? t('sys.disable') : t('sys.enable') }}
               </el-button>
             </template>
           </el-table-column>
@@ -70,7 +70,7 @@
         </div>
       </el-tab-pane>
 
-      <el-tab-pane label="系统参数" name="config">
+      <el-tab-pane :label="t('sys.configTab')" name="config">
         <!-- IoT 对接参数（契约参数，可配置） -->
         <el-card shadow="never" style="margin-bottom:14px"
                  body-style="padding:12px 14px">
@@ -78,13 +78,13 @@
             <h4 style="margin:0">IoT 对接参数</h4>
             <el-tag size="small" type="info">分组 IOT · 与 IoT 平台联调前先确认</el-tag>
             <div class="spacer" />
-            <el-button size="small" @click="loadIotConfigs">重新读取</el-button>
+            <el-button size="small" @click="loadIotConfigs">{{ t('sys.reloadIot') }}</el-button>
             <el-button size="small" type="primary" :loading="iotSaving"
                        @click="saveIotAll">保存全部</el-button>
           </div>
           <el-table :data="iotRows" border size="small">
-            <el-table-column prop="label" label="参数" width="230" />
-            <el-table-column label="值" width="260">
+            <el-table-column prop="label" :label="t('sys.param')" width="230" />
+            <el-table-column :label="t('sys.value')" width="260">
               <template #default="{ row }">
                 <el-select v-if="row.options" v-model="row.value" size="small"
                            style="width:100%">
@@ -94,11 +94,11 @@
                 <el-input v-else v-model="row.value" size="small" />
               </template>
             </el-table-column>
-            <el-table-column prop="unit" label="单位" width="90" />
-            <el-table-column prop="description" label="说明" min-width="260" />
-            <el-table-column label="操作" width="90">
+            <el-table-column prop="unit" :label="t('sys.unit')" width="90" />
+            <el-table-column prop="description" :label="t('sys.desc')" min-width="260" />
+            <el-table-column :label="t('sys.actions')" width="90">
               <template #default="{ row }">
-                <el-button link type="primary" @click="saveIotOne(row)">保存</el-button>
+                <el-button link type="primary" @click="saveIotOne(row)">{{ t('sys.save') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -110,19 +110,19 @@
         </el-card>
 
         <div class="toolbar" style="margin-bottom:8px">
-          <el-input v-model="configGroup" placeholder="参数分组，如 SYSTEM / FINANCE"
+          <el-input v-model="configGroup" :placeholder="t('sys.groupHint')"
                     clearable style="width:260px" data-testid="sys-config-group"
                     @keyup.enter="loadConfigs" />
-          <el-button type="primary" @click="loadConfigs" data-testid="sys-config-search">查询</el-button>
-          <el-button @click="resetConfigQuery" data-testid="sys-config-reset">清空</el-button>
+          <el-button type="primary" @click="loadConfigs" data-testid="sys-config-search">{{ t('sys.search') }}</el-button>
+          <el-button @click="resetConfigQuery" data-testid="sys-config-reset">{{ t('sys.reset') }}</el-button>
         </div>
         <el-table :data="configs" border size="small">
-          <el-table-column prop="configKey" label="参数键" width="320" />
-          <el-table-column prop="configValue" label="当前值" width="140" />
-          <el-table-column prop="valueType" label="类型" width="100">
+          <el-table-column prop="configKey" :label="t('sys.configKey')" width="320" />
+          <el-table-column prop="configValue" :label="t('sys.currentValue')" width="140" />
+          <el-table-column prop="valueType" :label="t('sys.type')" width="100">
             <template #default="{ row }">{{ row.valueTypeLabel || enumLabel('valueType', row.valueType) }}</template>
           </el-table-column>
-          <el-table-column prop="description" label="说明" min-width="240" />
+          <el-table-column prop="description" :label="t('sys.desc')" min-width="240" />
           <el-table-column label="操作" width="90" fixed="right">
             <template #default="{ row }">
               <el-button link type="primary" data-testid="sys-config-edit"
@@ -137,33 +137,34 @@
     </el-tabs>
 
     <!-- 修改系统参数 -->
-    <el-dialog v-model="configEditVisible" title="修改系统参数" width="560px">
+    <el-dialog v-model="configEditVisible" :title="t('sys.configEditTitle')" width="560px">
       <el-form :model="configForm" label-width="90px">
-        <el-form-item label="参数键">
+        <el-form-item :label="t('sys.configKey')">
           <el-input v-model="configForm.configKey" disabled />
         </el-form-item>
-        <el-form-item label="当前值">
+        <el-form-item :label="t('sys.currentValue')">
           <el-input v-model="configForm.oldValue" disabled />
         </el-form-item>
-        <el-form-item label="新值" required>
+        <el-form-item :label="t('sys.newValue')" required>
           <el-input v-model="configForm.value" data-testid="sys-config-value"
-                    placeholder="如 7" />
+                    :placeholder="t('sys.newValueHint')" />
         </el-form-item>
-        <el-form-item label="说明">
+        <el-form-item :label="t('sys.desc')">
           <el-input v-model="configForm.description" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
       <el-alert type="warning" :closable="false" show-icon
                 title="修改后立即生效；公示天数这类政策参数会影响后续业务校验，请谨慎调整。" />
       <template #footer>
-        <el-button @click="configEditVisible = false">取消</el-button>
-        <el-button type="primary" :loading="configSaving" @click="saveConfig">保存</el-button>
+        <el-button @click="configEditVisible = false">{{ t('sys.cancel') }}</el-button>
+        <el-button type="primary" :loading="configSaving" @click="saveConfig">{{ t('sys.save') }}</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { enumLabel, dictTypeLabel } from '@/constants/enums'
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -171,6 +172,7 @@ import { sysApi } from '@/api/modules'
 import req from '@/api/request'
 import { ElMessage } from 'element-plus'
 
+const { t } = useI18n()
 const TABS = ['audit', 'dict', 'config']
 const route = useRoute()
 const router = useRouter()
