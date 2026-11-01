@@ -11,7 +11,9 @@ class EnumLabelsEnglishTest {
     void knownCodes() {
         assertEquals("Public Rental", EnumLabels.ofEnglish("HOUSE_TYPE", "PUBLIC_RENTAL"));
         assertEquals("Vacant", EnumLabels.ofEnglish("HOUSE_STATUS", "VACANT"));
+        assertEquals("Available", EnumLabels.ofEnglish("HOUSE_STATUS", "AVAILABLE"));
         assertEquals("Terminated", EnumLabels.ofEnglish("CONTRACT_STATUS", "TERMINATED"));
+        assertEquals("Renewing", EnumLabels.ofEnglish("CONTRACT_STATUS", "RENEWING"));
         assertEquals("Unpaid", EnumLabels.ofEnglish("BILL_STATUS", "UNPAID"));
     }
 

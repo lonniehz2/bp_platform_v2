@@ -362,6 +362,7 @@ public final class EnumLabels {
             case "RENTAL" -> "Rental Housing";
             case "HOTEL" -> "Hotel / Homestay";
             case "VACANT" -> "Vacant";
+            case "AVAILABLE" -> "Available";
             case "OCCUPIED" -> "Occupied";
             case "LOCKED" -> "Locked";
             case "REPAIR" -> "Repair";
@@ -371,6 +372,7 @@ public final class EnumLabels {
             case "PENDING_SIGN" -> "Pending Signing";
             case "SIGNING" -> "Signing";
             case "EFFECTIVE" -> "Effective";
+            case "RENEWING" -> "Renewing";
             case "CHANGING" -> "Changing";
             case "TERMINATED" -> "Terminated";
             case "EXPIRED" -> "Expired";
