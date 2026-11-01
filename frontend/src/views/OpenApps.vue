@@ -185,6 +185,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
+import { labelOf } from '@/constants/fieldLabels'
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
@@ -207,16 +208,16 @@ const formVisible = ref(false)
 const formTitle = ref('')
 const formNote = ref('')
 const fields = [
-  { key: 'appName', label: '应用名称', type: 'text' },
-  { key: 'appType', label: '应用类型', type: 'select', options: [{ value: 'THIRD_PARTY', label: '第三方' }, { value: 'INTERNAL', label: '内部' }, { value: 'GOV', label: '政务' }] },
-  { key: 'ownerOrg', label: '所属单位', type: 'text' },
-  { key: 'contactName', label: '联系人', type: 'text' },
-  { key: 'contactPhone', label: '联系电话', type: 'text' },
-  { key: 'ipWhitelist', label: 'IP白名单', type: 'text' },
-  { key: 'qpsLimit', label: 'QPS限流', type: 'number' },
-  { key: 'dailyQuota', label: '日调用配额', type: 'number' },
-  { key: 'scopeCodes', label: '授权接口范围', type: 'text' },
-  { key: 'expireDate', label: '有效期', type: 'date' }
+  { key: 'appName', label: labelOf('appName'), type: 'text' },
+  { key: 'appType', label: labelOf('appType'), type: 'select', options: [{ value: 'THIRD_PARTY', label: t('open.thirdParty') }, { value: 'INTERNAL', label: t('open.internal') }, { value: 'GOV', label: t('open.government') }] },
+  { key: 'ownerOrg', label: labelOf('ownerOrg'), type: 'text' },
+  { key: 'contactName', label: labelOf('contactName'), type: 'text' },
+  { key: 'contactPhone', label: labelOf('contactPhone'), type: 'text' },
+  { key: 'ipWhitelist', label: labelOf('ipWhitelist'), type: 'text' },
+  { key: 'qpsLimit', label: labelOf('qpsLimit'), type: 'number' },
+  { key: 'dailyQuota', label: labelOf('dailyQuota'), type: 'number' },
+  { key: 'scopeCodes', label: labelOf('scopeCodes'), type: 'text' },
+  { key: 'expireDate', label: labelOf('expireDate'), type: 'date' }
 ]
 const model = reactive({})
 

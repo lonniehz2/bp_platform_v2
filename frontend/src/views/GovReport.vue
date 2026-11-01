@@ -74,6 +74,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
+import { labelOf } from '@/constants/fieldLabels'
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
@@ -95,10 +96,10 @@ const formVisible = ref(false)
 const formTitle = ref('')
 const formNote = ref('')
 const fields = [
-  { key: 'targetSystem', label: '目标系统', type: 'select', options: [{ value: 'PUBLIC_HOUSING', label: '公租房系统' }, { value: 'POLICE', label: '公安' }, { value: 'HOUSING', label: '住建' }, { value: 'REAL_ESTATE', label: '不动产' }] },
-  { key: 'reportType', label: '报送类型', type: 'select', options: [{ value: 'HOUSE', label: '房源' }, { value: 'TENANT', label: '租户' }, { value: 'CONTRACT', label: '合同' }] },
-  { key: 'dateFrom', label: '数据范围起', type: 'date' },
-  { key: 'dateTo', label: '数据范围止', type: 'date' }
+  { key: 'targetSystem', label: labelOf('targetSystem'), type: 'select', options: [{ value: 'PUBLIC_HOUSING', label: t('gov.publicHousing') }, { value: 'POLICE', label: t('gov.police') }, { value: 'HOUSING', label: t('gov.housing') }, { value: 'REAL_ESTATE', label: t('gov.realEstate') }] },
+  { key: 'reportType', label: labelOf('reportType'), type: 'select', options: [{ value: 'HOUSE', label: t('gov.reportHouse') }, { value: 'TENANT', label: t('gov.reportTenant') }, { value: 'CONTRACT', label: t('gov.reportContract') }] },
+  { key: 'dateFrom', label: labelOf('dateFrom'), type: 'date' },
+  { key: 'dateTo', label: labelOf('dateTo'), type: 'date' }
 ]
 const model = reactive({})
 

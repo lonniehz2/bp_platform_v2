@@ -250,11 +250,11 @@ const logs = ref([])
 const total = ref(0)
 const query = reactive({ pageNum: 1, pageSize: 20, msgType: '', processStatus: '' })
 
-const STATUS = { DONE: { label: '已处理', type: 'success' },
-  FAILED: { label: '处理失败', type: 'danger' },
-  REJECTED: { label: '已拒绝', type: 'warning' },
-  DUPLICATE: { label: '重复', type: 'info' },
-  RECEIVED: { label: '已接收', type: 'info' } }
+const STATUS = { DONE: { label: t('misc4.handled'), type: 'success' },
+  FAILED: { label: t('common.failed'), type: 'danger' },
+  REJECTED: { label: t('iot.rejected'), type: 'warning' },
+  DUPLICATE: { label: t('iot.duplicate'), type: 'info' },
+  RECEIVED: { label: t('iot.received'), type: 'info' } }
 
 function statusLabel(s) { return (STATUS[s] || {}).label || s || '—' }
 function statusType(s) { return (STATUS[s] || {}).type || 'info' }

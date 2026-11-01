@@ -311,6 +311,7 @@ function openDetail(row) {
 import DetailView from '@/components/DetailView.vue'
 import JsonForm from '@/components/JsonForm.vue'
 import { enumLabel } from '@/constants/enums'
+import { labelOf } from '@/constants/fieldLabels'
 import { ref, reactive, onMounted } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -347,22 +348,22 @@ const form = reactive({
 })
 
 const SCHEMA = [
-  { key: 'alertCategory', label: '告警类别', type: 'select', required: true, options: [
-    { label: '安全隐患', value: 'SAFETY' }, { label: '设备异常', value: 'DEVICE' },
-    { label: '业务风险', value: 'BUSINESS' }, { label: '违规行为', value: 'VIOLATION' }
+  { key: 'alertCategory', label: labelOf('alertCategory'), type: 'select', required: true, options: [
+    { label: t('alert.safety'), value: 'SAFETY' }, { label: t('alert.device'), value: 'DEVICE' },
+    { label: t('alert.business'), value: 'BUSINESS' }, { label: t('alert.violation'), value: 'VIOLATION' }
   ] },
-  { key: 'alertLevel', label: '告警级别', type: 'select', required: true, options: [
-    { label: '紧急', value: 'URGENT' }, { label: '重要', value: 'IMPORTANT' },
-    { label: '普通', value: 'NORMAL' }
+  { key: 'alertLevel', label: labelOf('alertLevel'), type: 'select', required: true, options: [
+    { label: t('alert.urgent'), value: 'URGENT' }, { label: t('alert.important'), value: 'IMPORTANT' },
+    { label: t('alert.normal'), value: 'NORMAL' }
   ] },
-  { key: 'alertType', label: '告警类型', required: true, placeholder: '如 ARREAR_RATE / DEVICE_OFFLINE，≤40 字符' },
-  { key: 'orgId', label: '组织 ID', placeholder: '可空，填真实主键' },
-  { key: 'alertTitle', label: '告警标题', required: true, span: 24, placeholder: '一句话说明问题，≤255 字符' },
-  { key: 'alertContent', label: '告警内容', type: 'textarea', span: 24, rows: 3 },
-  { key: 'alertValue', label: '实际值', placeholder: '如 15%' },
-  { key: 'thresholdValue', label: '阈值', placeholder: '如 10%' },
-  { key: 'houseId', label: '关联房源 ID' },
-  { key: 'personId', label: '关联人员 ID' }
+  { key: 'alertType', label: labelOf('alertType'), required: true, placeholder: t('alert.typeHintLong') },
+  { key: 'orgId', label: labelOf('orgId'), placeholder: t('alert.orgHint2') },
+  { key: 'alertTitle', label: labelOf('alertTitle'), required: true, span: 24, placeholder: t('alert.titleHint2') },
+  { key: 'alertContent', label: labelOf('alertContent'), type: 'textarea', span: 24, rows: 3 },
+  { key: 'alertValue', label: labelOf('alertValue'), placeholder: t('alert.valueHint') },
+  { key: 'thresholdValue', label: labelOf('thresholdValue'), placeholder: t('alert.thresholdHint2') },
+  { key: 'houseId', label: labelOf('houseId') },
+  { key: 'personId', label: labelOf('personId') }
 ]
 
 async function load() {
@@ -456,11 +457,11 @@ function domainText(v) { return DOMAIN_LABEL[v] || v || '—' }
 function scenarioText(v) { return SCENARIO_LABEL[v] || v || '—' }
 
 const RULE_FIELDS = [
-  { key: 'overdueDays', label: '逾期天数' },
-  { key: 'amount', label: '金额（元）' },
-  { key: 'count', label: '次数' },
-  { key: 'days', label: '天数' },
-  { key: 'ratio', label: '比例（0~1）' }
+  { key: 'overdueDays', label: labelOf('overdueDays') },
+  { key: 'amount', label: labelOf('amount') },
+  { key: 'count', label: labelOf('count') },
+  { key: 'days', label: labelOf('days') },
+  { key: 'ratio', label: labelOf('ratio') }
 ]
 const rf2 = reactive({ id: null, code: '', name: '', field: 'overdueDays', op: '>',
   value: 30, severity: 'WARNING', actionType: '', priority: 10 })
@@ -475,7 +476,7 @@ function previewThreshold() {
 }
 
 const FIELD_LABEL = Object.fromEntries(RULE_FIELDS.map((f) => [f.key, f.label]))
-const OP_LABEL = { '>': '大于', '>=': '大于等于', '<': '小于', '<=': '小于等于', '=': '等于' }
+const OP_LABEL = { '>': t('alert.gt'), '>=': t('alert.ge'), '<': t('alert.lt'), '<=': t('alert.le'), '=': t('alert.eq') }
 
 /** 条件表达式 → 中文，如「逾期天数 大于 30」 */
 function humanCondition(expr) {

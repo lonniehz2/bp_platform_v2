@@ -607,15 +607,19 @@ public class AllocationServiceImpl implements AllocationService {
         out.put("existing", existing == null ? 0 : existing.intValue());
         out.put("winners", wins.size());
         out.put("availableHouses", pool.size());
+        boolean en = com.yundao.bp.common.i18n.LocaleContext.isEnglish();
         String msg;
         if (made > 0) {
-            msg = "本次生成 " + made + " 张配租单";
+            msg = en ? made + " allocations generated" : "本次生成 " + made + " 张配租单";
         } else if (existing != null && existing > 0) {
-            msg = "该批次已生成 " + existing + " 张配租单，无需重复生成";
+            msg = en ? "This batch already has " + existing + " allocations; no need to regenerate"
+                    : "该批次已生成 " + existing + " 张配租单，无需重复生成";
         } else if (wins.isEmpty()) {
-            msg = "该批次没有中签结果，请先完成摇号";
+            msg = en ? "This batch has no lottery winners; run the lottery first"
+                    : "该批次没有中签结果，请先完成摇号";
         } else {
-            msg = "没有可用房源（房源已全部选中或未加入批次）";
+            msg = en ? "No available housing (all selected or not added to the batch)"
+                    : "没有可用房源（房源已全部选中或未加入批次）";
         }
         out.put("message", msg);
         log.info("批次 {} 生成配租单 {}（已有 {}，中签 {}，可用房源 {}）",

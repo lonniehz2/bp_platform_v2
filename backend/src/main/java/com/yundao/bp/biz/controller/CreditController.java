@@ -69,7 +69,9 @@ public class CreditController {
         if (service.isUnderBan(personId)) {
             service.checkApplyBan(personId);
         }
-        return R.ok("未处于限制申请期，可正常申请");
+        return R.ok(com.yundao.bp.common.i18n.LocaleContext.isEnglish()
+                ? "Not under an application ban; you can apply normally"
+                : "未处于限制申请期，可正常申请");
     }
 
     /** 解除（期满）。 */

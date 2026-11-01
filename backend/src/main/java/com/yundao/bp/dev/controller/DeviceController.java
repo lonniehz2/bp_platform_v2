@@ -171,7 +171,9 @@ public class DeviceController {
                         skipped++;
                         java.util.Map<String, Object> e = new java.util.LinkedHashMap<>();
                         e.put("line", lineNo);
-                        e.put("message", "设备编号已存在，已跳过：" + deviceId);
+                        e.put("message", com.yundao.bp.common.i18n.LocaleContext.isEnglish()
+                                ? "Device ID already exists; skipped: " + deviceId
+                                : "设备编号已存在，已跳过：" + deviceId);
                         errors.add(e);
                         continue;
                     }
@@ -202,7 +204,8 @@ public class DeviceController {
                 } catch (Exception ex) {
                     java.util.Map<String, Object> e = new java.util.LinkedHashMap<>();
                     e.put("line", lineNo);
-                    e.put("message", ex.getMessage() == null ? "导入失败" : ex.getMessage());
+                    e.put("message", com.yundao.bp.common.i18n.LocaleContext.isEnglish()
+                            ? "Import failed" : (ex.getMessage() == null ? "导入失败" : ex.getMessage()));
                     errors.add(e);
                 }
             }

@@ -89,6 +89,7 @@ function openDetail(row) {
 import DetailView from '@/components/DetailView.vue'
 import JsonForm from '@/components/JsonForm.vue'
 import { enumLabel } from '@/constants/enums'
+import { labelOf } from '@/constants/fieldLabels'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
@@ -116,21 +117,21 @@ const form = reactive({
 })
 
 const SCHEMA = [
-  { key: 'bizType', label: '业务类型', type: 'select', required: true, options: [
-    { label: '申请', value: 'APPLICATION' }, { label: '审核', value: 'REVIEW' },
-    { label: '年审', value: 'ANNUAL_REVIEW' }, { label: '公示', value: 'PUBLICITY' },
-    { label: '退出', value: 'EXIT' }
+  { key: 'bizType', label: labelOf('bizType'), type: 'select', required: true, options: [
+    { label: enumLabel('bizType','APPLICATION'), value: 'APPLICATION' }, { label: enumLabel('bizType','REVIEW'), value: 'REVIEW' },
+    { label: enumLabel('bizType','ANNUAL_REVIEW'), value: 'ANNUAL_REVIEW' }, { label: enumLabel('bizType','PUBLICITY'), value: 'PUBLICITY' },
+    { label: enumLabel('bizType','EXIT'), value: 'EXIT' }
   ] },
-  { key: 'appealType', label: '申诉类型', type: 'select', required: true, options: [
-    { label: '提交材料', value: 'SUBMIT' }, { label: '提出异议', value: 'OBJECTION' }
+  { key: 'appealType', label: labelOf('appealType'), type: 'select', required: true, options: [
+    { label: enumLabel('appealType','SUBMIT'), value: 'SUBMIT' }, { label: enumLabel('appealType','OBJECTION'), value: 'OBJECTION' }
   ] },
-  { key: 'bizId', label: '业务单据 ID', required: true, placeholder: '填真实主键' },
-  { key: 'personId', label: '申诉人 ID', required: true },
-  { key: 'orgId', label: '组织 ID' },
-  { key: 'daysFromNow', label: '答复期限(天)', type: 'number', placeholder: '默认 7' },
-  { key: 'appealReason', label: '申诉理由', type: 'textarea', required: true, span: 24, rows: 3 },
-  { key: 'appealEvidence', label: '证据材料', type: 'textarea', span: 24, rows: 2,
-    placeholder: '说明或链接，≤2000 字' }
+  { key: 'bizId', label: labelOf('bizId'), required: true, placeholder: t('appeal.bizHint') },
+  { key: 'personId', label: labelOf('personId'), required: true },
+  { key: 'orgId', label: labelOf('orgId') },
+  { key: 'daysFromNow', label: labelOf('daysFromNow'), type: 'number', placeholder: t('appeal.daysHint') },
+  { key: 'appealReason', label: labelOf('appealReason'), type: 'textarea', required: true, span: 24, rows: 3 },
+  { key: 'appealEvidence', label: labelOf('appealEvidence'), type: 'textarea', span: 24, rows: 2,
+    placeholder: t('appeal.evidenceHint') }
 ]
 
 async function load() {

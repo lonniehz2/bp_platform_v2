@@ -371,13 +371,13 @@ const houseStatus = ref('')
 const houseTypeFilter = ref('')
 /** 多业态房源类型（宿舍/公寓/酒店民宿 与保障房并行） */
 const houseTypes = [
-  { value: 'PUBLIC_RENTAL', label: '公租房' },
-  { value: 'AFFORDABLE_RENTAL', label: '经适房' },
-  { value: 'TALENT', label: '人才房' },
-  { value: 'APARTMENT', label: '公寓' },
-  { value: 'DORMITORY', label: '宿舍' },
-  { value: 'RENTAL', label: '租赁住房' },
-  { value: 'HOTEL', label: '酒店/民宿' }
+  { value: 'PUBLIC_RENTAL', label: enumLabel('houseType', 'PUBLIC_RENTAL') },
+  { value: 'AFFORDABLE_RENTAL', label: enumLabel('houseType', 'AFFORDABLE_RENTAL') },
+  { value: 'TALENT', label: enumLabel('houseType', 'TALENT') },
+  { value: 'APARTMENT', label: enumLabel('houseType', 'APARTMENT') },
+  { value: 'DORMITORY', label: enumLabel('houseType', 'DORMITORY') },
+  { value: 'RENTAL', label: enumLabel('houseType', 'RENTAL') },
+  { value: 'HOTEL', label: enumLabel('houseType', 'HOTEL') }
 ]
 const occVisible = ref(false)
 const occ = ref(null)
@@ -634,15 +634,15 @@ const spaceTree = ref([])
 
 /** 朝向：与后端枚举一致（EnumLabels 已配中文） */
 const ORIENTATIONS = [
-  { value: 'SOUTH', label: '朝南' },
-  { value: 'NORTH', label: '朝北' },
-  { value: 'EAST', label: '朝东' },
-  { value: 'WEST', label: '朝西' },
-  { value: 'SOUTHEAST', label: '东南' },
-  { value: 'SOUTHWEST', label: '西南' },
-  { value: 'NORTHEAST', label: '东北' },
-  { value: 'NORTHWEST', label: '西北' },
-  { value: 'NORTH_SOUTH', label: '南北通透' }
+  { value: 'SOUTH', label: enumLabel('orientation', 'SOUTH') },
+  { value: 'NORTH', label: enumLabel('orientation', 'NORTH') },
+  { value: 'EAST', label: enumLabel('orientation', 'EAST') },
+  { value: 'WEST', label: enumLabel('orientation', 'WEST') },
+  { value: 'SOUTHEAST', label: enumLabel('orientation', 'SOUTHEAST') },
+  { value: 'SOUTHWEST', label: enumLabel('orientation', 'SOUTHWEST') },
+  { value: 'NORTHEAST', label: enumLabel('orientation', 'NORTHEAST') },
+  { value: 'NORTHWEST', label: enumLabel('orientation', 'NORTHWEST') },
+  { value: 'NORTH_SOUTH', label: enumLabel('orientation', 'NORTH_SOUTH') }
 ]
 
 async function openBeds() {

@@ -1,6 +1,7 @@
 package com.yundao.bp.rpt.service.impl;
 
 import com.yundao.bp.common.util.EnumLabels;
+import com.yundao.bp.common.i18n.LocaleContext;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.yundao.bp.asset.entity.AssetHouse;
 import com.yundao.bp.asset.mapper.AssetHouseMapper;
@@ -247,37 +248,55 @@ public class ReportServiceImpl implements ReportService {
     }
 
     private List<Map<String, String>> columnsOf(String code) {
+        boolean en = LocaleContext.isEnglish();
+        String houseCode = en ? "Housing Code" : "房源编号";
+        String houseName = en ? "Housing Name" : "房源名称";
+        String houseType = en ? "Housing Type" : "房源类型";
+        String area = en ? "Area (m²)" : "面积(㎡)";
+        String houseStatus = en ? "Housing Status" : "房源状态";
+        String contractNo = en ? "Contract No." : "合同号";
+        String lessee = en ? "Lessee" : "承租人";
+        String leaseStart = en ? "Lease Start" : "起租日";
+        String leaseEnd = en ? "Lease End" : "止租日";
+        String monthlyRent = en ? "Monthly Rent" : "月租金";
+        String status = en ? "Status" : "状态";
+        String billNo = en ? "Bill No." : "账单号";
+        String payer = en ? "Payer" : "缴费人";
+        String period = en ? "Billing Period" : "账期";
+        String payable = en ? "Payable" : "应付金额";
+        String dueDate = en ? "Due Date" : "缴费截止日";
         List<Map<String, String>> cols = new ArrayList<>();
         switch (code) {
             case "HOUSE_LEDGER" -> {
-                col(cols, "houseCode", "房源编号");
-                col(cols, "houseName", "房源名称");
-                col(cols, "houseType", "房源类型");
-                col(cols, "area", "面积(㎡)");
-                col(cols, "houseStatus", "房源状态");
+                col(cols, "houseCode", houseCode);
+                col(cols, "houseName", houseName);
+                col(cols, "houseType", houseType);
+                col(cols, "area", area);
+                col(cols, "houseStatus", houseStatus);
             }
             case "CONTRACT_LEDGER" -> {
-                col(cols, "contractNo", "合同号");
-                col(cols, "lesseeName", "承租人");
-                col(cols, "leaseStart", "起租日");
-                col(cols, "leaseEnd", "止租日");
-                col(cols, "monthlyRent", "月租金");
-                col(cols, "contractStatus", "状态");
+                col(cols, "contractNo", contractNo);
+                col(cols, "lesseeName", lessee);
+                col(cols, "leaseStart", leaseStart);
+                col(cols, "leaseEnd", leaseEnd);
+                col(cols, "monthlyRent", monthlyRent);
+                col(cols, "contractStatus", status);
             }
             case "ARREARS_LEDGER" -> {
-                col(cols, "billNo", "账单号");
-                col(cols, "payerName", "缴费人");
-                col(cols, "billPeriod", "账期");
-                col(cols, "payableAmount", "应付金额");
-                col(cols, "dueDate", "缴费截止日");
-                col(cols, "billStatus", "状态");
+                col(cols, "billNo", billNo);
+                col(cols, "payerName", payer);
+                col(cols, "billPeriod", period);
+                col(cols, "payableAmount", payable);
+                col(cols, "dueDate", dueDate);
+                col(cols, "billStatus", status);
             }
-            default -> col(cols, "info", "说明");
+            default -> col(cols, "info", en ? "Description" : "说明");
         }
         return cols;
     }
 
     private List<Map<String, Object>> rowsOf(String code, Long orgId) {
+        boolean en = LocaleContext.isEnglish();
         List<Map<String, Object>> rows = new ArrayList<>();
         switch (code) {
             case "HOUSE_LEDGER" -> {
@@ -288,9 +307,9 @@ public class ReportServiceImpl implements ReportService {
                     Map<String, Object> r = new LinkedHashMap<>();
                     r.put("houseCode", h.getHouseCode());
                     r.put("houseName", h.getHouseName());
-                    r.put("houseType", EnumLabels.of("HOUSE_TYPE", h.getHouseType()));
+                    r.put("houseType", en ? EnumLabels.ofEnglish("HOUSE_TYPE", h.getHouseType()) : EnumLabels.of("HOUSE_TYPE", h.getHouseType()));
                     r.put("area", h.getArea());
-                    r.put("houseStatus", EnumLabels.of("HOUSE_STATUS", h.getHouseStatus()));
+                    r.put("houseStatus", en ? EnumLabels.ofEnglish("HOUSE_STATUS", h.getHouseStatus()) : EnumLabels.of("HOUSE_STATUS", h.getHouseStatus()));
                     rows.add(r);
                 }
             }
@@ -305,7 +324,7 @@ public class ReportServiceImpl implements ReportService {
                     r.put("leaseStart", c.getLeaseStart());
                     r.put("leaseEnd", c.getLeaseEnd());
                     r.put("monthlyRent", c.getMonthlyRent());
-                    r.put("contractStatus", EnumLabels.of("CONTRACT_STATUS", c.getContractStatus()));
+                    r.put("contractStatus", en ? EnumLabels.ofEnglish("CONTRACT_STATUS", c.getContractStatus()) : EnumLabels.of("CONTRACT_STATUS", c.getContractStatus()));
                     rows.add(r);
                 }
             }
@@ -322,7 +341,7 @@ public class ReportServiceImpl implements ReportService {
                     r.put("billPeriod", b.getBillPeriod());
                     r.put("payableAmount", b.getPayableAmount());
                     r.put("dueDate", b.getDueDate());
-                    r.put("billStatus", EnumLabels.of("BILL_STATUS", b.getBillStatus()));
+                    r.put("billStatus", en ? EnumLabels.ofEnglish("BILL_STATUS", b.getBillStatus()) : EnumLabels.of("BILL_STATUS", b.getBillStatus()));
                     rows.add(r);
                 }
             }

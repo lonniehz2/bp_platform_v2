@@ -346,4 +346,45 @@ public final class EnumLabels {
         }
         return GLOBAL.getOrDefault(v, v);
     }
+
+    /** 英文导出标签；未覆盖的编码回退中文表，避免输出原始编码。 */
+    public static String ofEnglish(String field, Object value) {
+        if (value == null) {
+            return "";
+        }
+        String v = String.valueOf(value);
+        return switch (v) {
+            case "PUBLIC_RENTAL" -> "Public Rental";
+            case "AFFORDABLE_RENTAL" -> "Affordable Rental";
+            case "TALENT" -> "Talent Apartment";
+            case "APARTMENT" -> "Apartment";
+            case "DORMITORY" -> "Dormitory";
+            case "RENTAL" -> "Rental Housing";
+            case "HOTEL" -> "Hotel / Homestay";
+            case "VACANT" -> "Vacant";
+            case "OCCUPIED" -> "Occupied";
+            case "LOCKED" -> "Locked";
+            case "REPAIR" -> "Repair";
+            case "OFFLINE" -> "Offline";
+            case "PENDING_ALLOC" -> "Pending Allocation";
+            case "DRAFT" -> "Draft";
+            case "PENDING_SIGN" -> "Pending Signing";
+            case "SIGNING" -> "Signing";
+            case "EFFECTIVE" -> "Effective";
+            case "CHANGING" -> "Changing";
+            case "TERMINATED" -> "Terminated";
+            case "EXPIRED" -> "Expired";
+            case "UNPAID" -> "Unpaid";
+            case "PARTIAL" -> "Partially Paid";
+            case "PAID" -> "Paid";
+            case "OVERDUE" -> "Overdue";
+            case "WAIVED" -> "Waived";
+            case "CANCELLED" -> "Cancelled";
+            case "REFUNDED" -> "Refunded";
+            case "PENDING" -> "Pending";
+            case "SUCCESS" -> "Success";
+            case "FAILED" -> "Failed";
+            default -> of(field, value);
+        };
+    }
 }
