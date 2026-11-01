@@ -158,6 +158,20 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  workorder: {
+    title: '工单与维保', status: '状态', plans: '巡检计划', autoAssign: '自动派单',
+    escalate: '超时升级', refresh: '刷新', planTitle: '巡检计划', newPlan: '新建计划',
+    runDue: '执行到期计划', planName: '计划名称', type: '巡检类型', frequency: '周期',
+    nextRun: '下次执行', owner: '负责人', planStatus: '状态',
+    createPlanTitle: '新建巡检计划', planNameHint: '如：1号楼月度安全巡检',
+    safety: '安全', equipment: '设备', cleaning: '保洁', green: '绿化',
+    cycle: '周期', firstRun: '首次执行', ownerHint: '可空', remark: '备注',
+    cancel: '取消', create: '创建',
+    no: '工单号', orderType: '类型', orderTitle: '标题', source: '来源',
+    orderStatus: '状态', assignee: '处理人', sla: 'SLA', created: '创建时间',
+    actions: '操作', assign: '派单', accept: '接单', finish: '完成', more: '更多▾',
+    logTitle: '工单日志'
+  },
   energy: {
     allocTab: '月度分摊', analysisTab: '能耗分析', pointsTab: '表计', policyTab: '策略',
     period: '2026-10', meter: '表计', preview: '试算', confirm: '确认分摊并出账',

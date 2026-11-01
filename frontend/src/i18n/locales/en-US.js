@@ -157,6 +157,21 @@ export default {
     unauthorized: 'Not authorized: contact administrator',
     fullscreen: 'Full-screen display',
   },
+  workorder: {
+    title: 'Work Orders & Maintenance', status: 'Status', plans: 'Inspection Plans',
+    autoAssign: 'Auto Assign', escalate: 'Escalate Overdue', refresh: 'Refresh',
+    planTitle: 'Inspection Plans', newPlan: 'New Plan', runDue: 'Run Due Plans',
+    planName: 'Plan Name', type: 'Inspection Type', frequency: 'Frequency',
+    nextRun: 'Next Run', owner: 'Owner', planStatus: 'Status',
+    createPlanTitle: 'New Inspection Plan', planNameHint: 'e.g. Building 1 monthly safety inspection',
+    safety: 'Safety', equipment: 'Equipment', cleaning: 'Cleaning', green: 'Landscaping',
+    cycle: 'Frequency', firstRun: 'First Run', ownerHint: 'Optional', remark: 'Remark',
+    cancel: 'Cancel', create: 'Create',
+    no: 'Work Order No.', orderType: 'Type', orderTitle: 'Title', source: 'Source',
+    orderStatus: 'Status', assignee: 'Assignee', sla: 'SLA', created: 'Created At',
+    actions: 'Actions', assign: 'Assign', accept: 'Accept', finish: 'Finish',
+    more: 'More▾', logTitle: 'Work Order Log'
+  },
   energy: {
     allocTab: 'Monthly Allocation', analysisTab: 'Energy Analysis', pointsTab: 'Meters', policyTab: 'Policy',
     period: '2026-10', meter: 'Meter', preview: 'Preview', confirm: 'Confirm & Bill',

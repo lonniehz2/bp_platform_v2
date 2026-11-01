@@ -1,26 +1,26 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">工单与维保</h3>
-      <el-select v-model="query.orderStatus" placeholder="状态" clearable
+      <h3 style="margin:0">{{ t('workorder.title') }}</h3>
+      <el-select v-model="query.orderStatus" :placeholder="t('workorder.status')" clearable
                  style="width:150px" @change="reload">
         <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
       </el-select>
       <div class="spacer" />
-      <el-button type="warning" plain @click="openPlans" data-testid="inspection-plans">
+      <el-button type="warning" plain @click="openPlans" data-testid="inspection-plans">{{ t('workorder.plans') }}
         巡检计划
       </el-button>
       <el-button plain :loading="saving" @click="autoAssignPending"
                  data-testid="wo-autoassign-all">批量派单</el-button>
       <el-button plain :loading="saving" @click="escalateOverdue"
                  data-testid="wo-escalate">超时升级</el-button>
-      <el-button type="primary" @click="reload">刷新</el-button>
+      <el-button type="primary" @click="reload">{{ t('workorder.refresh') }}</el-button>
     </div>
 
     <!-- 巡检计划（物业）：按周期自动生成工单 -->
-    <el-dialog v-model="plansVisible" title="巡检计划" width="900px">
+    <el-dialog v-model="plansVisible" :title="t('workorder.planTitle')" width="900px">
       <div style="display:flex;gap:8px;margin-bottom:10px">
-        <el-button type="success" size="small" @click="planFormVisible = true">新建计划</el-button>
+        <el-button type="success" size="small" @click="planFormVisible = true">{{ t('workorder.newPlan') }}</el-button>
         <el-button type="warning" size="small" :loading="saving" @click="runDue">
           执行到期计划
         </el-button>
@@ -30,20 +30,20 @@
         </span>
       </div>
       <el-table :data="plans" size="small" border max-height="360" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
-        <el-table-column prop="planName" label="计划名称" min-width="160" />
-        <el-table-column prop="inspectType" label="巡检类型" width="110">
+        <el-table-column prop="planName" :label="t('workorder.planName')" min-width="160" />
+        <el-table-column prop="inspectType" :label="t('workorder.type')" width="110">
           <template #default="{ row }">
             {{ { SAFETY: '安全', EQUIPMENT: '设备', CLEANING: '保洁', GREEN: '绿化' }[row.inspectType] || row.inspectType }}
           </template>
         </el-table-column>
-        <el-table-column prop="frequency" label="周期" width="90">
+        <el-table-column prop="frequency" :label="t('workorder.frequency')" width="90">
           <template #default="{ row }">
             {{ { DAY: '每日', WEEK: '每周', MONTH: '每月' }[row.frequency] || row.frequency }}
           </template>
         </el-table-column>
-        <el-table-column prop="nextRunDate" label="下次执行" width="120" />
-        <el-table-column prop="assignUserName" label="负责人" width="110" />
-        <el-table-column prop="planStatus" label="状态" width="90">
+        <el-table-column prop="nextRunDate" :label="t('workorder.nextRun')" width="120" />
+        <el-table-column prop="assignUserName" :label="t('workorder.owner')" width="110" />
+        <el-table-column prop="planStatus" :label="t('workorder.planStatus')" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="row.planStatus === 'ENABLED' ? 'success' : 'info'">
               {{ row.planStatus === 'ENABLED' ? '启用' : '停用' }}
@@ -54,58 +54,58 @@
     </el-dialog>
 
     <!-- 新建巡检计划 -->
-    <el-dialog v-model="planFormVisible" title="新建巡检计划" width="520px">
+    <el-dialog v-model="planFormVisible" :title="t('workorder.createPlanTitle')" width="520px">
       <el-form :model="pf" label-width="100px">
-        <el-form-item label="计划名称" required>
-          <el-input v-model="pf.planName" placeholder="如：1号楼月度安全巡检" />
+        <el-form-item :label="t('workorder.planName')" required>
+          <el-input v-model="pf.planName" :placeholder="t('workorder.planNameHint')" />
         </el-form-item>
-        <el-form-item label="巡检类型">
+        <el-form-item :label="t('workorder.type')">
           <el-select v-model="pf.inspectType" style="width:100%">
-            <el-option label="安全" value="SAFETY" />
-            <el-option label="设备" value="EQUIPMENT" />
-            <el-option label="保洁" value="CLEANING" />
-            <el-option label="绿化" value="GREEN" />
+            <el-option :label="t('workorder.safety')" value="SAFETY" />
+            <el-option :label="t('workorder.equipment')" value="EQUIPMENT" />
+            <el-option :label="t('workorder.cleaning')" value="CLEANING" />
+            <el-option :label="t('workorder.green')" value="GREEN" />
           </el-select>
         </el-form-item>
-        <el-form-item label="周期">
+        <el-form-item :label="t('workorder.cycle')">
           <el-radio-group v-model="pf.frequency">
             <el-radio-button value="DAY">每日</el-radio-button>
             <el-radio-button value="WEEK">每周</el-radio-button>
             <el-radio-button value="MONTH">每月</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="首次执行">
+        <el-form-item :label="t('workorder.firstRun')">
           <el-date-picker v-model="pf.nextRunDate" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
-        <el-form-item label="负责人">
-          <el-input v-model="pf.assignUserName" placeholder="可空" />
+        <el-form-item :label="t('workorder.owner')">
+          <el-input v-model="pf.assignUserName" :placeholder="t('workorder.ownerHint')" />
         </el-form-item>
-        <el-form-item label="备注">
+        <el-form-item :label="t('workorder.remark')">
           <el-input v-model="pf.remark" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="planFormVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreatePlan">创建</el-button>
+        <el-button @click="planFormVisible = false">{{ t('workorder.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreatePlan">{{ t('workorder.create') }}</el-button>
       </template>
     </el-dialog>
 
     <el-table :data="rows" v-loading="loading" border size="small">
-      <el-table-column prop="workorderNo" label="工单号" width="180" />
-      <el-table-column prop="orderType" label="类型" width="110">
+      <el-table-column prop="workorderNo" :label="t('workorder.no')" width="180" />
+      <el-table-column prop="orderType" :label="t('workorder.orderType')" width="110">
         <template #default="{ row }">{{ row.orderTypeLabel || enumLabel('orderType', row.orderType) }}</template>
       </el-table-column>
-      <el-table-column prop="orderTitle" label="标题" min-width="200" />
-      <el-table-column prop="orderSource" label="来源" width="100">
+      <el-table-column prop="orderTitle" :label="t('workorder.orderTitle')" min-width="200" />
+      <el-table-column prop="orderSource" :label="t('workorder.source')" width="100">
         <template #default="{ row }">
           {{ row.orderSourceLabel || enumLabel('orderSource', row.orderSource) || row.orderSource }}
         </template>
       </el-table-column>
-      <el-table-column prop="orderStatus" label="状态" width="110">
+      <el-table-column prop="orderStatus" :label="t('workorder.orderStatus')" width="110">
         <template #default="{ row }">{{ row.orderStatusLabel || enumLabel('orderStatus', row.orderStatus) }}</template>
       </el-table-column>
-      <el-table-column prop="assignUserName" label="处理人" width="110">
+      <el-table-column prop="assignUserName" :label="t('workorder.assignee')" width="110">
         <template #default="{ row }">{{ row.assignUserName || '—' }}</template>
       </el-table-column>
       <el-table-column prop="slaStatus" label="SLA" width="100">
@@ -116,15 +116,15 @@
           <el-tag v-else type="success" size="small">正常</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="createTime" label="创建时间" width="170" />
-      <el-table-column label="操作" width="230" fixed="right">
+      <el-table-column prop="createTime" :label="t('workorder.created')" width="170" />
+      <el-table-column :label="t('workorder.actions')" width="230" fixed="right">
         <template #default="{ row }">
           <el-button v-if="row.orderStatus === 'PENDING'" link type="warning"
                      @click="autoAssign(row)" data-testid="wo-autoassign">自动派单</el-button>
-          <el-button link type="primary" @click="act(row, 'accept')">接单</el-button>
-          <el-button link type="success" @click="finish(row)">完成</el-button>
+          <el-button link type="primary" @click="act(row, 'accept')">{{ t('workorder.accept') }}</el-button>
+          <el-button link type="success" @click="finish(row)">{{ t('workorder.finish') }}</el-button>
           <el-dropdown trigger="click" style="margin-left:8px">
-            <el-button link type="primary">更多▾</el-button>
+            <el-button link type="primary">{{ t('workorder.more') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="act(row, 'start')">开始</el-dropdown-item>
@@ -144,7 +144,7 @@
                    :current-page="query.pageNum"
                    @current-change="(p) => { query.pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { query.pageSize = s; query.pageNum = 1; load() }" />
 
-    <el-drawer v-model="logVisible" title="工单日志" size="460px">
+    <el-drawer v-model="logVisible" :title="t('workorder.logTitle')" size="460px">
       <el-timeline>
         <el-timeline-item v-for="l in logList" :key="l.id" :timestamp="l.createTime">
           {{ l.action }} — {{ l.operatorName }}
@@ -156,12 +156,14 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { workOrderApi } from '@/api/modules'
 import req from '@/api/request'
 
+const { t } = useI18n()
 const statuses = ['PENDING', 'ASSIGNED', 'ACCEPTED', 'PROCESSING', 'FINISHED',
   'CLOSED', 'CANCELLED']
 const loading = ref(false)
