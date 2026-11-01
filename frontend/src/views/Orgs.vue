@@ -5,18 +5,18 @@
         <h3 style="margin:0">{{ t('org.title') }}</h3>
         <div class="spacer" />
         <el-radio-group v-model="viewMode" size="small" @change="load">
-          <el-radio-button value="tree">树形</el-radio-button>
-          <el-radio-button value="table">列表</el-radio-button>
+          <el-radio-button value="tree">{{ t('misc11.tree') }}</el-radio-button>
+          <el-radio-button value="table">{{ t('misc11.table') }}</el-radio-button>
         </el-radio-group>
         <el-checkbox v-model="includeSubtree" @change="onSubtreeChange">
-          含下级
+          {{ t('misc11.includeChildren') }}
         </el-checkbox>
         <el-button type="primary" @click="load">{{ t('org.refresh') }}</el-button>
         <el-button type="success" @click="openCreate">{{ t('org.create') }}</el-button>
       </div>
 
       <el-alert v-if="currentOrg" type="info" :closable="true" show-icon
-                :title="`当前筛选：${currentOrg.orgName}（${includeSubtree ? '含所有下级' : '仅直接下级'}）`"
+                :title="t('misc11.filterText', { name: currentOrg.orgName, scope: includeSubtree ? t('misc11.allChildren') : t('misc11.directChildren') })"
                 style="margin-bottom:10px" @close="clearFilter" />
 
       <el-row :gutter="16">
@@ -24,11 +24,11 @@
           <el-tree :data="tree" :props="{ label: 'treeLabel', children: 'children' }"
                    node-key="id" default-expand-all highlight-current
                    @node-click="onSelect" />
-          <el-empty v-if="!tree.length" description="暂无组织数据" :image-size="60" />
+          <el-empty v-if="!tree.length" :description="t('misc11.noOrgs')" :image-size="60" />
         </el-col>
         <el-col :span="17">
           <el-table :data="rows" v-loading="loading" border size="small"
-                     empty-text="该组织下暂无子组织（可勾选「含下级」查看全部）">
+                     :empty-text="t('misc11.noChildren')">
             <el-table-column prop="id" :label="t('org.id')" width="150" />
             <el-table-column prop="orgName" :label="t('org.name')" min-width="160" />
             <el-table-column prop="orgCode" :label="t('org.code')" width="140" />
@@ -55,7 +55,7 @@
                 <el-button link type="primary" @click="openEdit(row)">{{ t('org.edit') }}</el-button>
                 <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
                            @click="toggleStatus(row)">
-                  {{ row.status === 'ENABLED' ? '停用' : '启用' }}
+                  {{ row.status === 'ENABLED' ? t('misc11.disable') : t('misc11.enable') }}
                 </el-button>
                 <el-button link type="danger" @click="removeOrg(row)">{{ t('org.delete') }}</el-button>
               </template>
@@ -91,8 +91,7 @@
                        :placeholder="t('org.addressHint')"
                        style="width:100%" @change="onRegionChange" />
           <div class="muted" style="font-size:12px;margin-top:4px">
-            数据来源：国家统计局五级行政区划（省/市/区县/街道/社区，共
-            {{ regionCount }}）
+            {{ t('misc11.regionSource', { n: regionCount }) }}
           </div>
         </el-form-item>
         <el-form-item :label="t('org.communityName')">
@@ -102,7 +101,7 @@
             <el-option v-for="c in communityOptions" :key="c" :label="c" :value="c" />
           </el-select>
           <div class="muted" style="font-size:12px;margin-top:4px">
-            在标准地址里选到第五级会自动填入；也可在此手工输入或从历史社区中选择
+            {{ t('misc11.communityHintText') }}
           </div>
         </el-form-item>
         <el-form-item :label="t('org.detailAddress')">
@@ -128,41 +127,41 @@
         <el-descriptions-item :label="t('org.address')" :span="2">
           {{ standardAddress(detailRow) }}
         </el-descriptions-item>
-        <el-descriptions-item label="社区/村">{{ detailRow.community || '—' }}</el-descriptions-item>
-        <el-descriptions-item label="详细地址">{{ detailRow.address || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('org.communityName')">{{ detailRow.community || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('misc11.detailAddress')">{{ detailRow.address || '—' }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
 
-    <el-dialog v-model="editVisible" title="编辑组织" width="640px">
+    <el-dialog v-model="editVisible" :title="t('misc11.editTitle')" width="640px">
       <el-form :model="editForm" label-width="100px">
-        <el-form-item label="组织名称" required><el-input v-model="editForm.orgName" /></el-form-item>
-        <el-form-item label="编码" required><el-input v-model="editForm.orgCode" /></el-form-item>
-        <el-form-item label="标准地址">
+        <el-form-item :label="t('misc11.orgName')" required><el-input v-model="editForm.orgName" /></el-form-item>
+        <el-form-item :label="t('misc11.code')" required><el-input v-model="editForm.orgCode" /></el-form-item>
+        <el-form-item :label="t('misc11.standardAddress')">
           <div v-if="editAddrText" class="muted" style="font-size:12px;margin-bottom:4px">
-            当前：{{ editAddrText }}
+            {{ t('misc11.current', { addr: editAddrText }) }}
           </div>
           <el-cascader v-model="editRegionPath" :props="regionProps" clearable filterable
-                       placeholder="如需修改，请重新逐级选择（省/市/区县/街道/社区）"
+                       :placeholder="t('misc11.addressEditHint')"
                        style="width:100%" @change="onEditRegionChange" />
         </el-form-item>
-        <el-form-item label="社区/村">
+        <el-form-item :label="t('org.communityName')">
           <el-select v-model="editForm.community" filterable allow-create
                      default-first-option clearable
-                     placeholder="可从下拉选择，也可直接输入" style="width:100%">
+                     :placeholder="t('misc11.communityPick')" style="width:100%">
             <el-option v-for="c in communityOptions" :key="c" :label="c" :value="c" />
           </el-select>
           <div class="muted" style="font-size:12px;margin-top:4px">
-            区划库到街道为止；社区/村可选已录入名称，也可直接输入
+            {{ t('misc11.communityPickHint') }}
           </div>
         </el-form-item>
-        <el-form-item label="详细地址"><el-input v-model="editForm.address" /></el-form-item>
-        <el-form-item label="排序"><el-input-number v-model="editForm.sortNo" :min="1" /></el-form-item>
-        <el-form-item label="备注">
+        <el-form-item :label="t('misc11.detailAddress')"><el-input v-model="editForm.address" /></el-form-item>
+        <el-form-item :label="t('misc11.sort')"><el-input-number v-model="editForm.sortNo" :min="1" /></el-form-item>
+        <el-form-item :label="t('misc11.remark')">
           <el-input v-model="editForm.remark" type="textarea" :rows="2" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="saveEdit">保存</el-button>
+        <el-button @click="editVisible = false">{{ t('misc11.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="saveEdit">{{ t('misc11.save') }}</el-button>
       </template>
     </el-dialog>
 
