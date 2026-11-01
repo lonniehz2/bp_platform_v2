@@ -3,7 +3,7 @@
     <div class="toolbar">
       <h3 style="margin:0">{{ t('space.title') }}</h3>
       <el-tag size="small" type="info">
-        小区 → 楼栋 → 单元 → 楼层 → 房 → 床
+        {{ t('spaceX.flow') }}
       </el-tag>
       <div class="spacer" />
       <el-select v-model="orgId" :placeholder="t('space.orgHint')"
@@ -18,7 +18,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon
-              title="选择组织后自动加载空间树；层级：片区/楼栋 → 单元 → 楼层 → 房间 → 床位/车位"
+              :title="t('spaceX.treeTip')"
               style="margin-bottom:12px" />
 
     <el-row :gutter="14">
@@ -35,7 +35,7 @@
             </span>
           </template>
         </el-tree>
-        <el-empty v-if="!tree.length" description="暂无空间数据（可切换上方组织）" :image-size="60" />
+        <el-empty v-if="!tree.length" :description="t('spaceX.noData')" :image-size="60" />
       </el-col>
       <el-col :span="15">
         <el-descriptions v-if="current" :column="2" border size="small"
@@ -49,7 +49,7 @@
           <el-descriptions-item :label="t('space.area')">{{ current.area || '-' }}</el-descriptions-item>
           <el-descriptions-item :label="t('space.status')">{{ current.status }}</el-descriptions-item>
         </el-descriptions>
-        <el-empty v-else description="点击左侧节点查看详情" :image-size="60" />
+        <el-empty v-else :description="t('spaceX.pickNode')" :image-size="60" />
         <div v-if="current" class="toolbar" style="margin:8px 0 12px">
           <el-button type="primary" plain @click="openEdit(current)">{{ t('space.edit') }}</el-button>
           <el-button type="danger" plain @click="removeSpace">{{ t('space.delete') }}</el-button>
@@ -62,7 +62,7 @@
     <el-dialog v-model="createVisible" :title="t('space.createTitle')" width="560px">
       <el-form :model="f" label-width="120px">
         <el-form-item :label="t('space.org')" required>
-          <el-select v-model="f.orgId" filterable placeholder="选择组织（小区）"
+          <el-select v-model="f.orgId" filterable :placeholder="t('spaceX.orgHint')"
                      style="width:100%" @change="onOrgChange">
             <el-option v-for="o in orgs" :key="o.id" :label="o.orgName" :value="o.id" />
           </el-select></el-form-item>
@@ -75,61 +75,61 @@
         </el-form-item>
         <el-form-item :label="t('space.codeLabel')" required
                       :error="codeDupMsg ? codeDupMsg : ''">
-          <el-input v-model="f.spaceCode" placeholder="只需补当前层级编码"
+          <el-input v-model="f.spaceCode" :placeholder="t('spaceX.codeHint')"
                     @blur="checkCodeDup" @input="codeDupMsg = ''" />
           <div class="muted" style="font-size:12px;margin-top:4px">
             <template v-if="codePrefix">
-              已按上级编码预填前缀 <b>{{ codePrefix }}</b>，只需在后面补本级编码（如 01）
+              {{ t('spaceX.prefixPre') }} <b>{{ codePrefix }}</b>{{ t('spaceX.prefixHint2') }}
             </template>
-            <template v-else>建议格式：上级编码 + 分隔符 + 本级编码</template>
+            <template v-else>{{ t('spaceX.prefixElse') }}</template>
           </div>
         </el-form-item>
         <el-alert type="info" :closable="false" show-icon style="margin-bottom:8px"
-                   title="父级选择「房间」时，可建「套内房间」（一套房分隔多间出租）；此时入户门锁挂外层房间、内门锁挂内层房间" />
-        <el-form-item label="空间名称" required>
+                   :title="t('spaceX.innerRoomTip')" />
+        <el-form-item :label="t('spaceX.name')" required>
           <el-input v-model="f.spaceName" /></el-form-item>
-        <el-form-item label="空间类型" required>
+        <el-form-item :label="t('spaceX.type')" required>
           <el-select v-model="f.spaceType" style="width:100%">
-            <el-option label="片区 AREA" value="AREA" />
-            <el-option label="楼栋 BUILDING" value="BUILDING" />
-            <el-option label="单元 UNIT" value="UNIT" />
-            <el-option label="楼层 FLOOR" value="FLOOR" />
-            <el-option label="房间 ROOM" value="ROOM" />
-            <el-option label="床位 BED" value="BED" />
-            <el-option label="车位 PARKING" value="PARKING" />
-            <el-option label="车库 GARAGE" value="GARAGE" />
-            <el-option label="场地 SITE" value="SITE" />
+            <el-option :label="t('space.area')" value="AREA" />
+            <el-option :label="t('space.building')" value="BUILDING" />
+            <el-option :label="t('space.unit')" value="UNIT" />
+            <el-option :label="t('space.floor')" value="FLOOR" />
+            <el-option :label="t('space.room')" value="ROOM" />
+            <el-option :label="t('space.bed')" value="BED" />
+            <el-option :label="t('space.parking')" value="PARKING" />
+            <el-option :label="t('space.garage')" value="GARAGE" />
+            <el-option :label="t('space.site')" value="SITE" />
           </el-select></el-form-item>
-        <el-form-item label="面积(㎡)">
+        <el-form-item :label="t('spaceX.area')">
           <el-input-number v-model="f.area" :min="0" :precision="2"
                            style="width:100%" /></el-form-item>
-        <el-form-item label="排序">
+        <el-form-item :label="t('spaceX.sort')">
           <el-input-number v-model="f.sortNo" :min="1" style="width:100%" />
         </el-form-item>
       </el-form>
       <el-alert type="info" :closable="false" show-icon
-                title="层级规则：顶级只能是楼栋或片区；单元挂楼栋、楼层挂单元、房间挂楼层" />
+                :title="t('spaceX.hierarchyTip')" />
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">保存</el-button>
+        <el-button @click="createVisible = false">{{ t('spaceX.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('spaceX.save') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="editVisible" title="编辑空间节点" width="520px">
+    <el-dialog v-model="editVisible" :title="t('spaceX.editTitle')" width="520px">
       <el-form :model="ef" label-width="110px">
-        <el-form-item label="所属组织">
+        <el-form-item :label="t('spaceX.org')">
           <span>{{ editOrgName || '—' }}</span>
         </el-form-item>
-        <el-form-item label="上级节点">
-          <span>{{ editParentName || '（顶级）' }}</span>
+        <el-form-item :label="t('spaceX.parent')">
+          <span>{{ editParentName || t('spaceX.top') }}</span>
         </el-form-item>
         <el-form-item label="空间类型">
           <span>{{ enumLabel('spaceType', ef.spaceType) }}</span>
         </el-form-item>
-        <el-form-item label="空间名称" required>
+        <el-form-item :label="t('spaceX.name')" required>
           <el-input v-model="ef.spaceName" />
         </el-form-item>
-        <el-form-item label="空间编码" required>
+        <el-form-item :label="t('spaceX.code')" required>
           <el-input v-model="ef.spaceCode" />
         </el-form-item>
         <el-form-item label="面积(㎡)">
@@ -138,19 +138,19 @@
         <el-form-item label="排序">
           <el-input-number v-model="ef.sortNo" :min="1" style="width:100%" />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item :label="t('spaceX.status')">
           <el-select v-model="ef.status" style="width:100%">
-            <el-option label="启用" value="ENABLED" />
-            <el-option label="停用" value="DISABLED" />
+            <el-option :label="t('spaceX.enable')" value="ENABLED" />
+            <el-option :label="t('spaceX.disable')" value="DISABLED" />
           </el-select>
         </el-form-item>
-        <el-form-item label="备注">
+        <el-form-item :label="t('spaceX.remark')">
           <el-input v-model="ef.remark" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doEdit">保存</el-button>
+        <el-button @click="editVisible = false">{{ t('spaceX.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doEdit">{{ t('spaceX.save') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -193,7 +193,7 @@ function openEdit(node) {
 
 async function doEdit() {
   if (!ef.spaceName || !ef.spaceCode) {
-    ElMessage.warning('名称与编码为必填'); return
+    ElMessage.warning(t('spaceX.required')); return
   }
   saving.value = true
   try {
@@ -201,11 +201,11 @@ async function doEdit() {
       spaceName: ef.spaceName, spaceCode: ef.spaceCode, area: ef.area,
       sortNo: ef.sortNo, status: ef.status, remark: ef.remark
     })
-    ElMessage.success('已保存')
+    ElMessage.success(t('spaceX.saved'))
     editVisible.value = false
     load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '保存失败')
+    ElMessage.error(e?.response?.data?.message || t('spaceX.saveFailed'))
   } finally { saving.value = false }
 }
 
@@ -273,12 +273,12 @@ function checkCodeDup() {
   const code = (f.spaceCode || '').trim()
   if (!code) { codeDupMsg.value = ''; return }
   const hit = findNode(tree.value, null, 'spaceCode', code)
-  codeDupMsg.value = hit ? ('编码已存在：' + code + '（' + hit.spaceName + '）') : ''
+  codeDupMsg.value = hit ? t('spaceX.codeDup', { code, name: hit.spaceName }) : ''
 }
 
 async function doCreate() {
   if (!f.orgId || !f.spaceCode || !f.spaceName) {
-    ElMessage.warning('组织、编码、名称为必填')
+    ElMessage.warning(t('spaceX.orgRequired'))
     return
   }
   checkCodeDup()
@@ -289,20 +289,20 @@ async function doCreate() {
   saving.value = true
   try {
     await spaceApi.create({ ...f })
-    ElMessage.success('空间已创建')
+    ElMessage.success(t('spaceX.created'))
     createVisible.value = false
     load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '创建失败')
+    ElMessage.error(e?.response?.data?.message || t('spaceX.createFailed'))
   } finally { saving.value = false }
 }
 
 async function removeSpace() {
   await ElMessageBox.confirm(
-    `确认删除空间「${current.value.spaceName}」？该操作不可恢复。`,
-    '删除确认', { type: 'warning' })
+    t('spaceX.deleteConfirm', { name: current.value.spaceName }),
+    t('spaceX.deleteTitle'), { type: 'warning' })
   await spaceApi.remove(current.value.id)
-  ElMessage.success('已删除')
+  ElMessage.success(t('spaceX.deleted'))
   current.value = null
   load()
 }
@@ -328,7 +328,7 @@ function findNode(nodes, id, field, value) {
 async function load() {
   // 后端 /spaces/tree 强制要求 orgId（缺参会返回 BP10002）
   if (!orgId.value) {
-    ElMessage.warning('请输入组织ID后再查询（后端按组织返回空间树）')
+    ElMessage.warning(t('spaceX.orgHint'))
     tree.value = []
     return
   }
@@ -344,7 +344,7 @@ async function load() {
     }, 0)
   } catch (e) {
     tree.value = []
-    ElMessage.error('空间树加载失败：' + (e?.message || e))
+    ElMessage.error(t('spaceX.loadFailed', { msg: e?.message || e }))
   }
 }
 
@@ -384,7 +384,7 @@ async function loadOrgs() {
     if (orgId.value) await load()
   } catch (e) {
     orgs.value = []
-    ElMessage.error('组织列表加载失败：' + (e?.message || e))
+    ElMessage.error(t('spaceX.orgLoadFailed', { msg: e?.message || e }))
   }
 }
 
