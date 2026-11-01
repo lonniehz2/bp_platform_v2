@@ -146,13 +146,13 @@
           <el-switch v-model="g.dryRun" /></el-form-item>
       </el-form>
       <el-alert type="info" :closable="false" show-icon
-                title="会按计费项目的 7 种计费方式逐户计算；缺面积/抄表数据会明确报错并指明房源" />
+                :title="t('bill.genTip1')" />
       <el-alert type="info" :closable="false" show-icon style="margin:4px 0 10px"
-                title="同「合同 + 收费项目 + 账期」已生成过账单会自动跳过，可安全重复执行" />
+                :title="t('bill.genTip2')" />
       <div class="muted" style="font-size:12px;line-height:1.8;margin-bottom:6px">
-        <b>计算公式（按收费项目）：</b>
+        <b>{{ t('bill.formulaTitle') }}</b>
         <div class="muted" style="margin-bottom:4px">
-          费用区间与合同租期取交集；跨月按月内天数拆分（如 9/10–10/10 = 9月21/30 + 10月10/31）。
+          {{ t('bill.formulaDesc') }}
         </div>
         <div v-for="f in FORMULAS" :key="f.mode">
           <span :style="f.mode === selectedCalcMode ? 'color:#409eff;font-weight:600' : ''">
@@ -162,7 +162,7 @@
       </div>
       <template #footer>
         <el-button @click="genVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="doGenerate">开始出账</el-button>
+        <el-button type="primary" :loading="saving" @click="doGenerate">{{ t('bill.startGen') }}</el-button>
       </template>
     </el-dialog>
 
@@ -170,9 +170,11 @@
     <el-dialog v-model="genResultVisible" :title="t('bill.resultTitle')" width="760px">
       <el-alert v-if="genResult" :closable="false" show-icon
                 :type="genResult.skipped ? 'warning' : 'success'"
-                :title="'生成 ' + (genResult.generated || 0) + ' 张' +
-                  (genResult.skipped ? '，跳过 ' + genResult.skipped + ' 张（已出过账或不符合条件）' : '') +
-                  (genResult.totalAmount != null ? '，合计 ' + genResult.totalAmount + ' 元' : '')" />
+                :title="t('bill.genSummary', {
+                  generated: genResult.generated || 0,
+                  skipped: genResult.skipped ? t('bill.skippedPart', { n: genResult.skipped }) : '',
+                  total: genResult.totalAmount != null ? t('bill.totalPart', { amount: genResult.totalAmount }) : ''
+                })" />
       <el-table v-if="genResult && genResult.items" :data="genResult.items" size="small"
                 border max-height="360" style="margin-top:10px">
         <el-table-column prop="contractNo" :label="labelOf('contractNo')" width="170" />
@@ -182,7 +184,7 @@
         <el-table-column prop="status" :label="labelOf('result')" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="row.status === 'OK' ? 'success' : 'warning'">
-              {{ row.status === 'OK' ? '已生成' : '跳过' }}
+              {{ row.status === 'OK' ? t('bill.generatedOk') : t('bill.skippedTag') }}
             </el-tag>
           </template>
         </el-table-column>
@@ -190,14 +192,14 @@
         <el-table-column prop="reason" :label="labelOf('skipReason')" min-width="160" show-overflow-tooltip />
       </el-table>
       <template #footer>
-        <el-button type="primary" @click="genResultVisible = false">知道了</el-button>
+        <el-button type="primary" @click="genResultVisible = false">{{ t('bill.gotIt') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 公摊费用分摊（物业） -->
     <el-dialog v-model="sharedVisible" :title="t('bill.sharedTitle')" width="560px">
       <el-alert type="info" :closable="false" show-icon
-                title="把公共区域总费用按面积或户数分摊到该范围内的在租房源，为每套生成一张账单"
+                :title="t('bill.sharedTip')"
                 style="margin-bottom:12px" />
       <el-form :model="sf" label-width="110px">
         <el-form-item :label="labelOf('orgName')" required>
@@ -725,15 +727,15 @@ async function loadGenOptions() {
   } catch (e) { feeItems.value = [] }
 }
 
-const FORMULAS = [
-  { mode: 'FIXED', label: '固定额', text: '固定金额 × 月数（不足月按天折算）' },
-  { mode: 'BY_AREA', label: '按面积', text: '建筑面积 × 单价 × 月数（不足月按天折算）' },
-  { mode: 'BY_HOUSE', label: '按套', text: '单价 × 套数 × 月数（不足月按天折算）' },
-  { mode: 'BY_PERSON', label: '按人', text: '在住人数 × 单价 × 月数（不足月按天折算）' },
-  { mode: 'BY_BED', label: '按床位', text: '床位数 × 单价 × 月数（不足月按天折算）' },
-  { mode: 'BY_NIGHT', label: '按夜', text: '天数 × 单价' },
-  { mode: 'METER', label: '按抄表', text: '(本次读数 − 上次读数) × 单价' }
-]
+const FORMULAS = computed(() => [
+  { mode: 'FIXED', label: t('fee.fixed'), text: t('bill.formulaFixed') },
+  { mode: 'BY_AREA', label: t('fee.byArea'), text: t('bill.formulaArea') },
+  { mode: 'BY_HOUSE', label: t('fee.byHouse'), text: t('bill.formulaHouse') },
+  { mode: 'BY_PERSON', label: t('fee.byPerson'), text: t('bill.formulaPerson') },
+  { mode: 'BY_BED', label: t('fee.byBed'), text: t('bill.formulaBed') },
+  { mode: 'BY_NIGHT', label: t('fee.byNight'), text: t('bill.formulaNight') },
+  { mode: 'METER', label: t('fee.meter'), text: t('bill.formulaMeter') }
+])
 const genResultVisible = ref(false)
 const genResult = ref(null)
 const selectedCalcMode = computed(() => {
