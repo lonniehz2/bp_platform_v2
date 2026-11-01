@@ -165,108 +165,108 @@
     </el-dialog>
 
     <!-- 查验 InspectCmd -->
-    <el-dialog v-model="inspectVisible" title="退租查验" width="500px">
+    <el-dialog v-model="inspectVisible" :title="t('terminationX.inspectTitle')" width="500px">
       <el-form :model="ins" label-width="120px">
-        <el-form-item label="查验结论">
+        <el-form-item :label="t('terminationX.inspectResult')">
           <el-select v-model="ins.inspectStatus" style="width:100%">
-            <el-option label="合格" value="PASS" />
-            <el-option label="需维修" value="REPAIR" />
-            <el-option label="有损坏" value="DAMAGED" />
+            <el-option :label="t('terminationX.pass')" value="PASS" />
+            <el-option :label="t('terminationX.repair')" value="REPAIR" />
+            <el-option :label="t('terminationX.damaged')" value="DAMAGED" />
           </el-select></el-form-item>
-        <el-form-item label="查验说明">
+        <el-form-item :label="t('terminationX.inspectNote')">
           <el-input v-model="ins.inspectResult" type="textarea" :rows="2" /></el-form-item>
-        <el-form-item label="损坏赔偿额">
+        <el-form-item :label="t('terminationX.damageAmount')">
           <el-input v-model.number="ins.damageAmount" /></el-form-item>
-        <el-form-item label="查验照片URL">
+        <el-form-item :label="t('terminationX.photoUrl')">
           <el-input v-model="ins.inspectImages" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="inspectVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doInspect">提交</el-button>
+        <el-button @click="inspectVisible = false">{{ t('terminationX.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doInspect">{{ t('terminationX.submit') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 退租能耗即时结算 -->
-    <el-dialog v-model="energyVisible" title="退租能耗即时结算" width="480px">
+    <el-dialog v-model="energyVisible" :title="t('terminationX.energyTitle')" width="480px">
       <el-alert type="warning" :closable="false" show-icon
-                title="优先使用即时抄表；设备离线时人工录入当前读数，按月初至退租日累计阶梯费用分摊。" />
+                :title="t('terminationX.energyTip')" />
       <el-form :model="ef" label-width="100px" style="margin-top:10px">
-        <el-form-item label="表计" required>
+        <el-form-item :label="t('terminationX.meter')" required>
           <el-select v-model="ef.meterPointId" filterable style="width:100%">
             <el-option v-for="p in energyPoints" :key="p.id"
                        :label="p.meterName || p.id" :value="String(p.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="当前读数" required>
+        <el-form-item :label="t('terminationX.currentReading')" required>
           <el-input v-model.number="ef.reading" />
         </el-form-item>
-        <el-form-item label="退租日">
+        <el-form-item :label="t('terminationX.exitDate')">
           <el-date-picker v-model="ef.exitDate" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="energyVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doEnergy">生成能耗账单</el-button>
+        <el-button @click="energyVisible = false">{{ t('terminationX.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doEnergy">{{ t('terminationX.generateEnergy') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 结算 SettleCmd -->
-    <el-dialog v-model="settleVisible" title="退租结算" width="520px">
+    <el-dialog v-model="settleVisible" :title="t('terminationX.settleTitle')" width="520px">
       <el-alert type="info" :closable="false" show-icon
-                :title="preview.formula || '应退合计 = 押金 − 欠费 − 损坏赔偿'" style="margin-bottom:10px" />
+                :title="preview.formula || t('terminationX.formulaDefault')" style="margin-bottom:10px" />
       <el-form :model="st" label-width="130px">
-        <el-form-item label="押金">
+        <el-form-item :label="t('terminationX.deposit')">
           <el-input :model-value="preview.depositAmount" disabled /></el-form-item>
-        <el-form-item label="欠费扣缴">
+        <el-form-item :label="t('terminationX.arrearsDeduction')">
           <el-input v-model.number="st.arrearsAmount" /></el-form-item>
-        <el-form-item label="损坏赔偿">
+        <el-form-item :label="t('terminationX.damageComp')">
           <el-input :model-value="preview.damageAmount" disabled /></el-form-item>
-        <el-form-item label="应退合计">
+        <el-form-item :label="t('terminationX.refundTotal')">
           <el-input :model-value="totalPreview" disabled /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="settleVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doSettle">确认结算</el-button>
+        <el-button @click="settleVisible = false">{{ t('terminationX.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doSettle">{{ t('terminationX.confirmSettle') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 强制腾退 EnforceCmd -->
-    <el-dialog v-model="enforceVisible" title="强制腾退" width="520px">
+    <el-dialog v-model="enforceVisible" :title="t('terminationX.enforceTitle')" width="520px">
       <el-form :model="en" label-width="130px">
-        <el-form-item label="申请日期">
+        <el-form-item :label="t('terminationX.applyDate')">
           <el-date-picker v-model="en.enforceApplyDate" type="date"
                           value-format="YYYY-MM-DD" style="width:100%" /></el-form-item>
-        <el-form-item label="受理法院"><el-input v-model="en.enforceCourt" /></el-form-item>
-        <el-form-item label="公证书号"><el-input v-model="en.notaryNo" /></el-form-item>
-        <el-form-item label="经办人">
+        <el-form-item :label="t('terminationX.court')"><el-input v-model="en.enforceCourt" /></el-form-item>
+        <el-form-item :label="t('terminationX.notaryNo')"><el-input v-model="en.notaryNo" /></el-form-item>
+        <el-form-item :label="t('terminationX.handler')">
           <el-input v-model="en.itemHandlerName" /></el-form-item>
-        <el-form-item label="经办电话">
+        <el-form-item :label="t('terminationX.handlerPhone')">
           <el-input v-model="en.itemHandlerPhone" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="enforceVisible = false">取消</el-button>
-        <el-button type="danger" :loading="saving" @click="doEnforce">确认</el-button>
+        <el-button @click="enforceVisible = false">{{ t('terminationX.cancel') }}</el-button>
+        <el-button type="danger" :loading="saving" @click="doEnforce">{{ t('terminationX.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 释放 ReleaseCmd -->
-    <el-dialog v-model="releaseVisible" title="释放房源/撤销授权" width="420px">
+    <el-dialog v-model="releaseVisible" :title="t('terminationX.releaseTitle')" width="420px">
       <el-form :model="rl" label-width="130px">
-        <el-form-item label="释放房源">
+        <el-form-item :label="t('terminationX.releaseHouse')">
           <el-switch v-model="rl.houseReleased" /></el-form-item>
-        <el-form-item label="撤销门禁授权">
+        <el-form-item :label="t('terminationX.revokeAccess')">
           <el-switch v-model="rl.grantRevoked" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="releaseVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doRelease">确认</el-button>
+        <el-button @click="releaseVisible = false">{{ t('terminationX.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doRelease">{{ t('terminationX.confirm') }}</el-button>
       </template>
     </el-dialog>
   </div>
 
     <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('alloc.detail')" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
 </template>
