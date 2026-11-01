@@ -46,7 +46,7 @@
         <template #default="{ row }">
           <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('fee.detail') }}</el-button>
           <el-button link type="primary" @click="toggle(row)">
-            {{ row.status === 'ENABLED' ? '停用' : '启用' }}
+            {{ row.status === 'ENABLED' ? t('misc5.disable') : t('misc5.enable') }}
           </el-button>
           <el-button link @click="preview(row)">{{ t('fee.preview') }}</el-button>
         </template>
@@ -110,7 +110,7 @@
       <el-form :model="r" label-width="130px">
         <el-row :gutter="12">
           <el-col :span="12"><el-form-item :label="t('fee.ruleCode')" required>
-            <el-input v-model="r.ruleCode" placeholder="如 RENT-STD-2026" />
+            <el-input v-model="r.ruleCode" :placeholder="t('misc5.ruleCodeHint')" />
           </el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('fee.ruleName')" required>
             <el-input v-model="r.ruleName" /></el-form-item></el-col>
@@ -132,17 +132,17 @@
               <div v-if="r.ruleType === 'STANDARD'" style="width:100%;display:flex;gap:8px">
                 <el-input-number v-model="priceValue" :min="0" :precision="2"
                                  style="flex:1" />
-                <span class="muted" style="line-height:32px">元（按项目计量单位）</span>
+                <span class="muted" style="line-height:32px">{{ t('misc5.unitHint') }}</span>
               </div>
               <!-- 阶梯价：区间上限 + 单价 -->
               <div v-else-if="r.ruleType === 'TIERED'" style="width:100%">
                 <div v-for="(t, i) in tiers" :key="i"
                      style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
                   <el-input-number v-model="t.upTo" :min="0" :precision="2"
-                                   placeholder="用量上限" style="width:170px" />
+                                   :placeholder="t('misc5.upTo')" style="width:170px" />
                   <el-input-number v-model="t.price" :min="0" :precision="2"
-                                   placeholder="单价" style="width:170px" />
-                  <el-button link type="danger" @click="tiers.splice(i, 1)">删除</el-button>
+                                   :placeholder="t('misc5.tierPrice')" style="width:170px" />
+                  <el-button link type="danger" @click="tiers.splice(i, 1)">{{ t('misc5.delete') }}</el-button>
                 </div>
                 <el-button size="small" @click="tiers.push({ upTo: null, price: null })">
                   新增一档

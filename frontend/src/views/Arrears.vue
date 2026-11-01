@@ -41,7 +41,7 @@
         <el-button @click="resetActionQuery">{{ t('arrears.reset') }}</el-button>
         <el-button type="warning" @click="openScan">{{ t('arrears.scan') }}</el-button>
         <el-button type="success" @click="openAction">{{ t('arrears.create') }}</el-button>
-        <span class="muted">共 {{ actionTotal }} 条</span>
+        <span class="muted">{{ t('misc5.total', { n: actionTotal }) }}</span>
       </div>
 
       <el-table :empty-text="t('misc.noArrears')" :data="actions" v-loading="actionLoading" border size="small">
@@ -127,7 +127,7 @@
         <el-table-column prop="remark" :label="t('arrears.remark')" min-width="160" />
         <el-table-column :label="t('arrears.actions')" width="90" fixed="right">
           <template #default="{ row }">
-            <el-button link @click="detail = row; show = true">详情</el-button>
+            <el-button link @click="detail = row; show = true">{{ t('misc5.detail') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -140,7 +140,7 @@
     <!-- 扫描建议 -->
     <el-dialog v-model="scanVisible" :title="t('arrears.scanTitle')" width="740px">
       <el-alert type="warning" :closable="false" show-icon
-                title="按逾期天数聚合欠费合同；「建议冻结」= 逾期较久或欠费较多，需确认安全风险后再执行" />
+                :title="t('misc5.scanTip')" />
       <el-table :data="suggestions" border size="small" style="margin-top:10px"
                 max-height="360">
         <el-table-column prop="contractId" :label="t('arrears.contract')" width="160">
@@ -149,7 +149,7 @@
         <el-table-column prop="personId" :label="t('arrears.person')" width="150">
           <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
         </el-table-column>
-        <el-table-column label="欠费" width="110" >
+        <el-table-column :label="t('misc5.amount')" width="110" >
           <template #default="{ row }">{{ $money(row.arrearsAmount) }}</template>
         </el-table-column>
         <el-table-column prop="overdueDays" :label="t('arrears.overdueDays')" width="100" />
@@ -160,7 +160,7 @@
             <span v-else class="muted">—</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column :label="t('misc5.actions')" width="120" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="createFromSuggestion(row)">{{ t('arrears.generate') }}</el-button>
           </template>
@@ -176,7 +176,7 @@
       <el-form :model="nf" label-width="120px">
         <el-form-item :label="t('arrears.org')">
           <el-select v-model="nf.orgId" filterable clearable style="width:100%"
-                     placeholder="按名称搜索组织">
+                     :placeholder="t('misc5.orgHint')">
             <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName"
                        :value="String(o.id)" />
           </el-select>
@@ -192,10 +192,10 @@
         <el-form-item :label="t('arrears.amountRequired')" required>
           <el-input v-model.number="nf.arrearsAmount" />
         </el-form-item>
-        <el-form-item label="逾期天数">
+        <el-form-item :label="t('misc5.overdueDays')">
           <el-input v-model.number="nf.overdueDays" />
         </el-form-item>
-        <el-form-item label="动作类型" required>
+        <el-form-item :label="t('misc5.actionType')" required>
           <el-select v-model="nf.actionType" style="width:100%">
             <el-option v-for="t in ACTION_TYPES" :key="t.value" :label="t.label" :value="t.value" />
           </el-select>

@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('platformInfo.title') }}</h3>
-      <el-tag size="small" type="info">当前平台</el-tag>
+      <el-tag size="small" type="info">{{ t('misc5.current') }}</el-tag>
       <div class="spacer" />
       <el-button @click="load">{{ t('platformInfo.refresh') }}</el-button>
       <el-button type="primary" :loading="saving" @click="save">{{ t('platformInfo.save') }}</el-button>
@@ -16,7 +16,7 @@
         <el-form :model="form" label-width="110px" v-loading="loading">
           <el-form-item :label="t('platformInfo.code')">
             <el-input :model-value="form.tenantCode" disabled>
-              <template #append>不可修改</template>
+              <template #append>{{ t('misc5.readonly') }}</template>
             </el-input>
           </el-form-item>
           <el-form-item :label="t('platformInfo.name')" required>
@@ -34,12 +34,12 @@
             <el-input :model-value="form.regionCode" disabled />
           </el-form-item>
           <el-form-item :label="t('platformInfo.isolation')">
-            <el-input :model-value="form.isolationMode === 'ROW' ? '行级隔离' : (form.isolationMode || '—')" disabled />
+            <el-input :model-value="form.isolationMode === 'ROW' ? t('misc5.rowIsolation') : (form.isolationMode || '—')" disabled />
           </el-form-item>
           <el-form-item :label="t('platformInfo.status')">
             <el-radio-group v-model="form.status" disabled>
-              <el-radio-button value="ENABLED">启用</el-radio-button>
-              <el-radio-button value="DISABLED">停用</el-radio-button>
+              <el-radio-button value="ENABLED">{{ t('misc5.enable') }}</el-radio-button>
+              <el-radio-button value="DISABLED">{{ t('misc5.disable') }}</el-radio-button>
             </el-radio-group>
             <div class="muted" style="font-size:12px;margin-top:4px">
               状态由平台运营设置，平台管理员不可修改。
@@ -50,14 +50,14 @@
 
       <el-col :span="10">
         <div class="side-card">
-          <div class="side-title">口径说明</div>
+          <div class="side-title">{{ t('misc5.scopeTitle') }}</div>
           <ul>
-            <li><b>平台编码</b>：数据隔离标识（登录时输入），不可修改</li>
-            <li><b>平台名称</b>：顶部展示与报表抬头，可修改</li>
-            <li><b>组织</b>：平台内的行政/运营单元，不等同于平台</li>
-            <li><b>承租人</b>：租房子的人，属于业务对象，与平台无关</li>
+            <li>{{ t('misc5.scopeCode') }}</li>
+            <li>{{ t('misc5.scopeName') }}</li>
+            <li>{{ t('misc5.scopeOrg') }}</li>
+            <li>{{ t('misc5.scopeLessee') }}</li>
           </ul>
-          <div class="side-title" style="margin-top:14px">创建信息</div>
+          <div class="side-title" style="margin-top:14px">{{ t('misc5.createdTitle') }}</div>
           <div class="muted">创建时间：{{ form.createTime || '—' }}</div>
         </div>
       </el-col>

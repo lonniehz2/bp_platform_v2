@@ -9,7 +9,7 @@
       </el-radio-group>
       <div class="spacer" />
       <span class="muted" style="font-size:12px">
-        核销 / 退款 / 补贴都会自动记账，形成完整资金流水
+        {{ t('misc5.cashSub') }}
       </span>
     </div>
 
@@ -30,9 +30,9 @@
                         :end-placeholder="t('cash.endDate')" style="width:250px" />
         <el-button type="primary" @click="reload">{{ t('cash.search') }}</el-button>
         <el-button @click="resetQuery">{{ t('cash.reset') }}</el-button>
-        <span class="muted">共 {{ total }} 条</span>
+        <span class="muted">{{ t('misc5.total', { n: total }) }}</span>
       </div>
-      <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+      <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('misc5.empty')">
         <el-table-column type="expand">
           <template #default="{ row }"><DetailView :row="row" /></template>
         </el-table-column>
@@ -76,7 +76,7 @@
                 title="对账 = 系统收款 vs 渠道（微信/支付宝/银行）金额；有差异的对账单需人工处理后归档" />
       <div class="toolbar" style="margin-bottom:10px">
         <el-date-picker v-model="rq.dateRange" type="daterange" value-format="YYYY-MM-DD"
-                        start-placeholder="开始日期" end-placeholder="结束日期"
+                        :start-placeholder="t('misc5.startDate')" :end-placeholder="t('misc5.endDate')"
                         style="width:250px" />
         <el-select v-model="rq.reconcileType" :placeholder="t('cash.reconcileType')" clearable style="width:130px">
           <el-option :label="t('cash.channelReconcile')" value="CHANNEL" />
@@ -101,7 +101,7 @@
           <template #default="{ row }">{{ enumLabel('reconcileType', row.reconcileType) }}</template>
         </el-table-column>
         <el-table-column prop="payChannel" :label="t('cash.channel')" width="110">
-          <template #default="{ row }">{{ row.payChannel ? enumLabel('payChannel', row.payChannel) : '全部' }}</template>
+          <template #default="{ row }">{{ row.payChannel ? enumLabel('payChannel', row.payChannel) : t('misc5.all') }}</template>
         </el-table-column>
         <el-table-column :label="t('cash.systemAmount')" width="120" >
           <template #default="{ row }">{{ $money(row.systemAmount) }}</template>
@@ -126,8 +126,8 @@
         <el-table-column :label="t('cash.actions')" width="180" fixed="right">
           <template #default="{ row }">
             <el-button link type="warning" :disabled="row.reconcileStatus !== 'DIFF'"
-                       @click="doHandle(row)">处理差异</el-button>
-            <el-button link @click="detail = row; show = true">详情</el-button>
+                       @click="doHandle(row)">{{ t('misc5.handleDiff') }}</el-button>
+            <el-button link @click="detail = row; show = true">{{ t('misc5.detail') }}</el-button>
           </template>
         </el-table-column>
       </el-table>

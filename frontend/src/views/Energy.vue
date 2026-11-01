@@ -1,8 +1,8 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h2 style="margin:0">能耗分摊</h2>
-      <span class="muted">房间表 → 人·天分摊；空床默认运营方承担；总表只做分析</span>
+      <h2 style="margin:0">{{ t('misc5.energyTitle') }}</h2>
+      <span class="muted">{{ t('misc5.energySub') }}</span>
     </div>
 
     <el-tabs v-model="tab">
@@ -161,7 +161,7 @@ async function loadFees() {
   feeItems.value = (d && d.rows) || []
 }
 async function preview() {
-  if (!period.value) return ElMessage.warning('请输入期间')
+  if (!period.value) return ElMessage.warning(t('misc5.periodRequired'))
   loading.value = true
   try {
     previewData.value = await req.post('/fin/utility-allocations/preview', {
@@ -170,12 +170,12 @@ async function preview() {
   } finally { loading.value = false }
 }
 async function confirm() {
-  await ElMessageBox.confirm('确认后生成各合同账单，是否继续？', '确认分摊', { type: 'warning' })
+  await ElMessageBox.confirm(t('misc5.confirmAlloc'), t('misc5.confirmTitle'), { type: 'warning' })
   const r = await req.post('/fin/utility-allocations/confirm', {
     period: period.value, meterPointId: pointId.value || undefined
   })
   previewData.value = r
-  ElMessage.success('已生成分摊账单')
+  ElMessage.success(t('misc5.allocDone'))
 }
 async function loadAnalysis() {
   stat.value = await req.get('/fin/energy-analysis/monthly', { params: { period: period.value, feeItemId: analysisItem.value || undefined } })
@@ -197,14 +197,14 @@ function openRead(row) {
 async function saveRead() {
   await req.post(`/fin/meter-points/${currentPoint.value.id}/readings`, { ...rf })
   readVisible.value = false
-  ElMessage.success('已保存读数')
+  ElMessage.success(t('misc5.readingSaved'))
 }
 async function readNow(row) {
   try {
     await req.post(`/fin/meter-points/${row.id}/read-now`)
-    ElMessage.success('设备抄表成功')
+    ElMessage.success(t('misc5.deviceReadDone'))
   } catch (e) {
-    ElMessage.warning('设备抄表不可用，请使用人工抄表')
+    ElMessage.warning(t('misc5.deviceReadUnavailable'))
   }
 }
 async function loadPolicy() {
@@ -213,7 +213,7 @@ async function loadPolicy() {
 }
 async function savePolicy() {
   await req.put('/fin/energy-policy', { ...policy })
-  ElMessage.success('策略已保存')
+  ElMessage.success(t('misc5.policySaved'))
 }
 onMounted(async () => {
   await Promise.all([loadPoints(), loadFees(), loadPolicy()])
