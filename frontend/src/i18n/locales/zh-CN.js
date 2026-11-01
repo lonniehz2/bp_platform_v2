@@ -158,6 +158,10 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  help: {
+    title: '使用帮助', hits: '命中 {n} 章', search: '搜索操作，如「核销」「退租」',
+    downloadPdf: '下载 PDF 版', print: '打印 / 另存 PDF', noMatch: '没有匹配的章节'
+  },
   msg: {
     requiredFields: '请填写必填项：{fields}', contractCreated: '合同已创建',
     submitted: '已提交待签', signing: '已进入签约中', signed: '签约成功',

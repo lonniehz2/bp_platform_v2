@@ -1,18 +1,18 @@
 <template>
   <div class="page-card help-page">
     <div class="toolbar help-toolbar">
-      <h3 style="margin:0">使用帮助</h3>
-      <el-tag size="small" type="info">{{ HELP_VERSION }}</el-tag>
-      <span v-if="keyword" class="result-count">命中 {{ filtered.length }} 章</span>
+      <h3 style="margin:0">{{ t('help.title') }}</h3>
+      <el-tag size="small" type="info">{{ helpVersion }}</el-tag>
+      <span v-if="keyword" class="result-count">{{ t('help.hits', { n: filtered.length }) }}</span>
       <div class="spacer" />
       <el-select v-if="isMobile" v-model="active" class="mobile-toc-select"
                  size="small" @change="jump">
         <el-option v-for="s in filtered" :key="s.id" :label="s.title" :value="s.id" />
       </el-select>
       <el-input v-model="keyword" class="search-input"
-                placeholder="搜索操作，如「核销」「退租」" clearable />
-      <el-button size="small" @click="downloadPdf">下载 PDF 版</el-button>
-      <el-button size="small" type="primary" @click="printDoc">打印 / 另存 PDF</el-button>
+                :placeholder="t('help.search')" clearable />
+      <el-button size="small" @click="downloadPdf">{{ t('help.downloadPdf') }}</el-button>
+      <el-button size="small" type="primary" @click="printDoc">{{ t('help.print') }}</el-button>
     </div>
 
     <el-row :gutter="16">
@@ -29,7 +29,7 @@
               {{ sub.text }}
             </div>
           </template>
-          <el-empty v-if="!filtered.length" description="没有匹配的章节" :image-size="60" />
+          <el-empty v-if="!filtered.length" :description="t('help.noMatch')" :image-size="60" />
         </div>
       </el-col>
 
@@ -88,29 +88,35 @@
  */
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { HELP_SECTIONS, HELP_VERSION, HELP_PDF, sectionForRoute } from '@/content/help'
+import { HELP_SECTIONS_EN, HELP_VERSION_EN, HELP_PDF_EN } from '@/content/help.en'
 
 const route = useRoute()
+const { t, locale } = useI18n()
+const isEn = computed(() => locale.value === 'en-US')
+const sections = computed(() => (isEn.value ? HELP_SECTIONS_EN : HELP_SECTIONS))
+const helpVersion = computed(() => (isEn.value ? HELP_VERSION_EN : HELP_VERSION))
 
 const keyword = ref('')
 const bodyRef = ref(null)
 const isMobile = ref(false)
 const activeSub = ref('')
 
-const initial = String(route.query.sec || '') || sectionForRoute(route.path)
-const active = ref(HELP_SECTIONS.some((x) => x.id === initial)
-  ? initial : (HELP_SECTIONS[0]?.id || ''))
+const initial = String(route.query.sec || '') || (isEn.value ? '' : sectionForRoute(route.path))
+const active = ref(sections.value.some((x) => x.id === initial)
+  ? initial : (sections.value[0]?.id || ''))
 
 const filtered = computed(() => {
   const k = keyword.value.trim()
-  if (!k) return HELP_SECTIONS
-  return HELP_SECTIONS.filter((s) => JSON.stringify(s).includes(k))
+  if (!k) return sections.value
+  return sections.value.filter((s) => JSON.stringify(s).includes(k))
 })
 
 // 二级目录：章节内 h3，保留 block 下标用于锚点
 const subsMap = computed(() => {
   const map = {}
-  for (const s of HELP_SECTIONS) {
+  for (const s of sections.value) {
     map[s.id] = s.blocks
       .map((b, i) => (b.type === 'h3' ? { id: `sub-${s.id}-${i}`, text: b.text, bidx: i } : null))
       .filter(Boolean)
@@ -196,7 +202,7 @@ function resize() {
 onMounted(() => {
   resize()
   window.addEventListener('resize', resize)
-  if (initial && initial !== HELP_SECTIONS[0]?.id) {
+  if (initial && initial !== sections.value[0]?.id) {
     setTimeout(() => jump(initial), 120)
   }
 })
@@ -220,7 +226,7 @@ watch(() => route.query.sec, (sec) => {
 })
 
 function downloadPdf() {
-  window.open(HELP_PDF, '_blank')
+  window.open(isEn.value ? HELP_PDF_EN : HELP_PDF, '_blank')
 }
 
 function printDoc() {

@@ -157,6 +157,10 @@ export default {
     unauthorized: 'Not authorized: contact administrator',
     fullscreen: 'Full-screen display',
   },
+  help: {
+    title: 'Help', hits: '{n} chapters matched', search: 'Search actions, e.g. "allocate" or "terminate"',
+    downloadPdf: 'Download PDF', print: 'Print / Save as PDF', noMatch: 'No matching chapters'
+  },
   msg: {
     requiredFields: 'Please fill required fields: {fields}', contractCreated: 'Contract created',
     submitted: 'Submitted for signing', signing: 'Signing in progress', signed: 'Signed',
