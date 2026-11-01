@@ -1,17 +1,17 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">投诉管理</h3>
+      <h3 style="margin:0">{{ t('complaint.title') }}</h3>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字" clearable style="width:160px"
+      <el-input v-model="keyword" :placeholder="t('complaint.keyword')" clearable style="width:160px"
                 @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="success" @click="createVisible = true">新建投诉</el-button>
+      <el-button type="primary" @click="reload">{{ t('complaint.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('complaint.reset') }}</el-button>
+      <el-button type="success" @click="createVisible = true">{{ t('complaint.create') }}</el-button>
 
     </div>
 
-    <el-alert type="info" :closable="false" show-icon :title="'投诉需在时限内办结，办结时填写处理意见'"
+    <el-alert type="info" :closable="false" show-icon :title="t('complaint.tip')"
               style="margin-bottom:12px" />
 
     <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
@@ -20,23 +20,23 @@
           <DetailView :row="row" />
         </template>
       </el-table-column>
-      <el-table-column prop="complaintNo" label="投诉单号" width="170" />
-      <el-table-column prop="complaintType" label="类型" width="130">
+      <el-table-column prop="complaintNo" :label="t('complaint.no')" width="170" />
+      <el-table-column prop="complaintType" :label="t('complaint.type')" width="130">
         <template #default="{ row }">{{ row.complaintTypeLabel || enumLabel('complaintType', row.complaintType) }}</template>
       </el-table-column>
-      <el-table-column prop="handleStatus" label="状态" width="110">
+      <el-table-column prop="handleStatus" :label="t('complaint.status')" width="110">
         <template #default="{ row }">{{ row.handleStatusLabel || enumLabel('complaintStatus', row.handleStatus) }}</template>
       </el-table-column>
-      <el-table-column prop="submitterName" label="投诉人" width="120">
+      <el-table-column prop="submitterName" :label="t('complaint.submitter')" width="120">
         <template #default="{ row }">{{ row.submitterName || row.personIdName || "-" }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="170" fixed="right">
+      <el-table-column :label="t('complaint.actions')" width="170" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-          <el-button link type="primary" @click="doResolve(row)">处理</el-button>
-          <el-button link type="warning" @click="doEvaluate(row)">评价</el-button>
-          <el-button link type="success" @click="doToWorkOrder(row)">转工单</el-button>
-          <el-button link type="primary" @click="actReason(row, '/complaints/{id}/close', '办结')">办结</el-button>
+          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('complaint.detail') }}</el-button>
+          <el-button link type="primary" @click="doResolve(row)">{{ t('complaint.resolve') }}</el-button>
+          <el-button link type="warning" @click="doEvaluate(row)">{{ t('complaint.evaluate') }}</el-button>
+          <el-button link type="success" @click="doToWorkOrder(row)">{{ t('complaint.toWorkOrder') }}</el-button>
+          <el-button link type="primary" @click="actReason(row, '/complaints/{id}/close', t('complaint.close'))">{{ t('complaint.close') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -45,61 +45,63 @@
                    :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
                    @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
 
-    <el-dialog v-model="createVisible" title="新建诉求" width="700px">
+    <el-dialog v-model="createVisible" :title="t('complaint.createTitle')" width="700px">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
                 title="字段与后端 ComplaintCreateCmd 一致；带 * 为必填" />
       <el-form :model="form" label-width="110px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="诉求类型" required>
+          <el-col :span="12"><el-form-item :label="t('complaint.typeLabel')" required>
             <el-select v-model="form.complaintType" style="width:100%" data-testid="f-complaintType">
-              <el-option label="投诉" value="COMPLAINT" />
-              <el-option label="建议" value="SUGGEST" />
-              <el-option label="咨询" value="CONSULT" />
-              <el-option label="表扬" value="PRAISE" />
+              <el-option :label="t('complaint.complaint')" value="COMPLAINT" />
+              <el-option :label="t('complaint.suggest')" value="SUGGEST" />
+              <el-option :label="t('complaint.consult')" value="CONSULT" />
+              <el-option :label="t('complaint.praise')" value="PRAISE" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="来源">
+          <el-col :span="12"><el-form-item :label="t('complaint.source')">
             <el-select v-model="form.source" style="width:100%" clearable data-testid="f-source">
-              <el-option label="小程序" value="MINIAPP" />
-              <el-option label="APP" value="APP" />
-              <el-option label="电话" value="PHONE" />
-              <el-option label="来访" value="WALKIN" />
-              <el-option label="其他" value="OTHER" />
+              <el-option :label="t('complaint.miniapp')" value="MINIAPP" />
+              <el-option :label="t('complaint.app')" value="APP" />
+              <el-option :label="t('complaint.phone')" value="PHONE" />
+              <el-option :label="t('complaint.walkin')" value="WALKIN" />
+              <el-option :label="t('complaint.other')" value="OTHER" />
             </el-select></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="标题" required>
+          <el-col :span="24"><el-form-item :label="t('complaint.titleLabel')" required>
             <el-input v-model="form.title" data-testid="f-title"
-                      placeholder="一句话概括，≤255 字符" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="内容">
+                      :placeholder="t('complaint.titleHint')" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item :label="t('complaint.content')">
             <el-input v-model="form.content" type="textarea" :rows="3"
                       data-testid="f-content" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="关联人员 ID">
+          <el-col :span="12"><el-form-item :label="t('complaint.personId')">
             <PersonPicker v-model="form.personId" width="240px" testid="person-picker" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="组织 ID">
+          <el-col :span="12"><el-form-item :label="t('complaint.orgId')">
             <OrgSelect v-model="form.orgId" width="100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="提交人姓名">
+          <el-col :span="12"><el-form-item :label="t('complaint.submitterName')">
             <el-input v-model="form.submitterName" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="联系电话">
+          <el-col :span="12"><el-form-item :label="t('complaint.phoneLabel')">
             <el-input v-model="form.submitterPhone" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
+        <el-button @click="createVisible = false">{{ t('complaint.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('complaint.submit') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="show" title="明细（原始数据）" size="520px">
+    <el-drawer v-model="show" :title="t('complaint.drawer')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
 
     <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('complaint.detail')" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView，字段与中文名来自后端字段字典） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {
