@@ -1,13 +1,13 @@
 <template>
   <div class="screen-wrap">
     <div class="screen-head">
-      <h1>租赁性保障用房运营大屏</h1>
+      <h1>{{ t('screen.title') }}</h1>
       <el-tag size="small" style="background:transparent;color:#6db3ff;border-color:#2a5b96">
         {{ screenName }}
       </el-tag>
       <div class="spacer" />
       <span class="clock">{{ clock }}</span>
-      <el-button size="small" type="primary" plain @click="load">刷新</el-button>
+      <el-button size="small" type="primary" plain @click="load">{{ t('screen.refresh') }}</el-button>
     </div>
 
     <div class="screen-body">
@@ -22,15 +22,15 @@
 
       <div class="charts">
         <div class="panel">
-          <div class="title">房源状态结构</div>
+          <div class="title">{{ t('screen.housingMix') }}</div>
           <div ref="pieRef" class="chart" />
         </div>
         <div class="panel">
-          <div class="title">开门与异常趋势（今日）</div>
+          <div class="title">{{ t('screen.accessTrend') }}</div>
           <div ref="barRef" class="chart" />
         </div>
         <div class="panel">
-          <div class="title">欠费与收款对比</div>
+          <div class="title">{{ t('screen.money') }}</div>
           <div ref="moneyRef" class="chart" />
         </div>
       </div>
@@ -46,9 +46,9 @@
     </div>
 
     <div class="screen-foot">
-        <span>数据来源：本地业务库实时聚合</span>
-      <span>生成时间：{{ generatedAt }}</span>
-      <span>刷新间隔：{{ refreshSeconds }}s</span>
+        <span>{{ t('screen.source') }}</span>
+      <span>{{ t('screen.generated', { time: generatedAt }) }}</span>
+      <span>{{ t('screen.interval', { s: refreshSeconds }) }}</span>
       <span v-if="error" style="color:#ff7875">{{ error }}</span>
     </div>
   </div>
@@ -60,10 +60,13 @@ import * as echarts from 'echarts'
 import { rptApi } from '@/api/modules'
 import req from '@/api/request'
 import { metricLabel, metricUnit } from '@/constants/metrics'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const clock = ref('')
 const widgets = ref([])
-const screenName = ref('总览')
+const screenName = ref(t('screen.overview'))
 const refreshSeconds = ref(60)
 const generatedAt = ref('-')
 const error = ref('')
@@ -79,10 +82,10 @@ const focus = ref({ todo: 0, unpaid: 0, effective: 0, renewing: 0 })
 /** 大屏 widgets 缺房源分类时的兜底统计 */
 const houseStat = ref({ occupied: 0, vacant: 0, pending: 0 })
 const focusList = computed(() => [
-  { label: '待办积压', value: focus.value.todo, unit: ' 项', tone: focus.value.todo > 20 ? 'warn' : '' },
-  { label: '未缴账单', value: focus.value.unpaid, unit: ' 张', tone: focus.value.unpaid > 0 ? 'warn' : '' },
-  { label: '在租合同', value: focus.value.effective, unit: ' 份', tone: 'ok' },
-  { label: '续签在办', value: focus.value.renewing, unit: ' 份', tone: '' }
+  { label: t('screen.todo'), value: focus.value.todo, unit: t('screen.unitItem'), tone: focus.value.todo > 20 ? 'warn' : '' },
+  { label: t('screen.unpaid'), value: focus.value.unpaid, unit: t('screen.unitBill'), tone: focus.value.unpaid > 0 ? 'warn' : '' },
+  { label: t('screen.effective'), value: focus.value.effective, unit: t('screen.unitContract'), tone: 'ok' },
+  { label: t('screen.renewing'), value: focus.value.renewing, unit: t('screen.unitContract'), tone: '' }
 ])
 
 async function loadFocus() {
