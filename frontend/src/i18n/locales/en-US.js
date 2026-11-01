@@ -157,6 +157,21 @@ export default {
     unauthorized: 'Not authorized: contact administrator',
     fullscreen: 'Full-screen display',
   },
+  subsidy: {
+    title: 'Subsidies', keyword: 'Keyword', search: 'Search', reset: 'Reset', batch: 'Batch Issue',
+    recordNo: 'Subsidy No.', person: 'Person', payMode: 'Payment Mode', period: 'Period',
+    standard: 'Subsidy Standard', contract: 'Contract', amount: 'Amount', status: 'Status',
+    actions: 'Actions', issue: 'Issue', reject: 'Reject', detail: 'Detail',
+    securityType: 'Security Type', subsidyMode: 'Subsidy Mode', fixed: 'Fixed',
+    byArea: 'By Area', byPerson: 'By Person', ratio: 'By Rent Ratio',
+    codeName: 'Code / Name', newStandard: 'New Standard', standardCode: 'Standard Code',
+    standardName: 'Name', value: 'Subsidy Value', cap: 'Cap Amount', effective: 'Validity',
+    createTitle: 'New Subsidy Standard', effectiveStart: 'Effective From', effectiveEnd: 'Effective To',
+    batchTitle: 'Batch Issue Subsidies', batchPeriod: 'Subsidy Period', org: 'Organization',
+    batchMode: 'Payment Mode', bank: 'Bank Transfer', offset: 'Offset Rent',
+    dryRun: 'Dry run (no write)', cancel: 'Cancel', confirm: 'Confirm Issue',
+    detailTitle: 'Details (raw data)'
+  },
   fee: {
     title: 'Fee Items', create: 'New Item', newRule: 'New Billing Rule', ruleList: 'Rules',
     keyword: 'Item code / name', itemType: 'Item type, e.g. RENT', calcMode: 'Calc mode, e.g. BY_AREA',

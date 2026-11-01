@@ -158,6 +158,21 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  subsidy: {
+    title: '补贴管理', keyword: '关键字', search: '查询', reset: '清空', batch: '批量发放',
+    recordNo: '补贴单号', person: '人员', payMode: '发放方式', period: '周期',
+    standard: '补贴标准', contract: '合同', amount: '金额', status: '状态',
+    actions: '操作', issue: '发放', reject: '驳回', detail: '详情',
+    securityType: '保障类型', subsidyMode: '补贴方式', fixed: '定额',
+    byArea: '按面积', byPerson: '按人', ratio: '按租金比例',
+    codeName: '编码/名称', newStandard: '新建标准', standardCode: '标准编码',
+    standardName: '名称', value: '补贴值', cap: '封顶金额', effective: '有效期',
+    createTitle: '新建补贴标准', effectiveStart: '生效起', effectiveEnd: '生效止',
+    batchTitle: '批量发放补贴', batchPeriod: '补贴周期', org: '组织',
+    batchMode: '发放方式', bank: '银行代发', offset: '抵扣租金',
+    dryRun: '试算（不落库）', cancel: '取消', confirm: '确认发放',
+    detailTitle: '明细（原始数据）'
+  },
   fee: {
     title: '计费项目', create: '新增项目', newRule: '新增计费规则', ruleList: '规则列表',
     keyword: '项目编码 / 名称', itemType: '项目类型 如 RENT', calcMode: '计费方式 如 BY_AREA',
