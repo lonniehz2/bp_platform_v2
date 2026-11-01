@@ -3,12 +3,12 @@
     <div class="toolbar">
       <h3 style="margin:0">{{ t('todo.title') }}</h3>
       <el-tag v-if="total > 0" type="danger" effect="dark" data-testid="todo-total">
-        待办 {{ total }} 项
+        {{ t('todo.totalTag', { n: total }) }}
       </el-tag>
-      <el-tag v-else type="success" effect="plain">暂无待办</el-tag>
+      <el-tag v-else type="success" effect="plain">{{ t('todo.none') }}</el-tag>
       <div class="spacer" />
       <el-checkbox v-model="onlyMine" @change="search" data-testid="todo-only-mine">
-        只看我的
+        {{ t('todo.onlyMine') }}
       </el-checkbox>
       <el-button type="success" :disabled="!selection.length" @click="batchDone">{{ t('todo.batchDone') }}
         批量完成{{ selection.length ? '（' + selection.length + '）' : '' }}
@@ -20,7 +20,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
-              title="这里只汇总「需要人动手」的待办；点卡片进入对应模块处理，明细不重复维护" />
+              title="{{ t('todo.tip') }}" />
 
     <!-- 四个总览指标 -->
     <el-row :gutter="12" style="margin-bottom:6px">
@@ -33,7 +33,7 @@
     </el-row>
 
     <!-- 各模块待办 -->
-    <div class="sec-title">各模块待办</div>
+    <div class="sec-title">{{ t('todo.modSections') }}</div>
     <el-row :gutter="12">
       <el-col :span="6" v-for="c in categories" :key="c.key" style="margin-bottom:12px">
         <div class="cat-card" :class="{ zero: c.count === 0 }" @click="go(c.route)">
@@ -47,7 +47,7 @@
     </el-row>
 
     <!-- 待办明细 -->
-    <div class="sec-title">待办明细</div>
+    <div class="sec-title">{{ t('todo.detail') }}</div>
     <div class="filter-bar">
       <el-input v-model="query.keyword" :placeholder="t('todo.keyword')" clearable
                 style="width:200px" data-testid="todo-keyword"
@@ -137,10 +137,10 @@ const summary = computed(() => {
     .filter((c) => c.key !== 'TODO' && c.key !== 'WORKORDER')
     .reduce((s, c) => s + Number(c.count || 0), 0)
   return [
-    { key: 'ALL', label: '待办总量', count: total.value, tone: 'tone-all', route: null },
-    { key: 'TODO', label: '待办消息', count: todo ? todo.count : 0, tone: 'tone-todo', route: todo?.route },
-    { key: 'BIZ', label: '业务待办', count: biz, tone: 'tone-biz', route: null },
-    { key: 'WO', label: '待处理工单', count: workorder ? workorder.count : 0, tone: 'tone-wo', route: workorder?.route }
+    { key: 'ALL', label: t('todo.summaryAll'), count: total.value, tone: 'tone-all', route: null },
+    { key: 'TODO', label: t('todo.summaryTodo'), count: todo ? todo.count : 0, tone: 'tone-todo', route: todo?.route },
+    { key: 'BIZ', label: t('todo.summaryBiz'), count: biz, tone: 'tone-biz', route: null },
+    { key: 'WO', label: t('todo.summaryWo'), count: workorder ? workorder.count : 0, tone: 'tone-wo', route: workorder?.route }
   ]
 })
 
@@ -160,14 +160,14 @@ const onlyMine = ref(false)
 /** 日期快捷选项：省掉手点日历 */
 const dateShortcuts = [
   {
-    text: '今天',
+    text: t('todo.today'),
     value: () => {
       const d = new Date()
       return [d, d]
     }
   },
   {
-    text: '近 7 天',
+    text: t('todo.last7'),
     value: () => {
       const e = new Date()
       const s = new Date()
@@ -176,7 +176,7 @@ const dateShortcuts = [
     }
   },
   {
-    text: '近 30 天',
+    text: t('todo.last30'),
     value: () => {
       const e = new Date()
       const s = new Date()

@@ -894,6 +894,16 @@ export default {
     pending: '待处理', done: '已完成', search: '查询', reset: '清空',
     titleCol: '标题', typeCol: '类型', statusCol: '状态', biz: '关联业务',
     created: '创建时间', actions: '操作', deal: '去处理', markDone: '完成',
+    totalTag: '待办 {n} 项',
+    none: '暂无待办',
+    onlyMine: '只看我的',
+    summaryAll: '待办总量',
+    summaryTodo: '待办消息',
+    summaryBiz: '业务待办',
+    summaryWo: '待处理工单',
+    modSections: '各模块待办',
+    today: '今天',
+    last30: '近 30 天',
     read: '标记已读'
   },
   message: {
