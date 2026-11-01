@@ -2,29 +2,29 @@
   <div>
     <div class="page-card">
       <div class="toolbar">
-        <h3 style="margin:0">配租批次</h3>
-        <el-button type="success" @click="openBatchCreate" data-testid="batch-create">新建批次</el-button>
+        <h3 style="margin:0">{{ t('alloc.title') }}</h3>
+        <el-button type="success" @click="openBatchCreate" data-testid="batch-create">{{ t('alloc.newBatch') }}</el-button>
         <div class="spacer" />
-        <el-input v-model="seed" placeholder="摇号种子（可复现）" style="width:200px" />
-        <el-button type="primary" @click="load">刷新</el-button>
+        <el-input v-model="seed" :placeholder="t('alloc.seed')" style="width:200px" />
+        <el-button type="primary" @click="load">{{ t('alloc.refresh') }}</el-button>
       </div>
 
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
                 title="报名即轮候：进入「开始报名」后，同保障类型（同组织）的轮候人员自动参与本批次，无需逐人报名；摇号完成后点「生成配租单」按中签顺序配房。" />
       <FilterBar @search="load" @reset="resetQuery">
-        <el-select v-model="af.status" placeholder="批次状态" clearable style="width:160px"
+        <el-select v-model="af.status" :placeholder="t('alloc.status')" clearable style="width:160px"
                    data-testid="alloc-status">
-          <el-option label="草稿" value="DRAFT" />
-          <el-option label="已发布" value="PUBLISHED" />
-          <el-option label="报名中" value="SIGNUP" />
-          <el-option label="摇号中" value="LOTTERY" />
-          <el-option label="摇号完成" value="LOTTERY_DONE" />
-          <el-option label="选房中" value="SELECTING" />
-          <el-option label="已配租" value="ALLOCATED" />
-          <el-option label="已结束" value="CLOSED" />
-          <el-option label="已取消" value="CANCELLED" />
+          <el-option :label="t('alloc.draft')" value="DRAFT" />
+          <el-option :label="t('alloc.published')" value="PUBLISHED" />
+          <el-option :label="t('alloc.signup')" value="SIGNUP" />
+          <el-option :label="t('alloc.lottery')" value="LOTTERY" />
+          <el-option :label="t('alloc.lotteryDone')" value="LOTTERY_DONE" />
+          <el-option :label="t('alloc.selecting')" value="SELECTING" />
+          <el-option :label="t('alloc.allocated')" value="ALLOCATED" />
+          <el-option :label="t('alloc.closed')" value="CLOSED" />
+          <el-option :label="t('alloc.cancelled')" value="CANCELLED" />
         </el-select>
-        <el-select v-model="af.orgId" placeholder="组织名称" clearable filterable
+        <el-select v-model="af.orgId" :placeholder="t('alloc.org')" clearable filterable
                    style="width:220px" data-testid="alloc-org">
           <el-option v-for="o in orgOptions" :key="o.id"
                      :label="o.orgName" :value="o.id" />
@@ -34,23 +34,23 @@
       <el-table empty-text="暂无配租单，摇号完成后点「生成配租单」" :data="batches" v-loading="loading" border size="small"
                 highlight-current-row @row-click="(row) => selectBatch(row)">
 
-        <el-table-column prop="batchNo" label="批次号" width="170" />
-        <el-table-column prop="batchName" label="名称" />
-        <el-table-column label="组织" width="180" show-overflow-tooltip>
+        <el-table-column prop="batchNo" :label="t('alloc.batchNo')" width="170" />
+        <el-table-column prop="batchName" :label="t('alloc.name')" />
+        <el-table-column :label="t('alloc.orgCol')" width="180" show-overflow-tooltip>
           <template #default="{ row }">{{ row.orgIdName || orgNameOf(row.orgId) }}</template>
         </el-table-column>
-        <el-table-column label="保障类型" width="110">
+        <el-table-column :label="t('alloc.securityType')" width="110">
           <template #default="{ row }">{{ enumLabel('securityType', row.securityType) || row.securityType }}</template>
         </el-table-column>
-        <el-table-column prop="batchStatus" label="状态" width="110">
+        <el-table-column prop="batchStatus" :label="t('alloc.statusCol')" width="110">
           <template #default="{ row }">{{ row.batchStatusLabel || enumLabel('batchStatus', row.batchStatus) }}</template>
         </el-table-column>
-        <el-table-column prop="houseCount" label="房源数" width="90" />
-        <el-table-column prop="applicantCount" label="参与人数" width="100" />
-        <el-table-column label="操作" width="300" fixed="right">
+        <el-table-column prop="houseCount" :label="t('alloc.houseCount')" width="90" />
+        <el-table-column prop="applicantCount" :label="t('alloc.applicantCount')" width="100" />
+        <el-table-column :label="t('alloc.actions')" width="300" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-            <el-button link type="primary" @click="openAddHouses(row)" data-testid="batch-add-house">加房源</el-button>
+            <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('alloc.detail') }}</el-button>
+            <el-button link type="primary" @click="openAddHouses(row)" data-testid="batch-add-house">{{ t('alloc.addHouses') }}</el-button>
             <el-button v-if="row.batchStatus === 'DRAFT'" link type="success"
                        @click="doTransition(row, 'PUBLISHED')"
                        data-testid="batch-publish">发布</el-button>
@@ -61,7 +61,7 @@
                        @click="doTransition(row, 'LOTTERY')"
                        data-testid="batch-to-lottery">结束报名</el-button>
             <el-dropdown trigger="click" style="margin-left:8px">
-              <el-button link type="primary">更多▾</el-button>
+              <el-button link type="primary">{{ t('alloc.more') }}</el-button>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item v-if="['DRAFT','PUBLISHED','SIGNUP'].includes(row.batchStatus)"
@@ -70,7 +70,7 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-            <el-button link type="primary" @click="runLottery(row)">摇号</el-button>
+            <el-button link type="primary" @click="runLottery(row)">{{ t('alloc.runLottery') }}</el-button>
             <el-button v-if="['LOTTERY_DONE','ALLOCATED','SELECTING'].includes(row.batchStatus)"
                        link type="success" data-testid="batch-gen-alloc"
                        @click="genAllocations(row)">生成配租单</el-button>
@@ -82,25 +82,25 @@
 
     <div class="page-card">
       <div class="toolbar" style="margin-bottom:12px">
-        <h3 style="margin:0">配租单</h3>
+        <h3 style="margin:0">{{ t('alloc.allocTitle') }}</h3>
         <span class="muted" v-if="currentBatch">
           当前批次：{{ currentBatch.batchNo }} {{ currentBatch.batchName }}
         </span>
         <div class="spacer" />
-        <el-button v-if="currentBatch" @click="clearBatch">显示全部配租单</el-button>
+        <el-button v-if="currentBatch" @click="clearBatch">{{ t('alloc.showAll') }}</el-button>
       </div>
       <el-table :data="allocations" v-loading="loading" border size="small">
-        <el-table-column prop="allocationNo" label="配租单号" width="170" />
-        <el-table-column prop="personId" label="人员" width="150">
+        <el-table-column prop="allocationNo" :label="t('alloc.allocNo')" width="170" />
+        <el-table-column prop="personId" :label="t('alloc.person')" width="150">
           <template #default="{ row }">{{ row.personName || row.personId }}</template>
         </el-table-column>
-        <el-table-column prop="phoneMask" label="手机号" width="130" />
-        <el-table-column prop="houseId" label="房源" width="110">
+        <el-table-column prop="phoneMask" :label="t('alloc.phone')" width="130" />
+        <el-table-column prop="houseId" :label="t('alloc.house')" width="110">
           <template #default="{ row }">{{ row.houseIdName || row.houseId }}</template>
         </el-table-column>
-        <el-table-column prop="allocationStatusLabel" label="状态" width="110" />
-        <el-table-column prop="lockRemainHours" label="锁定剩余(小时)" width="130" />
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column prop="allocationStatusLabel" :label="t('alloc.allocStatus')" width="110" />
+        <el-table-column prop="lockRemainHours" :label="t('alloc.lockRemain')" width="130" />
+        <el-table-column :label="t('alloc.actions')" width="160" fixed="right">
           <template #default="{ row }">
             <el-tag v-if="row.allocationStatus === 'SIGNED'" size="small" type="success">已签约</el-tag>
             <el-button v-else link type="success" :disabled="!!row.lockOverdue"
@@ -110,20 +110,20 @@
       </el-table>
     </div>
 
-    <el-dialog v-model="resultVisible" title="摇号结果" width="700px">
+    <el-dialog v-model="resultVisible" :title="t('alloc.resultTitle')" width="700px">
       <el-alert type="info" :closable="false" show-icon
                 title="中签数 = 房源数；中签之后 3 名为递补。相同种子可完全复现，可用于公证复核。" />
       <el-table :data="results" border size="small" style="margin-top:12px">
-        <el-table-column prop="waitingId" label="轮候单" width="140">
+        <el-table-column prop="waitingId" :label="t('alloc.waitingId')" width="140">
           <template #default="{ row }">{{ row.waitingId }}</template>
         </el-table-column>
         <el-table-column prop="personId" label="人员" width="150">
           <template #default="{ row }">{{ row.personName || row.personId }}</template>
         </el-table-column>
         <el-table-column prop="phoneMask" label="手机号" width="130" />
-        <el-table-column prop="totalScore" label="总分" width="100" />
-        <el-table-column prop="selectSeq" label="选房序号" width="90" />
-        <el-table-column prop="resultType" label="结果" width="100">
+        <el-table-column prop="totalScore" :label="t('alloc.totalScore')" width="100" />
+        <el-table-column prop="selectSeq" :label="t('alloc.selectSeq')" width="90" />
+        <el-table-column prop="resultType" :label="t('alloc.result')" width="100">
           <template #default="{ row }">{{ row.resultTypeLabel || enumLabel('resultType', row.resultType) }}</template>
         </el-table-column>
       </el-table>
@@ -136,46 +136,46 @@
     </el-dialog>
 
     <!-- 新建批次 -->
-    <el-dialog v-model="batchCreateVisible" title="新建配租批次" width="620px">
+    <el-dialog v-model="batchCreateVisible" :title="t('alloc.createTitle')" width="620px">
       <el-form :model="bf" label-width="110px">
-        <el-form-item label="批次名称" required>
-          <el-input v-model="bf.batchName" placeholder="如：2026 年第一批公租房配租" />
+        <el-form-item :label="t('alloc.batchName')" required>
+          <el-input v-model="bf.batchName" :placeholder="t('alloc.batchNameHint')" />
         </el-form-item>
-        <el-form-item label="项目组织" required>
+        <el-form-item :label="t('alloc.projectOrg')" required>
           <el-select v-model="bf.orgId" filterable style="width:100%"
-                     placeholder="选择所属小区/项目">
+                     :placeholder="t('alloc.projectHint')">
             <el-option v-for="o in batchOrgs" :key="o.id" :label="o.orgName" :value="String(o.id)" />
           </el-select>
         </el-form-item>
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="保障类型" required>
+          <el-col :span="12"><el-form-item :label="t('alloc.securityType')" required>
             <el-select v-model="bf.securityType" style="width:100%">
-              <el-option label="公租房" value="PUBLIC" />
-              <el-option label="经适房" value="AFFORDABLE" />
-              <el-option label="人才房" value="TALENT" />
-              <el-option label="廉租房" value="LOW_RENT" />
+              <el-option :label="t('misc.publicRental')" value="PUBLIC" />
+              <el-option :label="t('misc.affordable')" value="AFFORDABLE" />
+              <el-option :label="t('misc.talent')" value="TALENT" />
+              <el-option :label="t('misc.lowRent')" value="LOW_RENT" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="批次类型" required>
+          <el-col :span="12"><el-form-item :label="t('alloc.batchType')" required>
             <el-select v-model="bf.batchType" style="width:100%">
-              <el-option label="摇号配租" value="LOTTERY" />
-              <el-option label="选房配租" value="SELECT" />
-              <el-option label="直接配租" value="DIRECT" />
-              <el-option label="补充配租" value="SUPPLEMENT" />
+              <el-option :label="t('alloc.lotteryType')" value="LOTTERY" />
+              <el-option :label="t('alloc.selectType')" value="SELECT" />
+              <el-option :label="t('alloc.directType')" value="DIRECT" />
+              <el-option :label="t('alloc.supplementType')" value="SUPPLEMENT" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="报名开始">
+          <el-col :span="12"><el-form-item :label="t('alloc.signupStart')">
             <el-date-picker v-model="bf.signupStart" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="报名结束">
+          <el-col :span="12"><el-form-item :label="t('alloc.signupEnd')">
             <el-date-picker v-model="bf.signupEnd" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="摇号时间">
+          <el-col :span="24"><el-form-item :label="t('alloc.lotteryTime')">
             <el-date-picker v-model="bf.lotteryTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="房源">
+          <el-col :span="24"><el-form-item :label="t('alloc.house')">
             <div style="width:100%">
               <el-select v-model="bf.houseIds" multiple filterable remote
                          :remote-method="searchHouses" :loading="houseLoading"
-                         placeholder="选择组织后搜索待分配房源（可多选）" style="width:100%">
+                         :placeholder="t('alloc.houseHint')" style="width:100%">
                 <el-option v-for="h in houseOptions" :key="h.id"
                            :label="(h.houseName || h.houseCode) + '（' + h.houseCode + '）'"
                            :value="h.id" />
@@ -185,13 +185,13 @@
               </div>
             </div>
           </el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="公证信息">
-            <el-input v-model="bf.notaryInfo" placeholder="可空，如公证处与公证号" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item :label="t('alloc.notary')">
+            <el-input v-model="bf.notaryInfo" :placeholder="t('alloc.notaryHint')" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="batchCreateVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreateBatch">创建</el-button>
+        <el-button @click="batchCreateVisible = false">{{ t('alloc.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreateBatch">{{ t('alloc.create') }}</el-button>
       </template>
     </el-dialog>
 
@@ -239,7 +239,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {
