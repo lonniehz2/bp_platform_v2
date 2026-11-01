@@ -1,12 +1,12 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">计费项目</h3>
+      <h3 style="margin:0">{{ t('fee.title') }}</h3>
       <el-tag size="small" type="info">7 种计费方式 · 规则+试算</el-tag>
       <div class="spacer" />
-      <el-button type="success" @click="openCreate">新增项目</el-button>
-      <el-button @click="openRule">新增计费规则</el-button>
-      <el-button @click="ruleVisible = true; loadRules()">规则列表</el-button>
+      <el-button type="success" @click="openCreate">{{ t('fee.create') }}</el-button>
+      <el-button @click="openRule">{{ t('fee.newRule') }}</el-button>
+      <el-button @click="ruleVisible = true; loadRules()">{{ t('fee.ruleList') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
@@ -14,42 +14,42 @@
                      填写「单价」与「计量单位」（度/吨/方），再到「抄表管理」录读数即可出账。" />
 
     <FilterBar @search="resetAndLoad" @reset="resetQuery">
-      <el-input v-model="ff.keyword" placeholder="项目编码 / 名称" clearable
+      <el-input v-model="ff.keyword" :placeholder="t('fee.keyword')" clearable
                 style="width:200px" data-testid="fee-keyword"
                 @keyup.enter="resetAndLoad" />
       <template #more>
-        <el-input v-model="ff.itemType" placeholder="项目类型 如 RENT" clearable style="width:170px" />
-        <el-input v-model="ff.calcMode" placeholder="计费方式 如 BY_AREA" clearable style="width:190px" />
+        <el-input v-model="ff.itemType" :placeholder="t('fee.itemType')" clearable style="width:170px" />
+        <el-input v-model="ff.calcMode" :placeholder="t('fee.calcMode')" clearable style="width:190px" />
       </template>
     </FilterBar>
 
     <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
-      <el-table-column prop="itemCode" label="项目编码" width="150" />
-      <el-table-column prop="itemName" label="名称" min-width="140" />
-      <el-table-column label="类型" width="110">
+      <el-table-column prop="itemCode" :label="t('fee.code')" width="150" />
+      <el-table-column prop="itemName" :label="t('fee.name')" min-width="140" />
+      <el-table-column :label="t('fee.type')" width="110">
         <template #default="{ row }">{{ enumLabel('itemType', row.itemType) }}</template>
       </el-table-column>
-      <el-table-column label="计费方式" width="120">
+      <el-table-column :label="t('fee.method')" width="120">
         <template #default="{ row }">{{ row.calcModeLabel || enumLabel('calcMode', row.calcMode) }}</template>
       </el-table-column>
-      <el-table-column prop="unitPrice" label="单价" width="110">
+      <el-table-column prop="unitPrice" :label="t('fee.price')" width="110">
         <template #default="{ row }">{{ money(row.unitPrice) }}</template>
       </el-table-column>
-      <el-table-column prop="unit" label="单位" width="110" />
-      <el-table-column label="状态" width="100">
+      <el-table-column prop="unit" :label="t('fee.unit')" width="110" />
+      <el-table-column :label="t('fee.status')" width="100">
         <template #default="{ row }">
           <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">
             {{ enumLabel('status', row.status) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column :label="t('fee.actions')" width="200" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
+          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('fee.detail') }}</el-button>
           <el-button link type="primary" @click="toggle(row)">
             {{ row.status === 'ENABLED' ? '停用' : '启用' }}
           </el-button>
-          <el-button link @click="preview(row)">试算</el-button>
+          <el-button link @click="preview(row)">{{ t('fee.preview') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -58,40 +58,40 @@
                    @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
 
     <!-- 新增项目 FeeItemCreateCmd -->
-    <el-dialog v-model="createVisible" title="新增计费项目" width="600px">
+    <el-dialog v-model="createVisible" :title="t('fee.createTitle')" width="600px">
       <el-form :model="f" label-width="120px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="项目编码" required>
+          <el-col :span="12"><el-form-item :label="t('fee.code')" required>
             <el-input v-model="f.itemCode" data-testid="fee-code" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="项目名称" required>
+          <el-col :span="12"><el-form-item :label="t('fee.itemName')" required>
             <el-input v-model="f.itemName" data-testid="fee-name" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="费用类型" required>
+          <el-col :span="12"><el-form-item :label="t('fee.feeType')" required>
             <div style="display:flex;gap:6px;width:100%">
               <el-select v-model="f.itemType" style="flex:1">
                 <el-option v-for="t in feeTypes" :key="t.typeCode"
                            :label="t.typeName" :value="t.typeCode" />
               </el-select>
-              <el-button @click="openFeeTypes">管理</el-button>
+              <el-button @click="openFeeTypes">{{ t('fee.manage') }}</el-button>
             </div></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="计费方式" required>
+          <el-col :span="12"><el-form-item :label="t('fee.method')" required>
             <el-select v-model="f.calcMode" style="width:100%">
-              <el-option label="定额" value="FIXED" />
-              <el-option label="按面积" value="BY_AREA" />
-              <el-option label="按套" value="BY_HOUSE" />
-              <el-option label="按人" value="BY_PERSON" />
-              <el-option label="按床位" value="BY_BED" />
-              <el-option label="按房晚" value="BY_NIGHT" />
-              <el-option label="抄表" value="METER" />
+              <el-option :label="t('fee.fixed')" value="FIXED" />
+              <el-option :label="t('fee.byArea')" value="BY_AREA" />
+              <el-option :label="t('fee.byHouse')" value="BY_HOUSE" />
+              <el-option :label="t('fee.byPerson')" value="BY_PERSON" />
+              <el-option :label="t('fee.byBed')" value="BY_BED" />
+              <el-option :label="t('fee.byNight')" value="BY_NIGHT" />
+              <el-option :label="t('fee.meter')" value="METER" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="单价" required>
+          <el-col :span="12"><el-form-item :label="t('fee.price')" required>
             <el-input-number v-model="f.unitPrice" :min="0" :precision="2"
                              data-testid="fee-price" style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="计量单位">
+          <el-col :span="12"><el-form-item :label="t('fee.unit')">
             <el-select v-model="f.unit" filterable allow-create default-first-option
                        placeholder="选择或输入" style="width:100%">
               <el-option v-for="u in UNIT_OPTIONS" :key="u" :label="u" :value="u" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="保障类型">
+          <el-col :span="12"><el-form-item :label="t('fee.securityType')">
             <el-select v-model="f.securityType" style="width:100%" clearable>
               <el-option label="公租房" value="PUBLIC" />
               <el-option label="保租房" value="AFFORDABLE" />
@@ -101,34 +101,34 @@
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">保存</el-button>
+        <el-button @click="createVisible = false">{{ t('fee.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('fee.save') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 计费规则 BillingRuleCreateCmd -->
-    <el-dialog v-model="ruleCreateVisible" title="新增计费规则" width="620px">
+    <el-dialog v-model="ruleCreateVisible" :title="t('fee.ruleCreateTitle')" width="620px">
       <el-form :model="r" label-width="130px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="规则编码" required>
+          <el-col :span="12"><el-form-item :label="t('fee.ruleCode')" required>
             <el-input v-model="r.ruleCode" placeholder="如 RENT-STD-2026" />
           </el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="规则名称" required>
+          <el-col :span="12"><el-form-item :label="t('fee.ruleName')" required>
             <el-input v-model="r.ruleName" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="计费项目" required>
+          <el-col :span="12"><el-form-item :label="t('fee.feeItem')" required>
             <el-select v-model="r.feeItemId" filterable style="width:100%">
               <el-option v-for="it in rows" :key="it.id"
                          :label="it.itemName + '（' + it.itemCode + '）'" :value="it.id" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="规则类型" required>
+          <el-col :span="12"><el-form-item :label="t('fee.ruleType')" required>
             <el-select v-model="r.ruleType" style="width:100%">
-              <el-option label="标准价" value="STANDARD" />
-              <el-option label="阶梯价" value="TIERED" />
-              <el-option label="折扣" value="DISCOUNT" />
-              <el-option label="减免" value="EXEMPT" />
+              <el-option :label="t('fee.standard')" value="STANDARD" />
+              <el-option :label="t('fee.tiered')" value="TIERED" />
+              <el-option :label="t('fee.discount')" value="DISCOUNT" />
+              <el-option :label="t('fee.exempt')" value="EXEMPT" />
             </el-select></el-form-item></el-col>
           <el-col :span="24">
-            <el-form-item label="价格配置" required>
+            <el-form-item :label="t('fee.priceConfig')" required>
               <!-- 标准价：单价 -->
               <div v-if="r.ruleType === 'STANDARD'" style="width:100%;display:flex;gap:8px">
                 <el-input-number v-model="priceValue" :min="0" :precision="2"
@@ -161,30 +161,30 @@
               </div>
             </el-form-item>
           </el-col>
-          <el-col :span="12"><el-form-item label="生效日期">
+          <el-col :span="12"><el-form-item :label="t('fee.effectiveStart')">
             <el-date-picker v-model="r.effectiveStart" type="date"
                             value-format="YYYY-MM-DD" style="width:100%" />
           </el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="失效日期">
+          <el-col :span="12"><el-form-item :label="t('fee.effectiveEnd')">
             <el-date-picker v-model="r.effectiveEnd" type="date"
                             value-format="YYYY-MM-DD" style="width:100%" />
           </el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="适用组织">
+          <el-col :span="12"><el-form-item :label="t('fee.org')">
             <el-select v-model="r.orgId" filterable clearable style="width:100%"
                        placeholder="留空=全租户通用">
               <el-option v-for="o in orgs" :key="o.id"
                          :label="o.orgName" :value="o.id" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="优先级">
+          <el-col :span="12"><el-form-item :label="t('fee.priority')">
             <el-input-number v-model="r.priority" :min="1" style="width:100%" />
           </el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="适用保障类型">
+          <el-col :span="12"><el-form-item :label="t('fee.securityType')">
             <el-select v-model="r.securityType" clearable style="width:100%">
               <el-option label="公租房" value="PUBLIC" />
               <el-option label="保租房" value="AFFORDABLE" />
               <el-option label="人才房" value="TALENT" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="适用收入档位">
+          <el-col :span="12"><el-form-item :label="t('fee.incomeLevel')">
             <el-select v-model="r.incomeLevel" clearable style="width:100%">
               <el-option label="低保 LOW" value="LOW" />
               <el-option label="低收入 LOW_INCOME" value="LOW_INCOME" />
@@ -196,40 +196,40 @@
       <el-alert type="info" :closable="false" show-icon
                 title="规则需审批后生效；未审批时出账使用项目默认单价" />
       <template #footer>
-        <el-button @click="ruleCreateVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreateRule">保存</el-button>
+        <el-button @click="ruleCreateVisible = false">{{ t('fee.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreateRule">{{ t('fee.save') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 规则列表 -->
-    <el-dialog v-model="ruleVisible" title="计费规则" width="720px">
+    <el-dialog v-model="ruleVisible" :title="t('fee.ruleListTitle')" width="720px">
       <div class="toolbar" style="margin-bottom:8px">
-        <el-select v-model="rf.orgId" placeholder="组织" clearable filterable
+        <el-select v-model="rf.orgId" :placeholder="t('fee.org')" clearable filterable
                    style="width:200px" @change="loadRules" data-testid="rule-org">
           <el-option v-for="o in ruleOrgOptions" :key="o.id" :label="o.orgName"
                      :value="String(o.id)" />
         </el-select>
         <FeeItemSelect v-model="rf.feeItemId" width="210px" testid="feeitemselect" />
-        <el-input v-model="rf.houseType" placeholder="房源类型，如 PUBLIC_RENTAL" clearable
+        <el-input v-model="rf.houseType" :placeholder="t('fee.type')" clearable
                   style="width:230px" data-testid="rule-housetype" @keyup.enter="loadRules" />
-        <el-button type="primary" @click="loadRules" data-testid="rule-search">查询</el-button>
-        <el-button @click="resetRuleQuery" data-testid="rule-reset">清空</el-button>
-        <el-button type="success" @click="openRuleFromList">新增规则</el-button>
+        <el-button type="primary" @click="loadRules" data-testid="rule-search">{{ t('fee.search') }}</el-button>
+        <el-button @click="resetRuleQuery" data-testid="rule-reset">{{ t('fee.reset') }}</el-button>
+        <el-button type="success" @click="openRuleFromList">{{ t('fee.newRule') }}</el-button>
       </div>
       <el-table :data="rules" border size="small" max-height="420">
-        <el-table-column prop="ruleCode" label="规则编码" width="140" />
-        <el-table-column prop="ruleName" label="规则名称" min-width="130" />
-        <el-table-column label="组织" width="150">
+        <el-table-column prop="ruleCode" :label="t('fee.ruleCode')" width="140" />
+        <el-table-column prop="ruleName" :label="t('fee.ruleName')" min-width="130" />
+        <el-table-column :label="t('fee.org')" width="150">
           <template #default="{ row }">{{ row.orgIdName || row.orgId || '—' }}</template>
         </el-table-column>
-        <el-table-column label="计费项目" width="150">
+        <el-table-column :label="t('fee.feeItem')" width="150">
           <template #default="{ row }">{{ itemNameOf(row.feeItemId) }}</template>
         </el-table-column>
-        <el-table-column label="价格配置" min-width="150" show-overflow-tooltip>
+        <el-table-column :label="t('fee.priceConfig')" min-width="150" show-overflow-tooltip>
           <template #default="{ row }">{{ priceText(row.priceConfig) }}</template>
         </el-table-column>
-        <el-table-column prop="effectiveStart" label="生效" width="110" />
-        <el-table-column label="审批" width="100">
+        <el-table-column prop="effectiveStart" :label="t('fee.effective')" width="110" />
+        <el-table-column :label="t('fee.approval')" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="row.approveStatus === 'APPROVED' ? 'success'
               : (row.approveStatus === 'PENDING' ? 'warning' : 'info')">
@@ -237,7 +237,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column :label="t('fee.actions')" width="200" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" :disabled="row.approveStatus === 'APPROVED'"
                        @click="editRule(row)">编辑</el-button>
@@ -251,23 +251,23 @@
     </el-dialog>
 
     <!-- 试算 CalcPreviewCmd -->
-    <el-dialog v-model="previewVisible" title="计费试算" width="460px">
+    <el-dialog v-model="previewVisible" :title="t('fee.previewTitle')" width="460px">
       <el-form :model="cp" label-width="120px">
-        <el-form-item label="计费项目">
+        <el-form-item :label="t('fee.feeItem')">
           <el-input :model-value="current?.itemName" disabled /></el-form-item>
-        <el-form-item label="面积(㎡)">
+        <el-form-item :label="t('fee.area')">
           <el-input-number v-model="cp.area" :precision="2" style="width:100%" />
         </el-form-item>
-        <el-form-item label="数量/人口">
+        <el-form-item :label="t('fee.quantity')">
           <el-input-number v-model="cp.quantity" :min="1" style="width:100%" />
         </el-form-item>
-        <el-form-item label="天数/房晚">
+        <el-form-item :label="t('fee.days')">
           <el-input-number v-model="cp.nights" :min="0" style="width:100%" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="previewVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doPreview">试算</el-button>
+        <el-button @click="previewVisible = false">{{ t('fee.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doPreview">{{ t('fee.preview') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -314,7 +314,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {
