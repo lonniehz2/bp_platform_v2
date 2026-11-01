@@ -216,6 +216,14 @@ export default {
     no: '否',
   },
   devCmd: {
+    lockOpen: '远程开锁',
+    reboot: '远程重启',
+    syncTime: '远程校时',
+    alwaysOpen: '常开（保持开锁）',
+    alwaysClose: '常闭（保持锁定）',
+    normalMode: '恢复正常模式',
+    meterSwitch: '电表拉合闸',
+    noCommands: '暂无设备指令',
     title: '设备指令',
     status: '状态',
     pending: '待下发',
@@ -681,6 +689,30 @@ export default {
     submit: '提交',
     drawer: '明细（原始数据）',
     detailTitle: '详情',
+  },
+  miscPage: {
+    appealsTip: '申诉期限默认 10 个自然日；逾期未处理会标记超时',
+    creditsTip: '失信限制再申请 5 年；到期可扫描自动失效',
+    exchangeLimit: '换房次数受限；应换不换按 1.5 倍租金计收',
+    visitsTip: '用于定期入户核查房屋使用情况：是否居住 / 实际人数 / 是否转租、空置、违规使用',
+    shortRentTip: '民宿/网约房；短租需实名登记，退房时刻必须晚于入住时刻',
+    govTip: '对接房管局/公安；报送任务按周期自动生成，失败可在任务详情重试',
+    openTip: '第三方/政务接入；开放应用按 appKey 鉴权，密钥重置后旧密钥立即失效',
+    devCmdBadge: '经 IoT 平台下发 · 不直连设备',
+    devCmdTip: '指令经 IoT 平台下发，回执由 IoT 回调回填；超时（默认 10 秒）会自动重试，最多 3 次。',
+    devCmdApproval: '拉合闸需审批通过后才下发；拉闸默认延迟执行，可在窗口内取消。',
+    alarmOnly: '只看告警',
+    unhandledOnly: '只看未处理',
+    eventTotal: '事件总数',
+    eventUnhandled: '未处理',
+    eventCritical: '严重',
+    eventTypes: '系统支持 {n} 种告警',
+    currentAlarmTypes: '当前告警类型（种）',
+    noEvents: '暂无设备事件',
+    handled: '已处理',
+    unhandled: '未处理',
+    markHandled: '标记处理',
+    arrearsKeyword: '输入合同号/承租人搜索',
   },
   misc11: {
     regionCount: '约 66 万条',
@@ -1380,6 +1412,7 @@ export default {
     drawer: '明细（原始数据）'
   },
   review: {
+    tagline: '保留 / 调租 / 退出',
     title: '年审复核', batch: '批量发起年审', refresh: '刷新',
     tip: '年审判定为「退出」会自动生成腾退单（类型用 OTHER，避免误触发 5 年禁申）',
     no: '年审单号', contract: '合同', person: '人员', year: '年度',
@@ -1869,6 +1902,8 @@ export default {
     hoursSilent: '静默(小时)', lastReport: '最后上报'
   },
   alert: {
+    hierarchyTip: '层级关系：先建「规则集」（可理解为某一场景的规则包），再在其中加「规则」（单条阈值判定）；规则集发布后生效，旧版本自动停用。',
+    ruleDetail: '规则明细：{name}',
     ruleCode: '规则编码',
     monitorField: '监控字段',
     conditionLabel: '判定条件',
@@ -2034,6 +2069,7 @@ export default {
     previewTitle: '计费试算', area: '面积(㎡)', quantity: '数量/人口', days: '天数/房晚'
   },
   deposit: {
+    formula: '余额 = 已收 − 已抵扣 − 已退还',
     title: '押金与退款', create: '押金建档', contract: '合同', person: '人员',
     receivable: '应收', received: '已收', deducted: '已抵扣', refunded: '已退还',
     balance: '余额', status: '状态', actions: '操作', detail: '详情',

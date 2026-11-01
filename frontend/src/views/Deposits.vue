@@ -4,7 +4,7 @@
       <div class="toolbar">
         <h3 style="margin:0">{{ t('deposit.title') }}</h3>
         <el-tag size="small" type="info">
-          余额 = 已收 − 已抵扣 − 已退还
+          {{ t('deposit.formula') }}
         </el-tag>
         <div class="spacer" />
         <el-button type="success" @click="depVisible = true">{{ t('deposit.create') }}</el-button>

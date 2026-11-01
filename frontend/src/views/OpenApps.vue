@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('open.title') }}</h3>
-      <el-tag size="small" type="info">第三方/政务接入</el-tag>
+      <el-tag size="small" type="info">{{ t('miscPage.openTip') }}</el-tag>
       <div class="spacer" />
       <el-input v-model="keyword" :placeholder="t('open.keyword')" clearable
                 style="width:170px" @keyup.enter="reload" />

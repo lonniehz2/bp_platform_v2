@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('devCmd.title') }}</h3>
-      <el-tag size="small" type="info">经 IoT 平台下发 · 不直连设备</el-tag>
+      <el-tag size="small" type="info">{{ t('miscPage.devCmdBadge') }}</el-tag>
       <div class="spacer" />
       <el-select v-model="query.status" :placeholder="t('devCmd.status')" clearable style="width:120px"
                  @change="reload">
@@ -24,9 +24,9 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
-              title="指令经 IoT 平台下发，回执由 IoT 回调回填；超时（默认 10 秒）会自动重试，最多 3 次。" />
+              :title="t('miscPage.devCmdTip')" />
 
-    <el-table empty-text="暂无设备指令" :data="rows" v-loading="loading" border size="small">
+    <el-table :empty-text="t('devCmd.noCommands')" :data="rows" v-loading="loading" border size="small">
       <el-table-column prop="commandNo" :label="t('devCmd.no')" width="180" />
       <el-table-column :label="t('devCmd.type')" width="130">
         <template #default="{ row }">{{ typeLabel(row.commandType) }}</template>
@@ -91,7 +91,7 @@
         </el-form-item>
       </el-form>
       <el-alert v-if="form.commandType === 'METER_SWITCH'" type="warning" :closable="false"
-                show-icon title="拉合闸需审批通过后才下发；拉闸默认延迟执行，可在窗口内取消。" />
+                show-icon :title="t('miscPage.devCmdApproval')" />
       <template #footer>
         <el-button @click="createVisible = false">{{ t('devCmd.cancelBtn') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doCreate">{{ t('devCmd.submit') }}</el-button>
@@ -131,22 +131,22 @@ import DeviceSelect from '@/components/DeviceSelect.vue'
 
 const { t } = useI18n()
 const TYPES = [
-  { value: 'LOCK_OPEN', label: '远程开锁' },
-  { value: 'DEVICE_REBOOT', label: '远程重启' },
-  { value: 'DEVICE_SYNC_TIME', label: '远程校时' },
-  { value: 'LOCK_ALWAYS_OPEN', label: '常开（保持开锁）' },
-  { value: 'LOCK_ALWAYS_CLOSE', label: '常闭（保持锁定）' },
-  { value: 'LOCK_MODE_NORMAL', label: '恢复正常模式' },
-  { value: 'METER_SWITCH', label: '电表拉合闸' }
+  { value: 'LOCK_OPEN', label: t('devCmd.lockOpen') },
+  { value: 'DEVICE_REBOOT', label: t('devCmd.reboot') },
+  { value: 'DEVICE_SYNC_TIME', label: t('devCmd.syncTime') },
+  { value: 'LOCK_ALWAYS_OPEN', label: t('devCmd.alwaysOpen') },
+  { value: 'LOCK_ALWAYS_CLOSE', label: t('devCmd.alwaysClose') },
+  { value: 'LOCK_MODE_NORMAL', label: t('devCmd.normalMode') },
+  { value: 'METER_SWITCH', label: t('devCmd.meterSwitch') }
 ]
 
 const STATUS = {
-  PENDING: { label: '待下发', type: 'warning' },
-  SENT: { label: '已下发', type: 'info' },
-  SUCCESS: { label: '成功', type: 'success' },
-  FAILED: { label: '失败', type: 'danger' },
-  TIMEOUT: { label: '超时', type: 'danger' },
-  CANCELED: { label: '已取消', type: 'info' }
+  PENDING: { label: t('devCmd.pending'), type: 'warning' },
+  SENT: { label: t('devCmd.sent'), type: 'info' },
+  SUCCESS: { label: t('devCmd.success'), type: 'success' },
+  FAILED: { label: t('devCmd.failed'), type: 'danger' },
+  TIMEOUT: { label: t('devCmd.timeout'), type: 'danger' },
+  CANCELED: { label: t('devCmd.canceled'), type: 'info' }
 }
 
 const rows = ref([])

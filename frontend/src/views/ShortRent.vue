@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('shortRent.title') }}</h3>
-      <el-tag size="small" type="info">民宿/网约房</el-tag>
+      <el-tag size="small" type="info">{{ t('miscPage.shortRentTip') }}</el-tag>
       <div class="spacer" />
       <el-input v-model="keyword" :placeholder="t('shortRent.keyword')" clearable
                 style="width:170px" @keyup.enter="reload" />

@@ -217,6 +217,14 @@ export default {
     no: 'No',
   },
   devCmd: {
+    lockOpen: 'Remote Unlock',
+    reboot: 'Remote Reboot',
+    syncTime: 'Remote Time Sync',
+    alwaysOpen: 'Always Open',
+    alwaysClose: 'Always Closed',
+    normalMode: 'Restore Normal Mode',
+    meterSwitch: 'Meter Breaker Switch',
+    noCommands: 'No device commands',
     title: 'Device Commands',
     status: 'Status',
     pending: 'Pending',
@@ -682,6 +690,30 @@ export default {
     submit: 'Submit',
     drawer: 'Details (raw data)',
     detailTitle: 'Detail',
+  },
+  miscPage: {
+    appealsTip: 'Appeal response is due within 10 calendar days; overdue items are marked timeout',
+    creditsTip: 'Credit restriction lasts 5 years; expired records can be scanned and released',
+    exchangeLimit: 'Exchange count is limited; no-exchange cases are charged 1.5x rent',
+    visitsTip: 'Periodic home visits verify occupancy, actual occupants and sublease/vacancy/violations',
+    shortRentTip: 'Homestay/online rental; short stays require real-name registration and check-out after check-in',
+    govTip: 'Housing authority / public security integration; reporting tasks run periodically and can be retried',
+    openTip: 'Third-party/government access; apps authenticate by appKey and old keys expire immediately after reset',
+    devCmdBadge: 'Dispatched via IoT · no direct device connection',
+    devCmdTip: 'Commands are dispatched via IoT and acknowledged by callback; timeouts (default 10s) retry up to 3 times.',
+    devCmdApproval: 'Breaker switching requires approval; open commands are delayed and can be cancelled in the window.',
+    alarmOnly: 'Alarms only',
+    unhandledOnly: 'Unhandled only',
+    eventTotal: 'Total Events',
+    eventUnhandled: 'Unhandled',
+    eventCritical: 'Critical',
+    eventTypes: '{n} alarm types supported',
+    currentAlarmTypes: 'Current Alarm Types',
+    noEvents: 'No device events',
+    handled: 'Handled',
+    unhandled: 'Unhandled',
+    markHandled: 'Mark Handled',
+    arrearsKeyword: 'Search contract no. / lessee',
   },
   misc11: {
     regionCount: 'about 660,000',
@@ -1383,6 +1415,7 @@ export default {
     drawer: 'Details (raw data)'
   },
   review: {
+    tagline: 'Retain / Rent Adjustment / Exit',
     title: 'Annual Reviews', batch: 'Batch Start Review', refresh: 'Refresh',
     tip: 'An EXIT result automatically creates an OTHER-type termination without a 5-year ban',
     no: 'Review No.', contract: 'Contract', person: 'Person', year: 'Year',
@@ -1896,6 +1929,8 @@ export default {
     hoursSilent: 'Silent (hours)', lastReport: 'Last Report'
   },
   alert: {
+    hierarchyTip: 'Hierarchy: create a rule set (rules for one scenario), then add rules (single threshold checks); publishing activates the set and disables the old version.',
+    ruleDetail: 'Rule Details: {name}',
     ruleCode: 'Rule Code',
     monitorField: 'Monitored Field',
     conditionLabel: 'Condition',
@@ -2063,6 +2098,7 @@ export default {
     previewTitle: 'Billing Preview', area: 'Area (m²)', quantity: 'Quantity / Persons', days: 'Days / Nights'
   },
   deposit: {
+    formula: 'Balance = Received − Deducted − Refunded',
     title: 'Deposits & Refunds', create: 'New Deposit', contract: 'Contract', person: 'Person',
     receivable: 'Receivable', received: 'Received', deducted: 'Deducted', refunded: 'Refunded',
     balance: 'Balance', status: 'Status', actions: 'Actions', detail: 'Detail',

@@ -76,7 +76,7 @@
       </div>
 
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
-                title="层级关系：先建「规则集」（可理解为某一场景的规则包），再在其中加「规则」（单条阈值判定）；规则集发布后生效，旧版本自动停用。" />
+                :title="t('alert.hierarchyTip')" />
       <el-table :data="rulesets" v-loading="rsLoading" border size="small"
                 highlight-current-row :current-row-key="currentRuleset?.id"
                 row-key="id" @current-change="onPickRuleset">
@@ -111,7 +111,7 @@
       <div v-if="currentRuleset" style="margin-top:14px">
         <div class="toolbar" style="margin-bottom:8px">
           <h4 style="margin:0">
-            规则明细：{{ currentRuleset.rulesetName }}
+            {{ t('alert.ruleDetail', { name: currentRuleset.rulesetName }) }}
             <span class="muted" style="font-size:12px">（v{{ currentRuleset.rulesetVersion }}）</span>
           </h4>
           <div class="spacer" />

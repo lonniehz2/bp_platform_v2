@@ -2,7 +2,7 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('gov.title') }}</h3>
-      <el-tag size="small" type="info">对接房管局/公安</el-tag>
+      <el-tag size="small" type="info">{{ t('miscPage.govTip') }}</el-tag>
       <div class="spacer" />
       <el-input v-model="keyword" :placeholder="t('gov.keyword')" clearable
                 style="width:170px" @keyup.enter="reload" />

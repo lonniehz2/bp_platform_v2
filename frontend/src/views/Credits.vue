@@ -11,7 +11,7 @@
       <el-button @click="scanExpired">{{ t('credit.scan') }}</el-button>
     </div>
 
-    <el-alert type="info" :closable="false" show-icon :title="'失信限制再申请 5 年；到期可扫描自动失效'"
+    <el-alert type="info" :closable="false" show-icon :title="t('miscPage.creditsTip')"
               style="margin-bottom:12px" />
 
     <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">

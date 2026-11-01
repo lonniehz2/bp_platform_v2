@@ -12,7 +12,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon
-              :title="'用于定期入户核查房屋使用情况：是否居住、实际人数、是否转租/空置/违规使用'" style="margin-bottom:12px" />
+              :title="t('miscPage.visitsTip')" style="margin-bottom:12px" />
 
     <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
       <el-table-column type="expand">

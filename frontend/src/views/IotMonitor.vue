@@ -76,7 +76,7 @@
           <div class="card-title">{{ t('iotMon.callbackActions') }}</div>
           <el-table :data="statusRows(m.callbacks?.byAction, ACTION_LABEL)" border size="small">
             <el-table-column prop="name" :label="t('iotMon.action')" />
-            <el-table-column prop="value" label="数量" width="90" align="right" />
+            <el-table-column prop="value" :label="t('iotMon.count')" width="90" align="right" />
           </el-table>
         </el-card>
       </el-col>

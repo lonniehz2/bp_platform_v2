@@ -12,7 +12,7 @@
 
     </div>
 
-    <el-alert type="info" :closable="false" show-icon :title="'换房次数受限；「应换不换」按 1.5 倍租金计收'"
+    <el-alert type="info" :closable="false" show-icon :title="t('miscPage.exchangeLimit')"
               style="margin-bottom:12px" />
 
     <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">

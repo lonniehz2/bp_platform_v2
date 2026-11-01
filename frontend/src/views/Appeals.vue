@@ -11,7 +11,7 @@
       <el-button @click="markTimeout">{{ t('appeal.markTimeout') }}</el-button>
     </div>
 
-    <el-alert type="info" :closable="false" show-icon :title="'申诉期限默认 10 个自然日；逾期未处理会标记超时'"
+    <el-alert type="info" :closable="false" show-icon :title="t('miscPage.appealsTip')"
               style="margin-bottom:12px" />
 
     <el-table :data="rows" v-loading="loading" border size="small">

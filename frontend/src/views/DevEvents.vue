@@ -13,25 +13,25 @@
         <el-option :label="t('devEvent.info')" value="INFO" />
       </el-select>
       <DeviceSelect v-model="query.deviceId" width="240px" testid="device-select" />
-      <el-checkbox v-model="query.alarmOnly" @change="load">只看告警</el-checkbox>
-      <el-checkbox v-model="query.unhandledOnly" @change="load">只看未处理</el-checkbox>
+      <el-checkbox v-model="query.alarmOnly" @change="load">{{ t('miscPage.alarmOnly') }}</el-checkbox>
+      <el-checkbox v-model="query.unhandledOnly" @change="load">{{ t('miscPage.unhandledOnly') }}</el-checkbox>
       <el-button type="primary" @click="load">{{ t('devEvent.search') }}</el-button>
       <el-button @click="resetQuery">{{ t('devEvent.reset') }}</el-button>
     </div>
 
     <el-row :gutter="12" style="margin-bottom:12px">
       <el-col :span="6">
-        <el-card shadow="never"><div class="muted">事件总数</div>
+        <el-card shadow="never"><div class="muted">{{ t('miscPage.eventTotal') }}</div>
           <div style="font-size:22px;font-weight:600">{{ stats.total || 0 }}</div>
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card shadow="never"><div class="muted">未处理</div>
+        <el-card shadow="never"><div class="muted">{{ t('miscPage.eventUnhandled') }}</div>
           <div style="font-size:22px;font-weight:600;color:#f56c6c">{{ stats.unhandled || 0 }}</div>
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card shadow="never"><div class="muted">严重</div>
+        <el-card shadow="never"><div class="muted">{{ t('miscPage.eventCritical') }}</div>
           <div style="font-size:22px;font-weight:600;color:#f56c6c">{{ criticalCount }}</div>
         </el-card>
       </el-col>
@@ -39,12 +39,12 @@
         <el-card shadow="never">
           <el-tooltip placement="bottom">
             <template #content>
-              系统支持 {{ (stats.alarmTypes || []).length }} 种告警：<br />
+              {{ t('miscPage.eventTypes', { n: (stats.alarmTypes || []).length }) }}:<br />
               <span v-for="t in stats.alarmTypes || []" :key="t.code">
                 {{ t.label }}<br />
               </span>
             </template>
-            <div class="muted">当前告警类型（种）</div>
+            <div class="muted">{{ t('miscPage.currentAlarmTypes') }}</div>
           </el-tooltip>
           <div style="font-size:22px;font-weight:600">
             {{ stats.typeCount || 0 }}
@@ -56,7 +56,7 @@
       </el-col>
     </el-row>
 
-    <el-table empty-text="暂无设备事件" :data="rows" v-loading="loading" border size="small">
+    <el-table :empty-text="t('miscPage.noEvents')" :data="rows" v-loading="loading" border size="small">
       <el-table-column prop="eventTime" :label="t('devEvent.time')" width="170" />
       <el-table-column prop="deviceId" :label="t('devEvent.device')" width="170" />
       <el-table-column prop="identifier" :label="t('devEvent.type')" width="170">
@@ -76,7 +76,7 @@
       <el-table-column prop="handled" :label="t('devEvent.handled')" width="110">
         <template #default="{ row }">
           <el-tag size="small" :type="row.handled ? 'success' : 'danger'">
-            {{ row.handled ? '已处理' : '未处理' }}
+            {{ row.handled ? t('miscPage.handled') : t('miscPage.unhandled') }}
           </el-tag>
         </template>
       </el-table-column>
@@ -86,7 +86,7 @@
       <el-table-column :label="t('devEvent.actions')" width="110" fixed="right">
         <template #default="{ row }">
           <el-button v-if="!row.handled" link type="primary"
-                     @click="handle(row)" data-testid="ev-handle">标记处理</el-button>
+                     @click="handle(row)" data-testid="ev-handle">{{ t('miscPage.markHandled') }}</el-button>
           <span v-else class="muted">—</span>
         </template>
       </el-table-column>
