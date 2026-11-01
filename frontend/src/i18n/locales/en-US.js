@@ -157,6 +157,19 @@ export default {
     unauthorized: 'Not authorized: contact administrator',
     fullscreen: 'Full-screen display',
   },
+  device: {
+    title: 'Devices', type: 'Device Type', onlineStatus: 'Online Status', online: 'Online',
+    offline: 'Offline', search: 'Search', reset: 'Reset', events: 'Device Events',
+    sync: 'Sync Devices', syncStatus: 'Sync Status', import: 'Import',
+    freshness: 'Data Freshness', silent: 'View Silent Devices', id: 'Device ID',
+    name: 'Device Name', typeCol: 'Type', mac: 'MAC', org: 'Organization',
+    space: 'Space', onlineCol: 'Online', battery: 'Battery', status: 'Status',
+    actions: 'Actions', detail: 'Detail', eventTitle: 'Device Alerts & Events',
+    eventType: 'Event Type', time: 'Time', device: 'Device', level: 'Level',
+    body: 'Details', handled: 'Status', handle: 'Handle',
+    silentTitle: 'Devices with No Report in 24h', deviceNo: 'Device No.',
+    hoursSilent: 'Silent (hours)', lastReport: 'Last Report'
+  },
   alert: {
     title: 'Alert Handling', keyword: 'Keyword', search: 'Search', reset: 'Reset',
     stats: 'Alert Stats', create: 'New Alert', empty: 'No data. Adjust filters.',

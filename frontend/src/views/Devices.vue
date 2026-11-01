@@ -1,34 +1,30 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">设备管理</h3>
+      <h3 style="margin:0">{{ t('device.title') }}</h3>
       <el-tag size="small" type="info">
         在线 {{ stats.online ?? 0 }} / 共 {{ stats.total ?? 0 }}
         （{{ stats.onlineRate ?? 0 }}%）
       </el-tag>
       <div class="spacer" />
       <SpaceSelect v-model="query.spaceId" width="210px" testid="spaceselect" />
-      <el-select v-model="query.deviceType" placeholder="设备类型" clearable
+      <el-select v-model="query.deviceType" :placeholder="t('device.type')" clearable
                  style="width:150px" @change="load">
         <el-option v-for="t in devTypes" :key="t.code" :value="t.code"
                    :label="t.label + (t.count ? '（' + t.count + '）' : '')" />
       </el-select>
-      <el-select v-model="query.onlineStatus" placeholder="在线状态" clearable
+      <el-select v-model="query.onlineStatus" :placeholder="t('device.onlineStatus')" clearable
                  style="width:130px" @change="load">
-        <el-option label="在线" :value="1" />
-        <el-option label="离线" :value="0" />
+        <el-option :label="t('device.online')" :value="1" />
+        <el-option :label="t('device.offline')" :value="0" />
       </el-select>
-      <el-button type="primary" @click="load">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="danger" plain @click="openEvents(null)" data-testid="dev-events">
-        设备告警
-      </el-button>
-      <el-button type="warning" plain :loading="syncing" @click="syncDevices">
-        同步设备
-      </el-button>
-      <el-button plain :loading="statusSyncing" @click="syncStatus">同步状态</el-button>
+      <el-button type="primary" @click="load">{{ t('device.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('device.reset') }}</el-button>
+      <el-button type="danger" plain @click="openEvents(null)" data-testid="dev-events">{{ t('device.events') }}</el-button>
+      <el-button type="warning" plain :loading="syncing" @click="syncDevices">{{ t('device.sync') }}</el-button>
+      <el-button plain :loading="statusSyncing" @click="syncStatus">{{ t('device.syncStatus') }}</el-button>
       <el-button type="warning" plain data-testid="device-import"
-                 @click="openImport">批量导入</el-button>
+                 @click="openImport">{{ t('device.import') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon
@@ -40,40 +36,40 @@
               :title="'数据新鲜度：24 小时内上报 ' + fresh.fresh + ' / ' + fresh.total
                 + ' 台（静默 ' + fresh.stale + ' 台，占 ' + fresh.staleRate + '%）'">
       <template #default>
-        <el-button link type="primary" @click="freshVisible = true">查看静默设备</el-button>
+        <el-button link type="primary" @click="freshVisible = true">{{ t('device.silent') }}</el-button>
       </template>
     </el-alert>
 
     <el-table empty-text="暂无设备，可点「同步设备」从 IoT 拉取" :data="rows" v-loading="loading" border size="small">
-      <el-table-column prop="deviceId" label="设备ID" width="200">
+      <el-table-column prop="deviceId" :label="t('device.id')" width="200">
         <template #default="{ row }">{{ row.deviceIdName || row.deviceId }}</template>
       </el-table-column>
-      <el-table-column prop="deviceName" label="设备名称" min-width="150" />
-      <el-table-column prop="deviceType" label="类型" width="120">
+      <el-table-column prop="deviceName" :label="t('device.name')" min-width="150" />
+      <el-table-column prop="deviceType" :label="t('device.typeCol')" width="120">
         <template #default="{ row }">{{ row.deviceTypeLabel || enumLabel('deviceType', row.deviceType) }}</template>
       </el-table-column>
-      <el-table-column prop="deviceMac" label="MAC" width="160" />
-      <el-table-column label="组织" width="150" show-overflow-tooltip>
+      <el-table-column prop="deviceMac" :label="t('device.mac')" width="160" />
+      <el-table-column :label="t('device.org')" width="150" show-overflow-tooltip>
         <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
       </el-table-column>
-      <el-table-column prop="spaceId" label="空间" width="140">
+      <el-table-column prop="spaceId" :label="t('device.space')" width="140">
         <template #default="{ row }">{{ row.spaceIdName || row.spaceId }}</template>
       </el-table-column>
-      <el-table-column prop="onlineStatus" label="在线" width="90">
+      <el-table-column prop="onlineStatus" :label="t('device.onlineCol')" width="90">
         <template #default="{ row }">
           <el-tag size="small" :type="row.onlineStatus === 1 ? 'success' : 'info'">
             {{ row.onlineStatus === 1 ? '在线' : '离线' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="battery" label="电量" width="90">
+      <el-table-column prop="battery" :label="t('device.battery')" width="90">
         <template #default="{ row }">
           <span v-if="row.battery != null && row.battery < 20"
                 style="color:#f56c6c">{{ row.battery }}%</span>
           <span v-else>{{ row.battery ?? '-' }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="deviceStatus" label="状态" width="110">
+      <el-table-column prop="deviceStatus" :label="t('device.status')" width="110">
         <template #default="{ row }">{{ row.deviceStatusLabel || enumLabel('deviceStatus', row.deviceStatus) }}</template>
       </el-table-column>
     </el-table>
@@ -85,14 +81,14 @@
   </div>
 
     <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('device.detail')" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
 
     <!-- 设备告警 / 事件 -->
-    <el-dialog v-model="evVisible" title="设备告警与事件" width="900px" top="6vh">
+    <el-dialog v-model="evVisible" :title="t('device.eventTitle')" width="900px" top="6vh">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
-        <el-select v-model="evQuery.identifier" placeholder="事件类型" clearable
+        <el-select v-model="evQuery.identifier" :placeholder="t('device.eventType')" clearable
                    style="width:200px" @change="loadEvents">
           <el-option v-for="t in evTypes" :key="t.code" :value="t.code"
                      :label="t.label + (t.level === 'CRITICAL' ? '（严重）' : '')" />
@@ -104,29 +100,29 @@
         </span>
       </div>
       <el-table :data="evRows" v-loading="evLoading" size="small" border max-height="420">
-        <el-table-column prop="eventTime" label="时间" width="170" />
-        <el-table-column prop="deviceId" label="设备" width="170" />
-        <el-table-column prop="identifier" label="类型" width="150">
+        <el-table-column prop="eventTime" :label="t('device.time')" width="170" />
+        <el-table-column prop="deviceId" :label="t('device.device')" width="170" />
+        <el-table-column prop="identifier" :label="t('device.typeCol')" width="150">
           <template #default="{ row }">{{ evLabel(row.identifier) }}</template>
         </el-table-column>
-        <el-table-column prop="eventLevel" label="级别" width="90">
+        <el-table-column prop="eventLevel" :label="t('device.level')" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="levelTagType(row.eventLevel)">
               {{ levelLabel(row.eventLevel) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="body" label="详情" min-width="200" show-overflow-tooltip>
+        <el-table-column prop="body" :label="t('device.body')" min-width="200" show-overflow-tooltip>
           <template #default="{ row }">{{ fmtEventBody(row.body) }}</template>
         </el-table-column>
-        <el-table-column prop="handled" label="状态" width="90">
+        <el-table-column prop="handled" :label="t('device.handled')" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="row.handled ? 'success' : 'danger'">
               {{ row.handled ? '已处理' : '未处理' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
+        <el-table-column :label="t('device.actions')" width="100" fixed="right">
           <template #default="{ row }">
             <el-button v-if="!row.handled" link type="primary"
                        @click="handleEvent(row)">标记处理</el-button>
@@ -141,17 +137,17 @@
     </el-dialog>
 
     <!-- 静默设备 -->
-    <el-dialog v-model="freshVisible" title="24 小时未上报的设备" width="760px">
+    <el-dialog v-model="freshVisible" :title="t('device.silentTitle')" width="760px">
       <el-alert type="info" :closable="false" show-icon
                 title="按静默时长倒序；长时间静默可能是离线、网关故障或未接入。" />
       <el-table :data="(fresh && fresh.staleDevices) || []" size="small" border
                 max-height="380" style="margin-top:10px">
-        <el-table-column prop="deviceId" label="设备编号" width="170" />
-        <el-table-column prop="deviceName" label="名称" min-width="140" />
-        <el-table-column prop="deviceType" label="类型" width="110" />
-        <el-table-column prop="hoursSilent" label="静默(小时)" width="110" />
-        <el-table-column prop="lastReportTime" label="最后上报" width="170" />
-        <el-table-column prop="battery" label="电量" width="80" />
+        <el-table-column prop="deviceId" :label="t('device.deviceNo')" width="170" />
+        <el-table-column prop="deviceName" :label="t('device.name')" min-width="140" />
+        <el-table-column prop="deviceType" :label="t('device.typeCol')" width="110" />
+        <el-table-column prop="hoursSilent" :label="t('device.hoursSilent')" width="110" />
+        <el-table-column prop="lastReportTime" :label="t('device.lastReport')" width="170" />
+        <el-table-column prop="battery" :label="t('device.battery')" width="80" />
       </el-table>
     </el-dialog>
 
@@ -232,7 +228,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {

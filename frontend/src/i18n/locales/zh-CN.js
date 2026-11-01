@@ -158,6 +158,18 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  device: {
+    title: '设备管理', type: '设备类型', onlineStatus: '在线状态', online: '在线',
+    offline: '离线', search: '查询', reset: '清空', events: '设备事件',
+    sync: '同步设备', syncStatus: '同步状态', import: '批量导入',
+    freshness: '数据新鲜度', silent: '查看静默设备', id: '设备ID', name: '设备名称',
+    typeCol: '类型', mac: 'MAC', org: '组织', space: '空间', onlineCol: '在线',
+    battery: '电量', status: '状态', actions: '操作', detail: '详情',
+    eventTitle: '设备告警与事件', eventType: '事件类型', time: '时间',
+    device: '设备', level: '级别', body: '详情', handled: '状态', handle: '处理',
+    silentTitle: '24 小时未上报的设备', deviceNo: '设备编号',
+    hoursSilent: '静默(小时)', lastReport: '最后上报'
+  },
   alert: {
     title: '告警处理', keyword: '关键字', search: '查询', reset: '清空',
     stats: '告警统计', create: '新建告警', empty: '暂无数据，可调整筛选条件',
