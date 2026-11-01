@@ -46,7 +46,7 @@
             <el-button v-if="row.applyChannel === 'OFFLINE'
                        && ['SUBMITTED','ACCEPTED','REVIEWING'].includes(row.applicationStatus)"
                        link type="warning" data-testid="row-offline-pass"
-                       @click="offlinePass(row)">线下通过</el-button>
+                       @click="offlinePass(row)">{{ t('appX.offlinePass') }}</el-button>
             <el-button v-if="canReview(row)" link type="primary"
                        @click="openReview(row)">{{ t('application.review') }}</el-button>
             <el-button v-if="row.applicationStatus === 'SUPPLEMENT'" link type="warning"
@@ -79,14 +79,14 @@
         </el-form-item>
         <el-form-item :label="t('application.mode')">
           <el-select v-model="form.securityMode">
-            <el-option label="实物配租" value="HOUSE" />
-            <el-option label="租赁补贴" value="SUBSIDY" />
+            <el-option :label="t('appX.houseAlloc')" value="HOUSE" />
+            <el-option :label="t('appX.subsidy')" value="SUBSIDY" />
           </el-select>
         </el-form-item>
         <el-form-item :label="t('application.channel')">
           <el-select v-model="form.applyChannel">
-            <el-option label="线上" value="ONLINE" />
-            <el-option label="线下" value="OFFLINE" />
+            <el-option :label="t('appX.online')" value="ONLINE" />
+            <el-option :label="t('appX.offline')" value="OFFLINE" />
           </el-select>
         </el-form-item>
         <el-form-item :label="t('application.familySize')">
@@ -96,7 +96,7 @@
           <el-input v-model.number="form.declaredIncome" />
         </el-form-item>
         <el-alert type="warning" :closable="false" show-icon
-                  title="提交前会自动校验：信用惩戒、实名认证、承诺书签署" />
+                  :title="t('appX.submitTip')" />
         <el-form-item :label="t('application.promise')" style="margin-top:8px">
           <el-switch v-model="form.complianceCommitFlag" :active-value="1" :inactive-value="0" />
         </el-form-item>
@@ -113,23 +113,23 @@
     <!-- 审核 -->
     <el-dialog v-model="reviewVisible" :title="t('application.reviewTitle')" width="560px">
       <el-descriptions :column="2" border size="small" style="margin-bottom:14px">
-        <el-descriptions-item label="申请编号">{{ current?.applicationNo }}</el-descriptions-item>
-        <el-descriptions-item label="申请人">{{ current?.personId }}</el-descriptions-item>
-        <el-descriptions-item label="保障类型">{{ enumLabel('securityType', current?.securityType) }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ current?.applicationStatusLabel }}</el-descriptions-item>
+        <el-descriptions-item :label="t('appX.appNo')">{{ current?.applicationNo }}</el-descriptions-item>
+        <el-descriptions-item :label="t('appX.applicant')">{{ current?.personId }}</el-descriptions-item>
+        <el-descriptions-item :label="t('appX.securityType')">{{ enumLabel('securityType', current?.securityType) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('appX.status')">{{ current?.applicationStatusLabel }}</el-descriptions-item>
       </el-descriptions>
       <el-alert type="info" :closable="false" show-icon
-                title="「通过」前系统会按保障档案校验：收入档位、家庭人口一致性、人才认定有效期、名下房产" />
+                :title="t('appX.approveTip')" />
       <el-form :model="reviewForm" label-width="90px" style="margin-top:12px">
         <el-form-item :label="t('application.stage')">
           <el-select v-model="reviewForm.stage" disabled>
-            <el-option label="受理初审" value="ACCEPT" />
-            <el-option label="形式审查" value="FORM" />
-            <el-option label="多部门联审" value="JOINT" />
-            <el-option label="终审" value="FINAL" />
+            <el-option :label="t('appX.acceptStage')" value="ACCEPT" />
+            <el-option :label="t('appX.formStage')" value="FORM" />
+            <el-option :label="t('appX.jointStage')" value="JOINT" />
+            <el-option :label="t('appX.finalStage')" value="FINAL" />
           </el-select>
           <div class="muted" style="font-size:12px;margin-left:8px">
-            必须按 受理初审 → 形式审查 → 联审 → 终审 逐级通过
+            {{ t('appX.stageHint') }}
           </div>
         </el-form-item>
         <el-form-item :label="t('application.result')">
@@ -144,8 +144,8 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="reviewVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doReview">提交</el-button>
+        <el-button @click="reviewVisible = false">{{ t('appX.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doReview">{{ t('appX.submit') }}</el-button>
       </template>
     </el-dialog>
 
@@ -194,10 +194,10 @@ const statuses = ['DRAFT', 'SUBMITTED', 'ACCEPTED', 'REVIEWING', 'SUPPLEMENT',
 
 // 保障类型走系统字典（可后台维护，无需改前端）
 const { options: securityTypeOptions } = useDict('SECURITY_TYPE', [
-  { value: 'PUBLIC', label: '公租房' },
-  { value: 'AFFORDABLE', label: '保障性租赁住房' },
-  { value: 'TALENT', label: '人才公寓' },
-  { value: 'LOW_RENT', label: '廉租住房' }
+  { value: 'PUBLIC', label: t('misc.publicRental') },
+  { value: 'AFFORDABLE', label: t('misc.affordable') },
+  { value: 'TALENT', label: t('misc.talent') },
+  { value: 'LOW_RENT', label: t('misc.lowRent') }
 ])
 
 const loading = ref(false)
@@ -247,18 +247,18 @@ function openCreate() {
 
 async function save() {
   const missing = []
-  if (!form.personId) missing.push('申请人')
-  if (!form.orgId) missing.push('受理组织')
-  if (!form.houseId) missing.push('意向房源')
-  if (!form.securityType) missing.push('保障类型')
+  if (!form.personId) missing.push(t('appX.requiredApplicant'))
+  if (!form.orgId) missing.push(t('appX.requiredOrg'))
+  if (!form.houseId) missing.push(t('appX.requiredHouse'))
+  if (!form.securityType) missing.push(t('appX.requiredSecurity'))
   if (missing.length) {
-    ElMessage.warning('请填写：' + missing.join('、'))
+    ElMessage.warning(t('appX.fill', { fields: missing.join(', ') }))
     return
   }
   saving.value = true
   try {
     await applicationApi.create({ ...form })
-    ElMessage.success('申请已创建')
+    ElMessage.success(t('appX.created'))
     createVisible.value = false
     load()
   } finally {
@@ -276,10 +276,10 @@ function canReview(row) {
 async function accept(row) {
   try {
     await req.post(`/applications/${row.id}/accept`, {})
-    ElMessage.success('已受理')
+    ElMessage.success(t('appX.accepted'))
     load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '受理失败')
+    ElMessage.error(e?.response?.data?.message || t('appX.acceptFailed'))
   }
 }
 
@@ -299,8 +299,8 @@ function stageOfNode(node) {
 /** 线下受理通过：先受理（如未受理），再做终审通过 */
 async function offlinePass(row) {
   await ElMessageBox.confirm(
-    '线下渠道申请将直接受理并终审通过（仍会校验保障档案资格）。确认？',
-    '线下通过', { type: 'warning' })
+    t('appX.offlineConfirm'),
+    t('appX.offlineTitle'), { type: 'warning' })
   saving.value = true
   try {
     if (row.applicationStatus === 'SUBMITTED') {
@@ -309,12 +309,12 @@ async function offlinePass(row) {
     await applicationApi.review(row.id, {
       stage: 'FINAL',
       result: 'PASS',
-      opinion: row.offlineRemark || '线下渠道受理，材料齐备，审核通过'
+      opinion: row.offlineRemark || t('appX.offlineRemark')
     })
-    ElMessage.success('已线下通过')
+    ElMessage.success(t('appX.offlinePassed'))
     load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '线下通过失败')
+    ElMessage.error(e?.response?.data?.message || t('appX.offlineFailed'))
   } finally { saving.value = false }
 }
 
@@ -322,11 +322,11 @@ async function doReview() {
   saving.value = true
   try {
     await applicationApi.review(current.value.id, { ...reviewForm })
-    ElMessage.success('审核已提交')
+    ElMessage.success(t('appX.reviewed'))
     reviewVisible.value = false
     load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '审核提交失败')
+    ElMessage.error(e?.response?.data?.message || t('appX.reviewFailed'))
   } finally {
     saving.value = false
   }
@@ -335,13 +335,13 @@ async function doReview() {
 /** 补件完成：把申请从「需补件」推回「审核中」 */
 async function supplement(row) {
   const { value } = await ElMessageBox.prompt(
-    '确认材料已补齐？可填写补件说明（可空）', '补件完成', { inputValue: '' })
+    t('appX.supplementConfirm'), t('appX.supplementTitle'), { inputValue: '' })
   try {
     await applicationApi.resubmit(row.id, { remark: value || undefined })
-    ElMessage.success('补件已提交，申请回到审核中')
+    ElMessage.success(t('appX.supplementDone'))
     load()
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '补件提交失败')
+    ElMessage.error(e?.response?.data?.message || t('appX.supplementFailed'))
   }
 }
 
@@ -350,7 +350,7 @@ async function openRecords(row) {
     records.value = await applicationApi.reviews(row.id)
   } catch (e) {
     records.value = []
-    ElMessage.error(e?.response?.data?.message || '轨迹加载失败')
+    ElMessage.error(e?.response?.data?.message || t('appX.timelineFailed'))
   }
   recordsVisible.value = true
 }
