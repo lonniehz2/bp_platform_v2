@@ -94,7 +94,7 @@
     <el-table :data="rows" v-loading="loading" border size="small">
       <el-table-column prop="workorderNo" :label="t('workorder.no')" width="180" />
       <el-table-column prop="orderType" :label="t('workorder.orderType')" width="110">
-        <template #default="{ row }">{{ row.orderTypeLabel || enumLabel('orderType', row.orderType) }}</template>
+        <template #default="{ row }">{{ enumLabel('orderType', row.orderType) || row.orderTypeLabel }}</template>
       </el-table-column>
       <el-table-column prop="orderTitle" :label="t('workorder.orderTitle')" min-width="200" />
       <el-table-column prop="orderSource" :label="t('workorder.source')" width="100">
@@ -103,7 +103,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="orderStatus" :label="t('workorder.orderStatus')" width="110">
-        <template #default="{ row }">{{ row.orderStatusLabel || enumLabel('orderStatus', row.orderStatus) }}</template>
+        <template #default="{ row }">{{ enumLabel('orderStatus', row.orderStatus) || row.orderStatusLabel }}</template>
       </el-table-column>
       <el-table-column prop="assignUserName" :label="t('workorder.assignee')" width="110">
         <template #default="{ row }">{{ row.assignUserName || '—' }}</template>

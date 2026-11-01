@@ -77,7 +77,7 @@
                        :selectable="(row) => row.todoStatus !== 'DONE'" />
       <el-table-column prop="title" :label="t('todo.titleCol')" min-width="220" />
       <el-table-column :label="t('todo.typeCol')" width="100">
-        <template #default="{ row }">{{ row.todoTypeLabel || enumLabel('todoType', row.todoType) }}</template>
+        <template #default="{ row }">{{ enumLabel('todoType', row.todoType) || row.todoTypeLabel }}</template>
       </el-table-column>
       <el-table-column :label="t('todo.statusCol')" width="95">
         <template #default="{ row }">

@@ -21,13 +21,13 @@
         </template>
       </el-table-column>
       <el-table-column prop="alertType" :label="t('alert.type')" width="150">
-        <template #default="{ row }">{{ row.alertTypeLabel || enumLabel('alertType', row.alertType) }}</template>
+        <template #default="{ row }">{{ enumLabel('alertType', row.alertType) || row.alertTypeLabel }}</template>
       </el-table-column>
       <el-table-column prop="alertLevel" :label="t('alert.level')" width="100">
-        <template #default="{ row }">{{ row.alertLevelLabel || enumLabel('alertLevel', row.alertLevel) }}</template>
+        <template #default="{ row }">{{ enumLabel('alertLevel', row.alertLevel) || row.alertLevelLabel }}</template>
       </el-table-column>
       <el-table-column prop="alertStatus" :label="t('alert.status')" width="110">
-        <template #default="{ row }">{{ row.alertStatusLabel || enumLabel('alertStatus', row.alertStatus) }}</template>
+        <template #default="{ row }">{{ enumLabel('alertStatus', row.alertStatus) || row.alertStatusLabel }}</template>
       </el-table-column>
       <el-table-column prop="alertContent" :label="t('alert.content')" width="200" />
       <el-table-column :label="t('alert.actions')" width="210" fixed="right">

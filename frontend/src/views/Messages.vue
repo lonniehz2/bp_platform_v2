@@ -21,17 +21,17 @@
         <el-table-column prop="content" :label="t('message.content')" min-width="260"
                          show-overflow-tooltip />
         <el-table-column prop="todoType" :label="t('message.type')" width="110">
-          <template #default="{ row }">{{ row.todoTypeLabel || enumLabel('todoType', row.todoType) }}</template>
+          <template #default="{ row }">{{ enumLabel('todoType', row.todoType) || row.todoTypeLabel }}</template>
         </el-table-column>
         <el-table-column prop="priority" :label="t('message.priority')" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="priorityTone(row.priority)">
-              {{ row.priorityLabel || enumLabel('priority', row.priority) }}
+              {{ enumLabel('priority', row.priority) || row.priorityLabel }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="todoStatus" :label="t('message.statusCol')" width="100">
-          <template #default="{ row }">{{ row.todoStatusLabel || enumLabel('todoStatus', row.todoStatus) }}</template>
+          <template #default="{ row }">{{ enumLabel('todoStatus', row.todoStatus) || row.todoStatusLabel }}</template>
         </el-table-column>
         <el-table-column prop="createTime" :label="t('message.created')" width="170" />
         <el-table-column :label="t('message.actions')" width="280" fixed="right">
