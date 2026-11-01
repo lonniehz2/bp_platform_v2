@@ -1,14 +1,14 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">入户走访</h3>
+      <h3 style="margin:0">{{ t('visit.title') }}</h3>
       <el-tag size="small" type="info"></el-tag>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字/ID" clearable
+      <el-input v-model="keyword" :placeholder="t('visit.keyword')" clearable
                 style="width:170px" @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="success" @click="openCreate">走访登记</el-button>
+      <el-button type="primary" @click="reload">{{ t('visit.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('visit.reset') }}</el-button>
+      <el-button type="success" @click="openCreate">{{ t('visit.register') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon
@@ -18,21 +18,21 @@
       <el-table-column type="expand">
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
-      <el-table-column prop="visitNo" label="来访号" width="170" />
-      <el-table-column prop="visitUserName" label="走访人" width="120">
+      <el-table-column prop="visitNo" :label="t('visit.no')" width="170" />
+      <el-table-column prop="visitUserName" :label="t('visit.visitor')" width="120">
             <template #default="{ row }">{{ row.visitUserName || row.visitUserId || '未指派' }}</template>
           </el-table-column>
-      <el-table-column prop="personIdName" label="被访人" width="120">
+      <el-table-column prop="personIdName" :label="t('visit.person')" width="120">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column prop="visitStatus" label="状态" width="110">
+      <el-table-column prop="visitStatus" :label="t('visit.status')" width="110">
         <template #default="{ row }">{{ row.visitStatusLabel || enumLabel('visitStatus', row.visitStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="210" fixed="right">
+      <el-table-column :label="t('visit.actions')" width="210" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="report(row)">登记报告</el-button>
-          <el-button link type="warning" @click="toWorkOrder(row)">转工单</el-button>
-          <el-button link @click="openDetail(row)">详情</el-button>
+          <el-button link type="primary" @click="report(row)">{{ t('visit.report') }}</el-button>
+          <el-button link type="warning" @click="toWorkOrder(row)">{{ t('visit.toWorkOrder') }}</el-button>
+          <el-button link @click="openDetail(row)">{{ t('visit.detail') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -64,18 +64,19 @@
       <el-alert v-if="formNote" :closable="false" show-icon type="warning"
                 :title="formNote" style="margin-top:8px" />
       <template #footer>
-        <el-button @click="formVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submit">提交</el-button>
+        <el-button @click="formVisible = false">{{ t('visit.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="submit">{{ t('visit.submit') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="detailVisible" title="明细（原始数据）" size="520px">
+    <el-drawer v-model="detailVisible" :title="t('visit.drawer')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
@@ -83,6 +84,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { visitApi } from '@/api/modules'
 import req from '@/api/request'
 
+const { t } = useI18n()
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref([])
@@ -97,9 +99,9 @@ const formVisible = ref(false)
 const formTitle = ref('')
 const formNote = ref('')
 const fields = [
-  { key: 'visitType', label: '来访类型', type: 'text' },
-  { key: 'orgId', label: '组织ID', type: 'number' },
-  { key: 'houseId', label: '房源ID', type: 'number' }
+  { key: 'visitType', label: t('visit.visitType'), type: 'text' },
+  { key: 'orgId', label: t('visit.orgId'), type: 'number' },
+  { key: 'houseId', label: t('visit.houseId'), type: 'number' }
 ]
 const model = reactive({})
 
@@ -156,30 +158,30 @@ async function submit() {
   saving.value = true
   try {
     await submitFn({ ...model })
-    ElMessage.success('操作成功')
+    ElMessage.success(t('visit.success'))
     formVisible.value = false
     load()
   } catch (e) { /* 拦截器已提示 */ } finally { saving.value = false }
 }
 
 function openCreate() {
-  openForm('走访登记', fields, (m) => visitApi.create(m))
+  openForm(t('visit.register'), fields, (m) => visitApi.create(m))
 }
 async function report(row) {
   const defs = [
-    { key: 'visitStatus', label: '走访状态', type: 'select', default: 'DONE',
-      options: [{ label: '完成', value: 'DONE' }, { label: '拒访', value: 'REFUSED' },
-        { label: '不在家', value: 'ABSENT' }, { label: '取消', value: 'CANCELLED' }] },
-    { key: 'actualDate', label: '实际日期', type: 'date' },
-    { key: 'isOccupied', label: '是否在家', type: 'select', default: 1,
-      options: [{ label: '在家', value: 1 }, { label: '不在', value: 0 }] },
-    { key: 'actualResidents', label: '实际居住人数', type: 'number' },
-    { key: 'matchResult', label: '人房匹配', type: 'select', default: 'MATCH',
-      options: [{ label: '匹配', value: 'MATCH' }, { label: '不匹配', value: 'MISMATCH' },
-        { label: '未知', value: 'UNKNOWN' }] },
-    { key: 'findings', label: '发现问题', type: 'textarea',
-      ph: '如：转租、空置、违规使用，无则留空' },
-    { key: 'nextAction', label: '后续动作', type: 'textarea', ph: '如：转工单整改' }
+    { key: 'visitStatus', label: t('visit.visitStatus'), type: 'select', default: 'DONE',
+      options: [{ label: t('visit.done'), value: 'DONE' }, { label: t('visit.refused'), value: 'REFUSED' },
+        { label: t('visit.absent'), value: 'ABSENT' }, { label: t('visit.cancelled'), value: 'CANCELLED' }] },
+    { key: 'actualDate', label: t('visit.actualDate'), type: 'date' },
+    { key: 'isOccupied', label: t('visit.isOccupied'), type: 'select', default: 1,
+      options: [{ label: t('visit.home'), value: 1 }, { label: t('visit.notHome'), value: 0 }] },
+    { key: 'actualResidents', label: t('visit.actualResidents'), type: 'number' },
+    { key: 'matchResult', label: t('visit.matchResult'), type: 'select', default: 'MATCH',
+      options: [{ label: t('visit.match'), value: 'MATCH' }, { label: t('visit.mismatch'), value: 'MISMATCH' },
+        { label: t('visit.unknown'), value: 'UNKNOWN' }] },
+    { key: 'findings', label: t('visit.findings'), type: 'textarea',
+      ph: t('visit.findingsHint') },
+    { key: 'nextAction', label: t('visit.nextAction'), type: 'textarea', ph: t('visit.nextHint') }
   ]
   openForm('登记走访报告 · ' + (row.houseName || row.houseId), defs,
     (m) => visitApi.report(row.id, m),
