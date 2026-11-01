@@ -23,7 +23,7 @@
     <!-- ================= 欠费处置（主线：可执行动作） ================= -->
     <div v-show="tab === 'action'">
       <el-alert type="info" :closable="false" show-icon
-                title="处置动作联动通行授权：冻结/解冻按此执行；默认只停门锁、不停大门（EXCLUDE_MAIN_DOOR）"
+                :title="t('misc.arrearsTip')"
                 style="margin-bottom:10px" />
 
       <div class="toolbar" style="margin-bottom:10px">

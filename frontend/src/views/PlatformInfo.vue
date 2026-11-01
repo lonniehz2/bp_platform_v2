@@ -9,7 +9,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:14px"
-              title="平台编码用于数据隔离，创建后不可修改；平台名称会显示在顶部与报表抬头。" />
+              :title="t('misc3.platformTip')" />
 
     <el-row :gutter="18">
       <el-col :span="14">

@@ -9,7 +9,7 @@
       <el-button @click="resetQuery">{{ t('publicity.reset') }}</el-button>
 
     </div>
-    <el-alert v-if="'配租公示必须 ≥7 自然日且已结束才能签约'" type="info" :closable="false" show-icon :title="'配租公示必须 ≥7 自然日且已结束才能签约'"
+    <el-alert type="info" :closable="false" show-icon :title="t('misc2.pubTip')"
               style="margin-bottom:12px" />
     <el-table :empty-text="t('misc2.pubEmpty')" :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">

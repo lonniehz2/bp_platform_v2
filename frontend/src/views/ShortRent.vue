@@ -14,7 +14,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon
-              :title="'短租需实名登记；退房时刻必须晚于入住时刻'" style="margin-bottom:12px" />
+              :title="t('misc3.shortTip')" style="margin-bottom:12px" />
 
     <el-table :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">

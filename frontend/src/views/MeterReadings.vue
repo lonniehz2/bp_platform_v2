@@ -36,7 +36,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
-              title="用量 = 本次读数 − 上次读数；金额 = 用量 × 计费项目单价（单价在「计费项目」中维护）" />
+              :title="t('meter.tip')" />
 
     <el-table empty-text="暂无抄表记录，可人工录入或从 IoT 拉取" :data="rows"
               @selection-change="(v) => (meterSelected = v)"

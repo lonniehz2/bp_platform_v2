@@ -17,7 +17,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon
-              title="摇号按总分降序、入队时间升序取前 N 名；优先附加分用于优抚对象加分"
+              :title="t('misc2.waitTip')"
               style="margin-bottom:12px" />
 
     <el-table :empty-text="t('misc2.waitEmpty')" :data="rows" v-loading="loading" border size="small">

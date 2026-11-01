@@ -12,7 +12,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon
-              :title="'开放应用按 appKey 鉴权；密钥重置后旧密钥立即失效'" style="margin-bottom:12px" />
+              :title="t('misc3.openTip')" style="margin-bottom:12px" />
 
     <el-table :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">

@@ -28,7 +28,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon
-              title="设备表按空间关联（无 houseId/lockId 列）；门锁与房源关系由绑定记录推导"
+              :title="t('misc2.deviceTip')"
               style="margin-bottom:12px" />
 
     <el-alert v-if="fresh && fresh.stale > 0" type="warning" :closable="false" show-icon

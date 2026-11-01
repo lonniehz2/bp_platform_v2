@@ -12,7 +12,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon
-              :title="'报送任务按周期自动生成；失败可在任务详情重试'" style="margin-bottom:12px" />
+              :title="t('misc3.govTip')" style="margin-bottom:12px" />
 
     <el-table :data="rows" v-loading="loading" border size="small">
       <el-table-column type="expand">

@@ -9,7 +9,7 @@
     </div>
 
     <el-alert type="warning" :closable="false" show-icon
-              title="违规清退会进入信用惩戒；年审退出自动生成的腾退单类型为 OTHER（不触发 5 年禁申）"
+              :title="t('misc2.termTip')"
               style="margin-bottom:12px" />
 
     <FilterBar @search="resetAndLoad" @reset="resetQuery">

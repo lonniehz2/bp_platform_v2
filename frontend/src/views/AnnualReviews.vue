@@ -8,7 +8,7 @@
       <el-button @click="load">{{ t('review.refresh') }}</el-button>
     </div>
     <el-alert type="info" :closable="false" show-icon
-              title="年审判定为「退出」会自动生成腾退单（类型用 OTHER，避免误触发 5 年禁申）"
+              :title="t('misc3.annualTip')"
               style="margin-bottom:12px" />
 
     <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
