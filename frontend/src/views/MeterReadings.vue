@@ -23,15 +23,9 @@
       </el-select>
       <el-button type="primary" @click="load">{{ t('meter.search') }}</el-button>
       <el-button @click="resetQuery">{{ t('meter.reset') }}</el-button>
-      <el-button type="warning" plain :loading="pulling" @click="pullFromIot">{{ t('meter.pull') }}
-        从 IoT 拉取
-      </el-button>
-      <el-button type="success" plain @click="openRecord" data-testid="meter-new">{{ t('meter.new') }}
-        录入读数
-      </el-button>
-      <el-button type="primary" plain @click="openBatch" data-testid="meter-batch">{{ t('meter.batch') }}
-        批量录入/导入
-      </el-button>
+      <el-button type="warning" plain :loading="pulling" @click="pullFromIot">{{ t('meter.pull') }}</el-button>
+      <el-button type="success" plain @click="openRecord" data-testid="meter-new">{{ t('meter.new') }}</el-button>
+      <el-button type="primary" plain @click="openBatch" data-testid="meter-batch">{{ t('meter.batch') }}</el-button>
       <el-button type="warning" plain @click="batchBill">{{ t('meter.batchBill') }}</el-button>
     </div>
 

@@ -2,59 +2,59 @@
   <div>
     <div class="toolbar">
       <el-radio-group v-model="months" size="small" @change="load">
-        <el-radio-button :value="3">近 3 月</el-radio-button>
-        <el-radio-button :value="6">近 6 月</el-radio-button>
-        <el-radio-button :value="12">近 12 月</el-radio-button>
+        <el-radio-button :value="3">{{ t('energyAnalysis.last3') }}</el-radio-button>
+        <el-radio-button :value="6">{{ t('energyAnalysis.last6') }}</el-radio-button>
+        <el-radio-button :value="12">{{ t('energyAnalysis.last12') }}</el-radio-button>
       </el-radio-group>
       <span class="muted" style="font-size:12px">
-        用量 = 本次读数 − 上次读数（跨月衔接）；金额 = 用量 × 计费项目单价
+        {{ t('energyAnalysis.formula') }}
       </span>
     </div>
 
     <el-row :gutter="12" style="margin-bottom:12px">
       <el-col :span="8">
-        <el-card shadow="never"><div class="muted">本窗口用量合计</div>
+        <el-card shadow="never"><div class="muted">{{ t('energyAnalysis.windowUsage') }}</div>
           <div style="font-size:22px;font-weight:600">{{ totalUsage }}</div>
         </el-card>
       </el-col>
       <el-col :span="8">
-        <el-card shadow="never"><div class="muted">金额合计</div>
+        <el-card shadow="never"><div class="muted">{{ t('energyAnalysis.totalAmount') }}</div>
           <div style="font-size:22px;font-weight:600">{{ totalAmount }}</div>
         </el-card>
       </el-col>
       <el-col :span="8">
-        <el-card shadow="never"><div class="muted">读数次数</div>
+        <el-card shadow="never"><div class="muted">{{ t('energyAnalysis.readingCount') }}</div>
           <div style="font-size:22px;font-weight:600">{{ totalReadings }}</div>
         </el-card>
       </el-col>
     </el-row>
 
-    <div style="font-weight:600;margin-bottom:6px">按计量项目（水 / 电 / 燃气）</div>
+    <div style="font-weight:600;margin-bottom:6px">{{ t('energyAnalysis.byItem') }}</div>
     <el-table :data="itemRows" size="small" border style="margin-bottom:14px">
-      <el-table-column prop="feeItemName" label="计量项目" width="190" />
-      <el-table-column prop="readings" label="读数次数" width="110" />
-      <el-table-column prop="usage" label="用量" width="150" />
-      <el-table-column label="金额" width="150" >
+      <el-table-column prop="feeItemName" :label="t('energyAnalysis.item')" width="190" />
+      <el-table-column prop="readings" :label="t('energyAnalysis.readings')" width="110" />
+      <el-table-column prop="usage" :label="t('energyAnalysis.usage')" width="150" />
+      <el-table-column :label="t('energyAnalysis.amount')" width="150" >
           <template #default="{ row }">{{ $money(row.amount) }}</template>
         </el-table-column>
     </el-table>
 
     <el-row :gutter="12" style="margin-bottom:6px">
       <el-col :span="12">
-        <div style="font-weight:600;margin-bottom:2px">用量趋势</div>
-        <LineTrend :rows="usageTrend" unit="用量" color="#409eff" :height="200" />
+        <div style="font-weight:600;margin-bottom:2px">{{ t('energyAnalysis.usageTrend') }}</div>
+        <LineTrend :rows="usageTrend" :unit="t('energyAnalysis.unitUsage')" color="#409eff" :height="200" />
       </el-col>
       <el-col :span="12">
-        <div style="font-weight:600;margin-bottom:2px">金额趋势</div>
-        <LineTrend :rows="amountTrend" unit="元" color="#e6a23c" :height="200" />
+        <div style="font-weight:600;margin-bottom:2px">{{ t('energyAnalysis.amountTrend') }}</div>
+        <LineTrend :rows="amountTrend" :unit="t('energyAnalysis.unitCny')" color="#e6a23c" :height="200" />
       </el-col>
     </el-row>
 
     <el-row :gutter="12">
       <el-col :span="12">
-        <div style="font-weight:600;margin-bottom:6px">月度明细</div>
+        <div style="font-weight:600;margin-bottom:6px">{{ t('energyAnalysis.monthly') }}</div>
         <el-table :data="monthRows" size="small" border max-height="300">
-          <el-table-column prop="month" label="月份" width="110" />
+          <el-table-column prop="month" :label="t('energyAnalysis.month')" width="110" />
           <el-table-column prop="readings" label="读数次数" width="100" />
           <el-table-column prop="usage" label="用量" />
           <el-table-column label="金额" >
@@ -63,18 +63,18 @@
         </el-table>
       </el-col>
       <el-col :span="12">
-        <div style="font-weight:600;margin-bottom:6px">楼栋汇总</div>
+        <div style="font-weight:600;margin-bottom:6px">{{ t('energyAnalysis.buildingSummary') }}</div>
         <el-table :data="buildings" size="small" border max-height="300">
-          <el-table-column prop="building" label="楼栋" />
+          <el-table-column prop="building" :label="t('energyAnalysis.building')" />
           <el-table-column prop="usage" label="用量" width="140" />
         </el-table>
       </el-col>
     </el-row>
 
-    <div style="font-weight:600;margin:14px 0 6px">用量 TOP 10 房源</div>
+    <div style="font-weight:600;margin:14px 0 6px">{{ t('energyAnalysis.topHouses') }}</div>
     <el-table :data="top" size="small" border max-height="360">
-      <el-table-column prop="houseCode" label="房源编号" width="170" />
-      <el-table-column prop="houseName" label="房源名称" min-width="200" />
+      <el-table-column prop="houseCode" :label="t('energyAnalysis.houseCode')" width="170" />
+      <el-table-column prop="houseName" :label="t('energyAnalysis.houseName')" min-width="200" />
       <el-table-column prop="building" label="楼栋" width="120" />
       <el-table-column prop="usage" label="用量" width="110" />
     </el-table>
@@ -82,6 +82,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /**
  * 能耗分析：按月份、楼栋与房源统计水电等计量用量。
  */
@@ -90,6 +91,7 @@ import { ElMessage } from 'element-plus'
 import req from '@/api/request'
 import LineTrend from '@/components/LineTrend.vue'
 
+const { t } = useI18n()
 const months = ref(6)
 const monthRows = ref([])
 const buildings = ref([])
@@ -122,7 +124,7 @@ async function load() {
     top.value = (r && r.topHouses) || []
     itemRows.value = (r && r.byFeeItem) || []
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || '加载能耗数据失败')
+    ElMessage.error(e?.response?.data?.message || t('energyAnalysis.loadFailed'))
   }
 }
 
