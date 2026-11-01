@@ -1,33 +1,33 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">日房态</h3>
+      <h3 style="margin:0">{{ t('calendar.title') }}</h3>
       <el-tag size="small" type="info"></el-tag>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字/ID" clearable
+      <el-input v-model="keyword" :placeholder="t('calendar.keyword')" clearable
                 style="width:170px" @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-select v-model="houseId" placeholder="输入房源名称搜索" filterable remote clearable
+      <el-button type="primary" @click="reload">{{ t('calendar.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('calendar.reset') }}</el-button>
+      <el-select v-model="houseId" :placeholder="t('calendar.houseHint')" filterable remote clearable
                  :remote-method="searchHouses" :loading="houseSearching"
                  style="width:260px" @change="onHousePicked">
         <el-option v-for="h in houseOptions" :key="h.id"
                    :label="(h.houseName || h.houseCode) + ' · ' + (h.houseCode || '')"
                    :value="h.id" />
       </el-select>
-      <el-button @click="shiftMonth(-1)" data-testid="cal-month-prev">上一月</el-button>
+      <el-button @click="shiftMonth(-1)" data-testid="cal-month-prev">{{ t('calendar.prev') }}</el-button>
       <el-date-picker v-model="month" type="month" value-format="YYYY-MM"
-                      placeholder="选择月份" style="width:130px"
+                      :placeholder="t('calendar.month')" style="width:130px"
                       data-testid="cal-month" @change="reload" />
-      <el-button @click="shiftMonth(1)" data-testid="cal-month-next">下一月</el-button>
-      <el-button type="primary" @click="reload">按房源查</el-button>
-      <el-button type="success" @click="openBook" data-testid="cal-book">预订</el-button>
+      <el-button @click="shiftMonth(1)" data-testid="cal-month-next">{{ t('calendar.next') }}</el-button>
+      <el-button type="primary" @click="reload">{{ t('calendar.byHouse') }}</el-button>
+      <el-button type="success" @click="openBook" data-testid="cal-book">{{ t('calendar.book') }}</el-button>
         <el-button type="warning" plain @click="openRange"
-                   data-testid="cal-range">批量设置</el-button>
-      <el-button type="warning" plain @click="openRelease" data-testid="cal-release">释放</el-button>
+                   data-testid="cal-range">{{ t('calendar.range') }}</el-button>
+      <el-button type="warning" plain @click="openRelease" data-testid="cal-release">{{ t('calendar.release') }}</el-button>
       <el-radio-group v-model="viewMode" size="small" data-testid="cal-view-mode">
-        <el-radio-button value="grid">月历</el-radio-button>
-        <el-radio-button value="table">明细</el-radio-button>
+        <el-radio-button value="grid">{{ t('calendar.monthView') }}</el-radio-button>
+        <el-radio-button value="table">{{ t('calendar.listView') }}</el-radio-button>
       </el-radio-group>
     </div>
 
@@ -67,20 +67,20 @@
       <el-table-column type="expand">
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
-      <el-table-column prop="houseId" label="房源" width="120">
+      <el-table-column prop="houseId" :label="t('calendar.house')" width="120">
         <template #default="{ row }">{{ houseLabel || row.houseIdName || row.houseId }}</template>
       </el-table-column>
-      <el-table-column prop="date" label="日期" width="120" />
-      <el-table-column prop="dayStatus" label="日状态" width="110">
+      <el-table-column prop="date" :label="t('calendar.date')" width="120" />
+      <el-table-column prop="dayStatus" :label="t('calendar.dayStatus')" width="110">
         <template #default="{ row }">{{ row.dayStatusLabel || enumLabel('dayStatus', row.dayStatus) }}</template>
       </el-table-column>
-      <el-table-column prop="bookingId" label="占用订单" width="150">
+      <el-table-column prop="bookingId" :label="t('calendar.booking')" width="150">
         <template #default="{ row }">{{ row.orderIdName || row.orderId }}</template>
       </el-table-column>
-      <el-table-column label="操作" :width="ROWACTIONS ? 210 : 110" fixed="right">
+      <el-table-column :label="t('calendar.actions')" :width="ROWACTIONS ? 210 : 110" fixed="right">
         <template #default="{ row }">
-          <el-button link type="success" @click="bookForHouse(row)">预订</el-button>
-          <el-button link @click="openDetail(row)">详情</el-button>
+          <el-button link type="success" @click="bookForHouse(row)">{{ t('calendar.book') }}</el-button>
+          <el-button link @click="openDetail(row)">{{ t('calendar.detail') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -112,110 +112,111 @@
       <el-alert v-if="formNote" :closable="false" show-icon type="warning"
                 :title="formNote" style="margin-top:8px" />
       <template #footer>
-        <el-button @click="formVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submit">提交</el-button>
+        <el-button @click="formVisible = false">{{ t('calendar.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="submit">{{ t('calendar.submit') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="detailVisible" title="明细（原始数据）" size="520px">
+    <el-drawer v-model="detailVisible" :title="t('calendar.drawer')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
 
     <!-- 预订 → 生成短租订单（后端同步占用日房态） -->
-    <el-dialog v-model="bookVisible" title="预订房源（生成短租订单）" width="580px">
+    <el-dialog v-model="bookVisible" :title="t('calendar.bookTitle')" width="580px">
       <el-alert type="info" :closable="false" show-icon
                 title="提交后生成短租订单，并自动占用 [入住日, 退房日)；取消订单会释放房态"
                 style="margin-bottom:12px" />
       <el-form :model="bf" label-width="100px">
-        <el-form-item label="房源 ID" required>
-          <HouseSelect v-model="bf.houseId" width="100%" placeholder="输入房源编号/名称搜索" />
+        <el-form-item :label="t('calendar.houseId')" required>
+          <HouseSelect v-model="bf.houseId" width="100%" :placeholder="t('calendar.houseHint')" />
         </el-form-item>
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="入住日" required>
+          <el-col :span="12"><el-form-item :label="t('calendar.checkIn')" required>
             <el-date-picker v-model="bf.checkIn" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="退房日" required>
+          <el-col :span="12"><el-form-item :label="t('calendar.checkOut')" required>
             <el-date-picker v-model="bf.checkOut" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="客人姓名" required>
-            <el-input v-model="bf.guestName" placeholder="入住人" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="联系电话">
+          <el-col :span="12"><el-form-item :label="t('calendar.guestName')" required>
+            <el-input v-model="bf.guestName" :placeholder="t('calendar.guestNameHint')" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item :label="t('calendar.guestPhone')">
             <el-input v-model="bf.guestPhone" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="入住人数">
+          <el-col :span="12"><el-form-item :label="t('calendar.guestCount')">
             <el-input v-model="bf.guestCount" type="number" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="每晚价格">
+          <el-col :span="12"><el-form-item :label="t('calendar.nightlyPrice')">
             <el-input v-model="bf.nightlyPrice" type="number" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="备注">
+          <el-col :span="24"><el-form-item :label="t('calendar.remark')">
             <el-input v-model="bf.remark" type="textarea" :rows="2" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <el-alert type="info" :closable="false"
                 title="区间左闭右开：11-01 入住、11-03 退房，占用 11-01 与 11-02 两晚" />
       <template #footer>
-        <el-button @click="bookVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doBook">确认预订</el-button>
+        <el-button @click="bookVisible = false">{{ t('calendar.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doBook">{{ t('calendar.confirmBook') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 释放 -->
-    <el-dialog v-model="releaseVisible" title="释放房态" width="520px">
+    <el-dialog v-model="releaseVisible" :title="t('calendar.releaseTitle')" width="520px">
       <el-form :model="rf" label-width="100px">
-        <el-form-item label="房源" required><HouseSelect v-model="rf.houseId" width="100%" /></el-form-item>
+        <el-form-item :label="t('calendar.house')" required><HouseSelect v-model="rf.houseId" width="100%" /></el-form-item>
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="起始日" required>
+          <el-col :span="12"><el-form-item :label="t('calendar.start')" required>
             <el-date-picker v-model="rf.checkIn" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="结束日" required>
+          <el-col :span="12"><el-form-item :label="t('calendar.end')" required>
             <el-date-picker v-model="rf.checkOut" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="releaseVisible = false">取消</el-button>
-        <el-button type="warning" :loading="saving" @click="doRelease">释放</el-button>
+        <el-button @click="releaseVisible = false">{{ t('calendar.cancel') }}</el-button>
+        <el-button type="warning" :loading="saving" @click="doRelease">{{ t('calendar.release') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 批量设置：按区间停用/恢复/改价 -->
-    <el-dialog v-model="rangeVisible" title="批量设置日房态" width="560px">
+    <el-dialog v-model="rangeVisible" :title="t('calendar.rangeTitle')" width="560px">
       <el-alert type="info" :closable="false" show-icon
                 title="按日期区间批量操作；已预订/已入住的日期不会被改价覆盖" />
       <el-form :model="rf2" label-width="96px" style="margin-top:12px">
-        <el-form-item label="房源 ID" required>
+        <el-form-item :label="t('calendar.houseId')" required>
           <HouseSelect v-model="rf2.houseId" width="100%" placeholder="输入房源编号/名称搜索" />
         </el-form-item>
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="开始日期" required>
+          <el-col :span="12"><el-form-item :label="t('calendar.startDate')" required>
             <el-date-picker v-model="rf2.start" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="结束日期" required>
+          <el-col :span="12"><el-form-item :label="t('calendar.endDate')" required>
             <el-date-picker v-model="rf2.end" type="date" value-format="YYYY-MM-DD"
                             style="width:100%" /></el-form-item></el-col>
         </el-row>
-        <el-form-item label="操作">
+        <el-form-item :label="t('calendar.action')">
           <el-radio-group v-model="rf2.action">
-            <el-radio value="CLOSED">停用（不可售）</el-radio>
-            <el-radio value="AVAILABLE">恢复可售</el-radio>
-            <el-radio value="PRICE">改价</el-radio>
+            <el-radio value="CLOSED">{{ t('calendar.closed') }}</el-radio>
+            <el-radio value="AVAILABLE">{{ t('calendar.available') }}</el-radio>
+            <el-radio value="PRICE">{{ t('calendar.price') }}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-row v-if="rf2.action === 'PRICE'" :gutter="12">
-          <el-col :span="12"><el-form-item label="平日价">
+          <el-col :span="12"><el-form-item :label="t('calendar.weekdayPrice')">
             <el-input v-model="rf2.price" type="number" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="周末价">
-            <el-input v-model="rf2.weekendPrice" type="number" placeholder="留空则与平日同价" />
+          <el-col :span="12"><el-form-item :label="t('calendar.weekendPrice')">
+            <el-input v-model="rf2.weekendPrice" type="number" :placeholder="t('calendar.weekendHint')" />
           </el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="rangeVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doRange">执行</el-button>
+        <el-button @click="rangeVisible = false">{{ t('calendar.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doRange">{{ t('calendar.execute') }}</el-button>
       </template>
     </el-dialog>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, computed, onMounted } from 'vue'
@@ -224,6 +225,7 @@ import { calendarApi } from '@/api/modules'
 import req from '@/api/request'
 import HouseSelect from '@/components/HouseSelect.vue'
 
+const { t } = useI18n()
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref([])

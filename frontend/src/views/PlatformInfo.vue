@@ -1,11 +1,11 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">平台信息</h3>
+      <h3 style="margin:0">{{ t('platformInfo.title') }}</h3>
       <el-tag size="small" type="info">当前平台</el-tag>
       <div class="spacer" />
-      <el-button @click="load">刷新</el-button>
-      <el-button type="primary" :loading="saving" @click="save">保存</el-button>
+      <el-button @click="load">{{ t('platformInfo.refresh') }}</el-button>
+      <el-button type="primary" :loading="saving" @click="save">{{ t('platformInfo.save') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:14px"
@@ -14,29 +14,29 @@
     <el-row :gutter="18">
       <el-col :span="14">
         <el-form :model="form" label-width="110px" v-loading="loading">
-          <el-form-item label="平台编码">
+          <el-form-item :label="t('platformInfo.code')">
             <el-input :model-value="form.tenantCode" disabled>
               <template #append>不可修改</template>
             </el-input>
           </el-form-item>
-          <el-form-item label="平台名称" required>
+          <el-form-item :label="t('platformInfo.name')" required>
             <el-input v-model="form.tenantName" maxlength="100" show-word-limit
-                      placeholder="如：漳州市住房保障中心" />
+                      :placeholder="t('platformInfo.nameHint')" />
           </el-form-item>
-          <el-form-item label="平台类型">
+          <el-form-item :label="t('platformInfo.type')">
             <el-select v-model="form.tenantType" style="width:100%" disabled>
-              <el-option label="政府" value="GOV" />
-              <el-option label="运营机构" value="ORG" />
-              <el-option label="企业" value="ENTERPRISE" />
+              <el-option :label="t('platformInfo.gov')" value="GOV" />
+              <el-option :label="t('platformInfo.org')" value="ORG" />
+              <el-option :label="t('platformInfo.enterprise')" value="ENTERPRISE" />
             </el-select>
           </el-form-item>
-          <el-form-item label="所属区域">
+          <el-form-item :label="t('platformInfo.region')">
             <el-input :model-value="form.regionCode" disabled />
           </el-form-item>
-          <el-form-item label="隔离模式">
+          <el-form-item :label="t('platformInfo.isolation')">
             <el-input :model-value="form.isolationMode === 'ROW' ? '行级隔离' : (form.isolationMode || '—')" disabled />
           </el-form-item>
-          <el-form-item label="状态">
+          <el-form-item :label="t('platformInfo.status')">
             <el-radio-group v-model="form.status" disabled>
               <el-radio-button value="ENABLED">启用</el-radio-button>
               <el-radio-button value="DISABLED">停用</el-radio-button>
@@ -66,11 +66,13 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 import { useAuthStore } from '@/store/auth'
 
+const { t } = useI18n()
 const auth = useAuthStore()
 const loading = ref(false)
 const saving = ref(false)
