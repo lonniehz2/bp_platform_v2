@@ -4,7 +4,7 @@
       <div class="brand">
         <div class="logo"><span /></div>
         <div>
-          <b>平台运营台</b>
+          <b>{{ t('platX.title') }}</b>
           <span class="sub">Platform Operations Console</span>
         </div>
       </div>
@@ -32,7 +32,7 @@
           </div>
 
           <el-table :data="rows" v-loading="loading" border size="small"
-                    empty-text="暂无平台，点击右上角「新建平台」">
+                    :empty-text="t('platX.empty')">
             <el-table-column prop="tenantCode" :label="t('platform.code')" width="130" />
             <el-table-column prop="tenantName" :label="t('platform.name')" min-width="180" show-overflow-tooltip />
             <el-table-column :label="t('platform.type')" width="100">
@@ -53,13 +53,13 @@
               <template #default="{ row }">
                 <el-button link type="primary" @click="openDetail(row)">{{ t('platform.detail') }}</el-button>
                 <el-button v-if="row.status === 'ENABLED'" link type="warning"
-                           @click="setStatus(row, 'disable')">停用</el-button>
+                           @click="setStatus(row, 'disable')">{{ t('platX.disable') }}</el-button>
                 <el-button v-if="row.status === 'DISABLED'" link type="success"
-                           @click="setStatus(row, 'enable')">启用</el-button>
+                           @click="setStatus(row, 'enable')">{{ t('platX.enable') }}</el-button>
                 <el-button v-if="row.status === 'DISABLED'" link type="danger"
-                           @click="archive(row)">归档</el-button>
+                           @click="archive(row)">{{ t('platX.archive') }}</el-button>
                 <el-button v-if="row.status === 'ARCHIVED'" link type="success"
-                           @click="restore(row)">恢复</el-button>
+                           @click="restore(row)">{{ t('platX.restore') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -69,7 +69,7 @@
           <div class="toolbar">
             <el-button @click="loadAudits">{{ t('platform.refresh') }}</el-button>
           </div>
-          <el-table :data="audits" border size="small" empty-text="暂无审计记录">
+          <el-table :data="audits" border size="small" :empty-text="t('platX.noAudits')">
             <el-table-column prop="createTime" :label="t('platform.time')" width="170" />
             <el-table-column prop="operatorName" :label="t('platform.operator')" width="120" />
             <el-table-column prop="platformCode" :label="t('platform.platform')" width="120" />
@@ -104,7 +104,7 @@
         <el-form-item :label="t('platform.phone')">
           <el-input v-model="createForm.contactPhone" />
         </el-form-item>
-        <el-divider content-position="left">平台管理员</el-divider>
+        <el-divider content-position="left">{{ t('platX.adminSection') }}</el-divider>
         <el-form-item :label="t('platform.adminUsername')" required>
           <el-input v-model="createForm.adminUsername" :placeholder="t('platform.adminUsernameHint')" />
         </el-form-item>
@@ -112,7 +112,7 @@
           <el-input v-model="createForm.adminRealName" />
         </el-form-item>
         <el-alert type="info" :closable="false" show-icon
-                  title="平台编码将按「行政区划 + 3 位序列」自动生成；初始密码仅在创建成功后显示一次。" />
+                  :title="t('platX.createHint')" />
       </el-form>
       <template #footer>
         <el-button @click="createVisible = false">{{ t('platform.cancel') }}</el-button>
@@ -123,7 +123,7 @@
     <!-- 创建结果 / 初始密码 -->
     <el-dialog v-model="resultVisible" :title="t('platform.passwordTitle')" width="460px">
       <el-alert type="warning" :closable="false" show-icon
-                title="请立即复制并通过安全渠道交给对应人员；关闭后无法再次查看。" />
+                :title="t('platX.pwdHint')" />
       <el-descriptions :column="1" border size="small" style="margin-top:12px">
         <el-descriptions-item :label="t('platform.code')">{{ result.code || '—' }}</el-descriptions-item>
         <el-descriptions-item :label="t('platform.name')">{{ result.name || '—' }}</el-descriptions-item>
@@ -142,8 +142,8 @@
     <el-drawer v-model="detailVisible" :title="t('platform.detailTitle')" size="720px">
       <div v-if="current">
         <el-descriptions :column="2" border size="small">
-          <el-descriptions-item label="平台编码">{{ current.tenantCode }}</el-descriptions-item>
-          <el-descriptions-item label="平台名称">{{ current.tenantName }}</el-descriptions-item>
+          <el-descriptions-item :label="t('platX.code')">{{ current.tenantCode }}</el-descriptions-item>
+          <el-descriptions-item :label="t('platX.name')">{{ current.tenantName }}</el-descriptions-item>
           <el-descriptions-item :label="t('platform.type')">{{ typeText(current.tenantType) }}</el-descriptions-item>
           <el-descriptions-item :label="t('platform.region')">{{ current.regionCode }}</el-descriptions-item>
           <el-descriptions-item :label="t('platform.status')">{{ statusText(current.status) }}</el-descriptions-item>
@@ -153,27 +153,27 @@
         </el-descriptions>
 
         <div class="toolbar" style="margin-top:16px">
-          <b>平台管理员</b>
+          <b>{{ t('platX.adminSection') }}</b>
           <div class="spacer" />
           <el-button type="primary" plain size="small" @click="openAddAdmin">{{ t('platform.addAdmin') }}</el-button>
         </div>
-        <el-table :data="admins" border size="small" empty-text="暂无管理员">
+        <el-table :data="admins" border size="small" :empty-text="t('platX.noAdmins')">
           <el-table-column prop="username" :label="t('platform.username')" width="130" />
           <el-table-column prop="realName" :label="t('platform.realName')" width="110" />
-          <el-table-column label="状态" width="90">
-            <template #default="{ row }">{{ row.status === 'ENABLED' ? '启用' : '停用' }}</template>
+          <el-table-column :label="t('platX.status')" width="90">
+            <template #default="{ row }">{{ row.status === 'ENABLED' ? t('platX.enabled') : t('platX.disabled') }}</template>
           </el-table-column>
           <el-table-column :label="t('platform.pendingPwd')" width="80">
-            <template #default="{ row }">{{ row.mustChangePassword ? '是' : '否' }}</template>
+            <template #default="{ row }">{{ row.mustChangePassword ? t('platX.yes') : t('platX.no') }}</template>
           </el-table-column>
           <el-table-column prop="lastLoginTime" :label="t('platform.lastLogin')" width="160" />
           <el-table-column :label="t('platform.actions')" width="240" fixed="right">
             <template #default="{ row }">
               <el-button link type="warning" @click="resetPwd(row)">{{ t('platform.resetPwd') }}</el-button>
               <el-button v-if="row.status === 'ENABLED'" link type="danger"
-                         @click="setAdmin(row, 'disable')">停用</el-button>
+                         @click="setAdmin(row, 'disable')">{{ t('platX.disable') }}</el-button>
               <el-button v-else link type="success"
-                         @click="setAdmin(row, 'enable')">启用</el-button>
+                         @click="setAdmin(row, 'enable')">{{ t('platX.enable') }}</el-button>
               <el-button v-if="row.lockedUntil" link @click="unlock(row)">{{ t('platform.unlock') }}</el-button>
             </template>
           </el-table-column>
@@ -204,7 +204,7 @@
         <el-form-item :label="t('platform.confirmPwd')"><el-input v-model="pwdForm.confirm" type="password" show-password /></el-form-item>
       </el-form>
       <el-alert v-if="forcePwd" type="warning" :closable="false" show-icon
-                title="首次登录必须修改密码后才能继续操作。" />
+                :title="t('platX.forceTip')" />
       <template #footer>
         <el-button v-if="!forcePwd" @click="pwdVisible = false">{{ t('platform.cancel') }}</el-button>
         <el-button type="primary" @click="changePwd">{{ t('platform.save') }}</el-button>
@@ -250,10 +250,10 @@ const adminForm = reactive({ username: '', realName: '', phone: '', email: '' })
 const pwdForm = reactive({ oldPassword: '', newPassword: '', confirm: '' })
 
 function typeText(t) {
-  return { GOV: '政府', ORG: '运营机构', ENTERPRISE: '企业' }[t] || t || '—'
+  return { GOV: t('platX.gov'), ORG: t('platX.org'), ENTERPRISE: t('platX.enterprise') }[t] || t || '—'
 }
 function statusText(s) {
-  return { ENABLED: '启用', DISABLED: '停用', ARCHIVED: '已归档' }[s] || s
+  return { ENABLED: t('platX.enabled'), DISABLED: t('platX.disabled'), ARCHIVED: t('platX.archivedStatus') }[s] || s
 }
 
 async function load() {
@@ -281,7 +281,7 @@ function openCreate() {
 
 async function createPlatform() {
   if (!createForm.tenantName || !createForm.regionCode || !createForm.adminUsername) {
-    ElMessage.warning('请填写平台名称、行政区划和管理员账号')
+    ElMessage.warning(t('platX.required'))
     return
   }
   saving.value = true
@@ -299,32 +299,32 @@ async function createPlatform() {
 
 function copyPwd() {
   navigator.clipboard?.writeText(result.password)
-  ElMessage.success('密码已复制')
+  ElMessage.success(t('platX.copied'))
 }
 
 async function setStatus(row, mode) {
-  const label = mode === 'enable' ? '启用' : '停用'
-  await ElMessageBox.confirm(`确认${label}平台「${row.tenantName}」？`, `${label}平台`,
+  const label = mode === 'enable' ? t('platX.doEnable') : t('platX.doDisable')
+  await ElMessageBox.confirm(t('platX.confirmStatus', { action: label, name: row.tenantName }), t('platX.status'),
     { type: 'warning' })
   await operatorApi[mode](row.id)
-  ElMessage.success(`已${label}`)
+  ElMessage.success(label)
   load()
 }
 
 async function archive(row) {
   const { value } = await ElMessageBox.prompt(
-    `归档后该平台不可登录，且不物理删除。请输入平台编码「${row.tenantCode}」确认：`,
-    '归档平台', { type: 'warning', inputValidator: (v) => v === row.tenantCode || '编码不一致' })
+    t('platX.archivePrompt', { code: row.tenantCode }),
+    t('platX.archiveTitle'), { type: 'warning', inputValidator: (v) => v === row.tenantCode || t('platX.code') })
   if (value !== row.tenantCode) return
   await operatorApi.archive(row.id)
-  ElMessage.success('已归档')
+  ElMessage.success(t('platX.archived'))
   load()
 }
 
 async function restore(row) {
-  await ElMessageBox.confirm('恢复后平台为「停用」状态，需再手动启用。确认恢复？', '恢复平台')
+  await ElMessageBox.confirm(t('platX.restoreConfirm'), t('platX.restore'))
   await operatorApi.restore(row.id)
-  ElMessage.success('已恢复')
+  ElMessage.success(t('platX.restored'))
   load()
 }
 
@@ -340,7 +340,7 @@ function openAddAdmin() {
 }
 
 async function addAdmin() {
-  if (!adminForm.username) { ElMessage.warning('请输入账号'); return }
+  if (!adminForm.username) { ElMessage.warning(t('platX.enterUsername')); return }
   saving.value = true
   try {
     const d = await operatorApi.createAdmin(current.value.id, { ...adminForm })
@@ -353,7 +353,7 @@ async function addAdmin() {
 }
 
 async function resetPwd(row) {
-  await ElMessageBox.confirm(`重置「${row.username}」密码？`, '重置密码', { type: 'warning' })
+  await ElMessageBox.confirm(t('platX.resetConfirm', { user: row.username }), t('platX.resetTitle'), { type: 'warning' })
   const d = await operatorApi.resetPwd(current.value.id, row.userId)
   Object.assign(result, { code: current.value.tenantCode, name: current.value.tenantName,
     username: d.username, password: d.initialPassword })
@@ -363,13 +363,13 @@ async function resetPwd(row) {
 
 async function setAdmin(row, mode) {
   await operatorApi[mode === 'enable' ? 'enableAdmin' : 'disableAdmin'](current.value.id, row.userId)
-  ElMessage.success(mode === 'enable' ? '已启用' : '已停用')
+  ElMessage.success(mode === 'enable' ? t('platX.enabled') : t('platX.disabled'))
   admins.value = await operatorApi.admins(current.value.id)
 }
 
 async function unlock(row) {
   await operatorApi.unlockAdmin(current.value.id, row.userId)
-  ElMessage.success('已解锁')
+  ElMessage.success(t('platX.unlocked'))
   admins.value = await operatorApi.admins(current.value.id)
 }
 
@@ -380,17 +380,17 @@ async function loadAudits() {
 
 async function changePwd() {
   if (!pwdForm.oldPassword || !pwdForm.newPassword) {
-    ElMessage.warning('请填写原密码与新密码')
+    ElMessage.warning(t('platX.pwdFill'))
     return
   }
   if (pwdForm.newPassword !== pwdForm.confirm) {
-    ElMessage.warning('两次输入的新密码不一致')
+    ElMessage.warning(t('platX.pwdMismatch'))
     return
   }
   await operatorApi.changePassword({
     oldPassword: pwdForm.oldPassword, newPassword: pwdForm.newPassword
   })
-  ElMessage.success('密码已修改')
+  ElMessage.success(t('platX.pwdChanged'))
   sessionStorage.removeItem('bp.operator.mustChange')
   forcePwd.value = false
   pwdVisible.value = false
