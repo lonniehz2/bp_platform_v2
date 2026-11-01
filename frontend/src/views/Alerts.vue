@@ -187,96 +187,96 @@
     <!-- 新增/编辑规则 -->
     <el-dialog v-model="ruleVisible" :title="rf2.id ? t('alert.editRule') : t('alert.newRule')" width="620px">
       <el-form :model="rf2" label-width="110px">
-        <el-form-item label="规则编码" required>
+        <el-form-item :label="t('alert.ruleCode')" required>
           <el-input v-model="rf2.code" :placeholder="t('alert.codeHint')" />
         </el-form-item>
-        <el-form-item label="名称" required>
+        <el-form-item :label="t('alert.name')" required>
           <el-input v-model="rf2.name" :placeholder="t('alert.nameHint')" />
         </el-form-item>
-        <el-form-item label="监控字段" required>
+        <el-form-item :label="t('alert.monitorField')" required>
           <el-select v-model="rf2.field" style="width:100%">
             <el-option v-for="f in RULE_FIELDS" :key="f.key" :label="f.label" :value="f.key" />
           </el-select>
         </el-form-item>
-        <el-form-item label="判定条件" required>
+        <el-form-item :label="t('alert.conditionLabel')" required>
           <div style="display:flex;gap:8px;width:100%">
             <el-select v-model="rf2.op" style="width:110px">
-              <el-option label="大于 >" value=">" />
-              <el-option label="大于等于 ≥" value=">=" />
-              <el-option label="小于 <" value="<" />
-              <el-option label="小于等于 ≤" value="<=" />
-              <el-option label="等于 =" value="=" />
+              <el-option :label="t('alert.gt')" value=">" />
+              <el-option :label="t('alert.ge')" value=">=" />
+              <el-option :label="t('alert.lt')" value="<" />
+              <el-option :label="t('alert.le')" value="<=" />
+              <el-option :label="t('alert.eq')" value="=" />
             </el-select>
-            <el-input v-model.number="rf2.value" placeholder="阈值，如 30" />
+            <el-input v-model.number="rf2.value" :placeholder="t('alert.thresholdHint')" />
           </div>
         </el-form-item>
-        <el-form-item label="生成条件">
+        <el-form-item :label="t('alert.genCondition')">
           <el-input :model-value="previewCondition()" readonly />
         </el-form-item>
-        <el-form-item label="生成阈值">
+        <el-form-item :label="t('alert.genThreshold')">
           <el-input :model-value="previewThreshold()" readonly />
         </el-form-item>
-        <el-form-item label="严重级别">
+        <el-form-item :label="t('alert.severity')">
           <el-select v-model="rf2.severity" style="width:100%">
-            <el-option label="提示" value="INFO" />
-            <el-option label="警告" value="WARNING" />
-            <el-option label="严重" value="CRITICAL" />
+            <el-option :label="t('alert.infoLevel')" value="INFO" />
+            <el-option :label="t('alert.warningLevel')" value="WARNING" />
+            <el-option :label="t('alert.criticalLevel')" value="CRITICAL" />
           </el-select>
         </el-form-item>
-        <el-form-item label="动作">
+        <el-form-item :label="t('alert.action')">
           <el-select v-model="rf2.actionType" style="width:100%">
-            <el-option label="仅记录告警" value="" />
-            <el-option label="通知组织管理员" value="NOTIFY_ORG" />
-            <el-option label="生成工单" value="WORKORDER" />
+            <el-option :label="t('alert.recordOnly')" value="" />
+            <el-option :label="t('alert.notifyOrg')" value="NOTIFY_ORG" />
+            <el-option :label="t('alert.createWorkorder')" value="WORKORDER" />
           </el-select>
         </el-form-item>
-        <el-form-item label="优先级">
+        <el-form-item :label="t('alert.priority')">
           <el-input-number v-model="rf2.priority" :min="1" style="width:100%" />
         </el-form-item>
       </el-form>
       <el-alert type="info" :closable="false" show-icon
-                title="只需选字段、运算符与阈值；条件表达式与阈值 JSON 会自动生成，无需手写。" />
+                :title="t('alert.autoHint')" />
       <template #footer>
-        <el-button @click="ruleVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doAddRule">保存</el-button>
+        <el-button @click="ruleVisible = false">{{ t('alert.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doAddRule">{{ t('alert.save') }}</el-button>
       </template>
     </el-dialog>
-    <el-dialog v-model="createVisible" title="新建告警" width="700px">
+    <el-dialog v-model="createVisible" :title="t('alert.createTitle')" width="700px">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
-                title="字段与后端 AlertCreateCmd 一致；带 * 为必填" />
+                :title="t('alert.cmdHint')" />
       <el-form :model="form" label-width="110px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="告警类别" required>
+          <el-col :span="12"><el-form-item :label="t('alert.category')" required>
             <el-select v-model="form.alertCategory" style="width:100%" data-testid="f-alertCategory">
-              <el-option label="安全隐患" value="SAFETY" />
-              <el-option label="设备异常" value="DEVICE" />
-              <el-option label="业务风险" value="BUSINESS" />
-              <el-option label="违规行为" value="VIOLATION" />
+              <el-option :label="t('alert.safety')" value="SAFETY" />
+              <el-option :label="t('alert.device')" value="DEVICE" />
+              <el-option :label="t('alert.business')" value="BUSINESS" />
+              <el-option :label="t('alert.violation')" value="VIOLATION" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="告警级别" required>
+          <el-col :span="12"><el-form-item :label="t('alert.level')" required>
             <el-select v-model="form.alertLevel" style="width:100%" data-testid="f-alertLevel">
-              <el-option label="紧急" value="URGENT" />
-              <el-option label="重要" value="IMPORTANT" />
-              <el-option label="普通" value="NORMAL" />
+              <el-option :label="t('alert.urgent')" value="URGENT" />
+              <el-option :label="t('alert.important')" value="IMPORTANT" />
+              <el-option :label="t('alert.normal')" value="NORMAL" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="告警类型" required>
+          <el-col :span="12"><el-form-item :label="t('alert.alertType')" required>
             <el-input v-model="form.alertType" data-testid="f-alertType"
-                      placeholder="如 ARREAR_RATE / DEVICE_OFFLINE" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="组织 ID">
+                      :placeholder="t('alert.alertTypeHint')" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item :label="t('alert.orgId')">
             <OrgSelect v-model="form.orgId" width="100%" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="告警标题" required>
+          <el-col :span="24"><el-form-item :label="t('alert.alertTitle')" required>
             <el-input v-model="form.alertTitle" data-testid="f-alertTitle"
-                      placeholder="一句话说明问题，≤255 字符" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="告警内容">
+                      :placeholder="t('alert.titleHint')" /></el-form-item></el-col>
+          <el-col :span="24"><el-form-item :label="t('alert.content')">
             <el-input v-model="form.alertContent" type="textarea" :rows="3"
                       data-testid="f-alertContent" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="实际值">
-            <el-input v-model="form.alertValue" placeholder="如 15%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="阈值">
-            <el-input v-model="form.thresholdValue" placeholder="如 10%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="关联房源 ID">
+          <el-col :span="12"><el-form-item :label="t('alert.actualValue')">
+            <el-input v-model="form.alertValue" :placeholder="t('alert.actualValue')" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item :label="t('alert.threshold')">
+            <el-input v-model="form.thresholdValue" :placeholder="t('alert.threshold')" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item :label="t('alert.houseId')">
             <HouseSelect v-model="form.houseId" width="100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="关联人员 ID">
+          <el-col :span="12"><el-form-item :label="t('alert.personId')">
             <PersonPicker v-model="form.personId" width="240px" testid="person-picker" /></el-form-item></el-col>
         </el-row>
       </el-form>
