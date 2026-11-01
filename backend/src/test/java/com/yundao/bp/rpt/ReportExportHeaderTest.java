@@ -35,6 +35,10 @@ class ReportExportHeaderTest {
         assertEquals("Housing Code", cols.get(0).get("title"));
         assertEquals("Area (m²)", cols.get(3).get("title"));
         assertEquals("Housing Status", cols.get(4).get("title"));
+        Method csv = ReportServiceImpl.class.getDeclaredMethod("toCsv", List.class, List.class);
+        csv.setAccessible(true);
+        String text = (String) csv.invoke(null, cols, List.of());
+        assertEquals("Housing Code,Housing Name,Housing Type,Area (m²),Housing Status", text.split("\\n")[0].replace("\uFEFF", ""));
     }
 
     @Test

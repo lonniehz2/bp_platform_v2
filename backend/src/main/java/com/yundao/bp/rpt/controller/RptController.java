@@ -114,9 +114,13 @@ public class RptController {
                              @RequestParam(defaultValue = "200000") int limit) {
         String s = reportService.readFile(id);
         int cap = limit <= 0 ? s.length() : Math.min(limit, 5_000_000);
-        return R.ok(s.length() > cap
-                ? s.substring(0, cap) + "\n...(已截断，完整内容请查看服务器文件)"
-                : s);
+        if (s.length() > cap) {
+            String note = com.yundao.bp.common.i18n.LocaleContext.isEnglish()
+                    ? "\n...(truncated; open the exported file for full content)"
+                    : "\n...(已截断，完整内容请查看服务器文件)";
+            return R.ok(s.substring(0, cap) + note);
+        }
+        return R.ok(s);
     }
 
     @com.yundao.bp.iam.security.RequirePerm("rpt:exports:export")

@@ -371,7 +371,8 @@ public class DeviceController {
                 d.setUpdateTime(java.time.LocalDateTime.now());
                 mapper.updateById(d);
                 r.put("success", true);
-                r.put("message", "已绑定到 " + h.getSpaceId());
+                r.put("message", com.yundao.bp.common.i18n.LocaleContext.isEnglish()
+                        ? "Bound to " + h.getSpaceId() : "已绑定到 " + h.getSpaceId());
                 ok++;
             } catch (Exception ex) {
                 r.put("success", false);
