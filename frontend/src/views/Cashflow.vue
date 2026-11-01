@@ -1,11 +1,11 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">资金流水</h3>
+      <h3 style="margin:0">{{ t('cash.title') }}</h3>
       <el-radio-group v-model="tab" size="small" @change="onTab">
-        <el-radio-button label="flow">资金流水</el-radio-button>
-        <el-radio-button label="reconcile">对账单</el-radio-button>
-        <el-radio-button label="payment">收款确认</el-radio-button>
+        <el-radio-button label="flow">{{ t('cash.flowTab') }}</el-radio-button>
+        <el-radio-button label="reconcile">{{ t('cash.reconcileTab') }}</el-radio-button>
+        <el-radio-button label="payment">{{ t('cash.paymentTab') }}</el-radio-button>
       </el-radio-group>
       <div class="spacer" />
       <span class="muted" style="font-size:12px">
@@ -16,52 +16,52 @@
     <!-- ==================== 资金流水 ==================== -->
     <div v-show="tab === 'flow'">
       <div class="toolbar" style="margin-bottom:10px">
-        <el-input v-model="keyword" placeholder="关键字" clearable style="width:170px"
+        <el-input v-model="keyword" :placeholder="t('cash.keyword')" clearable style="width:170px"
                   @keyup.enter="reload" />
-        <el-select v-model="flowFilter.flowType" placeholder="收支" clearable style="width:110px">
-          <el-option label="收入" value="INCOME" />
-          <el-option label="支出" value="EXPENSE" />
+        <el-select v-model="flowFilter.flowType" :placeholder="t('cash.flowType')" clearable style="width:110px">
+          <el-option :label="t('cash.income')" value="INCOME" />
+          <el-option :label="t('cash.expense')" value="EXPENSE" />
         </el-select>
-        <el-select v-model="flowFilter.bizType" placeholder="业务类型" clearable style="width:130px">
+        <el-select v-model="flowFilter.bizType" :placeholder="t('cash.bizType')" clearable style="width:130px">
           <el-option v-for="(v, k) in BIZ_LABEL" :key="k" :label="v" :value="k" />
         </el-select>
         <el-date-picker v-model="flowFilter.dateRange" type="daterange" unlink-panels
-                        value-format="YYYY-MM-DD" start-placeholder="开始日"
-                        end-placeholder="结束日" style="width:250px" />
-        <el-button type="primary" @click="reload">查询</el-button>
-        <el-button @click="resetQuery">清空</el-button>
+                        value-format="YYYY-MM-DD" :start-placeholder="t('cash.startDate')"
+                        :end-placeholder="t('cash.endDate')" style="width:250px" />
+        <el-button type="primary" @click="reload">{{ t('cash.search') }}</el-button>
+        <el-button @click="resetQuery">{{ t('cash.reset') }}</el-button>
         <span class="muted">共 {{ total }} 条</span>
       </div>
       <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
         <el-table-column type="expand">
           <template #default="{ row }"><DetailView :row="row" /></template>
         </el-table-column>
-        <el-table-column prop="flowNo" label="流水号" width="170" />
-        <el-table-column prop="bizType" label="业务类型" width="130">
+        <el-table-column prop="flowNo" :label="t('cash.flowNo')" width="170" />
+        <el-table-column prop="bizType" :label="t('cash.bizType')" width="130">
           <template #default="{ row }">{{ row.bizTypeLabel || enumLabel('bizType', row.bizType) }}</template>
         </el-table-column>
-        <el-table-column prop="flowType" label="收支" width="100">
+        <el-table-column prop="flowType" :label="t('cash.flowType')" width="100">
           <template #default="{ row }">{{ row.flowTypeLabel || enumLabel('flowType', row.flowType) }}</template>
         </el-table-column>
-        <el-table-column label="金额" width="120" align="right">
+        <el-table-column :label="t('cash.amount')" width="120" align="right">
           <template #default="{ row }">
             <span :style="Number(row.amount) < 0 ? 'color:#f56c6c' : 'color:#67c23a'">
               {{ $money(row.amount) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="变动后余额" width="130" align="right">
+        <el-table-column :label="t('cash.balance')" width="130" align="right">
           <template #default="{ row }">{{ $money(row.balanceAfter) }}</template>
         </el-table-column>
-        <el-table-column label="来源单据" width="180" show-overflow-tooltip>
+        <el-table-column :label="t('cash.source')" width="180" show-overflow-tooltip>
           <template #default="{ row }">{{ bizKind(row.bizType) }} {{ row.bizId || '' }}</template>
         </el-table-column>
-        <el-table-column prop="flowTime" label="时间" width="170" />
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column prop="flowTime" :label="t('cash.time')" width="170" />
+        <el-table-column :label="t('cash.actions')" width="150" fixed="right">
           <template #default="{ row }">
             <el-button link type="success" :disabled="row.verifyStatus === 'VERIFIED'"
-                       @click="doVerify(row)">核验</el-button>
-            <el-button link @click="detail = row; show = true">详情</el-button>
+                       @click="doVerify(row)">{{ t('cash.verify') }}</el-button>
+            <el-button link @click="detail = row; show = true">{{ t('cash.detail') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -78,44 +78,44 @@
         <el-date-picker v-model="rq.dateRange" type="daterange" value-format="YYYY-MM-DD"
                         start-placeholder="开始日期" end-placeholder="结束日期"
                         style="width:250px" />
-        <el-select v-model="rq.reconcileType" placeholder="对账类型" clearable style="width:130px">
-          <el-option label="渠道对账" value="CHANNEL" />
-          <el-option label="日终对账" value="DAILY" />
-          <el-option label="手工对账" value="MANUAL" />
+        <el-select v-model="rq.reconcileType" :placeholder="t('cash.reconcileType')" clearable style="width:130px">
+          <el-option :label="t('cash.channelReconcile')" value="CHANNEL" />
+          <el-option :label="t('cash.dailyReconcile')" value="DAILY" />
+          <el-option :label="t('cash.manualReconcile')" value="MANUAL" />
         </el-select>
-        <el-select v-model="rq.status" placeholder="状态" clearable style="width:120px">
-          <el-option label="一致" value="MATCHED" />
-          <el-option label="有差异" value="DIFF" />
-          <el-option label="已处理" value="HANDLED" />
+        <el-select v-model="rq.status" :placeholder="t('cash.status')" clearable style="width:120px">
+          <el-option :label="t('cash.matched')" value="MATCHED" />
+          <el-option :label="t('cash.diff')" value="DIFF" />
+          <el-option :label="t('cash.handled')" value="HANDLED" />
         </el-select>
-        <el-button type="primary" @click="loadReconciles">查询</el-button>
-        <el-button @click="resetReconcile">清空</el-button>
-        <el-button type="success" @click="openReconcile">新建对账</el-button>
+        <el-button type="primary" @click="loadReconciles">{{ t('cash.search') }}</el-button>
+        <el-button @click="resetReconcile">{{ t('cash.reset') }}</el-button>
+        <el-button type="success" @click="openReconcile">{{ t('cash.newReconcile') }}</el-button>
         <span class="muted">共 {{ reconcileTotal }} 条</span>
       </div>
 
       <el-table :data="reconciles" v-loading="reconcileLoading" border size="small">
-        <el-table-column prop="reconcileNo" label="对账号" width="180" />
-        <el-table-column prop="reconcileDate" label="对账日期" width="120" />
-        <el-table-column prop="reconcileType" label="类型" width="110">
+        <el-table-column prop="reconcileNo" :label="t('cash.reconcileNo')" width="180" />
+        <el-table-column prop="reconcileDate" :label="t('cash.reconcileDate')" width="120" />
+        <el-table-column prop="reconcileType" :label="t('cash.type')" width="110">
           <template #default="{ row }">{{ enumLabel('reconcileType', row.reconcileType) }}</template>
         </el-table-column>
-        <el-table-column prop="payChannel" label="渠道" width="110">
+        <el-table-column prop="payChannel" :label="t('cash.channel')" width="110">
           <template #default="{ row }">{{ row.payChannel ? enumLabel('payChannel', row.payChannel) : '全部' }}</template>
         </el-table-column>
-        <el-table-column label="系统金额" width="120" >
+        <el-table-column :label="t('cash.systemAmount')" width="120" >
           <template #default="{ row }">{{ $money(row.systemAmount) }}</template>
         </el-table-column>
-        <el-table-column label="渠道金额" width="120" >
+        <el-table-column :label="t('cash.channelAmount')" width="120" >
           <template #default="{ row }">{{ $money(row.channelAmount) }}</template>
         </el-table-column>
-        <el-table-column prop="diffAmount" label="差异金额" width="120">
+        <el-table-column prop="diffAmount" :label="t('cash.diffAmount')" width="120">
           <template #default="{ row }">
             <span :class="{ danger: Number(row.diffAmount) !== 0 }">{{ row.diffAmount }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="diffCount" label="差异笔数" width="100" />
-        <el-table-column prop="reconcileStatus" label="状态" width="110">
+        <el-table-column prop="diffCount" :label="t('cash.diffCount')" width="100" />
+        <el-table-column prop="reconcileStatus" :label="t('cash.status')" width="110">
           <template #default="{ row }">
             <el-tag size="small" :type="row.matched ? 'success'
               : (row.reconcileStatus === 'DIFF' ? 'danger' : 'info')">
@@ -123,7 +123,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column :label="t('cash.actions')" width="180" fixed="right">
           <template #default="{ row }">
             <el-button link type="warning" :disabled="row.reconcileStatus !== 'DIFF'"
                        @click="doHandle(row)">处理差异</el-button>
@@ -143,32 +143,32 @@
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
                 title="待支付的收款单需「确认收款」后才计入流水；确认后可在账单页核销到具体账单" />
       <div class="toolbar" style="margin-bottom:10px">
-        <el-input v-model="pq.keyword" placeholder="收款号 / 缴费人" clearable
+        <el-input v-model="pq.keyword" :placeholder="t('cash.payKeyword')" clearable
                   style="width:190px" @keyup.enter="loadPayments" />
-        <el-select v-model="pq.status" placeholder="收款状态" clearable style="width:130px">
-          <el-option label="待支付" value="PENDING" />
-          <el-option label="成功" value="SUCCESS" />
-          <el-option label="失败" value="FAILED" />
-          <el-option label="已退款" value="REFUNDED" />
+        <el-select v-model="pq.status" :placeholder="t('cash.payStatus')" clearable style="width:130px">
+          <el-option :label="t('cash.pending')" value="PENDING" />
+          <el-option :label="t('cash.success')" value="SUCCESS" />
+          <el-option :label="t('cash.failed')" value="FAILED" />
+          <el-option :label="t('cash.refunded')" value="REFUNDED" />
         </el-select>
-        <el-button type="primary" @click="loadPayments">查询</el-button>
-        <el-button @click="resetPayment">清空</el-button>
+        <el-button type="primary" @click="loadPayments">{{ t('cash.search') }}</el-button>
+        <el-button @click="resetPayment">{{ t('cash.reset') }}</el-button>
         <span class="muted">共 {{ paymentTotal }} 条</span>
       </div>
 
       <el-table :data="payments" v-loading="paymentLoading" border size="small">
-        <el-table-column prop="paymentNo" label="收款号" width="180" />
-        <el-table-column prop="payerName" label="缴费人" width="120">
+        <el-table-column prop="paymentNo" :label="t('cash.paymentNo')" width="180" />
+        <el-table-column prop="payerName" :label="t('cash.payer')" width="120">
           <template #default="{ row }">{{ row.payerName || row.personIdName || row.personId }}</template>
         </el-table-column>
-        <el-table-column label="收款金额" width="110" >
+        <el-table-column :label="t('cash.payAmount')" width="110" >
           <template #default="{ row }">{{ $money(row.payAmount) }}</template>
         </el-table-column>
         <el-table-column prop="payChannel" label="渠道" width="110">
           <template #default="{ row }">{{ enumLabel('payChannel', row.payChannel) }}</template>
         </el-table-column>
-        <el-table-column prop="payTime" label="支付时间" width="170" />
-        <el-table-column prop="payStatus" label="状态" width="100">
+        <el-table-column prop="payTime" :label="t('cash.payTime')" width="170" />
+        <el-table-column prop="payStatus" :label="t('cash.payStatus')" width="100">
           <template #default="{ row }">
             <el-tag size="small" :type="row.payStatus === 'SUCCESS' ? 'success'
               : (row.payStatus === 'PENDING' ? 'warning' : 'info')">
@@ -176,14 +176,14 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="reconciledAmount" label="已核销" width="110" />
-        <el-table-column label="可核销余额" width="120" >
+        <el-table-column prop="reconciledAmount" :label="t('cash.reconciled')" width="110" />
+        <el-table-column :label="t('cash.available')" width="120" >
           <template #default="{ row }">{{ $money(row.remainAmount) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column :label="t('cash.actions')" width="200" fixed="right">
           <template #default="{ row }">
             <el-button link type="success" :disabled="row.payStatus !== 'PENDING'"
-                       @click="doConfirm(row)">确认收款</el-button>
+                       @click="doConfirm(row)">{{ t('cash.confirmPay') }}</el-button>
             <el-button link @click="detail = row; show = true">详情</el-button>
           </template>
         </el-table-column>
@@ -196,24 +196,24 @@
     </div>
 
     <!-- 新建对账 -->
-    <el-dialog v-model="reconcileVisible" title="新建对账" width="560px">
+    <el-dialog v-model="reconcileVisible" :title="t('cash.createTitle')" width="560px">
       <el-form :model="rf" label-width="120px">
-        <el-form-item label="对账日期" required>
+        <el-form-item :label="t('cash.reconcileDate')" required>
           <el-date-picker v-model="rf.reconcileDate" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
-        <el-form-item label="对账类型" required>
+        <el-form-item :label="t('cash.reconcileType')" required>
           <el-select v-model="rf.reconcileType" style="width:100%">
-            <el-option label="渠道对账（按支付渠道）" value="CHANNEL" />
-            <el-option label="日终对账（全渠道）" value="DAILY" />
-            <el-option label="手工对账" value="MANUAL" />
+            <el-option :label="t('cash.channelReconcile')" value="CHANNEL" />
+            <el-option :label="t('cash.dailyReconcile')" value="DAILY" />
+            <el-option :label="t('cash.manualReconcile')" value="MANUAL" />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="rf.reconcileType !== 'DAILY'" label="支付渠道">
+        <el-form-item v-if="rf.reconcileType !== 'DAILY'" :label="t('cash.payChannel')">
           <el-select v-model="rf.payChannel" clearable style="width:100%">
-            <el-option label="微信" value="WECHAT" />
-            <el-option label="支付宝" value="ALIPAY" />
-            <el-option label="银行转账" value="BANK" />
+            <el-option :label="t('cash.wechat')" value="WECHAT" />
+            <el-option :label="t('cash.alipay')" value="ALIPAY" />
+            <el-option :label="t('cash.bank')" value="BANK" />
             <el-option label="现金" value="CASH" />
           </el-select>
         </el-form-item>
@@ -246,6 +246,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /**
  * 资金：流水 / 对账单 / 收款确认。
  * 对账单与收款确认是资金闭环里原本缺失的界面（后端接口已就绪）。
@@ -257,6 +258,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { financeApi } from '@/api/modules'
 import req from '@/api/request'
 
+const { t } = useI18n()
 const tab = ref('flow')
 const show = ref(false)
 const detail = ref(null)
