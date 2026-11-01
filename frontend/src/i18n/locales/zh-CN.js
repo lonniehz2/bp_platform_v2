@@ -158,6 +158,22 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  org: {
+    title: '组织机构', refresh: '刷新', create: '新增组织',
+    filter: '当前筛选：{name}（{scope}）', subtree: '含所有下级', direct: '仅直接下级',
+    id: 'ID', name: '组织名称', code: '编码', type: '类型', parent: '上级',
+    status: '状态', actions: '操作', detail: '详情', edit: '编辑',
+    enable: '启用', disable: '停用', delete: '删除', createTitle: '新增组织',
+    orgCode: '组织编码', orgName: '组织名称', parentHint: '留空=顶级；填写则作为下级',
+    orgType: '组织类型', district: '区级', community: '社区/小区',
+    company: '公司', department: '部门', address: '标准地址',
+    addressHint: '省 / 地市 / 区县 / 街道 / 社区（点击逐级选择）',
+    communityName: '社区/村', communityHint: '可从下拉选择，也可直接输入新社区名',
+    detailAddress: '详细地址',
+    detailHint: '路牌、楼宇、房号等（如：天府三街199号3栋1单元1201）',
+    sort: '排序', remark: '备注', cancel: '取消', save: '保存',
+    detailTitle: '组织详情'
+  },
   keyring: {
     title: '钥匙包', keyword: '关键字', search: '查询', reset: '清空',
     create: '新建钥匙', tip: '钥匙包绑定人员与通行介质；状态变更与回收需留痕',

@@ -2,7 +2,7 @@
   <div>
     <div class="page-card">
       <div class="toolbar">
-        <h3 style="margin:0">组织机构</h3>
+        <h3 style="margin:0">{{ t('org.title') }}</h3>
         <div class="spacer" />
         <el-radio-group v-model="viewMode" size="small" @change="load">
           <el-radio-button value="tree">树形</el-radio-button>
@@ -11,8 +11,8 @@
         <el-checkbox v-model="includeSubtree" @change="onSubtreeChange">
           含下级
         </el-checkbox>
-        <el-button type="primary" @click="load">刷新</el-button>
-        <el-button type="success" @click="openCreate">新增组织</el-button>
+        <el-button type="primary" @click="load">{{ t('org.refresh') }}</el-button>
+        <el-button type="success" @click="openCreate">{{ t('org.create') }}</el-button>
       </div>
 
       <el-alert v-if="currentOrg" type="info" :closable="true" show-icon
@@ -29,35 +29,35 @@
         <el-col :span="17">
           <el-table :data="rows" v-loading="loading" border size="small"
                      empty-text="该组织下暂无子组织（可勾选「含下级」查看全部）">
-            <el-table-column prop="id" label="ID" width="150" />
-            <el-table-column prop="orgName" label="组织名称" min-width="160" />
-            <el-table-column prop="orgCode" label="编码" width="140" />
-            <el-table-column prop="orgType" label="类型" width="110">
+            <el-table-column prop="id" :label="t('org.id')" width="150" />
+            <el-table-column prop="orgName" :label="t('org.name')" min-width="160" />
+            <el-table-column prop="orgCode" :label="t('org.code')" width="140" />
+            <el-table-column prop="orgType" :label="t('org.type')" width="110">
               <template #default="{ row }">
                 {{ row.orgTypeLabel || enumLabel('orgType', row.orgType) }}
               
 
 </template>
             </el-table-column>
-            <el-table-column prop="parentId" label="上级" width="150">
+            <el-table-column prop="parentId" :label="t('org.parent')" width="150">
               <template #default="{ row }">{{ row.parentIdName || row.parentId }}</template>
             </el-table-column>
-            <el-table-column prop="status" label="状态" width="90">
+            <el-table-column prop="status" :label="t('org.status')" width="90">
               <template #default="{ row }">
                 <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">
                   {{ row.statusLabel || enumLabel('status', row.status) }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="250" fixed="right">
+            <el-table-column :label="t('org.actions')" width="250" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" @click="openDetail(row)">详情</el-button>
-                <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
+                <el-button link type="primary" @click="openDetail(row)">{{ t('org.detail') }}</el-button>
+                <el-button link type="primary" @click="openEdit(row)">{{ t('org.edit') }}</el-button>
                 <el-button link :type="row.status === 'ENABLED' ? 'warning' : 'success'"
                            @click="toggleStatus(row)">
                   {{ row.status === 'ENABLED' ? '停用' : '启用' }}
                 </el-button>
-                <el-button link type="danger" @click="removeOrg(row)">删除</el-button>
+                <el-button link type="danger" @click="removeOrg(row)">{{ t('org.delete') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -70,34 +70,34 @@
     </div>
   </div>
 
-    <el-dialog v-model="createVisible" title="新增组织" width="560px">
+    <el-dialog v-model="createVisible" :title="t('org.createTitle')" width="560px">
       <el-form :model="f" label-width="110px">
-        <el-form-item label="组织编码" required>
+        <el-form-item :label="t('org.orgCode')" required>
           <el-input v-model="f.orgCode" /></el-form-item>
-        <el-form-item label="组织名称" required>
+        <el-form-item :label="t('org.orgName')" required>
           <el-input v-model="f.orgName" /></el-form-item>
-        <el-form-item label="上级组织">
+        <el-form-item :label="t('org.parent')">
           <el-input v-model="f.parentId"
-                    placeholder="留空=顶级；填写则作为下级" /></el-form-item>
-        <el-form-item label="组织类型" required>
+                    :placeholder="t('org.parentHint')" /></el-form-item>
+        <el-form-item :label="t('org.orgType')" required>
           <el-select v-model="f.orgType" style="width:100%">
-            <el-option label="区级 DISTRICT" value="DISTRICT" />
-            <el-option label="社区/小区 COMMUNITY" value="COMMUNITY" />
-            <el-option label="公司 COMPANY" value="COMPANY" />
-            <el-option label="部门 DEPARTMENT" value="DEPARTMENT" />
+            <el-option :label="t('org.district')" value="DISTRICT" />
+            <el-option :label="t('org.community')" value="COMMUNITY" />
+            <el-option :label="t('org.company')" value="COMPANY" />
+            <el-option :label="t('org.department')" value="DEPARTMENT" />
           </el-select></el-form-item>
-        <el-form-item label="标准地址">
+        <el-form-item :label="t('org.address')">
           <el-cascader v-model="regionPath" :props="regionProps" clearable filterable
-                       placeholder="省 / 地市 / 区县 / 街道 / 社区（点击逐级选择）"
+                       :placeholder="t('org.addressHint')"
                        style="width:100%" @change="onRegionChange" />
           <div class="muted" style="font-size:12px;margin-top:4px">
             数据来源：国家统计局五级行政区划（省/市/区县/街道/社区，共
             {{ regionCount }}）
           </div>
         </el-form-item>
-        <el-form-item label="社区/村">
+        <el-form-item :label="t('org.communityName')">
           <el-select v-model="f.community" filterable allow-create default-first-option
-                     clearable placeholder="可从下拉选择，也可直接输入新社区名"
+                     clearable :placeholder="t('org.communityHint')"
                      style="width:100%">
             <el-option v-for="c in communityOptions" :key="c" :label="c" :value="c" />
           </el-select>
@@ -105,27 +105,27 @@
             在标准地址里选到第五级会自动填入；也可在此手工输入或从历史社区中选择
           </div>
         </el-form-item>
-        <el-form-item label="详细地址">
+        <el-form-item :label="t('org.detailAddress')">
           <el-input v-model="f.address"
-                    placeholder="路牌、楼宇、房号等（如：天府三街199号3栋1单元1201）" /></el-form-item>
-        <el-form-item label="排序">
+                    :placeholder="t('org.detailHint')" /></el-form-item>
+        <el-form-item :label="t('org.sort')">
           <el-input-number v-model="f.sortNo" :min="1" style="width:100%" />
         </el-form-item>
-        <el-form-item label="备注">
+        <el-form-item :label="t('org.remark')">
           <el-input v-model="f.remark" type="textarea" :rows="2" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">保存</el-button>
+        <el-button @click="createVisible = false">{{ t('org.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('org.save') }}</el-button>
       </template>
     </el-dialog>
-    <el-dialog v-model="detailVisible" title="组织详情" width="680px">
+    <el-dialog v-model="detailVisible" :title="t('org.detailTitle')" width="680px">
       <el-descriptions :column="2" border size="small">
-        <el-descriptions-item label="组织名称">{{ detailRow.orgName }}</el-descriptions-item>
-        <el-descriptions-item label="编码">{{ detailRow.orgCode }}</el-descriptions-item>
-        <el-descriptions-item label="类型">{{ enumLabel('orgType', detailRow.orgType) }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ enumLabel('status', detailRow.status) }}</el-descriptions-item>
-        <el-descriptions-item label="标准地址" :span="2">
+        <el-descriptions-item :label="t('org.name')">{{ detailRow.orgName }}</el-descriptions-item>
+        <el-descriptions-item :label="t('org.code')">{{ detailRow.orgCode }}</el-descriptions-item>
+        <el-descriptions-item :label="t('org.type')">{{ enumLabel('orgType', detailRow.orgType) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('org.status')">{{ enumLabel('status', detailRow.status) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('org.address')" :span="2">
           {{ standardAddress(detailRow) }}
         </el-descriptions-item>
         <el-descriptions-item label="社区/村">{{ detailRow.community || '—' }}</el-descriptions-item>
@@ -169,12 +169,14 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { orgApi } from '@/api/modules'
 import { ElMessage } from 'element-plus'
 import req from '@/api/request'
 
+const { t } = useI18n()
 const loading = ref(false)
 let reloadingRoot = false
 const tree = ref([])
