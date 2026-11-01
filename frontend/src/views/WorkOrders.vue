@@ -117,13 +117,13 @@
         <template #default="{ row }">
           <el-button v-if="row.orderStatus === 'PENDING'" link type="warning"
                      @click="autoAssign(row)" data-testid="wo-autoassign">{{ t('workorder.autoAssign') }}</el-button>
-          <el-button link type="primary" @click="act(row, 'accept')">{{ t('workorder.accept') }}</el-button>
-          <el-button link type="success" @click="finish(row)">{{ t('workorder.finish') }}</el-button>
+          <el-button link type="primary" @click="act(row, 'accept')">{{ t('workorder.acceptAction') }}</el-button>
+          <el-button link type="success" @click="finish(row)">{{ t('workorder.finishAction') }}</el-button>
           <el-dropdown trigger="click" style="margin-left:8px">
             <el-button link type="primary">{{ t('workorder.more') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="act(row, 'start')">{{ t('workorder.start') }}</el-dropdown-item>
+                <el-dropdown-item @click="act(row, 'start')">{{ t('workorder.startAction') }}</el-dropdown-item>
                 <el-dropdown-item @click="closeOrder(row)">{{ t('workorder.close') }}</el-dropdown-item>
                 <el-dropdown-item @click="cancelOrder(row)">{{ t('workorder.cancelOrder') }}</el-dropdown-item>
                 <el-dropdown-item @click="rejectOrder(row)">{{ t('workorder.reject') }}</el-dropdown-item>
@@ -153,6 +153,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/store/auth'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -160,6 +161,7 @@ import { workOrderApi } from '@/api/modules'
 import req from '@/api/request'
 
 const { t } = useI18n()
+const auth = useAuthStore()
 const statuses = ['PENDING', 'ASSIGNED', 'ACCEPTED', 'PROCESSING', 'FINISHED',
   'CLOSED', 'CANCELLED']
 const loading = ref(false)
@@ -229,30 +231,37 @@ async function runDue() {
   } finally { saving.value = false }
 }
 
+function operatorPayload(content) {
+  const u = auth.user || {}
+  return { operatorId: u.userId, operatorName: u.realName || u.username, content, handleResult: content }
+}
+
 async function act(row, action) {
-  await workOrderApi[action](row.id)
-  ElMessage.success('操作成功')
-  load()
+  try {
+    await workOrderApi[action](row.id, operatorPayload(''))
+    ElMessage.success(t('workorder.actionSuccess', { action: t('workorder.' + action + 'Action') || action }))
+    load()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || t('workorder.operationFailed'))
+  }
 }
 async function finish(row) {
-  await workOrderApi.finish(row.id, { finishRemark: '现场处理完成' })
-  ElMessage.success('工单已完成')
+  await workOrderApi.finish(row.id, operatorPayload(t('workorder.finishNote')))
+  ElMessage.success(t('workorder.finishSuccess'))
   load()
 }
 /** ActionCmd{operatorId, operatorName, content} */
 async function orderAction(row, action, label, placeholder) {
-  const { value } = await ElMessageBox.prompt(placeholder || '处理说明（可空）', label,
+  const { value } = await ElMessageBox.prompt(placeholder || t('workorder.defaultPrompt'), label,
     { inputValue: '' })
-  await workOrderApi[action](row.id, {
-    operatorId: 1, operatorName: '管理员', content: value || label
-  })
-  ElMessage.success(label + '成功')
+  await workOrderApi[action](row.id, operatorPayload(value || label))
+  ElMessage.success(t('workorder.actionSuccess', { action: label }))
   load()
 }
 
-function closeOrder(row) { return orderAction(row, 'close', '关单', '关单说明（可空）') }
-function cancelOrder(row) { return orderAction(row, 'cancel', '取消', '取消原因') }
-function rejectOrder(row) { return orderAction(row, 'reject', '退回', '退回原因') }
+function closeOrder(row) { return orderAction(row, 'close', t('workorder.closeTitle'), t('workorder.closePrompt')) }
+function cancelOrder(row) { return orderAction(row, 'cancel', t('workorder.cancelTitle'), t('workorder.cancelPrompt')) }
+function rejectOrder(row) { return orderAction(row, 'reject', t('workorder.rejectTitle'), t('workorder.rejectPrompt')) }
 
 async function logs(row) {
   logList.value = await workOrderApi.logs(row.id)
