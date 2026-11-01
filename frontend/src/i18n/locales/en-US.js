@@ -157,6 +157,22 @@ export default {
     unauthorized: 'Not authorized: contact administrator',
     fullscreen: 'Full-screen display',
   },
+  deposit: {
+    title: 'Deposits & Refunds', create: 'New Deposit', contract: 'Contract', person: 'Person',
+    receivable: 'Receivable', received: 'Received', deducted: 'Deducted', refunded: 'Refunded',
+    balance: 'Balance', status: 'Status', actions: 'Actions', detail: 'Detail',
+    receive: 'Receive', deduct: 'Deduct', refund: 'Refund', refundNo: 'Refund No.',
+    amount: 'Amount', type: 'Type', statusCol: 'Status', approve: 'Approve', reject: 'Reject',
+    pay: 'Pay', createTitle: 'New Deposit', contractId: 'Contract ID', personId: 'Person ID',
+    depositAmount: 'Deposit Receivable', paidAmount: 'Deposit Received', cap: 'Policy Cap',
+    exempt: 'Exempt', exemptReason: 'Exemption Reason', cancel: 'Cancel', save: 'Save',
+    receiveTitle: 'Receive Deposit', deductTitle: 'Deduct Deposit', currentBalance: 'Current Balance',
+    reason: 'Deduction Reason', confirm: 'Confirm', refundTitle: 'Refund Deposit',
+    available: 'Refundable Balance', refundAmount: 'Refund Amount', refundType: 'Refund Type',
+    depositRefund: 'Deposit Refund', overpay: 'Overpayment Refund', channel: 'Refund Channel',
+    original: 'Original Method', bank: 'Bank Transfer', cash: 'Cash', refundReason: 'Refund Reason',
+    submit: 'Submit Request'
+  },
   arrears: {
     title: 'Dunning', actionTab: 'Arrears Actions', noticeTab: 'Dunning Notices',
     status: 'Status', pending: 'Pending', executed: 'Executed', revoked: 'Revoked',

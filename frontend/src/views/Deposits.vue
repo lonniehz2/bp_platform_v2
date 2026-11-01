@@ -2,12 +2,12 @@
   <div>
     <div class="page-card">
       <div class="toolbar">
-        <h3 style="margin:0">押金与退款</h3>
+        <h3 style="margin:0">{{ t('deposit.title') }}</h3>
         <el-tag size="small" type="info">
           余额 = 已收 − 已抵扣 − 已退还
         </el-tag>
         <div class="spacer" />
-        <el-button type="success" @click="depVisible = true">押金建档</el-button>
+        <el-button type="success" @click="depVisible = true">{{ t('deposit.create') }}</el-button>
       </div>
 
       <FilterBar @search="load" @reset="resetQuery">
@@ -16,28 +16,28 @@
     </FilterBar>
 
     <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
-        <el-table-column prop="contractId" label="合同" width="130">
+        <el-table-column prop="contractId" :label="t('deposit.contract')" width="130">
           <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
         </el-table-column>
-        <el-table-column prop="personId" label="人员" width="110">
+        <el-table-column prop="personId" :label="t('deposit.person')" width="110">
           <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
         </el-table-column>
-        <el-table-column label="应收" width="100" >
+        <el-table-column :label="t('deposit.receivable')" width="100" >
           <template #default="{ row }">{{ $money(row.depositAmount) }}</template>
         </el-table-column>
-        <el-table-column label="已收" width="100" >
+        <el-table-column :label="t('deposit.received')" width="100" >
           <template #default="{ row }">{{ $money(row.paidAmount) }}</template>
         </el-table-column>
-        <el-table-column label="已抵扣" width="100" >
+        <el-table-column :label="t('deposit.deducted')" width="100" >
           <template #default="{ row }">{{ $money(row.deductAmount) }}</template>
         </el-table-column>
-        <el-table-column label="已退还" width="100" >
+        <el-table-column :label="t('deposit.refunded')" width="100" >
           <template #default="{ row }">{{ $money(row.refundAmount) }}</template>
         </el-table-column>
-        <el-table-column label="余额" width="100" >
+        <el-table-column :label="t('deposit.balance')" width="100" >
           <template #default="{ row }">{{ $money(row.balanceAmount) }}</template>
         </el-table-column>
-        <el-table-column prop="depositStatus" label="状态" width="120">
+        <el-table-column prop="depositStatus" :label="t('deposit.status')" width="120">
           <template #default="{ row }">
             <el-tag size="small" :type="row.depositStatus === 'REFUNDED' ? 'success'
               : (row.depositStatus === 'DEDUCTED' ? 'warning' : 'info')">
@@ -45,12 +45,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column :label="t('deposit.actions')" width="240" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-            <el-button link type="primary" @click="openAmount(row, 'receive')">收取</el-button>
-            <el-button link type="warning" @click="openAmount(row, 'deduct')">抵扣</el-button>
-            <el-button link type="success" @click="openRefund(row)">申请退款</el-button>
+            <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('deposit.detail') }}</el-button>
+            <el-button link type="primary" @click="openAmount(row, 'receive')">{{ t('deposit.receive') }}</el-button>
+            <el-button link type="warning" @click="openAmount(row, 'deduct')">{{ t('deposit.deduct') }}</el-button>
+            <el-button link type="success" @click="openRefund(row)">{{ t('deposit.refund') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -64,17 +64,17 @@
     <div class="page-card">
       <h4 style="margin:0 0 12px">退款单</h4>
       <el-table :data="refunds" border size="small">
-        <el-table-column prop="refundNo" label="退款单号" width="170" />
+        <el-table-column prop="refundNo" :label="t('deposit.refundNo')" width="170" />
         <el-table-column prop="contractId" label="合同" width="130">
           <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
         </el-table-column>
-        <el-table-column label="金额" width="110" >
+        <el-table-column :label="t('deposit.amount')" width="110" >
           <template #default="{ row }">{{ $money(row.refundAmount) }}</template>
         </el-table-column>
-        <el-table-column prop="refundType" label="类型" width="110">
+        <el-table-column prop="refundType" :label="t('deposit.type')" width="110">
           <template #default="{ row }">{{ row.refundTypeLabel || enumLabel('refundType', row.refundType) }}</template>
         </el-table-column>
-        <el-table-column prop="refundStatus" label="状态" width="110">
+        <el-table-column prop="refundStatus" :label="t('deposit.statusCol')" width="110">
           <template #default="{ row }">
             <el-tag size="small" :type="row.refundStatus === 'SUCCESS' ? 'success'
               : (row.refundStatus === 'REJECTED' ? 'danger' : 'warning')">
@@ -82,12 +82,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column :label="t('deposit.actions')" width="240" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" :disabled="row.refundStatus !== 'PENDING'"
                        @click="approve(row)">批准</el-button>
             <el-button link type="danger" :disabled="row.refundStatus !== 'PENDING'"
-                       @click="reject(row)">驳回</el-button>
+                       @click="reject(row)">{{ t('deposit.reject') }}</el-button>
             <el-button link type="success" :disabled="row.refundStatus !== 'APPROVED'"
                        @click="complete(row)">打款完成</el-button>
           </template>
@@ -96,84 +96,84 @@
     </div>
 
     <!-- 押金建档 DepositCreateCmd -->
-    <el-dialog v-model="depVisible" title="押金建档" width="500px">
+    <el-dialog v-model="depVisible" :title="t('deposit.createTitle')" width="500px">
       <el-form :model="dp" label-width="120px">
-        <el-form-item label="合同ID"><el-input v-model="dp.contractId"
+        <el-form-item :label="t('deposit.contractId')"><el-input v-model="dp.contractId"
                      @blur="fillFromContract" />
         </el-form-item>
-        <el-form-item label="人员ID">
+        <el-form-item :label="t('deposit.personId')">
           <PersonPicker v-model="dp.personId" width="240px"
                         testid="person-picker" @update:model-value="fillFromPerson" />
           <span v-if="dp.personId" class="muted" style="margin-left:8px;font-size:12px">
             已带出人员ID：{{ dp.personId }}
           </span>
         </el-form-item>
-        <el-form-item label="应收押金"><el-input v-model.number="dp.depositAmount" />
+        <el-form-item :label="t('deposit.depositAmount')"><el-input v-model.number="dp.depositAmount" />
         </el-form-item>
-        <el-form-item label="实收押金"><el-input v-model.number="dp.paidAmount" />
+        <el-form-item :label="t('deposit.paidAmount')"><el-input v-model.number="dp.paidAmount" />
         </el-form-item>
-        <el-form-item label="政策上限"><el-input v-model.number="dp.capAmount" />
+        <el-form-item :label="t('deposit.cap')"><el-input v-model.number="dp.capAmount" />
           <span class="muted">超上限会告警（成都标准 1000 元）</span>
         </el-form-item>
-        <el-form-item label="免收">
+        <el-form-item :label="t('deposit.exempt')">
           <el-switch v-model="dp.isExempt" :active-value="1" :inactive-value="0" />
         </el-form-item>
-        <el-form-item v-if="dp.isExempt === 1" label="免收原因">
+        <el-form-item v-if="dp.isExempt === 1" :label="t('deposit.exemptReason')">
           <el-input v-model="dp.exemptReason" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="depVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doDeposit">保存</el-button>
+        <el-button @click="depVisible = false">{{ t('deposit.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doDeposit">{{ t('deposit.save') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 收取/抵扣 AmountCmd -->
-    <el-dialog v-model="amtVisible" :title="amtMode === 'receive' ? '收取押金' : '押金抵扣'"
+    <el-dialog v-model="amtVisible" :title="amtMode === 'receive' ? t('deposit.receiveTitle') : t('deposit.deductTitle')"
                width="440px">
       <el-form :model="am" label-width="110px">
         <el-form-item label="合同">
           <el-input :model-value="current?.contractId" disabled /></el-form-item>
-        <el-form-item label="当前余额">
+        <el-form-item :label="t('deposit.currentBalance')">
           <el-input :model-value="current?.balanceAmount" disabled /></el-form-item>
-        <el-form-item label="金额"><el-input v-model.number="am.amount" /></el-form-item>
-        <el-form-item v-if="amtMode === 'deduct'" label="抵扣原因">
+        <el-form-item :label="t('deposit.amount')"><el-input v-model.number="am.amount" /></el-form-item>
+        <el-form-item v-if="amtMode === 'deduct'" :label="t('deposit.reason')">
           <el-input v-model="am.reason" type="textarea" :rows="2" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="amtVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doAmount">确认</el-button>
+        <el-button @click="amtVisible = false">{{ t('deposit.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doAmount">{{ t('deposit.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 退款申请 RefundCreateCmd -->
-    <el-dialog v-model="refVisible" title="申请退还押金" width="480px">
+    <el-dialog v-model="refVisible" :title="t('deposit.refundTitle')" width="480px">
       <el-form :model="rf" label-width="110px">
         <el-form-item label="合同">
           <el-input :model-value="current?.contractId" disabled /></el-form-item>
-        <el-form-item label="可退余额">
+        <el-form-item :label="t('deposit.available')">
           <el-input :model-value="current?.balanceAmount" disabled /></el-form-item>
-        <el-form-item label="退款金额">
-          <el-input v-model.number="rf.refundAmount" placeholder="必填，不得超余额" />
+        <el-form-item :label="t('deposit.refundAmount')">
+          <el-input v-model.number="rf.refundAmount" :placeholder="t('deposit.refundAmount')" />
         </el-form-item>
-        <el-form-item label="退款类型">
+        <el-form-item :label="t('deposit.refundType')">
           <el-select v-model="rf.refundType" style="width:100%">
-            <el-option label="押金退还" value="DEPOSIT" />
-            <el-option label="多缴退还" value="OVERPAY" />
+            <el-option :label="t('deposit.depositRefund')" value="DEPOSIT" />
+            <el-option :label="t('deposit.overpay')" value="OVERPAY" />
           </el-select></el-form-item>
-        <el-form-item label="退款渠道">
+        <el-form-item :label="t('deposit.channel')">
           <el-select v-model="rf.refundChannel" style="width:100%">
-            <el-option label="原路退回" value="ORIGINAL" />
-            <el-option label="银行转账" value="BANK" />
-            <el-option label="现金" value="CASH" />
+            <el-option :label="t('deposit.original')" value="ORIGINAL" />
+            <el-option :label="t('deposit.bank')" value="BANK" />
+            <el-option :label="t('deposit.cash')" value="CASH" />
           </el-select></el-form-item>
-        <el-form-item label="退款原因">
+        <el-form-item :label="t('deposit.refundReason')">
           <el-input v-model="rf.refundReason" type="textarea" :rows="2" /></el-form-item>
       </el-form>
       <el-alert type="warning" :closable="false" show-icon
                 title="金额必填（不提供默认值，避免误退）；超余额会被拒绝" />
       <template #footer>
-        <el-button @click="refVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doRefund">提交申请</el-button>
+        <el-button @click="refVisible = false">{{ t('deposit.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doRefund">{{ t('deposit.submit') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -185,7 +185,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {

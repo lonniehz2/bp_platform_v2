@@ -157,6 +157,22 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  deposit: {
+    title: '押金与退款', create: '押金建档', contract: '合同', person: '人员',
+    receivable: '应收', received: '已收', deducted: '已抵扣', refunded: '已退还',
+    balance: '余额', status: '状态', actions: '操作', detail: '详情',
+    receive: '收取', deduct: '抵扣', refund: '申请退款', refundNo: '退款单号',
+    amount: '金额', type: '类型', statusCol: '状态', approve: '审批', reject: '驳回',
+    pay: '打款', createTitle: '押金建档', contractId: '合同ID', personId: '人员ID',
+    depositAmount: '应收押金', paidAmount: '实收押金', cap: '政策上限',
+    exempt: '免收', exemptReason: '免收原因', cancel: '取消', save: '保存',
+    receiveTitle: '收取押金', deductTitle: '押金抵扣', currentBalance: '当前余额',
+    reason: '抵扣原因', confirm: '确认', refundTitle: '申请退还押金',
+    available: '可退余额', refundAmount: '退款金额', refundType: '退款类型',
+    depositRefund: '押金退还', overpay: '多缴退还', channel: '退款渠道',
+    original: '原路退回', bank: '银行转账', cash: '现金', refundReason: '退款原因',
+    submit: '提交申请'
+  },
   arrears: {
     title: '催缴管理', actionTab: '欠费处置', noticeTab: '催缴通知',
     status: '状态', pending: '待执行', executed: '已执行', revoked: '已撤销',
