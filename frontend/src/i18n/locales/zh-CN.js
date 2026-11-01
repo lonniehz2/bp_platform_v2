@@ -158,6 +158,14 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  trans: {
+    title: '业务数据翻译', locale: '语言', type: '资源类型', resourceId: '资源 ID',
+    text: '英文名称', field: '字段', status: '状态', actions: '操作',
+    search: '查询', reset: '清空', add: '新增翻译', edit: '编辑',
+    org: '组织', house: '房源', person: '人员', space: '空间', feeItem: '收费项目',
+    device: '设备', name: '名称', enabled: '启用', disabled: '停用',
+    dialogTitle: '翻译维护', cancel: '取消', save: '保存', empty: '暂无翻译'
+  },
   iot: {
     title: 'IoT 联调工具', refreshLogs: '刷新日志', signTab: '签名自测',
     capTab: '对接能力', credTab: '凭据同步', logTab: '回调日志',

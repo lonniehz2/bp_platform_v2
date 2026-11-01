@@ -5,6 +5,8 @@ import com.yundao.bp.asset.entity.AssetHouse;
 import com.yundao.bp.asset.entity.AssetSpace;
 import com.yundao.bp.asset.mapper.AssetHouseMapper;
 import com.yundao.bp.asset.mapper.AssetSpaceMapper;
+import com.yundao.bp.common.i18n.I18nTextService;
+import com.yundao.bp.common.i18n.LocaleContext;
 import com.yundao.bp.common.util.EnumLabels;
 import com.yundao.bp.iam.entity.IamOrg;
 import com.yundao.bp.iam.mapper.IamOrgMapper;
@@ -48,6 +50,7 @@ public class DisplayEnricher {
     private final IamOrgMapper orgMapper;
     private final AssetSpaceMapper spaceMapper;
     private final ObjectMapper objectMapper;
+    private final I18nTextService i18nTextService;
     /** 业务编号解析用：直接按 id 查业务单号，避免为 8 张表各注入一个 Mapper */
     private final JdbcTemplate jdbcTemplate;
     private final Map<Long, String> bizNoCache = new ConcurrentHashMap<>();
@@ -59,13 +62,15 @@ public class DisplayEnricher {
 
     public DisplayEnricher(PersonMapper personMapper, AssetHouseMapper houseMapper,
                            IamOrgMapper orgMapper, AssetSpaceMapper spaceMapper,
-                           ObjectMapper objectMapper, JdbcTemplate jdbcTemplate) {
+                           ObjectMapper objectMapper, JdbcTemplate jdbcTemplate,
+                           I18nTextService i18nTextService) {
         this.personMapper = personMapper;
         this.houseMapper = houseMapper;
         this.orgMapper = orgMapper;
         this.spaceMapper = spaceMapper;
         this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
+        this.i18nTextService = i18nTextService;
     }
 
     /** 字段名后缀 → 中文标签的枚举类型 */
@@ -170,6 +175,53 @@ public class DisplayEnricher {
             }
         }
         map.putAll(extra);
+        localizeNames(map);
+    }
+
+    /**
+     * 英文界面：用业务主数据翻译覆盖名称字段。
+     *
+     * <p>翻译表按资源类型 + 资源ID + 字段 name 维护，因此任何列表只要带
+     * personId/houseId/orgId/spaceId/feeItemId 就能自动获得英文名称。</p>
+     */
+    private void localizeNames(Map<String, Object> map) {
+        if (!LocaleContext.isEnglish()) {
+            return;
+        }
+        Map<String, String> tr = i18nTextService.all("en-US");
+        if (tr.isEmpty()) {
+            return;
+        }
+        String[][] pairs = {
+                {"personName", "personId", "person"},
+                {"lesseeName", "lesseePersonId", "person"},
+                {"applicantName", "applicantPersonId", "person"},
+                {"holderName", "holderPersonId", "person"},
+                {"houseName", "houseId", "house"},
+                {"orgName", "orgId", "org"},
+                {"spaceName", "spaceId", "space"},
+                {"feeItemName", "feeItemId", "fee_item"},
+                {"itemName", "feeItemId", "fee_item"},
+                {"deviceName", "deviceId", "device"}
+        };
+        for (String[] p : pairs) {
+            String nameKey = p[0];
+            if (!map.containsKey(nameKey)) {
+                continue;
+            }
+            Long id = asLong(map.get(p[1]));
+            if (id == null && map.get("id") != null) {
+                // 房源/人员/组织自身列表返回的是 id，不是 houseId/personId/orgId
+                id = asLong(map.get("id"));
+            }
+            if (id == null) {
+                continue;
+            }
+            String text = tr.get(p[2] + ":" + id + ":name");
+            if (text != null && !text.isBlank()) {
+                map.put(nameKey, text);
+            }
+        }
     }
 
     /** 兼容 Number 与「纯数字字符串」两种形态 */

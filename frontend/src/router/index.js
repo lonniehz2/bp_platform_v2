@@ -241,6 +241,12 @@ export const menuRoutes = [
     meta: { title: '系统支撑', icon: 'Setting', group: '系统与数据', perm: 'sys:admin:view' }
   },
   {
+    path: '/translations',
+    name: 'translations',
+    component: () => import('@/views/Translations.vue'),
+    meta: { title: '业务数据翻译', icon: 'Translate', group: '系统与数据', perm: 'sys:admin:view' }
+  },
+  {
     path: '/subsidies',
     name: 'subsidies',
     component: () => import('@/views/Subsidies.vue'),

@@ -53,6 +53,7 @@ export const PAGE_EN = {
   开放平台: 'Open Platform',
   用户与权限: 'Users & Permissions',
   系统支撑: 'System Support',
+  业务数据翻译: 'Data Translations',
   补贴管理: 'Subsidies',
   押金与退款: 'Deposits & Refunds',
   公示管理: 'Publicity',

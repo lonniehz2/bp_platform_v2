@@ -157,6 +157,15 @@ export default {
     unauthorized: 'Not authorized: contact administrator',
     fullscreen: 'Full-screen display',
   },
+  trans: {
+    title: 'Data Translations', locale: 'Language', type: 'Resource Type',
+    resourceId: 'Resource ID', text: 'English Name', field: 'Field',
+    status: 'Status', actions: 'Actions', search: 'Search', reset: 'Reset',
+    add: 'New Translation', edit: 'Edit', org: 'Organization', house: 'Housing',
+    person: 'Person', space: 'Space', feeItem: 'Fee Item', device: 'Device',
+    name: 'Name', enabled: 'Enabled', disabled: 'Disabled',
+    dialogTitle: 'Translation', cancel: 'Cancel', save: 'Save', empty: 'No translations'
+  },
   iot: {
     title: 'IoT Debug Tools', refreshLogs: 'Refresh Logs', signTab: 'Signature Test',
     capTab: 'Capabilities', credTab: 'Credential Sync', logTab: 'Callback Logs',
