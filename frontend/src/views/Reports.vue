@@ -2,27 +2,27 @@
   <div>
     <div class="page-card">
       <div class="toolbar">
-        <el-select v-model="reportCode" placeholder="选择报表" style="width:220px"
+        <el-select v-model="reportCode" :placeholder="t('report.select')" style="width:220px"
                    @change="onQuery">
           <el-option v-for="r in reports" :key="r.reportCode"
-                     :label="r.reportName" :value="r.reportCode" />
+                     :label="reportLabel(r)" :value="r.reportCode" />
         </el-select>
-        <el-button type="primary" @click="onQuery">查询</el-button>
-        <el-button @click="resetQuery">清空</el-button>
+        <el-button type="primary" @click="onQuery">{{ t('report.search') }}</el-button>
+        <el-button @click="resetQuery">{{ t('report.reset') }}</el-button>
         <div class="spacer" />
         <el-select v-model="exportFormat" style="width:120px" data-testid="export-format">
           <el-option label="CSV" value="CSV" />
           <el-option label="Excel" value="EXCEL" />
         </el-select>
         <el-button type="success" :loading="exporting" @click="onExport">
-          <el-icon><Download /></el-icon>导出
+          <el-icon><Download /></el-icon>{{ t('report.export') }}
         </el-button>
       </div>
 
       <el-table :data="rows" v-loading="loading" border size="small">
         <el-table-column v-for="c in columns" :key="c.key"
-                         :prop="c.key" :label="c.title" show-overflow-tooltip />
-        <el-table-column v-if="!columns.length" label="提示">
+                         :prop="c.key" :label="colLabel(c.title)" show-overflow-tooltip />
+        <el-table-column v-if="!columns.length" :label="t('report.hint')">
           <template #default>请选择报表后查询</template>
         </el-table-column>
       </el-table>
@@ -46,67 +46,66 @@
       <div class="toolbar" style="margin-bottom:12px">
         <h4 style="margin:0">导出任务</h4>
         <div class="spacer" />
-        <el-select v-model="taskStatusFilter" placeholder="状态" clearable
+        <el-select v-model="taskStatusFilter" :placeholder="t('report.taskStatus')" clearable
                    style="width:120px" @change="applyTaskFilter">
-          <el-option label="待执行" value="PENDING" />
-          <el-option label="执行中" value="RUNNING" />
-          <el-option label="成功" value="SUCCESS" />
-          <el-option label="失败" value="FAILED" />
+          <el-option :label="t('report.pending')" value="PENDING" />
+          <el-option :label="t('report.running')" value="RUNNING" />
+          <el-option :label="t('report.success')" value="SUCCESS" />
+          <el-option :label="t('report.failed')" value="FAILED" />
         </el-select>
-        <el-button @click="loadTasks">刷新</el-button>
-        <el-button type="warning" :loading="runningPending" @click="runPending">
-          补跑待执行
+        <el-button @click="loadTasks">{{ t('report.refresh') }}</el-button>
+        <el-button type="warning" :loading="runningPending" @click="runPending">{{ t('report.runPending') }}
         </el-button>
       </div>
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
                 title="导出文件保存在服务器 /var/lib/bp-export/ 目录；点「下载」可保存到本机「下载」目录。任务列表为空表示还没有导出记录。" />
       <el-table :data="filteredTasks" border size="small" empty-text="暂无导出任务，请点右上角「导出」生成">
-        <el-table-column prop="taskNo" label="任务号" width="160" />
-        <el-table-column prop="fileName" label="文件名" min-width="200" />
-        <el-table-column prop="rowCount" label="行数" width="80" />
-        <el-table-column prop="taskStatus" label="状态" width="90">
+        <el-table-column prop="taskNo" :label="t('report.taskNo')" width="160" />
+        <el-table-column prop="fileName" :label="t('report.fileName')" min-width="200" />
+        <el-table-column prop="rowCount" :label="t('report.rowCount')" width="80" />
+        <el-table-column prop="taskStatus" :label="t('report.status')" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="row.taskStatus === 'SUCCESS' ? 'success' : 'info'">
               {{ row.taskStatusLabel || enumLabel('taskStatus', row.taskStatus) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="fileUrl" label="文件路径（服务器）" min-width="240"
+        <el-table-column prop="fileUrl" :label="t('report.fileUrl')" min-width="240"
                          show-overflow-tooltip />
-        <el-table-column label="操作" width="230" fixed="right">
+        <el-table-column :label="t('report.actions')" width="230" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="preview(row)">预览</el-button>
-            <el-button link type="success" @click="download(row)">下载</el-button>
-            <el-button link @click="showTask(row)">任务详情</el-button>
+            <el-button link type="primary" @click="preview(row)">{{ t('report.preview') }}</el-button>
+            <el-button link type="success" @click="download(row)">{{ t('report.download') }}</el-button>
+            <el-button link @click="showTask(row)">{{ t('report.taskDetail') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
     </div>
 
     <!-- 任务详情 -->
-    <el-dialog v-model="taskDetailVisible" title="导出任务详情" width="620px">
+    <el-dialog v-model="taskDetailVisible" :title="t('report.detailTitle')" width="620px">
       <el-descriptions :column="1" border size="small">
-        <el-descriptions-item label="任务号">{{ taskDetail.taskNo }}</el-descriptions-item>
-        <el-descriptions-item label="报表">{{ taskDetail.reportCode }}</el-descriptions-item>
-        <el-descriptions-item label="文件名">{{ taskDetail.fileName }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
+        <el-descriptions-item :label="t('report.taskNo')">{{ taskDetail.taskNo }}</el-descriptions-item>
+        <el-descriptions-item :label="t('report.report')">{{ taskDetail.reportCode }}</el-descriptions-item>
+        <el-descriptions-item :label="t('report.fileName')">{{ taskDetail.fileName }}</el-descriptions-item>
+        <el-descriptions-item :label="t('report.status')">
           {{ taskDetail.taskStatusLabel || enumLabel('taskStatus', taskDetail.taskStatus) }}
         </el-descriptions-item>
-        <el-descriptions-item label="行数">{{ taskDetail.rowCount }}</el-descriptions-item>
-        <el-descriptions-item label="耗时">{{ taskDetail.costMs }} ms</el-descriptions-item>
-        <el-descriptions-item label="服务器路径">
+        <el-descriptions-item :label="t('report.rowCount')">{{ taskDetail.rowCount }}</el-descriptions-item>
+        <el-descriptions-item :label="t('report.cost')">{{ taskDetail.costMs }} ms</el-descriptions-item>
+        <el-descriptions-item :label="t('report.serverPath')">
           {{ taskDetail.fileUrl || '—' }}
         </el-descriptions-item>
-        <el-descriptions-item label="创建时间">
+        <el-descriptions-item :label="t('report.created')">
           {{ taskDetail.createTime || '—' }}
         </el-descriptions-item>
-        <el-descriptions-item label="失败原因">
+        <el-descriptions-item :label="t('report.failReason')">
           {{ taskDetail.errorMsg || '—' }}
         </el-descriptions-item>
       </el-descriptions>
       <template #footer>
-        <el-button @click="taskDetailVisible = false">关闭</el-button>
-        <el-button type="success" @click="download(taskDetail)">下载</el-button>
+        <el-button @click="taskDetailVisible = false">{{ t('report.close') }}</el-button>
+        <el-button type="success" @click="download(taskDetail)">{{ t('report.download') }}</el-button>
       </template>
     </el-dialog>
 
@@ -119,12 +118,37 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { computed, ref, onMounted } from 'vue'
 import { enumLabel } from '@/constants/enums'
 import { ElMessage } from 'element-plus'
 import { rptApi } from '@/api/modules'
 import req from '@/api/request'
 
+const { t, locale } = useI18n()
+
+const REPORT_EN = {
+  HOUSE_LEDGER: 'Housing Ledger',
+  CONTRACT_LEDGER: 'Contract Ledger',
+  ARREARS_LEDGER: 'Arrears Ledger'
+}
+const COL_EN = {
+  '房源编号': 'Housing Code', '房源名称': 'Housing Name', '房源类型': 'Housing Type',
+  '面积(㎡)': 'Area (m²)', '房源状态': 'Housing Status',
+  '合同号': 'Contract No.', '承租人': 'Lessee', '起租日': 'Lease Start',
+  '止租日': 'Lease End', '月租金': 'Monthly Rent', '状态': 'Status',
+  '账单号': 'Bill No.', '缴费人': 'Payer', '账期': 'Billing Period',
+  '应付金额': 'Payable', '缴费截止日': 'Due Date'
+}
+function isEn() {
+  return locale.value === 'en-US'
+}
+function reportLabel(r) {
+  return isEn() ? (REPORT_EN[r.reportCode] || r.reportName) : r.reportName
+}
+function colLabel(title) {
+  return isEn() ? (COL_EN[title] || title) : title
+}
 const reports = ref([])
 const reportCode = ref('HOUSE_LEDGER')
 const columns = ref([])
@@ -180,8 +204,7 @@ async function onExport() {
       reportCode: reportCode.value,
       exportFormat: exportFormat.value
     })
-    ElMessage.success(`导出完成：${task.fileName}（${task.rowCount} 行），
-      文件已存到服务器，可在下方「导出任务」点下载`)
+    ElMessage.success(t('report.exportDone', { name: task.fileName, rows: task.rowCount }))
     await loadTasks()
   } finally {
     exporting.value = false
@@ -201,7 +224,7 @@ async function download(row) {
     document.body.removeChild(a)
     window.URL.revokeObjectURL(url)
   } catch (e) {
-    ElMessage.error('下载失败，请稍后重试')
+    ElMessage.error(t('report.downloadFailed'))
   }
 }
 
@@ -237,7 +260,7 @@ async function loadTasks() {
   try {
     tasks.value = (await rptApi.tasks()) || []
   } catch (e) {
-    ElMessage.error('导出任务加载失败')
+    ElMessage.error(t('report.taskLoadFailed'))
   }
 }
 
@@ -254,7 +277,7 @@ async function runPending() {
   runningPending.value = true
   try {
     const n = await rptApi.runPending()
-    ElMessage.success(`已补跑 ${n} 个待执行任务`)
+    ElMessage.success(t('report.runDone', { n }))
     loadTasks()
   } catch (e) {
     ElMessage.error(e?.response?.data?.message || '补跑失败')
