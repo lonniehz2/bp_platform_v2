@@ -241,12 +241,12 @@
     </el-dialog>
 
     <!-- 变更人员状态 -->
-    <el-dialog v-model="statusVisible" title="变更人员状态" width="420px">
+    <el-dialog v-model="statusVisible" :title="t('personX.changeStatus')" width="420px">
       <el-form label-width="90px">
-        <el-form-item label="人员">
+        <el-form-item :label="t('personX.person')">
           <el-input :model-value="statusTarget?.personName" disabled />
         </el-form-item>
-        <el-form-item label="新状态">
+        <el-form-item :label="t('personX.newStatus')">
           <el-select v-model="statusValue" style="width:100%">
             <el-option v-for="o in PERSON_STATUS" :key="o.value"
                        :label="o.label" :value="o.value" />
@@ -254,121 +254,121 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="statusVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doChangeStatus">确认</el-button>
+        <el-button @click="statusVisible = false">{{ t('personX.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doChangeStatus">{{ t('personX.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 保障档案建档 ProfileCmd -->
     <el-dialog v-model="profileVisible"
-               :title="profileEditMode ? '编辑保障档案' : '保障档案建档'" width="620px">
+               :title="profileEditMode ? t('personX.editProfile') : t('personX.createProfile')" width="620px">
       <el-form :model="gf" label-width="130px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="人员" required>
+          <el-col :span="12"><el-form-item :label="t('personX.person')" required>
             <PersonPicker v-model="gf.personId" width="100%"
                           testid="profile-person-picker" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="保障类型">
+          <el-col :span="12"><el-form-item :label="t('personX.securityType')">
             <el-select v-model="gf.securityType" style="width:100%">
-              <el-option label="公租房" value="PUBLIC" />
-              <el-option label="保租房" value="AFFORDABLE" />
-              <el-option label="人才房" value="TALENT" />
-              <el-option label="廉租房" value="LOW_RENT" />
+              <el-option :label="t('misc.publicRental')" value="PUBLIC" />
+              <el-option :label="t('misc.affordable')" value="AFFORDABLE" />
+              <el-option :label="t('misc.talent')" value="TALENT" />
+              <el-option :label="t('misc.lowRent')" value="LOW_RENT" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="家庭人口">
+          <el-col :span="12"><el-form-item :label="t('personX.familySize')">
             <el-input-number v-model="gf.familySize" :min="1" style="width:100%" />
           </el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="家庭类型">
+          <el-col :span="12"><el-form-item :label="t('personX.familyType')">
             <el-select v-model="gf.familyType" style="width:100%">
-              <el-option label="单身" value="SINGLE" />
-              <el-option label="夫妻" value="COUPLE" />
-              <el-option label="单亲" value="SINGLE_PARENT" />
-              <el-option label="其他" value="OTHER" />
+              <el-option :label="t('personX.single')" value="SINGLE" />
+              <el-option :label="t('personX.couple')" value="COUPLE" />
+              <el-option :label="t('personX.singleParent')" value="SINGLE_PARENT" />
+              <el-option :label="t('personX.other')" value="OTHER" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="家庭月收入">
+          <el-col :span="12"><el-form-item :label="t('personX.monthlyIncome')">
             <el-input-number v-model="gf.monthlyIncome" :min="0" :precision="2"
                              style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="资产申报(万元)">
+          <el-col :span="12"><el-form-item :label="t('personX.asset')">
             <el-input-number v-model="gf.assetDeclare" :min="0" :precision="2"
                              style="width:100%" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="名下有房">
+          <el-col :span="12"><el-form-item :label="t('personX.hasHouse')">
             <el-switch v-model="gf.hasHouse" :active-value="1" :inactive-value="0" />
           </el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="名下有车">
+          <el-col :span="12"><el-form-item :label="t('personX.hasVehicle')">
             <el-switch v-model="gf.hasVehicle" :active-value="1" :inactive-value="0" />
           </el-form-item></el-col>
         </el-row>
       </el-form>
       <el-alert type="info" :closable="false" show-icon
-                title="建档后会自动计算人均收入与收入档位（LOW / LOW_INCOME / MIDDLE_LOW / NORMAL）" />
+                :title="t('personX.profileHint')" />
       <template #footer>
-        <el-button @click="profileVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreateProfile">保存</el-button>
+        <el-button @click="profileVisible = false">{{ t('personX.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreateProfile">{{ t('personX.save') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 收入重算 IncomeCmd -->
-    <el-dialog v-model="recalcVisible" title="收入档位重算" width="480px">
+    <el-dialog v-model="recalcVisible" :title="t('personX.recalcTitle')" width="480px">
       <el-form :model="ic" label-width="140px">
-        <el-form-item label="低保线">
+        <el-form-item :label="t('personX.lowLine')">
           <el-input-number v-model="ic.lowLine" :precision="2" style="width:100%" />
         </el-form-item>
-        <el-form-item label="低收入线">
+        <el-form-item :label="t('personX.lowIncomeLine')">
           <el-input-number v-model="ic.lowIncomeLine" :precision="2" style="width:100%" />
         </el-form-item>
-        <el-form-item label="中低收入线">
+        <el-form-item :label="t('personX.middleLowLine')">
           <el-input-number v-model="ic.middleLowLine" :precision="2" style="width:100%" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="recalcVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doRecalc">重算</el-button>
+        <el-button @click="recalcVisible = false">{{ t('personX.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doRecalc">{{ t('personX.recalc') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 退出保障 ExitCmd -->
-    <el-dialog v-model="exitVisible" title="退出保障" width="480px">
+    <el-dialog v-model="exitVisible" :title="t('personX.exitTitle')" width="480px">
       <el-form :model="ex" label-width="120px">
-        <el-form-item label="退出日期">
+        <el-form-item :label="t('personX.exitDate')">
           <el-date-picker v-model="ex.exitDate" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" /></el-form-item>
-        <el-form-item label="退出原因">
+        <el-form-item :label="t('personX.exitReason')">
           <el-input v-model="ex.exitReason" type="textarea" :rows="3" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="exitVisible = false">取消</el-button>
-        <el-button type="danger" :loading="saving" @click="doExit">确认退出</el-button>
+        <el-button @click="exitVisible = false">{{ t('personX.cancel') }}</el-button>
+        <el-button type="danger" :loading="saving" @click="doExit">{{ t('personX.confirmExit') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 发起实名核验 VerifyCmd -->
-    <el-dialog v-model="verifyVisible" title="发起实名核验" width="560px">
+    <el-dialog v-model="verifyVisible" :title="t('personX.verifyTitle')" width="560px">
       <el-form :model="vf" label-width="130px">
         <el-form-item label="人员" required>
           <PersonPicker v-model="vf.personId" width="260px" testid="verify-person-picker" />
         </el-form-item>
-        <el-form-item label="核验方式">
+        <el-form-item :label="t('personX.verifyMethod')">
           <el-select v-model="vf.verifyType" style="width:100%">
-            <el-option label="人脸比对" value="FACE_COMPARE" />
-            <el-option label="身份证 OCR" value="IDCARD_OCR" />
-            <el-option label="政务数据核验" value="GOV_DATA" />
+            <el-option :label="t('personX.faceCompare')" value="FACE_COMPARE" />
+            <el-option :label="t('personX.idcardOcr')" value="IDCARD_OCR" />
+            <el-option :label="t('personX.govData')" value="GOV_DATA" />
           </el-select></el-form-item>
-        <el-form-item label="姓名">
+        <el-form-item :label="t('personX.name')">
           <el-input v-model="vf.userName" /></el-form-item>
-        <el-form-item label="人脸照片">
+        <el-form-item :label="t('personX.facePhoto')">
           <div style="width:100%">
             <el-upload :action="uploadAction" :headers="uploadHeaders" name="file"
                        :show-file-list="false" accept="image/*"
                        :on-success="(r) => { vf.faceImgUrl = fileUrlOf(r) }"
-                       :on-error="() => ElMessage.error('上传失败')">
-              <el-button size="small">本地上传</el-button>
+                       :on-error="() => ElMessage.error(t('personX.uploadFail'))">
+              <el-button size="small">{{ t('personX.uploadLocal') }}</el-button>
             </el-upload>
             <div class="muted" style="font-size:12px;margin-top:4px">
-              {{ vf.faceImgUrl || '未上传（也可粘贴外部 URL）' }}
+              {{ vf.faceImgUrl || t('personX.notUploaded') }}
             </div>
-            <el-input v-model="vf.faceImgUrl" placeholder="或粘贴图片 URL" size="small" />
+            <el-input v-model="vf.faceImgUrl" :placeholder="t('personX.orUrl')" size="small" />
           </div>
         </el-form-item>
-        <el-form-item label="证件照片">
+        <el-form-item :label="t('personX.idcardPhoto')">
           <div style="width:100%">
             <el-upload :action="uploadAction" :headers="uploadHeaders" name="file"
                        :show-file-list="false" accept="image/*"
@@ -377,20 +377,20 @@
               <el-button size="small">本地上传</el-button>
             </el-upload>
             <div class="muted" style="font-size:12px;margin-top:4px">
-              {{ vf.idcardImgUrl || '未上传（也可粘贴外部 URL）' }}
+              {{ vf.idcardImgUrl || t('personX.notUploaded') }}
             </div>
             <el-input v-model="vf.idcardImgUrl" placeholder="或粘贴图片 URL" size="small" />
           </div>
         </el-form-item>
       </el-form>
       <el-alert type="info" :closable="false" show-icon
-                title="未通过实名核验的人员不能提交申请（后端硬校验）" />
+                :title="t('personX.verifyHint')" />
       <template #footer>
-        <el-button @click="verifyVisible = false">取消</el-button>
+        <el-button @click="verifyVisible = false">{{ t('personX.cancel') }}</el-button>
         <el-button type="success" :loading="saving" @click="doManualPass">
-          演示：核验通过
+          {{ t('personX.demoPass') }}
         </el-button>
-        <el-button type="primary" :loading="saving" @click="doVerify">提交核验</el-button>
+        <el-button type="primary" :loading="saving" @click="doVerify">{{ t('personX.submitVerify') }}</el-button>
       </template>
     </el-dialog>
   </div>
