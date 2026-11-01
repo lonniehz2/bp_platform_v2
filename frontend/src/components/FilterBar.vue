@@ -2,11 +2,11 @@
   <div class="bp-filter">
     <div class="bp-filter-row">
       <slot />
-      <el-button type="primary" @click="$emit('search')" data-testid="filter-search">查询</el-button>
-      <el-button @click="$emit('reset')" data-testid="filter-reset">清空</el-button>
+      <el-button type="primary" @click="$emit('search')" data-testid="filter-search">{{ t('common.search') }}</el-button>
+      <el-button @click="$emit('reset')" data-testid="filter-reset">{{ t('common.reset') }}</el-button>
       <el-button v-if="$slots.more" text type="primary"
                  @click="open = !open" data-testid="filter-more">
-        {{ open ? '收起' : '更多筛选' }}
+        {{ open ? t('common.collapse') : t('common.moreFilters') }}
       </el-button>
     </div>
     <div v-if="$slots.more && open" class="bp-filter-more">
@@ -17,6 +17,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 /**
  * 统一筛选栏。
@@ -33,6 +34,7 @@ import { ref } from 'vue'
  *  - 默认展示最高频的 1–2 个条件，其余收进「更多筛选」，避免工具栏被撑爆
  *  - 查询/清空 由父组件实现，本组件只负责布局与展开状态
  */
+const { t } = useI18n()
 defineEmits(['search', 'reset'])
 const open = ref(false)
 </script>

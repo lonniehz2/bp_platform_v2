@@ -1,5 +1,6 @@
 export default {
   common: {
+    moreFilters: 'More Filters',
     confirm: 'Confirm',
     cancel: 'Cancel',
     save: 'Save',

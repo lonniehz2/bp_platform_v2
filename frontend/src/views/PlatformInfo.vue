@@ -42,7 +42,7 @@
               <el-radio-button value="DISABLED">{{ t('misc5.disable') }}</el-radio-button>
             </el-radio-group>
             <div class="muted" style="font-size:12px;margin-top:4px">
-              状态由平台运营设置，平台管理员不可修改。
+              {{ t('misc5.statusHint') }}
             </div>
           </el-form-item>
         </el-form>

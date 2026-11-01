@@ -33,8 +33,7 @@
 
     <el-alert v-if="fresh && fresh.stale > 0" type="warning" :closable="false" show-icon
               style="margin-bottom:10px"
-              :title="'数据新鲜度：24 小时内上报 ' + fresh.fresh + ' / ' + fresh.total
-                + ' 台（静默 ' + fresh.stale + ' 台，占 ' + fresh.staleRate + '%）'">
+              :title="t('misc4.freshness', { fresh: fresh.fresh, total: fresh.total, stale: fresh.stale, rate: fresh.staleRate })">
       <template #default>
         <el-button link type="primary" @click="freshVisible = true">{{ t('device.silent') }}</el-button>
       </template>
