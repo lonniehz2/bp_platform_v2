@@ -158,6 +158,20 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  alert: {
+    title: '告警处理', keyword: '关键字', search: '查询', reset: '清空',
+    stats: '告警统计', create: '新建告警', empty: '暂无数据，可调整筛选条件',
+    tip: '阈值告警由规则引擎产生；可转工单、升级或忽略',
+    type: '告警类型', level: '级别', status: '状态', content: '内容',
+    actions: '操作', detail: '详情', handle: '处理', more: '更多▾',
+    rulesetTitle: '规则集', domain: '域', alertDomain: '告警', billing: '计费',
+    credit: '信用', draft: '草稿', published: '已发布', disabled: '已停用',
+    refresh: '刷新', newRuleset: '新建规则集', code: '规则集编码', name: '名称',
+    scenario: '场景', version: '版本', statusCol: '状态', viewRules: '查看规则',
+    publish: '发布', disable: '停用', condition: '条件', threshold: '阈值',
+    priority: '优先级', edit: '编辑', save: '保存', cancel: '取消',
+    createTitle: '新建规则集', description: '说明'
+  },
   workorder: {
     title: '工单与维保', status: '状态', plans: '巡检计划', autoAssign: '自动派单',
     escalate: '超时升级', refresh: '刷新', planTitle: '巡检计划', newPlan: '新建计划',

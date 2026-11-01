@@ -1,41 +1,41 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">告警处理</h3>
+      <h3 style="margin:0">{{ t('alert.title') }}</h3>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字" clearable style="width:160px"
+      <el-input v-model="keyword" :placeholder="t('alert.keyword')" clearable style="width:160px"
                 @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button @click="loadStats">告警统计</el-button>
-      <el-button type="success" @click="createVisible = true">新建告警</el-button>
+      <el-button type="primary" @click="reload">{{ t('alert.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('alert.reset') }}</el-button>
+      <el-button @click="loadStats">{{ t('alert.stats') }}</el-button>
+      <el-button type="success" @click="createVisible = true">{{ t('alert.create') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon :title="'阈值告警由规则引擎产生；可转工单、升级或忽略'"
               style="margin-bottom:12px" />
 
-    <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+    <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('alert.empty')">
       <el-table-column type="expand">
         <template #default="{ row }">
           <DetailView :row="row" />
         </template>
       </el-table-column>
-      <el-table-column prop="alertType" label="告警类型" width="150">
+      <el-table-column prop="alertType" :label="t('alert.type')" width="150">
         <template #default="{ row }">{{ row.alertTypeLabel || enumLabel('alertType', row.alertType) }}</template>
       </el-table-column>
-      <el-table-column prop="alertLevel" label="级别" width="100">
+      <el-table-column prop="alertLevel" :label="t('alert.level')" width="100">
         <template #default="{ row }">{{ row.alertLevelLabel || enumLabel('alertLevel', row.alertLevel) }}</template>
       </el-table-column>
-      <el-table-column prop="alertStatus" label="状态" width="110">
+      <el-table-column prop="alertStatus" :label="t('alert.status')" width="110">
         <template #default="{ row }">{{ row.alertStatusLabel || enumLabel('alertStatus', row.alertStatus) }}</template>
       </el-table-column>
-      <el-table-column prop="alertContent" label="内容" width="200" />
-      <el-table-column label="操作" width="210" fixed="right">
+      <el-table-column prop="alertContent" :label="t('alert.content')" width="200" />
+      <el-table-column :label="t('alert.actions')" width="210" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-          <el-button link type="warning" @click="actAction(row, '/alerts/{id}/handle', '处理')">处理</el-button>
+          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('alert.detail') }}</el-button>
+          <el-button link type="warning" @click="actAction(row, '/alerts/{id}/handle', t('alert.handle'))">{{ t('alert.handle') }}</el-button>
           <el-dropdown trigger="click" style="margin-left:8px">
-            <el-button link type="primary">更多▾</el-button>
+            <el-button link type="primary">{{ t('alert.more') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="actAction(row, '/alerts/{id}/resolve', '解决')">解决</el-dropdown-item>
@@ -59,20 +59,20 @@
         <h4 style="margin:0">规则引擎（规则集 → 规则）</h4>
         <el-tag size="small" type="info">规则集 = 一组规则；规则 = 一条判定</el-tag>
         <div class="spacer" />
-        <el-select v-model="rsDomain" placeholder="域" clearable style="width:130px"
+        <el-select v-model="rsDomain" :placeholder="t('alert.domain')" clearable style="width:130px"
                    @change="loadRulesets">
-          <el-option label="告警" value="ALERT" />
-          <el-option label="计费" value="BILLING" />
-          <el-option label="信用" value="CREDIT" />
+          <el-option :label="t('alert.alertDomain')" value="ALERT" />
+          <el-option :label="t('alert.billing')" value="BILLING" />
+          <el-option :label="t('alert.credit')" value="CREDIT" />
         </el-select>
-        <el-select v-model="rsStatus" placeholder="状态" clearable style="width:120px"
+        <el-select v-model="rsStatus" :placeholder="t('alert.status')" clearable style="width:120px"
                    @change="loadRulesets">
-          <el-option label="草稿" value="DRAFT" />
-          <el-option label="已发布" value="PUBLISHED" />
-          <el-option label="已停用" value="DISABLED" />
+          <el-option :label="t('alert.draft')" value="DRAFT" />
+          <el-option :label="t('alert.published')" value="PUBLISHED" />
+          <el-option :label="t('alert.disabled')" value="DISABLED" />
         </el-select>
-        <el-button @click="loadRulesets">刷新</el-button>
-        <el-button type="success" @click="openRuleset">新建规则集</el-button>
+        <el-button @click="loadRulesets">{{ t('alert.refresh') }}</el-button>
+        <el-button type="success" @click="openRuleset">{{ t('alert.newRuleset') }}</el-button>
       </div>
 
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
@@ -80,16 +80,16 @@
       <el-table :data="rulesets" v-loading="rsLoading" border size="small"
                 highlight-current-row :current-row-key="currentRuleset?.id"
                 row-key="id" @current-change="onPickRuleset">
-        <el-table-column prop="rulesetCode" label="规则集编码" width="170" />
-        <el-table-column prop="rulesetName" label="名称" min-width="160" />
-        <el-table-column label="域" width="100">
+        <el-table-column prop="rulesetCode" :label="t('alert.code')" width="170" />
+        <el-table-column prop="rulesetName" :label="t('alert.name')" min-width="160" />
+        <el-table-column :label="t('alert.domain')" width="100">
           <template #default="{ row }">{{ domainText(row.domain) }}</template>
         </el-table-column>
-        <el-table-column label="场景" width="130">
+        <el-table-column :label="t('alert.scenario')" width="130">
           <template #default="{ row }">{{ scenarioText(row.scenario) }}</template>
         </el-table-column>
-        <el-table-column prop="rulesetVersion" label="版本" width="80" />
-        <el-table-column prop="rulesetStatus" label="状态" width="110">
+        <el-table-column prop="rulesetVersion" :label="t('alert.version')" width="80" />
+        <el-table-column prop="rulesetStatus" :label="t('alert.statusCol')" width="110">
           <template #default="{ row }">
             <el-tag size="small" :type="row.rulesetStatus === 'PUBLISHED' ? 'success'
               : (row.rulesetStatus === 'DISABLED' ? 'info' : 'warning')">
@@ -97,9 +97,9 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column :label="t('alert.actions')" width="220" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="viewRules(row)">查看规则</el-button>
+            <el-button link type="primary" @click="viewRules(row)">{{ t('alert.viewRules') }}</el-button>
             <el-button link type="success" :disabled="row.rulesetStatus === 'PUBLISHED'"
                        @click="publishRuleset(row)">发布</el-button>
             <el-button link type="warning" :disabled="row.rulesetStatus === 'DISABLED'"
@@ -120,28 +120,28 @@
                      @click="openRule">新增规则</el-button>
         </div>
         <el-table :data="rules" border size="small">
-          <el-table-column prop="ruleCode" label="规则编码" width="150" />
-          <el-table-column prop="ruleName" label="名称" min-width="140" />
-          <el-table-column label="条件" min-width="190" show-overflow-tooltip>
+          <el-table-column prop="ruleCode" :label="t('alert.code')" width="150" />
+          <el-table-column prop="ruleName" :label="t('alert.name')" min-width="140" />
+          <el-table-column :label="t('alert.condition')" min-width="190" show-overflow-tooltip>
             <template #default="{ row }">{{ humanCondition(row.conditionExpr) }}</template>
           </el-table-column>
-          <el-table-column label="阈值" min-width="150" show-overflow-tooltip>
+          <el-table-column :label="t('alert.threshold')" min-width="150" show-overflow-tooltip>
             <template #default="{ row }">{{ humanThreshold(row.thresholdJson) }}</template>
           </el-table-column>
-          <el-table-column prop="severity" label="级别" width="90">
+          <el-table-column prop="severity" :label="t('alert.level')" width="90">
             <template #default="{ row }">{{ enumLabel('alertLevel', row.severity) }}</template>
           </el-table-column>
-          <el-table-column prop="priority" label="优先级" width="90" />
-          <el-table-column prop="ruleStatus" label="状态" width="100">
+          <el-table-column prop="priority" :label="t('alert.priority')" width="90" />
+          <el-table-column prop="ruleStatus" :label="t('alert.statusCol')" width="100">
             <template #default="{ row }">
               <el-tag size="small" :type="row.ruleStatus === 'ENABLED' ? 'success' : 'info'">
                 {{ enumLabel('ruleStatus', row.ruleStatus) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="160" fixed="right">
+          <el-table-column :label="t('alert.actions')" width="160" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openRule(row)">编辑</el-button>
+              <el-button link type="primary" @click="openRule(row)">{{ t('alert.edit') }}</el-button>
               <el-button link :type="row.ruleStatus === 'ENABLED' ? 'warning' : 'success'"
                          @click="toggleRule(row)">
                 {{ row.ruleStatus === 'ENABLED' ? '停用' : '启用' }}
@@ -154,25 +154,25 @@
     </div>
 
     <!-- 新建规则集 -->
-    <el-dialog v-model="rulesetVisible" title="新建规则集" width="560px">
+    <el-dialog v-model="rulesetVisible" :title="t('alert.createTitle')" width="560px">
       <el-form :model="rs" label-width="110px">
-        <el-form-item label="编码" required>
+        <el-form-item :label="t('alert.code')" required>
           <el-input v-model="rs.code" placeholder="如 ALERT_OVERDUE" />
         </el-form-item>
-        <el-form-item label="名称" required>
+        <el-form-item :label="t('alert.name')" required>
           <el-input v-model="rs.name" />
         </el-form-item>
-        <el-form-item label="域" required>
+        <el-form-item :label="t('alert.domain')" required>
           <el-select v-model="rs.domain" style="width:100%">
             <el-option label="告警" value="ALERT" />
             <el-option label="计费" value="BILLING" />
             <el-option label="信用" value="CREDIT" />
           </el-select>
         </el-form-item>
-        <el-form-item label="场景">
+        <el-form-item :label="t('alert.scenario')">
           <el-input v-model="rs.scenario" placeholder="如 OVERDUE_BILL" />
         </el-form-item>
-        <el-form-item label="说明">
+        <el-form-item :label="t('alert.description')">
           <el-input v-model="rs.description" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
@@ -298,7 +298,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView，字段与中文名来自后端字段字典） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {
