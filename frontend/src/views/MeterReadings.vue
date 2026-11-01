@@ -1,38 +1,38 @@
 <template>
   <div>
     <div class="toolbar">
-      <el-select v-model="query.houseId" placeholder="房源" clearable filterable
+      <el-select v-model="query.houseId" :placeholder="t('meter.house')" clearable filterable
                  style="width:240px" @change="load">
         <el-option v-for="h in houses" :key="h.id" :value="h.id"
                    :label="(h.houseName || h.houseCode) + '（' + h.houseCode + '）'" />
       </el-select>
-      <el-select v-model="query.feeItemId" placeholder="计量项目（水/电/燃气）" clearable
+      <el-select v-model="query.feeItemId" :placeholder="t('meter.feeItemHint')" clearable
                  style="width:220px" @change="load">
         <el-option v-for="m in meterItems" :key="m.id" :value="m.id"
                    :label="m.itemName + '（' + m.unitPrice + ' 元/' + (m.unit || '度') + '）'" />
       </el-select>
-      <el-select v-model="query.orgId" placeholder="组织" clearable filterable
+      <el-select v-model="query.orgId" :placeholder="t('meter.org')" clearable filterable
                  style="width:200px" @change="load">
         <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName"
                    :value="String(o.id)" />
       </el-select>
-      <el-select v-model="query.billed" placeholder="出账状态" clearable
+      <el-select v-model="query.billed" :placeholder="t('meter.billed')" clearable
                  style="width:140px" @change="load">
-        <el-option label="未出账" :value="false" />
-        <el-option label="已出账" :value="true" />
+        <el-option :label="t('meter.unbilled')" :value="false" />
+        <el-option :label="t('meter.billedYes')" :value="true" />
       </el-select>
-      <el-button type="primary" @click="load">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="warning" plain :loading="pulling" @click="pullFromIot">
+      <el-button type="primary" @click="load">{{ t('meter.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('meter.reset') }}</el-button>
+      <el-button type="warning" plain :loading="pulling" @click="pullFromIot">{{ t('meter.pull') }}
         从 IoT 拉取
       </el-button>
-      <el-button type="success" plain @click="openRecord" data-testid="meter-new">
+      <el-button type="success" plain @click="openRecord" data-testid="meter-new">{{ t('meter.new') }}
         录入读数
       </el-button>
-      <el-button type="primary" plain @click="openBatch" data-testid="meter-batch">
+      <el-button type="primary" plain @click="openBatch" data-testid="meter-batch">{{ t('meter.batch') }}
         批量录入/导入
       </el-button>
-      <el-button type="warning" plain @click="batchBill">批量出账</el-button>
+      <el-button type="warning" plain @click="batchBill">{{ t('meter.batchBill') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
@@ -42,36 +42,36 @@
               @selection-change="(v) => (meterSelected = v)"
               v-loading="loading" border size="small">
       <el-table-column type="selection" width="42" />
-      <el-table-column prop="readDate" label="抄表日期" width="120" />
-      <el-table-column prop="houseId" label="房源" min-width="180">
+      <el-table-column prop="readDate" :label="t('meter.date')" width="120" />
+      <el-table-column prop="houseId" :label="t('meter.house')" min-width="180">
         <template #default="{ row }">{{ row.houseIdName || houseLabel(row.houseId) }}</template>
       </el-table-column>
-      <el-table-column prop="feeItemId" label="计量项目" width="150">
+      <el-table-column prop="feeItemId" :label="t('meter.feeItem')" width="150">
         <template #default="{ row }">{{ row.feeItemIdName || itemLabel(row.feeItemId) }}</template>
       </el-table-column>
-      <el-table-column prop="reading" label="本次读数" width="110" />
-      <el-table-column prop="multiplier" label="倍率" width="80" />
-      <el-table-column prop="unit" label="单位" width="70" />
-      <el-table-column prop="lastReading" label="上次读数" width="110">
+      <el-table-column prop="reading" :label="t('meter.reading')" width="110" />
+      <el-table-column prop="multiplier" :label="t('meter.multiplier')" width="80" />
+      <el-table-column prop="unit" :label="t('meter.unit')" width="70" />
+      <el-table-column prop="lastReading" :label="t('meter.last')" width="110">
         <template #default="{ row }">{{ lastOf(row) }}</template>
       </el-table-column>
-      <el-table-column prop="usageAmount" label="用量" width="100">
+      <el-table-column prop="usageAmount" :label="t('meter.usage')" width="100">
         <template #default="{ row }">{{ row.usageAmount != null ? row.usageAmount : '—' }}</template>
       </el-table-column>
-      <el-table-column prop="amount" label="金额" width="110">
+      <el-table-column prop="amount" :label="t('meter.amount')" width="110">
         <template #default="{ row }">{{ row.amount != null ? row.amount : '—' }}</template>
       </el-table-column>
-      <el-table-column prop="deviceId" label="计量设备" width="160">
+      <el-table-column prop="deviceId" :label="t('meter.device')" width="160">
         <template #default="{ row }">{{ row.deviceId || '人工录入' }}</template>
       </el-table-column>
-      <el-table-column prop="billId" label="出账状态" width="110">
+      <el-table-column prop="billId" :label="t('meter.billStatus')" width="110">
         <template #default="{ row }">
           <el-tag size="small" :type="row.billId ? 'success' : 'info'">
             {{ row.billId ? '已出账' : '未出账' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="110" fixed="right">
+      <el-table-column :label="t('meter.actions')" width="110" fixed="right">
         <template #default="{ row }">
           <el-button v-if="!row.billId" link type="primary"
                      @click="doBill(row)" data-testid="meter-bill">出账</el-button>
@@ -87,19 +87,19 @@
     </div>
 
     <!-- 单条录入：按房源 + 计量项目带出设备，多设备逐台录入 -->
-    <el-dialog v-model="recordVisible" title="录入抄表读数" width="640px">
+    <el-dialog v-model="recordVisible" :title="t('meter.recordTitle')" width="640px">
       <el-form :model="rf" label-width="100px">
-        <el-form-item label="房源" required>
+        <el-form-item :label="t('meter.house')" required>
           <HouseSelect v-model="rf.houseId" width="100%" testid="meter-house" />
         </el-form-item>
-        <el-form-item label="计量项目" required>
-          <el-select v-model="rf.feeItemId" style="width:100%" placeholder="水费/电费等"
+        <el-form-item :label="t('meter.feeItem')" required>
+          <el-select v-model="rf.feeItemId" style="width:100%" :placeholder="t('meter.feeItemHint')"
                      @change="loadDevices">
             <el-option v-for="m in meterItems" :key="m.id" :value="m.id"
                        :label="m.itemName + '（' + m.unitPrice + ' 元/' + (m.unit || '度') + '）'" />
           </el-select>
         </el-form-item>
-        <el-form-item label="抄表日期">
+        <el-form-item :label="t('meter.date')">
           <el-date-picker v-model="rf.readDate" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
@@ -107,46 +107,46 @@
       <el-alert v-if="devices.length" type="info" :closable="false" show-icon
                 :title="'该房源在此计量项目下共 ' + devices.length + ' 台设备，逐台录入读数'" />
       <el-table v-if="devices.length" :data="deviceRows" size="small" border style="margin-top:8px">
-        <el-table-column prop="deviceType" label="设备类型" width="110" />
-        <el-table-column prop="deviceId" label="设备编号" width="170" />
-        <el-table-column prop="deviceName" label="设备名称" min-width="140" />
-        <el-table-column label="本次读数" width="160">
+        <el-table-column prop="deviceType" :label="t('meter.deviceType')" width="110" />
+        <el-table-column prop="deviceId" :label="t('meter.deviceId')" width="170" />
+        <el-table-column prop="deviceName" :label="t('meter.deviceName')" min-width="140" />
+        <el-table-column :label="t('meter.reading')" width="160">
           <template #default="{ row }"><el-input v-model="row.reading" /></template>
         </el-table-column>
       </el-table>
       <el-form v-else label-width="100px" style="margin-top:8px">
-        <el-form-item label="计量设备编号">
+        <el-form-item :label="t('meter.manual')">
           <DeviceSelect v-model="rf.deviceId" width="100%" testid="device-select" />
         </el-form-item>
-        <el-form-item label="本次读数" required>
+        <el-form-item :label="t('meter.reading')" required>
           <el-input v-model="rf.reading" />
         </el-form-item>
         <el-alert type="warning" :closable="false" style="margin-top:4px"
                   title="该房源在此计量项目下未绑定设备：可手工选择设备或留空按人工录入" />
       </el-form>
       <template #footer>
-        <el-button @click="recordVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doRecord">录入</el-button>
+        <el-button @click="recordVisible = false">{{ t('meter.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doRecord">{{ t('meter.recordBtn') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 导出 CSV 模板 -->
-    <el-dialog v-model="exportVisible" title="导出抄表 CSV" width="520px">
+    <el-dialog v-model="exportVisible" :title="t('meter.exportTitle')" width="520px">
       <el-form label-width="90px">
-        <el-form-item label="组织">
+        <el-form-item :label="t('meter.org')">
           <el-select v-model="ex.orgId" filterable clearable style="width:100%"
-                     placeholder="选择组织" @change="loadExportSpaces">
+                     :placeholder="t('meter.selectOrg')" @change="loadExportSpaces">
             <el-option v-for="o in exOrgs" :key="o.id" :label="o.orgName"
                        :value="String(o.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="空间">
+        <el-form-item :label="t('meter.space')">
           <el-select v-model="ex.spaceId" filterable clearable style="width:100%"
-                     placeholder="选择空间（含下级），可空表示整个组织">
+                     :placeholder="t('meter.spaceHint')">
             <el-option v-for="s in exSpaces" :key="s.id" :label="s.label" :value="s.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="计量项目" required>
+        <el-form-item :label="t('meter.feeItem')" required>
           <el-select v-model="ex.feeItemId" style="width:100%">
             <el-option v-for="m in meterItems" :key="m.id" :value="m.id"
                        :label="m.itemName" />
@@ -156,8 +156,8 @@
       <el-alert type="info" :closable="false" show-icon
                 title="导出的表格含组织/空间/房源/计费项目/设备信息，读数留空；填好后直接导入即可。" />
       <template #footer>
-        <el-button @click="exportVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doExport">导出</el-button>
+        <el-button @click="exportVisible = false">{{ t('meter.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doExport">{{ t('meter.export') }}</el-button>
       </template>
     </el-dialog>
 
@@ -243,6 +243,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /**
  * 抄表管理：水电燃气等计量设备的读数录入、用量计算与出账。
  *
@@ -254,6 +255,7 @@ import req from '@/api/request'
 import DeviceSelect from '@/components/DeviceSelect.vue'
 import HouseSelect from '@/components/HouseSelect.vue'
 
+const { t } = useI18n()
 const rows = ref([])
 const total = ref(0)
 const loading = ref(false)
