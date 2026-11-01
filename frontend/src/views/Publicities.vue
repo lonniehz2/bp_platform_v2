@@ -1,12 +1,12 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">公示管理</h3>
+      <h3 style="margin:0">{{ t('publicity.title') }}</h3>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字" clearable style="width:170px"
+      <el-input v-model="keyword" :placeholder="t('publicity.keyword')" clearable style="width:170px"
                 @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
+      <el-button type="primary" @click="reload">{{ t('publicity.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('publicity.reset') }}</el-button>
 
     </div>
     <el-alert v-if="'配租公示必须 ≥7 自然日且已结束才能签约'" type="info" :closable="false" show-icon :title="'配租公示必须 ≥7 自然日且已结束才能签约'"
@@ -23,14 +23,14 @@
           </div>
           <el-table v-if="winnersOf(row.id).length" :data="winnersOf(row.id)"
                     size="small" border max-height="320">
-            <el-table-column prop="lotterySeq" label="摇号序号" width="100" />
-            <el-table-column prop="personName" label="姓名" width="110" />
-            <el-table-column prop="idCardMask" label="身份证（脱敏）" width="190" />
-            <el-table-column prop="phoneMask" label="手机（脱敏）" width="140" />
-            <el-table-column prop="orgName" label="组织" width="150" />
-            <el-table-column prop="houseName" label="中签房源" min-width="170" />
-            <el-table-column prop="selectSeq" label="选房序号" width="100" />
-            <el-table-column label="操作" width="110" fixed="right">
+            <el-table-column prop="lotterySeq" :label="t('publicity.lotterySeq')" width="100" />
+            <el-table-column prop="personName" :label="t('publicity.name')" width="110" />
+            <el-table-column prop="idCardMask" :label="t('publicity.idCard')" width="190" />
+            <el-table-column prop="phoneMask" :label="t('publicity.phone')" width="140" />
+            <el-table-column prop="orgName" :label="t('publicity.org')" width="150" />
+            <el-table-column prop="houseName" :label="t('publicity.house')" min-width="170" />
+            <el-table-column prop="selectSeq" :label="t('publicity.selectSeq')" width="100" />
+            <el-table-column :label="t('publicity.actions')" width="110" fixed="right">
               <template #default="{ row: w }">
                 <el-tag v-if="w.allocationStatus === 'SIGNED'" size="small" type="success">
                   已签约
@@ -39,7 +39,7 @@
                            data-testid="winner-sign">去签约</el-button>
               </template>
             </el-table-column>
-            <el-table-column prop="resultTypeLabel" label="结果" width="90">
+            <el-table-column prop="resultTypeLabel" :label="t('publicity.result')" width="90">
               <template #default="{ row: w }">
                 <el-tag size="small" :type="w.resultType === 'WON' ? 'success' : 'info'">
                   {{ w.resultTypeLabel }}
@@ -50,20 +50,20 @@
         </div>
       </template>
     </el-table-column>
-      <el-table-column prop="publicityNo" label="公示号" width="170" />
-      <el-table-column prop="orgId" label="组织" width="150">
+      <el-table-column prop="publicityNo" :label="t('publicity.no')" width="170" />
+      <el-table-column prop="orgId" :label="t('publicity.org')" width="150">
         <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
       </el-table-column>
-      <el-table-column prop="publicityType" label="类型" width="130">
+      <el-table-column prop="publicityType" :label="t('publicity.type')" width="130">
         <template #default="{ row }">{{ row.publicityTypeLabel || enumLabel('publicityType', row.publicityType) }}</template>
       </el-table-column>
-      <el-table-column prop="title" label="标题" width="200" />
-      <el-table-column prop="startDate" label="开始" width="110" />
-      <el-table-column prop="endDate" label="结束" width="110" />
-      <el-table-column prop="publicityStatus" label="状态" width="110">
+      <el-table-column prop="title" :label="t('publicity.titleCol')" width="200" />
+      <el-table-column prop="startDate" :label="t('publicity.start')" width="110" />
+      <el-table-column prop="endDate" :label="t('publicity.end')" width="110" />
+      <el-table-column prop="publicityStatus" :label="t('publicity.status')" width="110">
         <template #default="{ row }">{{ row.publicityStatusLabel || enumLabel('publicityStatus', row.publicityStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column :label="t('publicity.actions')" width="200" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" :disabled="row.publicityStatus === 'PUBLISHED'"
                      @click="doPublish(row)">发布</el-button>
@@ -74,13 +74,14 @@
     <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
                    :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
                    @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
-    <el-drawer v-model="show" title="明细（原始数据）" size="520px">
+    <el-drawer v-model="show" :title="t('publicity.drawer')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
@@ -89,6 +90,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { publicityApi } from '@/api/modules'
 import req from '@/api/request'
 
+const { t } = useI18n()
 const loading = ref(false)
 const rows = ref([])
 const total = ref(0)

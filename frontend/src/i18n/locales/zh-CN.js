@@ -158,6 +158,27 @@ export default {
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
   },
+  publicity: {
+    title: '公示管理', keyword: '关键字', search: '查询', reset: '清空',
+    tip: '配租公示必须 ≥7 自然日且已结束才能签约', lotterySeq: '摇号序号',
+    name: '姓名', idCard: '身份证（脱敏）', phone: '手机（脱敏）', org: '组织',
+    house: '中签房源', selectSeq: '选房序号', actions: '操作', sign: '签约',
+    result: '结果', no: '公示号', type: '类型', titleCol: '标题', start: '开始',
+    end: '结束', status: '状态', publish: '发布', detail: '详情',
+    drawer: '明细（原始数据）'
+  },
+  waitlist: {
+    title: '轮候管理', orgHint: '组织名称', keyword: '姓名/手机号', search: '查询',
+    reset: '清空', enqueue: '入队登记', recalc: '重算总分',
+    tip: '摇号按总分降序、入队时间升序取前 N 名；优先附加分用于优抚对象加分',
+    person: '轮候人', org: '组织', priority: '优先分', days: '已轮候天数',
+    total: '总分', status: '状态', enterTime: '入队时间', actions: '操作',
+    exit: '候补退出', detail: '详情', enqueueTitle: '轮候入队', personId: '人员ID',
+    applicationId: '申请单ID', applicationHint: '已通过的申请单，可为空',
+    orgId: '组织ID', securityType: '保障类型', priorityScore: '优先附加分',
+    priorityReason: '优先原因', priorityHint: '如 退役军人 / 残疾人 / 计生特殊家庭',
+    cancel: '取消', confirm: '确认入队', drawer: '轮候详情'
+  },
   change: {
     title: '合同变更', status: '状态', search: '查询', reset: '清空',
     no: '变更号', house: '房源', lessee: '承租人', contract: '合同',
@@ -477,6 +498,10 @@ export default {
     recordNo: '补贴单号', person: '人员', payMode: '发放方式', period: '周期',
     standard: '补贴标准', contract: '合同', amount: '金额', status: '状态',
     actions: '操作', issue: '发放', reject: '驳回', detail: '详情',
+    publicRental: '公租房',
+    affordable: '保租房',
+    talent: '人才房',
+    lowRent: '廉租房',
     securityType: '保障类型', subsidyMode: '补贴方式', fixed: '定额',
     byArea: '按面积', byPerson: '按人', ratio: '按租金比例',
     codeName: '编码/名称', newStandard: '新建标准', standardCode: '标准编码',

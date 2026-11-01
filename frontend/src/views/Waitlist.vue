@@ -1,19 +1,19 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">轮候管理</h3>
+      <h3 style="margin:0">{{ t('waitlist.title') }}</h3>
       <el-tag size="small" type="info">总分 = 优先附加分 + 轮候天数 × 0.1</el-tag>
       <div class="spacer" />
-      <el-select v-model="orgId" placeholder="组织名称" clearable filterable
+      <el-select v-model="orgId" :placeholder="t('waitlist.orgHint')" clearable filterable
                  style="width:200px" data-testid="wait-org" @change="reload">
         <el-option v-for="o in orgs" :key="o.id" :label="o.orgName" :value="o.id" />
       </el-select>
-      <el-input v-model="keyword" placeholder="姓名/手机号" clearable style="width:170px"
+      <el-input v-model="keyword" :placeholder="t('waitlist.keyword')" clearable style="width:170px"
                 @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="success" @click="openEnqueue">入队登记</el-button>
-      <el-button @click="recalc">重算总分</el-button>
+      <el-button type="primary" @click="reload">{{ t('waitlist.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('waitlist.reset') }}</el-button>
+      <el-button type="success" @click="openEnqueue">{{ t('waitlist.enqueue') }}</el-button>
+      <el-button @click="recalc">{{ t('waitlist.recalc') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon
@@ -24,20 +24,20 @@
       <el-table-column type="expand">
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
-      <el-table-column prop="personIdName" label="轮候人" width="200">
+      <el-table-column prop="personIdName" :label="t('waitlist.person')" width="200">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column label="组织" width="180" show-overflow-tooltip>
+      <el-table-column :label="t('waitlist.org')" width="180" show-overflow-tooltip>
         <template #default="{ row }">{{ row.orgIdName || '—' }}</template>
       </el-table-column>
-      <el-table-column prop="priorityScore" label="优先分" width="100" />
-      <el-table-column prop="liveWaitDays" label="已轮候天数" width="110" />
-      <el-table-column prop="totalScore" label="总分" width="100">
+      <el-table-column prop="priorityScore" :label="t('waitlist.priority')" width="100" />
+      <el-table-column prop="liveWaitDays" :label="t('waitlist.days')" width="110" />
+      <el-table-column prop="totalScore" :label="t('waitlist.total')" width="100">
         <template #default="{ row }">
           <strong>{{ row.totalScore }}</strong>
         </template>
       </el-table-column>
-      <el-table-column label="状态" width="120">
+      <el-table-column :label="t('waitlist.status')" width="120">
         <template #default="{ row }">
           <el-tag size="small" :type="row.queueStatus === 'WAITING' ? 'success'
             : (row.queueStatus === 'EXITED' ? 'info' : 'warning')">
@@ -45,11 +45,11 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="enterTime" label="入队时间" width="170" />
-      <el-table-column label="操作" width="220" fixed="right">
+      <el-table-column prop="enterTime" :label="t('waitlist.enterTime')" width="170" />
+      <el-table-column :label="t('waitlist.actions')" width="220" fixed="right">
         <template #default="{ row }">
-          <el-button link type="danger" @click="doExit(row)">候补退出</el-button>
-          <el-button link @click="detail = row; show = true">详情</el-button>
+          <el-button link type="danger" @click="doExit(row)">{{ t('waitlist.exit') }}</el-button>
+          <el-button link @click="detail = row; show = true">{{ t('waitlist.detail') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -58,45 +58,46 @@
                    :current-page="query.pageNum"
                    @current-change="(p) => { query.pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { query.pageSize = s; query.pageNum = 1; load() }" />
 
-    <el-dialog v-model="enqueueVisible" title="轮候入队" width="560px">
+    <el-dialog v-model="enqueueVisible" :title="t('waitlist.enqueueTitle')" width="560px">
       <el-form :model="ef" label-width="130px">
-        <el-form-item label="人员ID" required>
+        <el-form-item :label="t('waitlist.personId')" required>
           <PersonPicker v-model="ef.personId" width="240px" testid="person-picker" /></el-form-item>
-        <el-form-item label="申请单ID">
+        <el-form-item :label="t('waitlist.applicationId')">
           <el-input v-model="ef.applicationId"
-                    placeholder="已通过的申请单，可为空" /></el-form-item>
-        <el-form-item label="组织ID" required>
+                    :placeholder="t('waitlist.applicationHint')" /></el-form-item>
+        <el-form-item :label="t('waitlist.orgId')" required>
           <OrgSelect v-model="ef.orgId" width="100%" /></el-form-item>
-        <el-form-item label="保障类型" required>
+        <el-form-item :label="t('waitlist.securityType')" required>
           <el-select v-model="ef.securityType" style="width:100%">
-            <el-option label="公租房" value="PUBLIC" />
-            <el-option label="保租房" value="AFFORDABLE" />
-            <el-option label="人才房" value="TALENT" />
-            <el-option label="廉租房" value="LOW_RENT" />
+            <el-option :label="t('waitlist.publicRental')" value="PUBLIC" />
+            <el-option :label="t('waitlist.affordable')" value="AFFORDABLE" />
+            <el-option :label="t('waitlist.talent')" value="TALENT" />
+            <el-option :label="t('waitlist.lowRent')" value="LOW_RENT" />
           </el-select></el-form-item>
-        <el-form-item label="优先附加分">
+        <el-form-item :label="t('waitlist.priorityScore')">
           <el-input-number v-model="ef.priorityScore" :min="0" :precision="1"
                            style="width:100%" />
         </el-form-item>
-        <el-form-item label="优先原因">
+        <el-form-item :label="t('waitlist.priorityReason')">
           <el-input v-model="ef.priorityReason"
-                    placeholder="如 退役军人 / 残疾人 / 计生特殊家庭" /></el-form-item>
+                    :placeholder="t('waitlist.priorityHint')" /></el-form-item>
       </el-form>
       <el-alert type="info" :closable="false" show-icon
                 title="入队后系统按「优先分 + 轮候天数×0.1」计算总分，摇号时实时排序" />
       <template #footer>
-        <el-button @click="enqueueVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doEnqueue">确认入队</el-button>
+        <el-button @click="enqueueVisible = false">{{ t('waitlist.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doEnqueue">{{ t('waitlist.confirm') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="show" title="轮候详情" size="520px">
+    <el-drawer v-model="show" :title="t('waitlist.drawer')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { ref, reactive, onMounted, watch } from 'vue'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -105,6 +106,7 @@ import OrgSelect from '@/components/OrgSelect.vue'
 import { enumLabel } from '@/constants/enums'
 import DetailView from '@/components/DetailView.vue'
 
+const { t } = useI18n()
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref([])
