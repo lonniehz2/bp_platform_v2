@@ -199,39 +199,39 @@
 
       <div v-if="importStep === 1">
         <el-alert type="info" :closable="false" show-icon
-                  title="CSV 列顺序：组织编码, 空间编码, 房源编号, 房源名称, 房源类型, 用途, 建筑面积(㎡), 租金标准, 计价单位, 房源状态" />
+                  :title="t('misc10.csvOrder')" />
         <div style="margin:12px 0;display:flex;gap:8px;align-items:center">
-          <el-button size="small" @click="downloadTemplate">下载模板</el-button>
+          <el-button size="small" @click="downloadTemplate">{{ t('misc10.downloadTemplate') }}</el-button>
           <span class="muted" style="font-size:12px">
-            首行可为表头；编号重复的行会被跳过并给出原因
+            {{ t('misc10.importHint') }}
           </span>
         </div>
         <el-upload :auto-upload="false" :limit="1" accept=".csv"
                    :on-change="onImportFile" :file-list="importFiles">
-          <el-button type="primary" plain>选择 CSV 文件</el-button>
+          <el-button type="primary" plain>{{ t('misc10.chooseCsv') }}</el-button>
         </el-upload>
       </div>
 
       <div v-else-if="importStep === 2">
         <el-alert :type="parseProblems.length ? 'warning' : 'success'" :closable="false" show-icon
                   :title="parseProblems.length
-                    ? ('预览发现 ' + parseProblems.length + ' 处问题，可修正文件后重新选择')
-                    : ('文件可导入：' + parsedRows.length + ' 行，列数 ' + parsedHeaders.length)" />
+                    ? t('misc10.previewProblem', { n: parseProblems.length })
+                    : t('misc10.previewOk', { rows: parsedRows.length, cols: parsedHeaders.length })" />
         <div class="muted" style="font-size:12px;margin:8px 0">
-          下表为前 8 行预览；点击「开始导入」后由后端逐行二次校验，失败行会列在下一步。
+          {{ t('misc10.previewHint') }}
         </div>
         <el-table :data="parsedRows.slice(0, 8)" size="small" border max-height="240">
-          <el-table-column prop="line" label="行" width="60" />
+          <el-table-column prop="line" :label="t('misc10.row')" width="60" />
           <el-table-column v-for="(h, i) in parsedHeaders.slice(0, 10)" :key="i"
-                           :label="h || ('列' + (i + 1))" min-width="110"
+                           :label="h || t('misc10.column', { n: i + 1 })" min-width="110"
                            show-overflow-tooltip>
             <template #default="{ row }">{{ (row.cells || [])[i] }}</template>
           </el-table-column>
         </el-table>
         <el-table v-if="parseProblems.length" :data="parseProblems" size="small" border
                   style="margin-top:8px" max-height="160">
-          <el-table-column prop="line" label="行号" width="80" />
-          <el-table-column prop="message" label="问题" />
+          <el-table-column prop="line" :label="t('misc10.rowNo')" width="80" />
+          <el-table-column prop="message" :label="t('misc10.problem')" />
         </el-table>
       </div>
 
@@ -239,105 +239,104 @@
         <el-alert :type="importResult && importResult.skipped ? 'warning' : 'success'"
                   :closable="false" show-icon
                   :title="importResult
-                    ? ('共 ' + importResult.total + ' 行，成功 ' + importResult.created
-                       + '，跳过 ' + importResult.skipped)
-                    : '导入完成'" />
+                    ? t('misc10.resultSummary', { total: importResult.total, created: importResult.created, skipped: importResult.skipped })
+                    : t('misc10.importDone')" />
         <div v-if="importResult" style="margin:10px 0;display:flex;gap:8px">
           <el-button size="small" :disabled="!importResult.errors || !importResult.errors.length"
-                     @click="exportImportErrors">导出失败行</el-button>
-          <span class="muted" style="font-size:12px">失败行修正后可再次导入，成功行不会被重复创建</span>
+                     @click="exportImportErrors">{{ t('misc10.exportErrors') }}</el-button>
+          <span class="muted" style="font-size:12px">{{ t('misc10.retryHint') }}</span>
         </div>
         <el-table v-if="importResult && importResult.errors && importResult.errors.length"
                   :data="importResult.errors" size="small" border max-height="220">
-          <el-table-column prop="line" label="行号" width="80" />
-          <el-table-column prop="message" label="原因" />
+          <el-table-column prop="line" :label="t('misc10.rowNo')" width="80" />
+          <el-table-column prop="message" :label="t('misc10.reason')" />
         </el-table>
       </div>
 
       <template #footer>
-        <el-button @click="importVisible = false">关闭</el-button>
-        <el-button v-if="importStep > 1" @click="importStep = 1">重新选择</el-button>
-        <el-button v-if="importStep === 3" @click="load">刷新列表</el-button>
+        <el-button @click="importVisible = false">{{ t('misc10.close') }}</el-button>
+        <el-button v-if="importStep > 1" @click="importStep = 1">{{ t('misc10.reselect') }}</el-button>
+        <el-button v-if="importStep === 3" @click="load">{{ t('misc10.refreshList') }}</el-button>
         <el-button v-if="importStep === 2" type="primary" :loading="saving"
                    :disabled="!importFile || !!parseProblems.length" @click="doImport">
-          开始导入
+          {{ t('misc10.startImport') }}
         </el-button>
       </template>
     </el-dialog>
 
     <!-- 宿舍床位管理 -->
-    <el-dialog v-model="bedVisible" title="宿舍床位管理" width="720px">
+    <el-dialog v-model="bedVisible" :title="t('misc10.bedTitle')" width="720px">
       <el-form label-width="90px">
-        <el-form-item label="房间">
+        <el-form-item :label="t('misc10.room')">
           <el-tree-select v-model="bedRoomId" :data="spaceTree" check-strictly
                           :props="{ label: 'spaceName', value: 'id', children: 'children' }"
-                          filterable placeholder="选择房间（ROOM）" style="width:100%"
+                          filterable :placeholder="t('misc10.roomHint')" style="width:100%"
                           @change="loadBeds" />
         </el-form-item>
         <el-row :gutter="12">
-          <el-col :span="8"><el-form-item label="生成数量">
+          <el-col :span="8"><el-form-item :label="t('misc10.count')">
             <el-input v-model="bedCount" type="number" /></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="床位月租">
+          <el-col :span="8"><el-form-item :label="t('misc10.bedRent')">
             <el-input v-model="bedRent" type="number" /></el-form-item></el-col>
-          <el-col :span="8"><el-form-item label="单床面积">
+          <el-col :span="8"><el-form-item :label="t('misc10.bedArea')">
             <el-input v-model="bedArea" type="number" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <div style="margin:8px 0 12px">
         <el-button type="primary" :loading="saving" :disabled="!bedRoomId"
-                   @click="doCreateBeds">批量生成床位</el-button>
+                   @click="doCreateBeds">{{ t('misc10.createBeds') }}</el-button>
         <span class="muted" style="font-size:12px;margin-left:8px">
-          已存在的床位编号会自动跳过，不会重复创建
+          {{ t('misc10.bedHint') }}
         </span>
       </div>
       <el-table :data="bedRows" size="small" border max-height="320" v-loading="bedLoading">
-        <el-table-column prop="bedCode" label="床位编号" width="150" />
-        <el-table-column prop="bedName" label="床位名称" min-width="150" />
-        <el-table-column prop="houseStatus" label="房源状态" width="110">
+        <el-table-column prop="bedCode" :label="t('misc10.bedCode')" width="150" />
+        <el-table-column prop="bedName" :label="t('misc10.bedName')" min-width="150" />
+        <el-table-column prop="houseStatus" :label="t('misc10.houseStatus')" width="110">
           <template #default="{ row }">
             <el-tag size="small" :type="row.occupied ? 'success' : 'info'">
-              {{ row.occupied ? '在租' : (row.houseStatus === 'VACANT' ? '空置' : row.houseStatus) }}
+              {{ row.occupied ? t('misc10.occupied') : (row.houseStatus === 'VACANT' ? t('misc10.vacant') : row.houseStatus) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="occupant" label="承租人" width="110">
+        <el-table-column prop="occupant" :label="t('misc10.occupant')" width="110">
           <template #default="{ row }">{{ row.occupant || '—' }}</template>
         </el-table-column>
-        <el-table-column prop="leaseEnd" label="到期日" width="120">
+        <el-table-column prop="leaseEnd" :label="t('misc10.leaseEnd')" width="120">
           <template #default="{ row }">{{ row.leaseEnd || '—' }}</template>
         </el-table-column>
-        <el-table-column prop="rentStandard" label="月租" width="100" />
-        <el-table-column label="操作" width="120">
+        <el-table-column prop="rentStandard" :label="t('misc10.monthlyRent')" width="100" />
+        <el-table-column :label="t('misc10.actions')" width="120">
           <template #default="{ row }">
             <el-button v-if="row.occupied" link type="primary"
-                       @click="openSwapBed(row)">调换</el-button>
+                       @click="openSwapBed(row)">{{ t('misc10.swapBed') }}</el-button>
             <span v-else class="muted">—</span>
           </template>
         </el-table-column>
       </el-table>
       <template #footer>
-        <el-button @click="bedVisible = false">关闭</el-button>
+        <el-button @click="bedVisible = false">{{ t('misc10.close') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 床位调换 -->
-    <el-dialog v-model="swapVisible" title="床位调换" width="480px">
+    <el-dialog v-model="swapVisible" :title="t('misc10.swapTitle')" width="480px">
       <el-alert type="info" :closable="false" show-icon
-                title="调换后原床位立即释放，合同租金与期限保持不变" />
+                :title="t('misc10.swapHint')" />
       <el-form :model="swapForm" label-width="90px" style="margin-top:12px">
-        <el-form-item label="当前床位">
+        <el-form-item :label="t('misc10.currentBed')">
           <span>{{ swapForm.fromBed }}（{{ swapForm.occupant }}）</span>
         </el-form-item>
-        <el-form-item label="目标床位" required>
+        <el-form-item :label="t('misc10.targetBed')" required>
           <el-select v-model="swapForm.targetHouseId" style="width:100%"
-                     placeholder="选择同房间的空床位">
+                     :placeholder="t('misc10.targetHint')">
             <el-option v-for="b in freeBeds" :key="b.houseId"
                        :label="b.bedName + '（月租 ' + (b.rentStandard || 0) + '）'"
                        :value="b.houseId" />
           </el-select>
         </el-form-item>
-        <el-form-item label="调换原因">
-          <el-input v-model="swapForm.reason" placeholder="如：室友调整、设备维修" />
+        <el-form-item :label="t('misc10.swapReason')">
+          <el-input v-model="swapForm.reason" :placeholder="t('misc10.swapReasonHint')" />
         </el-form-item>
       </el-form>
       <template #footer>
