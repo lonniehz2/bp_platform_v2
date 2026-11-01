@@ -288,7 +288,7 @@ const metricRows = computed(() =>
     .filter(([k]) => k !== 'generatedAt')
     .map(([code, value]) => ({
       code, label: metricLabel(code),
-      value: Number(value).toLocaleString('zh-CN') + (metricUnit(code) || ''),
+      value: Number(value).toLocaleString(getLocale()) + (metricUnit(code) || ''),
       hint: t('dashboard.hintMap.' + code)
     }))
 )
@@ -373,42 +373,42 @@ async function statByStatus(path, field, mapping) {
 async function loadCards() {
   // 申请与审批
   const a = await statByStatus('/applications', 'applicationStatus', [
-    { code: 'SUBMITTED', label: '待受理', tone: () => 'warn' },
-    { code: 'ACCEPTED', label: '已受理' },
-    { code: 'REVIEWING', label: '审核中', tone: () => 'warn' },
-    { code: 'APPROVED', label: '已通过', tone: () => 'ok' },
-    { code: 'REJECTED', label: '已驳回', tone: () => 'danger' }
+    { code: 'SUBMITTED', label: t('dashboard.cards.appSubmitted'), tone: () => 'warn' },
+    { code: 'ACCEPTED', label: t('dashboard.cards.appAccepted') },
+    { code: 'REVIEWING', label: t('dashboard.cards.appReviewing'), tone: () => 'warn' },
+    { code: 'APPROVED', label: t('dashboard.cards.appApproved'), tone: () => 'ok' },
+    { code: 'REJECTED', label: t('dashboard.cards.appRejected'), tone: () => 'danger' }
   ])
   appStats.value = a.stats
   appTotal.value = a.total
 
   // 押金与退款
   const dep = await statByField('/fin/deposits', 'depositStatus', [
-    { code: 'HELD', label: '已收讫' },
-    { code: 'DEDUCTED', label: '已抵扣', tone: () => 'warn' },
-    { code: 'REFUNDED', label: '已退还', tone: () => 'ok' }
+    { code: 'HELD', label: t('dashboard.cards.depHeld') },
+    { code: 'DEDUCTED', label: t('dashboard.cards.depDeducted'), tone: () => 'warn' },
+    { code: 'REFUNDED', label: t('dashboard.cards.depRefunded'), tone: () => 'ok' }
   ])
   const ref = await statByField('/fin/refunds', 'refundStatus', [
-    { code: 'PENDING', label: '退款待审', tone: () => 'warn' },
-    { code: 'APPROVED', label: '已批准' },
-    { code: 'SUCCESS', label: '已打款', tone: () => 'ok' }
+    { code: 'PENDING', label: t('dashboard.cards.refPending'), tone: () => 'warn' },
+    { code: 'APPROVED', label: t('dashboard.cards.refApproved') },
+    { code: 'SUCCESS', label: t('dashboard.cards.refPaid'), tone: () => 'ok' }
   ])
   depositStats.value = [...dep.stats, ...ref.stats]
   depositTotal.value = dep.total + ref.total
 
   // 服务与待办
   const wo = await statByField('/workorders', 'orderStatus', [
-    { code: 'PENDING', label: '工单待派', tone: () => 'warn' },
-    { code: 'PROCESSING', label: '处理中' },
-    { code: 'FINISHED', label: '已完成', tone: () => 'ok' }
+    { code: 'PENDING', label: t('dashboard.cards.woPending'), tone: () => 'warn' },
+    { code: 'PROCESSING', label: t('dashboard.cards.woProcessing') },
+    { code: 'FINISHED', label: t('dashboard.cards.woFinished'), tone: () => 'ok' }
   ])
   const al = await statByField('/alerts', 'alertStatus', [
-    { code: 'PENDING', label: '告警待处理', tone: (v) => (v > 0 ? 'danger' : '') },
-    { code: 'HANDLED', label: '告警已处理' }
+    { code: 'PENDING', label: t('dashboard.cards.alertPending'), tone: (v) => (v > 0 ? 'danger' : '') },
+    { code: 'HANDLED', label: t('dashboard.cards.alertHandled') }
   ])
   const cp = await statByField('/complaints', 'complaintStatus', [
-    { code: 'PENDING', label: '投诉待办', tone: () => 'warn' },
-    { code: 'CLOSED', label: '投诉办结', tone: () => 'ok' }
+    { code: 'PENDING', label: t('dashboard.cards.complaintPending'), tone: () => 'warn' },
+    { code: 'CLOSED', label: t('dashboard.cards.complaintClosed'), tone: () => 'ok' }
   ])
   serviceStats.value = [...wo.stats, ...al.stats, ...cp.stats]
   serviceTotal.value = wo.total + al.total + cp.total

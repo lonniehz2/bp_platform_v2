@@ -206,7 +206,12 @@ function renderCharts() {
       ...AXIS,
       axisLabel: {
         ...AXIS.axisLabel,
-        formatter: (v) => (v >= 10000 ? Math.round(v / 1000) / 10 + '万' : v)
+        formatter: (v) => {
+          const en = String(localStorage.getItem('bp_locale') || '').startsWith('en')
+          if (en) return v >= 1_000_000 ? Math.round(v / 100_000) / 10 + 'M'
+            : (v >= 1_000 ? Math.round(v / 100) / 10 + 'K' : v)
+          return v >= 10000 ? Math.round(v / 1000) / 10 + '万' : v
+        }
       }
     },
     series: [{

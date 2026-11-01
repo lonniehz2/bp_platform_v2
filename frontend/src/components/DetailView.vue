@@ -10,10 +10,10 @@
       </el-descriptions-item>
     </el-descriptions>
 
-    <el-empty v-if="!mainFields.length" description="无字段可展示" :image-size="50" />
+    <el-empty v-if="!mainFields.length" :description="t('detail.noFields')" :image-size="50" />
 
     <el-collapse v-if="internalFields.length" class="internal">
-      <el-collapse-item :title="`系统字段（${internalFields.length}）`" name="internal">
+      <el-collapse-item :title="t('detail.systemFields', { n: internalFields.length })" name="internal">
         <el-descriptions :column="2" border size="small">
           <el-descriptions-item v-for="f in internalFields" :key="f.key" :label="f.label">
             <span class="muted">{{ f.text }}</span>
@@ -24,7 +24,7 @@
 
     <div class="raw-toggle">
       <el-button link type="primary" @click="showRaw = !showRaw">
-        {{ showRaw ? '收起原始数据' : '查看原始数据（排查用）' }}
+        {{ showRaw ? t('detail.hideRaw') : t('detail.showRaw') }}
       </el-button>
     </div>
     <pre v-if="showRaw" class="raw">{{ pretty }}</pre>
@@ -37,6 +37,9 @@ import { labelOf, INTERNAL_FIELDS, loadRemoteLabels } from '@/constants/fieldLab
 import { onMounted, ref as vueRef } from 'vue'
 import request from '@/api/request'
 import { enumLabel } from '@/constants/enums'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   row: { type: Object, default: () => ({}) },
@@ -80,15 +83,15 @@ function build(key, value) {
 
   if (Array.isArray(value)) {
     if (value.length && typeof value[0] === 'object') {
-      return { ...base, text: `${value.length} 条明细`, kind: 'muted' }
+      return { ...base, text: t('detail.items', { n: value.length }), kind: 'muted' }
     }
     return { ...base, text: value.join('、') || '-', kind: '' }
   }
   if (typeof value === 'object') {
-    return { ...base, text: '（对象）', kind: 'muted' }
+    return { ...base, text: t('detail.object'), kind: 'muted' }
   }
   if (typeof value === 'boolean') {
-    return { ...base, text: value ? '是' : '否', kind: '' }
+    return { ...base, text: value ? t('detail.yes') : t('detail.no'), kind: '' }
   }
   if (key === 'id' || /Id$/.test(key)) {
     // 有名称就显示名称，否则显示编号（等宽小字）
@@ -96,14 +99,14 @@ function build(key, value) {
     return { ...base, text: String(value), kind: 'muted' }
   }
   if (ENUM_KEY.test(key)) {
-    const text = labelValue || enumLabel(key, value)
+    const text = enumLabel(key, value) || labelValue
     const good = ['ENABLED', 'ACTIVE', 'PAID', 'EFFECTIVE', 'SUCCESS', 'APPROVED',
       'NORMAL', 'ONLINE', 'PASS', 'COMPLETED', 'RESOLVED'].includes(String(value))
     const bad = ['FAILED', 'REJECTED', 'OVERDUE', 'ABNORMAL', 'FROZEN', 'CRITICAL',
       'SEVERE', 'EXPIRED', 'OFFLINE'].includes(String(value))
     return { ...base, text, kind: 'tag', tagType: good ? 'success' : (bad ? 'danger' : 'info') }
   }
-  // 兜底：只要枚举表里能翻出中文就显示中文（朝向/租金单位等不在 ENUM_KEY 里的字段）
+  // 兜底：只要枚举表里能翻出英文/中文就显示（朝向/租金单位等不在 ENUM_KEY 里的字段）
   const enumText = enumLabel(key, value)
   if (typeof value === 'string' && enumText && enumText !== String(value)) {
     return { ...base, text: enumText, kind: '' }

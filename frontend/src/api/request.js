@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { getLocale } from '@/i18n'
+import { enumLabel } from '@/constants/enums'
 
 /**
  * 统一请求封装。
@@ -34,6 +35,35 @@ export function setTenant(t) {
   localStorage.setItem(TENANT_KEY, t || '350600')
 }
 
+const LABEL_BASE = /(Status|Type|Source|Result|Level|Mode|Category|Stage|Sla|Kind|Channel|Priority|Scope|Cycle|Method)$/
+
+/**
+ * 英文模式下，后端返回的 xxxLabel 往往是中文。
+ * 若同一行同时有原始枚举码（如 status + statusLabel），用前端字典覆盖标签值，
+ * 这样所有使用 row.statusLabel 的页面都会自动显示英文。
+ */
+function localizeLabelFields(value) {
+  if (getLocale() !== 'en-US' || !value || typeof value !== 'object') return value
+  if (Array.isArray(value)) {
+    value.forEach(localizeLabelFields)
+    return value
+  }
+  for (const key of Object.keys(value)) {
+    const child = value[key]
+    if (child && typeof child === 'object') {
+      localizeLabelFields(child)
+      continue
+    }
+    if (!key.endsWith('Label')) continue
+    const base = key.slice(0, -5)
+    if (!LABEL_BASE.test(base)) continue
+    const raw = value[base]
+    if (typeof raw !== 'string' || !raw) continue
+    value[key] = enumLabel(base, raw)
+  }
+  return value
+}
+
 service.interceptors.request.use((cfg) => {
   const token = getToken()
   if (token) cfg.headers.Authorization = `Bearer ${token}`
@@ -48,7 +78,7 @@ service.interceptors.response.use(
     const body = resp.data
     // 非 R 结构（如文件流）直接返回
     if (!body || typeof body !== 'object' || body.code === undefined) return body
-    if (body.code === 'BP00000') return body.data
+    if (body.code === 'BP00000') return localizeLabelFields(body.data)
     ElMessage.error(body.message || `请求失败（${body.code}）`)
     return Promise.reject(body)
   },

@@ -339,7 +339,7 @@ export function labelOf(key) {
   const m = /^(\w+?)Id$/.exec(key)
   if (m) {
     const base = remote[m[1]] || FIELD_LABEL[m[1]]
-    if (base) return trField(m[1], base) + 'ID'
+    if (base) return trField(m[1], base) + ' ID'
   }
   return trField(key, key)
 }

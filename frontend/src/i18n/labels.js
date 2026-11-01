@@ -275,12 +275,36 @@ export const ENUM_LABEL_EN = {
   OTHER: 'Other'
 }
 
+const ACRONYMS = {
+  ID: 'ID', SLA: 'SLA', IOT: 'IoT', IP: 'IP', URL: 'URL', API: 'API',
+  CSV: 'CSV', QR: 'QR', CA: 'CA', OCR: 'OCR', APP: 'App', UI: 'UI'
+}
+
+/** 把 camelCase / SNAKE_CASE 键或枚举码转为可读英文。 */
+export function humanizeKey(value) {
+  const raw = String(value ?? '').trim()
+  if (!raw) return ''
+  return raw
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((w) => {
+      const up = w.toUpperCase()
+      if (ACRONYMS[up]) return ACRONYMS[up]
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+    })
+    .join(' ')
+}
+
 export function trField(key, zh) {
   if (getLocale() !== 'en-US') return zh
-  return FIELD_LABEL_EN[key] || zh
+  return FIELD_LABEL_EN[key] || humanizeKey(key) || zh
 }
 
 export function trEnum(value, zh) {
   if (getLocale() !== 'en-US') return zh
-  return ENUM_LABEL_EN[String(value)] || zh
+  const v = String(value)
+  return ENUM_LABEL_EN[v] || (v ? humanizeKey(v) : zh)
 }

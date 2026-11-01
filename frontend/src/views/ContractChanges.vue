@@ -29,7 +29,7 @@
       </el-table-column>
       <el-table-column :label="t('change.type')" width="130">
         <template #default="{ row }">
-          {{ row.changeTypeLabel || enumLabel('changeType', row.changeType) }}
+          {{ enumLabel('changeType', row.changeType) || row.changeTypeLabel }}
         </template>
       </el-table-column>
       <el-table-column :label="t('change.before')" width="200" show-overflow-tooltip>
@@ -62,7 +62,7 @@
       <el-descriptions :column="2" border size="small">
         <el-descriptions-item :label="t('change.no')">{{ current?.changeNo }}</el-descriptions-item>
         <el-descriptions-item :label="t('change.contract')">{{ current?.contractIdName || current?.contractId }}</el-descriptions-item>
-        <el-descriptions-item :label="t('change.type')">{{ current?.changeTypeLabel || current?.changeType }}</el-descriptions-item>
+        <el-descriptions-item :label="t('change.type')">{{ enumLabel('changeType', current?.changeType) || current?.changeTypeLabel }}</el-descriptions-item>
         <el-descriptions-item :label="t('change.effective')">{{ current?.effectiveDate }}</el-descriptions-item>
         <el-descriptions-item :label="t('change.statusCol')">{{ current?.approveStatusLabel || current?.approveStatus }}</el-descriptions-item>
         <el-descriptions-item :label="t('change.reason')">{{ current?.changeReason || '—' }}</el-descriptions-item>
@@ -152,7 +152,8 @@ const KV_LABEL = { monthlyRent: '月租金', leaseEnd: '止租日', leaseStart: 
   contractNo: '合同号', houseId: '房源', remark: '备注', rentPrice: '租金单价' }
 const KV_LABEL_EN = { monthlyRent: 'Monthly Rent', leaseEnd: 'Lease End', leaseStart: 'Lease Start',
   lesseePersonId: 'Lessee ID', lesseeName: 'Lessee', depositAmount: 'Deposit',
-  contractNo: 'Contract No.', houseId: 'Housing', remark: 'Remark', rentPrice: 'Rent Price' }
+  contractNo: 'Contract No.', houseId: 'Housing', remark: 'Remark', rentPrice: 'Rent Price',
+  subsidyAmount: 'Subsidy', payCycle: 'Payment Cycle', payDay: 'Billing Day' }
 
 function kvText(raw) {
   if (raw == null || raw === '') return '—'

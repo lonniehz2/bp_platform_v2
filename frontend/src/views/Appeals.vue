@@ -38,10 +38,10 @@
             <el-button link type="primary">{{ t('appeal.more') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="actReason(row, '/appeals/{id}/investigate', '调查')">调查</el-dropdown-item>
-                <el-dropdown-item @click="actReason(row, '/appeals/{id}/decide', '决定')">决定</el-dropdown-item>
-                <el-dropdown-item @click="actPlain(row, '/appeals/{id}/notify', '通知')">通知</el-dropdown-item>
-                <el-dropdown-item @click="actReason(row, '/appeals/{id}/withdraw', '撤回')">撤回</el-dropdown-item>
+                <el-dropdown-item @click="actReason(row, '/appeals/{id}/investigate', t('appeal.investigate'))">调查</el-dropdown-item>
+                <el-dropdown-item @click="actReason(row, '/appeals/{id}/decide', t('appeal.decide'))">决定</el-dropdown-item>
+                <el-dropdown-item @click="actPlain(row, '/appeals/{id}/notify', t('appeal.notify'))">通知</el-dropdown-item>
+                <el-dropdown-item @click="actReason(row, '/appeals/{id}/withdraw', t('appeal.withdraw'))">撤回</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>

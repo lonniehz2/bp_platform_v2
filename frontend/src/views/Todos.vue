@@ -10,12 +10,8 @@
       <el-checkbox v-model="onlyMine" @change="search" data-testid="todo-only-mine">
         {{ t('todo.onlyMine') }}
       </el-checkbox>
-      <el-button type="success" :disabled="!selection.length" @click="batchDone">{{ t('todo.batchDone') }}
-        批量完成{{ selection.length ? '（' + selection.length + '）' : '' }}
-      </el-button>
-      <el-button :disabled="!selection.length" @click="batchRead">{{ t('todo.batchRead') }}
-        批量已读{{ selection.length ? '（' + selection.length + '）' : '' }}
-      </el-button>
+      <el-button type="success" :disabled="!selection.length" @click="batchDone">{{ t('todo.batchDone') }}{{ selection.length ? ' (' + selection.length + ')' : '' }}</el-button>
+      <el-button :disabled="!selection.length" @click="batchRead">{{ t('todo.batchRead') }}{{ selection.length ? ' (' + selection.length + ')' : '' }}</el-button>
       <el-button @click="loadAll">{{ t('todo.refresh') }}</el-button>
     </div>
 
@@ -92,9 +88,9 @@
         <template #default="{ row }">
           <el-button link type="primary" @click="goDeal(row)" data-testid="todo-deal">{{ t('todo.deal') }}</el-button>
           <el-button link type="primary" :disabled="row.todoStatus === 'DONE'"
-                     @click="finish(row)">标记完成</el-button>
+                     @click="finish(row)">{{ t('todo.markDone') }}</el-button>
           <el-button link :disabled="row.todoStatus === 'DONE'"
-                     @click="readOne(row)">标记已读</el-button>
+                     @click="readOne(row)">{{ t('todo.read') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -207,7 +203,17 @@ const BIZ_ROUTE = {
 async function loadOverview() {
   try {
     const d = await msgApi.todoOverview()
-    categories.value = d.categories || []
+    categories.value = (d.categories || []).map((c) => {
+      const labelKey = `todo.category.${c.key}.label`
+      const hintKey = `todo.category.${c.key}.hint`
+      const label = t(labelKey)
+      const hint = t(hintKey)
+      return {
+        ...c,
+        label: label === labelKey ? c.label : label,
+        hint: hint === hintKey ? c.hint : hint
+      }
+    })
   } catch (e) {
     categories.value = []
   }
@@ -264,14 +270,14 @@ async function afterWrite() {
 
 async function finish(row) {
   await msgApi.done(row.id)
-  ElMessage.success('已标记完成')
+  ElMessage.success(t('todo.markedDone'))
   await afterWrite()
   loadTodos()
 }
 
 async function readOne(row) {
   await msgApi.read(row.id)
-  ElMessage.success('已标记已读')
+  ElMessage.success(t('todo.markedRead'))
   loadTodos()
 }
 

@@ -219,8 +219,8 @@
         </el-form-item>
         <el-form-item :label="labelOf('allocationMode')">
           <el-radio-group v-model="sf.allocateBy">
-            <el-radio-button value="AREA">按建筑面积</el-radio-button>
-            <el-radio-button value="HOUSE">按户数均摊</el-radio-button>
+            <el-radio-button value="AREA">{{ t('bill.byArea') }}</el-radio-button>
+            <el-radio-button value="HOUSE">{{ t('bill.byHousehold') }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-row :gutter="12">
@@ -239,7 +239,7 @@
       </el-form>
       <template #footer>
         <el-button @click="sharedVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="doShared">开始分摊</el-button>
+        <el-button type="primary" :loading="saving" @click="doShared">{{ t('bill.startShared') }}</el-button>
       </template>
     </el-dialog>
 
@@ -340,7 +340,7 @@
       </el-form>
       <template #footer>
         <el-button @click="payVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="doPay">确认收款</el-button>
+        <el-button type="primary" :loading="saving" @click="doPay">{{ t('bill.confirmPay') }}</el-button>
       </template>
     </el-dialog>
 
@@ -411,9 +411,9 @@
     </el-dialog>
 
     <!-- 收款单核销到账单 -->
-    <el-dialog v-model="useVisible" title="核销到账单" width="620px">
+    <el-dialog v-model="useVisible" :title="t('bill.useTitle')" width="620px">
       <el-alert type="info" :closable="false" show-icon
-                title="选择一张未缴清账单，把本收款单的余额核销进去" />
+                :title="t('bill.useTip')" />
       <el-form label-width="110px" style="margin-top:10px">
         <el-form-item :label="labelOf('paymentNo')">
           <el-input :model-value="usePaymentRow?.paymentNo" disabled />
@@ -435,14 +435,14 @@
       </el-form>
       <template #footer>
         <el-button @click="useVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="confirmUse">确认核销</el-button>
+        <el-button type="primary" :loading="saving" @click="confirmUse">{{ t('bill.confirmAllocate') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 核销 AllocateCmd -->
-    <el-dialog v-model="allocVisible" title="账单核销" width="480px">
+    <el-dialog v-model="allocVisible" :title="t('bill.allocTitle')" width="480px">
       <el-alert type="info" :closable="false" show-icon
-                title="三重上限：不超收款单余额、不超账单应付、已缴账单不可再核销" />
+                :title="t('bill.allocTip')" />
       <el-form :model="a" label-width="110px" style="margin-top:12px">
         <el-form-item :label="labelOf('billNo')">
           <el-input :model-value="current?.billNo" disabled /></el-form-item>
@@ -456,7 +456,7 @@
                        :value="String(x.id)" />
           </el-select>
           <span class="muted" style="font-size:12px">
-            没有收款单？先点顶部「登记收款」，再回到本页核销
+            {{ t('bill.noPaymentHint') }}
           </span>
         </el-form-item>
         <el-form-item :label="labelOf('allocateAmount')">
@@ -464,7 +464,7 @@
       </el-form>
       <template #footer>
         <el-button @click="allocVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="doAllocate">确认核销</el-button>
+        <el-button type="primary" :loading="saving" @click="doAllocate">{{ t('bill.confirmAllocate') }}</el-button>
       </template>
     </el-dialog>
 
@@ -480,7 +480,7 @@
       </el-form>
       <template #footer>
         <el-button @click="waiveVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="warning" :loading="saving" @click="doWaive">确认减免</el-button>
+        <el-button type="warning" :loading="saving" @click="doWaive">{{ t('bill.confirmWaive') }}</el-button>
       </template>
     </el-dialog>
   </div>

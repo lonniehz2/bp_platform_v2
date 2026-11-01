@@ -50,6 +50,18 @@ export default {
     requiredPassword: '请输入密码'
   },
   bill: {
+    useTitle: '核销到账单',
+    useTip: '选择一张未缴清账单，把本收款单的余额核销进去',
+    confirmAllocate: '确认核销',
+    allocTitle: '账单核销',
+    allocTip: '三重上限：不超收款单余额、不超账单应付、已缴账单不可再核销',
+    noPaymentHint: '没有收款单？先点顶部「登记收款」，再回到本页核销',
+    byArea: '按建筑面积',
+    byHousehold: '按户数均摊',
+    startShared: '开始分摊',
+    confirmPay: '确认收款',
+    confirmWaive: '确认减免',
+    energyTitle: '能耗分析',
     genTip1: '会按计费项目的 7 种计费方式逐户计算；缺面积/抄表数据会明确报错并指明房源',
     genTip2: '同「合同 + 收费项目 + 账期」已生成过账单会自动跳过，可安全重复执行',
     formulaTitle: '计算公式（按收费项目）：',
@@ -122,6 +134,7 @@ export default {
     exportFailed: '导出失败'
   },
   contract: {
+    cohabitants: '同住人',
     effective: '生效中',
     title: '合同管理',
     keyword: '合同号 / 承租人',
@@ -191,6 +204,16 @@ export default {
     brand: '住房保障运营平台',
     unauthorized: '未授权：请联系管理员',
     fullscreen: '全屏大屏',
+  },
+  detail: {
+    noFields: '无字段可展示',
+    systemFields: '系统字段（{n}）',
+    hideRaw: '收起原始数据',
+    showRaw: '查看原始数据（排查用）',
+    items: '{n} 条明细',
+    object: '（对象）',
+    yes: '是',
+    no: '否',
   },
   devCmd: {
     title: '设备指令',
@@ -312,6 +335,10 @@ export default {
     date: '对账日期：{date} ｜ 生成时间：{time}',
   },
   exchange: {
+    approve: '批准',
+    reject: '驳回',
+    complete: '完成',
+    noExchange: '应换不换',
     title: '换房管理',
     keyword: '承租人姓名',
     search: '查询',
@@ -535,6 +562,8 @@ export default {
     reject: '退回',
   },
   alloc: {
+    cancelBatch: '取消批次',
+    viewResults: '查看结果',
     batchName: '批次名称',
     batchNameHint: '如：2026 年第一批公租房配租',
     projectOrg: '项目组织',
@@ -618,6 +647,10 @@ export default {
     addHint: '选择本批次参与配租的房源',
   },
   appeal: {
+    investigate: '调查',
+    decide: '决定',
+    notify: '通知',
+    withdraw: '撤回',
     title: '申诉管理',
     keyword: '关键字',
     search: '查询',
@@ -640,6 +673,7 @@ export default {
     detailTitle: '详情',
   },
   misc11: {
+    regionCount: '约 66 万条',
     tree: '树形',
     table: '列表',
     includeChildren: '含下级',
@@ -1369,6 +1403,7 @@ export default {
     cancel: '取消', create: '创建'
   },
   termination: {
+    reject: '驳回',
     title: '退租管理', create: '发起退租', refresh: '刷新',
     tip: '违规清退会进入信用惩戒；年审退出自动生成的腾退单类型为 OTHER（不触发 5 年禁申）',
     status: '退租状态', applying: '申请中', approving: '审批中', approved: '已批准',
@@ -1388,6 +1423,17 @@ export default {
     moreFilters: '更多筛选'
   },
   todo: {
+    markedDone: '已标记完成',
+    markedRead: '已标记已读',
+    category: {
+      TODO: { label: '待办消息', hint: '站内指派给你的任务与提醒' },
+      APPLICATION: { label: '待审申请', hint: '受理、审核、补正材料' },
+      CONTRACT: { label: '待签合同', hint: '推进签约直至履约' },
+      TERMINATION: { label: '待处理退租', hint: '审批、查验、结算、放房源' },
+      EXCHANGE: { label: '待审换房', hint: '换房审核与执行' },
+      REVIEW: { label: '待复核年审', hint: '资格年审复核' },
+      WORKORDER: { label: '待处理工单', hint: '接单、处置、回访' },
+    },
     detail: '待办明细',
     title: '待办中心', batchDone: '批量完成', batchRead: '批量已读', refresh: '刷新',
     tip: '这里只汇总「需要人动手」的待办；点卡片进入对应模块处理，明细不重复维护',
@@ -1505,6 +1551,12 @@ export default {
     dialogTitle: '翻译维护', cancel: '取消', save: '保存', empty: '暂无翻译'
   },
   iot: {
+    seconds: '秒',
+    minutes: '分钟',
+    commandMode: '指令下发',
+    deviceMode: '设备台账',
+    meterMode: '表计拉取',
+    credentialMode: '凭据下发',
     title: 'IoT 联调工具', refreshLogs: '刷新日志', signTab: '签名自测',
     capTab: '对接能力', credTab: '凭据同步', logTab: '回调日志',
     signTip: '用于与 IoT 方对照签名：填写同样的 appId/时间戳/nonce/body，双方算出的 signature 应完全一致。',
@@ -1844,6 +1896,17 @@ export default {
     createTitle: '新建规则集', description: '说明'
   },
   workorder: {
+    dueHint: '到期计划会按周期生成「巡检」类工单，并自动推进下次执行日',
+    inspectSafety: '安全',
+    inspectEquipment: '设备',
+    inspectCleaning: '保洁',
+    inspectGreen: '绿化',
+    freqDay: '每日',
+    freqWeek: '每周',
+    freqMonth: '每月',
+    planEnabled: '启用',
+    planDisabled: '停用',
+    overdue: '超时',
     normal: '正常',
     title: '工单与维保', status: '状态', plans: '巡检计划', autoAssign: '自动派单',
     escalate: '超时升级', refresh: '刷新', planTitle: '巡检计划', newPlan: '新建计划',
@@ -2146,6 +2209,26 @@ export default {
     purpose: '用途'
   },
   dashboard: {
+    cards: {
+      appSubmitted: '待受理',
+      appAccepted: '已受理',
+      appReviewing: '审核中',
+      appApproved: '已通过',
+      appRejected: '已驳回',
+      depHeld: '已收讫',
+      depDeducted: '已抵扣',
+      depRefunded: '已退还',
+      refPending: '退款待审',
+      refApproved: '已批准',
+      refPaid: '已打款',
+      woPending: '工单待派',
+      woProcessing: '处理中',
+      woFinished: '已完成',
+      alertPending: '告警待处理',
+      alertHandled: '告警已处理',
+      complaintPending: '投诉待办',
+      complaintClosed: '投诉办结',
+    },
     title: '运营驾驶舱',
     subtitle: '数据实时聚合',
     updatedAt: '更新于',

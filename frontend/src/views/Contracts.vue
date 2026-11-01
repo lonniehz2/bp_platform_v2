@@ -75,7 +75,7 @@
               <el-button link type="primary">{{ t('contract.more') }}</el-button>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item @click="openCohabitant(row)">同住人</el-dropdown-item>
+                  <el-dropdown-item @click="openCohabitant(row)">{{ t('contract.cohabitants') }}</el-dropdown-item>
                   <el-dropdown-item v-if="row.contractStatus === 'DRAFT'"
                                     @click="doSubmitSign(row)">{{ t('misc7.submitSign') }}</el-dropdown-item>
                   <el-dropdown-item v-if="row.contractStatus === 'PENDING_SIGN'"

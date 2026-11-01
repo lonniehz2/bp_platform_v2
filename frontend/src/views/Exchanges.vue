@@ -43,10 +43,10 @@
             <el-button link type="primary">{{ t('exchange.more') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="actReason(row, '/exchanges/{id}/approve', '批准')">批准</el-dropdown-item>
-                <el-dropdown-item @click="actReason(row, '/exchanges/{id}/reject', '驳回')">驳回</el-dropdown-item>
-                <el-dropdown-item @click="actPlain(row, '/exchanges/{id}/complete', '完成')">完成</el-dropdown-item>
-                <el-dropdown-item @click="actReason(row, '/exchanges/{id}/no-exchange', '登记')">应换不换</el-dropdown-item>
+                <el-dropdown-item @click="actReason(row, '/exchanges/{id}/approve', t('exchange.approve'))">批准</el-dropdown-item>
+                <el-dropdown-item @click="actReason(row, '/exchanges/{id}/reject', t('exchange.reject'))">驳回</el-dropdown-item>
+                <el-dropdown-item @click="actPlain(row, '/exchanges/{id}/complete', t('exchange.complete'))">完成</el-dropdown-item>
+                <el-dropdown-item @click="actReason(row, '/exchanges/{id}/no-exchange', t('exchange.noExchange'))">应换不换</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>

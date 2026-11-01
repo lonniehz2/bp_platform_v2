@@ -7,9 +7,7 @@
         <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
       </el-select>
       <div class="spacer" />
-      <el-button type="warning" plain @click="openPlans" data-testid="inspection-plans">{{ t('workorder.plans') }}
-        巡检计划
-      </el-button>
+      <el-button type="warning" plain @click="openPlans" data-testid="inspection-plans">{{ t('workorder.plans') }}</el-button>
       <el-button plain :loading="saving" @click="autoAssignPending"
                  data-testid="wo-autoassign-all">{{ t('workorder.batchAssign') }}</el-button>
       <el-button plain :loading="saving" @click="escalateOverdue"
@@ -21,24 +19,22 @@
     <el-dialog v-model="plansVisible" :title="t('workorder.planTitle')" width="900px">
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <el-button type="success" size="small" @click="planFormVisible = true">{{ t('workorder.newPlan') }}</el-button>
-        <el-button type="warning" size="small" :loading="saving" @click="runDue">
-          执行到期计划
-        </el-button>
+        <el-button type="warning" size="small" :loading="saving" @click="runDue">{{ t('workorder.runDue') }}</el-button>
         <div style="flex:1" />
         <span class="muted" style="font-size:12px;align-self:center">
-          到期计划会按周期生成「巡检」类工单，并自动推进下次执行日
+          {{ t('workorder.dueHint') }}
         </span>
       </div>
       <el-table :data="plans" size="small" border max-height="360" :empty-text="t('workorder.empty')">
         <el-table-column prop="planName" :label="t('workorder.planName')" min-width="160" />
         <el-table-column prop="inspectType" :label="t('workorder.type')" width="110">
           <template #default="{ row }">
-            {{ { SAFETY: '安全', EQUIPMENT: '设备', CLEANING: '保洁', GREEN: '绿化' }[row.inspectType] || row.inspectType }}
+            {{ { SAFETY: t('workorder.inspectSafety'), EQUIPMENT: t('workorder.inspectEquipment'), CLEANING: t('workorder.inspectCleaning'), GREEN: t('workorder.inspectGreen') }[row.inspectType] || row.inspectType }}
           </template>
         </el-table-column>
         <el-table-column prop="frequency" :label="t('workorder.frequency')" width="90">
           <template #default="{ row }">
-            {{ { DAY: '每日', WEEK: '每周', MONTH: '每月' }[row.frequency] || row.frequency }}
+            {{ { DAY: t('workorder.freqDay'), WEEK: t('workorder.freqWeek'), MONTH: t('workorder.freqMonth') }[row.frequency] || row.frequency }}
           </template>
         </el-table-column>
         <el-table-column prop="nextRunDate" :label="t('workorder.nextRun')" width="120" />
@@ -46,7 +42,7 @@
         <el-table-column prop="planStatus" :label="t('workorder.planStatus')" width="90">
           <template #default="{ row }">
             <el-tag size="small" :type="row.planStatus === 'ENABLED' ? 'success' : 'info'">
-              {{ row.planStatus === 'ENABLED' ? '启用' : '停用' }}
+              {{ row.planStatus === 'ENABLED' ? t('workorder.planEnabled') : t('workorder.planDisabled') }}
             </el-tag>
           </template>
         </el-table-column>
@@ -99,7 +95,7 @@
       <el-table-column prop="orderTitle" :label="t('workorder.orderTitle')" min-width="200" />
       <el-table-column prop="orderSource" :label="t('workorder.source')" width="100">
         <template #default="{ row }">
-          {{ row.orderSourceLabel || enumLabel('orderSource', row.orderSource) || row.orderSource }}
+          {{ enumLabel('orderSource', row.orderSource) || row.orderSourceLabel || row.orderSource }}
         </template>
       </el-table-column>
       <el-table-column prop="orderStatus" :label="t('workorder.orderStatus')" width="110">
@@ -111,7 +107,7 @@
       <el-table-column prop="slaStatus" label="SLA" width="100">
         <template #default="{ row }">
           <el-tag v-if="row.responseOverdue || row.finishOverdue" type="danger" size="small">
-            超时
+             {{ t('workorder.overdue') }}
           </el-tag>
           <el-tag v-else type="success" size="small">{{ t('workorder.normal') }}</el-tag>
         </template>

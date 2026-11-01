@@ -71,10 +71,10 @@
               <el-descriptions-item :label="t('iot.verify')">{{ cap.callback?.verify }}</el-descriptions-item>
               <el-descriptions-item :label="t('iot.callbackAppId')">{{ cap.callback?.appId || '—' }}</el-descriptions-item>
               <el-descriptions-item :label="t('iot.tsWindow')">
-                {{ cap.callback?.timestampToleranceSeconds }} 秒
+                {{ cap.callback?.timestampToleranceSeconds }} {{ t('iot.seconds') }}
               </el-descriptions-item>
               <el-descriptions-item :label="t('iot.nonceCache')">
-                {{ cap.callback?.nonceCacheMinutes }} 分钟
+                {{ cap.callback?.nonceCacheMinutes }} {{ t('iot.minutes') }}
               </el-descriptions-item>
               <el-descriptions-item :label="t('iot.defaultTenant')">{{ cap.callback?.defaultTenant }}</el-descriptions-item>
             </el-descriptions>
@@ -213,7 +213,7 @@ const sf = reactive({ action: 'event', appId: '', appSecret: '', timestamp: '', 
 const cap = ref({})
 const capModeRows = computed(() => {
   const m = cap.value.modes || {}
-  const name = { command: '指令下发', device: '设备台账', meter: '表计拉取', credential: '凭据下发' }
+  const name = { command: t('iot.commandMode'), device: t('iot.deviceMode'), meter: t('iot.meterMode'), credential: t('iot.credentialMode') }
   return Object.keys(name).map((k) => ({ name: name[k], mode: m[k] || '—' }))
 })
 

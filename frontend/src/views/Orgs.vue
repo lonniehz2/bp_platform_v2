@@ -91,7 +91,7 @@
                        :placeholder="t('org.addressHint')"
                        style="width:100%" @change="onRegionChange" />
           <div class="muted" style="font-size:12px;margin-top:4px">
-            {{ t('misc11.regionSource', { n: regionCount }) }}
+            {{ t('misc11.regionSource', { n: t('misc11.regionCount') }) }}
           </div>
         </el-form-item>
         <el-form-item :label="t('org.communityName')">

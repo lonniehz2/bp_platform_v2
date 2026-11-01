@@ -85,9 +85,9 @@
             <el-button link type="primary">{{ t('termination.more') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="doSubmit(row)">提交</el-dropdown-item>
+                <el-dropdown-item @click="doSubmit(row)">{{ t('termination.submit') }}</el-dropdown-item>
                 <el-dropdown-item @click="approve(row)">{{ t('misc2.approve') }}</el-dropdown-item>
-                <el-dropdown-item @click="doReject(row)">驳回</el-dropdown-item>
+                <el-dropdown-item @click="doReject(row)">{{ t('termination.reject') }}</el-dropdown-item>
                 <el-dropdown-item @click="doCancel(row)">{{ t('misc2.cancel') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>

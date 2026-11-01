@@ -65,8 +65,8 @@
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item v-if="['DRAFT','PUBLISHED','SIGNUP'].includes(row.batchStatus)"
-                                    @click="doTransition(row, 'CANCELLED')">取消批次</el-dropdown-item>
-                  <el-dropdown-item @click="viewResults(row)">查看结果</el-dropdown-item>
+                                    @click="doTransition(row, 'CANCELLED')">{{ t('alloc.cancelBatch') }}</el-dropdown-item>
+                  <el-dropdown-item @click="viewResults(row)">{{ t('alloc.viewResults') }}</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>

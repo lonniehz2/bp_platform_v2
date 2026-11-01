@@ -38,10 +38,10 @@
             <el-button link type="primary">{{ t('alert.more') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="actAction(row, '/alerts/{id}/resolve', '解决')">{{ t('alert.resolve') }}</el-dropdown-item>
-                <el-dropdown-item @click="actAction(row, '/alerts/{id}/ignore', '忽略')">{{ t('alert.ignore') }}</el-dropdown-item>
-                <el-dropdown-item @click="actAction(row, '/alerts/{id}/escalate', '升级')">{{ t('alert.escalate') }}</el-dropdown-item>
-                <el-dropdown-item @click="actAction(row, '/alerts/{id}/to-workorder', '转工单')">{{ t('alert.toWorkOrder') }}</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/alerts/{id}/resolve', t('alert.resolve'))">{{ t('alert.resolve') }}</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/alerts/{id}/ignore', t('alert.ignore'))">{{ t('alert.ignore') }}</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/alerts/{id}/escalate', t('alert.escalate'))">{{ t('alert.escalate') }}</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/alerts/{id}/to-workorder', t('alert.toWorkOrder'))">{{ t('alert.toWorkOrder') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>

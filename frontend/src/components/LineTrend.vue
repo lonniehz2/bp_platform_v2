@@ -37,6 +37,7 @@
  * 用于能耗分析的月度趋势：数据点可选 3~24 个。
  */
 import { computed } from 'vue'
+import { getLocale } from '@/i18n'
 
 const props = defineProps({
   // [{ label: '2026-08', value: 123.45 }]
@@ -69,6 +70,11 @@ const yOf = (v) => {
 
 function fmt(v) {
   const n = Number(v) || 0
+  if (getLocale() === 'en-US') {
+    if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
+    if (Math.abs(n) >= 1_000) return (n / 1_000).toFixed(1) + 'K'
+    return String(Math.round(n * 100) / 100)
+  }
   if (n >= 10000) return (n / 10000).toFixed(1) + ' 万'
   if (n >= 100) return String(Math.round(n))
   return String(Math.round(n * 100) / 100)
