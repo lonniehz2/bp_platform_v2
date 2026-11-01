@@ -11,7 +11,7 @@
       <el-button type="success" @click="createVisible = true">{{ t('alert.create') }}</el-button>
     </div>
 
-    <el-alert type="info" :closable="false" show-icon :title="'阈值告警由规则引擎产生；可转工单、升级或忽略'"
+    <el-alert type="info" :closable="false" show-icon :title="t('alert.tip')"
               style="margin-bottom:12px" />
 
     <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('alert.empty')">
@@ -38,10 +38,10 @@
             <el-button link type="primary">{{ t('alert.more') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="actAction(row, '/alerts/{id}/resolve', '解决')">解决</el-dropdown-item>
-                <el-dropdown-item @click="actAction(row, '/alerts/{id}/ignore', '忽略')">忽略</el-dropdown-item>
-                <el-dropdown-item @click="actAction(row, '/alerts/{id}/escalate', '升级')">升级</el-dropdown-item>
-                <el-dropdown-item @click="actAction(row, '/alerts/{id}/to-workorder', '转工单')">转工单</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/alerts/{id}/resolve', '解决')">{{ t('alert.resolve') }}</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/alerts/{id}/ignore', '忽略')">{{ t('alert.ignore') }}</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/alerts/{id}/escalate', '升级')">{{ t('alert.escalate') }}</el-dropdown-item>
+                <el-dropdown-item @click="actAction(row, '/alerts/{id}/to-workorder', '转工单')">{{ t('alert.toWorkOrder') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -56,8 +56,8 @@
     <!-- ==================== 规则引擎 ==================== -->
     <div class="page-card">
       <div class="toolbar">
-        <h4 style="margin:0">规则引擎（规则集 → 规则）</h4>
-        <el-tag size="small" type="info">规则集 = 一组规则；规则 = 一条判定</el-tag>
+        <h4 style="margin:0">{{ t('alert.rulesetTitle') }}</h4>
+        <el-tag size="small" type="info">{{ t('alert.rulesetHint') }}</el-tag>
         <div class="spacer" />
         <el-select v-model="rsDomain" :placeholder="t('alert.domain')" clearable style="width:130px"
                    @change="loadRulesets">
@@ -101,9 +101,9 @@
           <template #default="{ row }">
             <el-button link type="primary" @click="viewRules(row)">{{ t('alert.viewRules') }}</el-button>
             <el-button link type="success" :disabled="row.rulesetStatus === 'PUBLISHED'"
-                       @click="publishRuleset(row)">发布</el-button>
+                       @click="publishRuleset(row)">{{ t('alert.publish') }}</el-button>
             <el-button link type="warning" :disabled="row.rulesetStatus === 'DISABLED'"
-                       @click="disableRuleset(row)">停用</el-button>
+                       @click="disableRuleset(row)">{{ t('alert.disable') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -117,7 +117,7 @@
           <div class="spacer" />
           <el-button type="success" size="small"
                      :disabled="currentRuleset.rulesetStatus === 'PUBLISHED'"
-                     @click="openRule">新增规则</el-button>
+                     @click="openRule">{{ t('alert.addRule') }}</el-button>
         </div>
         <el-table :data="rules" border size="small">
           <el-table-column prop="ruleCode" :label="t('alert.code')" width="150" />
@@ -149,7 +149,7 @@
             </template>
           </el-table-column>
         </el-table>
-        <div v-if="!rules.length" class="muted" style="margin-top:8px">该规则集暂无规则</div>
+        <div v-if="!rules.length" class="muted" style="margin-top:8px">{{ t('alert.noRules') }}</div>
       </div>
     </div>
 
@@ -157,7 +157,7 @@
     <el-dialog v-model="rulesetVisible" :title="t('alert.createTitle')" width="560px">
       <el-form :model="rs" label-width="110px">
         <el-form-item :label="t('alert.code')" required>
-          <el-input v-model="rs.code" placeholder="如 ALERT_OVERDUE" />
+          <el-input v-model="rs.code" :placeholder="t('alert.codeHint')" />
         </el-form-item>
         <el-form-item :label="t('alert.name')" required>
           <el-input v-model="rs.name" />
@@ -170,7 +170,7 @@
           </el-select>
         </el-form-item>
         <el-form-item :label="t('alert.scenario')">
-          <el-input v-model="rs.scenario" placeholder="如 OVERDUE_BILL" />
+          <el-input v-model="rs.scenario" :placeholder="t('alert.scenarioHint')" />
         </el-form-item>
         <el-form-item :label="t('alert.description')">
           <el-input v-model="rs.description" type="textarea" :rows="2" />
@@ -179,19 +179,19 @@
       <el-alert type="info" :closable="false" show-icon
                 title="同编码再次创建会自动递增版本；新版本为草稿，发布后旧版本自动停用" />
       <template #footer>
-        <el-button @click="rulesetVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreateRuleset">保存</el-button>
+        <el-button @click="rulesetVisible = false">{{ t('alert.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreateRuleset">{{ t('alert.save') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 新增/编辑规则 -->
-    <el-dialog v-model="ruleVisible" :title="rf2.id ? '编辑规则' : '新增规则'" width="620px">
+    <el-dialog v-model="ruleVisible" :title="rf2.id ? t('alert.editRule') : t('alert.newRule')" width="620px">
       <el-form :model="rf2" label-width="110px">
         <el-form-item label="规则编码" required>
-          <el-input v-model="rf2.code" placeholder="如 OVERDUE_30" />
+          <el-input v-model="rf2.code" :placeholder="t('alert.codeHint')" />
         </el-form-item>
         <el-form-item label="名称" required>
-          <el-input v-model="rf2.name" placeholder="如 逾期超 30 天告警" />
+          <el-input v-model="rf2.name" :placeholder="t('alert.nameHint')" />
         </el-form-item>
         <el-form-item label="监控字段" required>
           <el-select v-model="rf2.field" style="width:100%">

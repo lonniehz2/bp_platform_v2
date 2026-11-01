@@ -11,9 +11,9 @@
         巡检计划
       </el-button>
       <el-button plain :loading="saving" @click="autoAssignPending"
-                 data-testid="wo-autoassign-all">批量派单</el-button>
+                 data-testid="wo-autoassign-all">{{ t('workorder.batchAssign') }}</el-button>
       <el-button plain :loading="saving" @click="escalateOverdue"
-                 data-testid="wo-escalate">超时升级</el-button>
+                 data-testid="wo-escalate">{{ t('workorder.escalate') }}</el-button>
       <el-button type="primary" @click="reload">{{ t('workorder.refresh') }}</el-button>
     </div>
 
@@ -29,7 +29,7 @@
           到期计划会按周期生成「巡检」类工单，并自动推进下次执行日
         </span>
       </div>
-      <el-table :data="plans" size="small" border max-height="360" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
+      <el-table :data="plans" size="small" border max-height="360" :empty-text="t('workorder.empty')">
         <el-table-column prop="planName" :label="t('workorder.planName')" min-width="160" />
         <el-table-column prop="inspectType" :label="t('workorder.type')" width="110">
           <template #default="{ row }">
@@ -69,9 +69,9 @@
         </el-form-item>
         <el-form-item :label="t('workorder.cycle')">
           <el-radio-group v-model="pf.frequency">
-            <el-radio-button value="DAY">每日</el-radio-button>
-            <el-radio-button value="WEEK">每周</el-radio-button>
-            <el-radio-button value="MONTH">每月</el-radio-button>
+            <el-radio-button value="DAY">{{ t('workorder.daily') }}</el-radio-button>
+            <el-radio-button value="WEEK">{{ t('workorder.weekly') }}</el-radio-button>
+            <el-radio-button value="MONTH">{{ t('workorder.monthly') }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item :label="t('workorder.firstRun')">
@@ -113,25 +113,25 @@
           <el-tag v-if="row.responseOverdue || row.finishOverdue" type="danger" size="small">
             超时
           </el-tag>
-          <el-tag v-else type="success" size="small">正常</el-tag>
+          <el-tag v-else type="success" size="small">{{ t('workorder.normal') }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="createTime" :label="t('workorder.created')" width="170" />
       <el-table-column :label="t('workorder.actions')" width="230" fixed="right">
         <template #default="{ row }">
           <el-button v-if="row.orderStatus === 'PENDING'" link type="warning"
-                     @click="autoAssign(row)" data-testid="wo-autoassign">自动派单</el-button>
+                     @click="autoAssign(row)" data-testid="wo-autoassign">{{ t('workorder.autoAssign') }}</el-button>
           <el-button link type="primary" @click="act(row, 'accept')">{{ t('workorder.accept') }}</el-button>
           <el-button link type="success" @click="finish(row)">{{ t('workorder.finish') }}</el-button>
           <el-dropdown trigger="click" style="margin-left:8px">
             <el-button link type="primary">{{ t('workorder.more') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item @click="act(row, 'start')">开始</el-dropdown-item>
-                <el-dropdown-item @click="closeOrder(row)">关单</el-dropdown-item>
-                <el-dropdown-item @click="cancelOrder(row)">取消</el-dropdown-item>
-                <el-dropdown-item @click="rejectOrder(row)">退回</el-dropdown-item>
-                <el-dropdown-item @click="logs(row)">日志</el-dropdown-item>
+                <el-dropdown-item @click="act(row, 'start')">{{ t('workorder.start') }}</el-dropdown-item>
+                <el-dropdown-item @click="closeOrder(row)">{{ t('workorder.close') }}</el-dropdown-item>
+                <el-dropdown-item @click="cancelOrder(row)">{{ t('workorder.cancelOrder') }}</el-dropdown-item>
+                <el-dropdown-item @click="rejectOrder(row)">{{ t('workorder.reject') }}</el-dropdown-item>
+                <el-dropdown-item @click="logs(row)">{{ t('workorder.logs') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -150,7 +150,7 @@
           {{ l.action }} — {{ l.operatorName }}
         </el-timeline-item>
       </el-timeline>
-      <el-empty v-if="!logList.length" description="暂无日志" />
+      <el-empty v-if="!logList.length" :description="t('workorder.noLogs')" />
     </el-drawer>
   </div>
 </template>
