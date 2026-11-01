@@ -6,7 +6,7 @@
       <el-button type="primary" @click="loadHouses">{{ t('binding.search') }}</el-button>
       <el-button type="success" plain @click="openBatchBind" data-testid="device-batch-bind">{{ t('binding.batchBind') }}</el-button>
       <span class="muted" style="font-size:12px">
-        设备只绑定空间；房源通过「房源 → 空间」定位，床位/房间继承上级设备
+        {{ t('bindingX.spaceOnly') }}
       </span>
     </div>
 
@@ -15,7 +15,7 @@
       <el-col :span="8">
         <el-card shadow="never" body-style="padding:0">
           <div style="padding:8px 12px;font-weight:600;border-bottom:1px solid #eee">
-            房源（{{ houses.length }}）
+            {{ t('bindingX.housesCount', { n: houses.length }) }}
           </div>
           <el-table :data="houses" height="520" size="small" highlight-current-row
                     @current-change="pickHouse">
@@ -35,12 +35,11 @@
         <el-card shadow="never">
           <div class="toolbar" style="margin-bottom:8px">
             <span style="font-weight:600">
-              {{ current ? current.houseName + '（' + current.houseCode + '）' : '请选择房源' }}
-              的设备
+              {{ current ? current.houseName + ' (' + current.houseCode + ')' : t('bindingX.pickHouse') }} {{ t('bindingX.devicesOf') }}
             </span>
             <div class="spacer" />
             <el-button v-if="current" type="primary" plain size="small"
-                       @click="openBind">绑定设备</el-button>
+                       @click="openBind">{{ t('bindingX.bindDevice') }}</el-button>
             <el-button v-if="current" size="small" @click="loadDevices">{{ t('binding.refresh') }}</el-button>
           </div>
 
@@ -61,12 +60,12 @@
               </template>
             </el-table-column>
             <el-table-column v-if="tab === 'inherit'" prop="scope" :label="t('binding.source')" width="100">
-              <template #default="{ row }">{{ row.scope || '继承' }}</template>
+              <template #default="{ row }">{{ row.scope || t('bindingX.inherited') }}</template>
             </el-table-column>
             <el-table-column prop="onlineStatus" :label="t('binding.online')" width="80">
               <template #default="{ row }">
                 <el-tag size="small" :type="row.onlineStatus === 1 ? 'success' : 'info'">
-                  {{ row.onlineStatus === 1 ? '在线' : '离线' }}
+                  {{ row.onlineStatus === 1 ? t('bindingX.online') : t('bindingX.offline') }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -87,54 +86,54 @@
       <el-table :data="unbound" v-loading="bindLoading" size="small" border max-height="330"
                 @selection-change="(v) => (picked = v)">
         <el-table-column type="selection" width="46" />
-        <el-table-column prop="deviceName" label="设备名称" min-width="160" />
-        <el-table-column prop="deviceId" label="设备编号" width="180" />
-        <el-table-column prop="deviceType" label="分类" width="110">
+        <el-table-column prop="deviceName" :label="t('bindingX.devName')" min-width="160" />
+        <el-table-column prop="deviceId" :label="t('bindingX.devId')" width="180" />
+        <el-table-column prop="deviceType" :label="t('bindingX.category')" width="110">
           <template #default="{ row }">{{ typeLabel(row.deviceType) }}</template>
         </el-table-column>
       </el-table>
       <template #footer>
         <el-button @click="bindVisible = false">{{ t('binding.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" :disabled="!picked.length"
-                   @click="doBind">绑定选中（{{ picked.length }}）</el-button>
+                   @click="doBind">{{ t('bindingX.bindSelected', { n: picked.length }) }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 设备批量绑定：选择 → 校验预览 → 结果 -->
     <el-dialog v-model="batchVisible" :title="t('binding.batchTitle')" width="820px" @close="resetBatch">
       <el-steps :active="batchStep" simple style="margin-bottom:14px">
-        <el-step title="选择文件" />
-        <el-step title="校验预览" />
-        <el-step title="绑定结果" />
+        <el-step :title="t('bindingX.stepFile')" />
+        <el-step :title="t('bindingX.stepPreview')" />
+        <el-step :title="t('bindingX.stepResult')" />
       </el-steps>
 
       <div v-if="batchStep === 1">
         <el-alert type="info" :closable="false" show-icon
-                  title="CSV 列顺序：房源编号, 设备编号（首行可为表头；设备会绑定到房源所在空间）" />
+                  :title="t('bindingX.csvOrder')" />
         <div style="margin:12px 0;display:flex;gap:8px;align-items:center">
-          <el-button size="small" @click="downloadBindTemplate">下载模板</el-button>
-          <span class="muted" style="font-size:12px">已绑定其它空间的设备会失败并给出原因</span>
+          <el-button size="small" @click="downloadBindTemplate">{{ t('bindingX.downloadTemplate') }}</el-button>
+          <span class="muted" style="font-size:12px">{{ t('bindingX.bindConflict') }}</span>
         </div>
         <el-upload :auto-upload="false" :limit="1" accept=".csv"
                    :on-change="onBindFile" :file-list="bindFiles">
-          <el-button type="primary" plain>选择 CSV 文件</el-button>
+          <el-button type="primary" plain>{{ t('bindingX.chooseCsv') }}</el-button>
         </el-upload>
       </div>
 
       <div v-else-if="batchStep === 2">
         <el-alert :type="bindProblems.length ? 'warning' : 'success'" :closable="false" show-icon
                   :title="bindProblems.length
-                    ? ('预览发现 ' + bindProblems.length + ' 处问题，可修正后重新选择')
-                    : ('准备绑定 ' + bindRows.length + ' 行')" />
+                    ? t('bindingX.previewProblem', { n: bindProblems.length })
+                    : t('bindingX.readyBind', { n: bindRows.length })" />
         <el-table :data="bindRows" size="small" border max-height="280" style="margin-top:8px">
-          <el-table-column prop="line" label="行" width="60" />
+          <el-table-column prop="line" :label="t('bindingX.row')" width="60" />
           <el-table-column prop="houseCode" label="房源编号" width="170" />
           <el-table-column prop="deviceId" label="设备编号" width="190" />
         </el-table>
         <el-table v-if="bindProblems.length" :data="bindProblems" size="small" border
                   style="margin-top:8px" max-height="150">
-          <el-table-column prop="line" label="行号" width="80" />
-          <el-table-column prop="message" label="问题" />
+          <el-table-column prop="line" :label="t('bindingX.rowNo')" width="80" />
+          <el-table-column prop="message" :label="t('bindingX.issue')" />
         </el-table>
       </div>
 
