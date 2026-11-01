@@ -1,14 +1,14 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">换房管理</h3>
+      <h3 style="margin:0">{{ t('exchange.title') }}</h3>
       <div class="spacer" />
       <OrgSelect v-model="orgId" width="200px" testid="ex-org" />
-      <el-input v-model="keyword" placeholder="承租人姓名" clearable style="width:180px"
+      <el-input v-model="keyword" :placeholder="t('exchange.keyword')" clearable style="width:180px"
                 @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="success" @click="createVisible = true">新建换房</el-button>
+      <el-button type="primary" @click="reload">{{ t('exchange.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('exchange.reset') }}</el-button>
+      <el-button type="success" @click="createVisible = true">{{ t('exchange.create') }}</el-button>
 
     </div>
 
@@ -21,26 +21,26 @@
           <DetailView :row="row" />
         </template>
       </el-table-column>
-      <el-table-column prop="exchangeNo" label="换房单号" width="170" />
-      <el-table-column prop="personId" label="人员" width="110">
+      <el-table-column prop="exchangeNo" :label="t('exchange.no')" width="170" />
+      <el-table-column prop="personId" :label="t('exchange.person')" width="110">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column prop="oldHouseId" label="原房源" width="120">
+      <el-table-column prop="oldHouseId" :label="t('exchange.oldHouse')" width="120">
         <template #default="{ row }">{{ row.oldHouseIdName || row.oldHouseId }}</template>
       </el-table-column>
-      <el-table-column prop="newHouseId" label="新入住" width="120">
+      <el-table-column prop="newHouseId" :label="t('exchange.newHouse')" width="120">
         <template #default="{ row }">{{ row.newHouseIdName || row.newHouseId }}</template>
       </el-table-column>
-      <el-table-column prop="exchangeTimes" label="已换次数" width="100" />
-      <el-table-column prop="exchangeStatus" label="状态" width="110">
+      <el-table-column prop="exchangeTimes" :label="t('exchange.times')" width="100" />
+      <el-table-column prop="exchangeStatus" :label="t('exchange.status')" width="110">
         <template #default="{ row }">{{ row.exchangeStatusLabel || enumLabel('exchangeStatus', row.exchangeStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="230" fixed="right">
+      <el-table-column :label="t('exchange.actions')" width="230" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-          <el-button link @click="actPlain(row, '/exchanges/{id}/submit', '提交')">提交</el-button>
+          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('exchange.detail') }}</el-button>
+          <el-button link @click="actPlain(row, '/exchanges/{id}/submit', t('exchange.submit'))">{{ t('exchange.submit') }}</el-button>
           <el-dropdown trigger="click" style="margin-left:8px">
-            <el-button link type="primary">更多▾</el-button>
+            <el-button link type="primary">{{ t('exchange.more') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="actReason(row, '/exchanges/{id}/approve', '批准')">批准</el-dropdown-item>
@@ -58,66 +58,68 @@
                    :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
                    @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
 
-    <el-dialog v-model="createVisible" title="新建换房申请" width="720px">
+    <el-dialog v-model="createVisible" :title="t('exchange.createTitle')" width="720px">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
                 title="字段与后端 ExchangeCreateCmd 一致；带 * 为必填" />
       <el-form :model="form" label-width="120px">
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="人员 ID" required>
+          <el-col :span="12"><el-form-item :label="t('exchange.personId')" required>
             <PersonPicker v-model="form.personId" width="240px" testid="person-picker" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="换房类型" required>
+          <el-col :span="12"><el-form-item :label="t('exchange.type')" required>
             <el-select v-model="form.exchangeType" style="width:100%" data-testid="f-exchangeType">
-              <el-option label="自愿换房" value="VOLUNTARY" />
-              <el-option label="统筹调整" value="ADJUST" />
-              <el-option label="清退安置" value="EXPEL_RELOCATE" />
+              <el-option :label="t('exchange.voluntary')" value="VOLUNTARY" />
+              <el-option :label="t('exchange.adjust')" value="ADJUST" />
+              <el-option :label="t('exchange.expel')" value="EXPEL_RELOCATE" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="原合同 ID" required>
+          <el-col :span="12"><el-form-item :label="t('exchange.oldContract')" required>
             <el-input :model-value="auto.contractNo || form.oldContractId" disabled
                       data-testid="f-oldContractId" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="原房源 ID" required>
+          <el-col :span="12"><el-form-item :label="t('exchange.oldHouseId')" required>
             <el-input :model-value="auto.houseName || form.oldHouseId" disabled
                       data-testid="f-oldHouseId" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="新房源 ID" required>
+          <el-col :span="12"><el-form-item :label="t('exchange.newHouseId')" required>
             <el-input v-model="form.newHouseId" data-testid="f-newHouseId" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="换房原因码">
+          <el-col :span="12"><el-form-item :label="t('exchange.reasonCode')">
             <el-select v-model="form.exchangeReasonCode" style="width:100%" clearable>
-              <el-option label="结婚" value="MARRIAGE" />
-              <el-option label="生育" value="BIRTH" />
-              <el-option label="同住" value="COHABIT" />
-              <el-option label="就业" value="EMPLOYMENT" />
-              <el-option label="就学" value="SCHOOL" />
-              <el-option label="其他" value="OTHER" />
+              <el-option :label="t('exchange.marriage')" value="MARRIAGE" />
+              <el-option :label="t('exchange.birth')" value="BIRTH" />
+              <el-option :label="t('exchange.cohabit')" value="COHABIT" />
+              <el-option :label="t('exchange.employment')" value="EMPLOYMENT" />
+              <el-option :label="t('exchange.school')" value="SCHOOL" />
+              <el-option :label="t('exchange.other')" value="OTHER" />
             </el-select></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="原家庭人口">
+          <el-col :span="12"><el-form-item :label="t('exchange.oldFamily')">
             <el-input v-model="form.familySizeBefore" type="number" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="现家庭人口">
+          <el-col :span="12"><el-form-item :label="t('exchange.newFamily')">
             <el-input v-model="form.familySizeAfter" type="number" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="换房原因">
+          <el-col :span="24"><el-form-item :label="t('exchange.reason')">
             <el-input v-model="form.exchangeReason" type="textarea" :rows="3"
                       data-testid="f-exchangeReason" /></el-form-item></el-col>
-          <el-col :span="24"><el-form-item label="强制换房">
+          <el-col :span="24"><el-form-item :label="t('exchange.force')">
             <el-switch v-model="form.forceExchange" /></el-form-item></el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
+        <el-button @click="createVisible = false">{{ t('exchange.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('exchange.submitBtn') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="show" title="明细（原始数据）" size="520px">
+    <el-drawer v-model="show" :title="t('exchange.drawer')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
 
     <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('exchange.detailTitle')" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView，字段与中文名来自后端字段字典） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {

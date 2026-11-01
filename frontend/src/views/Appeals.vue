@@ -1,14 +1,14 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">申诉管理</h3>
+      <h3 style="margin:0">{{ t('appeal.title') }}</h3>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字" clearable style="width:160px"
+      <el-input v-model="keyword" :placeholder="t('appeal.keyword')" clearable style="width:160px"
                 @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="success" @click="createVisible = true">新建申诉</el-button>
-      <el-button @click="markTimeout">标记超时</el-button>
+      <el-button type="primary" @click="reload">{{ t('appeal.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('appeal.reset') }}</el-button>
+      <el-button type="success" @click="createVisible = true">{{ t('appeal.create') }}</el-button>
+      <el-button @click="markTimeout">{{ t('appeal.markTimeout') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon :title="'申诉期限默认 10 个自然日；逾期未处理会标记超时'"
@@ -20,22 +20,22 @@
           <DetailView :row="row" />
         </template>
       </el-table-column>
-      <el-table-column prop="appealNo" label="申诉单号" width="170" />
-      <el-table-column prop="appealType" label="类型" width="130">
+      <el-table-column prop="appealNo" :label="t('appeal.no')" width="170" />
+      <el-table-column prop="appealType" :label="t('appeal.type')" width="130">
         <template #default="{ row }">{{ row.appealTypeLabel || enumLabel('appealType', row.appealType) }}</template>
       </el-table-column>
-      <el-table-column prop="appealStatus" label="状态" width="110">
+      <el-table-column prop="appealStatus" :label="t('appeal.status')" width="110">
         <template #default="{ row }">{{ row.appealStatusLabel || enumLabel('appealStatus', row.appealStatus) }}</template>
       </el-table-column>
-      <el-table-column prop="personIdName" label="申请人" width="120">
+      <el-table-column prop="personIdName" :label="t('appeal.person')" width="120">
         <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="230" fixed="right">
+      <el-table-column :label="t('appeal.actions')" width="230" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
-          <el-button link type="primary" @click="actReason(row, '/appeals/{id}/accept', '受理')">受理</el-button>
+          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('appeal.detail') }}</el-button>
+          <el-button link type="primary" @click="actReason(row, '/appeals/{id}/accept', '受理')">{{ t('appeal.accept') }}</el-button>
           <el-dropdown trigger="click" style="margin-left:8px">
-            <el-button link type="primary">更多▾</el-button>
+            <el-button link type="primary">{{ t('appeal.more') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="actReason(row, '/appeals/{id}/investigate', '调查')">调查</el-dropdown-item>
@@ -53,30 +53,32 @@
                    :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
                    @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
 
-    <el-dialog v-model="createVisible" title="新建申诉" width="700px">
+    <el-dialog v-model="createVisible" :title="t('appeal.createTitle')" width="700px">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
                 title="字段与后端 AppealCreateCmd 一致；带 * 为必填" />
       <JsonForm :model="form" :schema="SCHEMA"
                 @update:model="(m) => Object.assign(form, m)" />
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
+        <el-button @click="createVisible = false">{{ t('appeal.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doCreate">{{ t('appeal.submit') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="show" title="明细（原始数据）" size="520px">
+    <el-drawer v-model="show" :title="t('appeal.drawer')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
 
     <!-- 通用详情 -->
-    <el-dialog v-model="dvVisible" title="详情" width="820px" top="6vh">
+    <el-dialog v-model="dvVisible" :title="t('appeal.detailTitle')" width="820px" top="6vh">
       <DetailView :row="dvRow" />
     </el-dialog>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView，字段与中文名来自后端字段字典） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {
