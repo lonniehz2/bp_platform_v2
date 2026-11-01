@@ -6,42 +6,42 @@
     </div>
 
     <el-tabs v-model="tab">
-      <el-tab-pane label="月度分摊" name="alloc">
+      <el-tab-pane :label="t('energy.allocTab')" name="alloc">
         <div class="toolbar">
-          <el-input v-model="period" placeholder="2026-10" style="width:120px" />
-          <el-select v-model="pointId" placeholder="表计" clearable style="width:220px">
+          <el-input v-model="period" :placeholder="t('energy.period')" style="width:120px" />
+          <el-select v-model="pointId" :placeholder="t('energy.meter')" clearable style="width:220px">
             <el-option v-for="p in points" :key="p.id"
                        :label="(p.meterName || p.id) + '｜' + p.meterScope" :value="p.id" />
           </el-select>
-          <el-button type="primary" :loading="loading" @click="preview">试算</el-button>
-          <el-button type="success" :disabled="!previewData" @click="confirm">确认分摊并出账</el-button>
+          <el-button type="primary" :loading="loading" @click="preview">{{ t('energy.preview') }}</el-button>
+          <el-button type="success" :disabled="!previewData" @click="confirm">{{ t('energy.confirm') }}</el-button>
         </div>
         <el-alert v-if="previewData" type="info" :closable="false" show-icon
                   :title="`整表用量 ${previewData.totalUsage}，整表费用 ${previewData.totalAmount}，运营方承担 ${previewData.operatorBearAmount}`" />
         <el-table v-if="previewData" :data="previewData.shares" border size="small" style="margin-top:10px">
-          <el-table-column prop="contractNo" label="合同" width="180" />
-          <el-table-column prop="lesseeName" label="承租人" width="120" />
-          <el-table-column prop="occupyDays" label="占用天数" width="100" />
-          <el-table-column prop="personDays" label="人·天" width="100" />
-          <el-table-column prop="shareRatio" label="比例" width="100" />
-          <el-table-column prop="shareAmount" label="分摊金额" width="120" />
+          <el-table-column prop="contractNo" :label="t('energy.contract')" width="180" />
+          <el-table-column prop="lesseeName" :label="t('energy.lessee')" width="120" />
+          <el-table-column prop="occupyDays" :label="t('energy.occupyDays')" width="100" />
+          <el-table-column prop="personDays" :label="t('energy.personDays')" width="100" />
+          <el-table-column prop="shareRatio" :label="t('energy.ratio')" width="100" />
+          <el-table-column prop="shareAmount" :label="t('energy.shareAmount')" width="120" />
         </el-table>
       </el-tab-pane>
 
-      <el-tab-pane label="能耗分析" name="analysis">
+      <el-tab-pane :label="t('energy.analysisTab')" name="analysis">
         <div class="toolbar">
           <el-input v-model="period" placeholder="2026-10" style="width:120px" />
-          <el-select v-model="analysisItem" placeholder="收费项目" clearable style="width:200px">
+          <el-select v-model="analysisItem" :placeholder="t('energy.feeItem')" clearable style="width:200px">
             <el-option v-for="f in feeItems" :key="f.id" :label="f.itemName" :value="String(f.id)" />
           </el-select>
-          <el-button type="primary" @click="loadAnalysis">查询</el-button>
+          <el-button type="primary" @click="loadAnalysis">{{ t('energy.search') }}</el-button>
         </div>
         <el-descriptions v-if="stat" :column="3" border size="small">
-          <el-descriptions-item label="总表用量">{{ stat.totalUsage }}</el-descriptions-item>
-          <el-descriptions-item label="分表合计">{{ stat.submeterUsage }}</el-descriptions-item>
-          <el-descriptions-item label="差异量">{{ stat.diffUsage }}</el-descriptions-item>
-          <el-descriptions-item label="差异率">{{ (Number(stat.diffRate) * 100).toFixed(2) }}%</el-descriptions-item>
-          <el-descriptions-item label="告警级别">
+          <el-descriptions-item :label="t('energy.totalUsage')">{{ stat.totalUsage }}</el-descriptions-item>
+          <el-descriptions-item :label="t('energy.submeterUsage')">{{ stat.submeterUsage }}</el-descriptions-item>
+          <el-descriptions-item :label="t('energy.diffUsage')">{{ stat.diffUsage }}</el-descriptions-item>
+          <el-descriptions-item :label="t('energy.diffRate')">{{ (Number(stat.diffRate) * 100).toFixed(2) }}%</el-descriptions-item>
+          <el-descriptions-item :label="t('energy.alertLevel')">
             <el-tag :type="stat.alertLevel === 'ALARM' ? 'danger'
               : (stat.alertLevel === 'WARN' ? 'warning' : 'success')">
               {{ stat.alertLevel }}
@@ -50,91 +50,93 @@
         </el-descriptions>
       </el-tab-pane>
 
-      <el-tab-pane label="表计" name="points">
+      <el-tab-pane :label="t('energy.pointsTab')" name="points">
         <div class="toolbar">
-          <el-button type="primary" @click="openPoint">新增表计</el-button>
+          <el-button type="primary" @click="openPoint">{{ t('energy.addPoint') }}</el-button>
         </div>
         <el-table :data="points" border size="small">
-          <el-table-column prop="meterName" label="名称" width="160" />
-          <el-table-column prop="spaceId" label="空间 ID" width="180" />
-          <el-table-column prop="feeItemId" label="收费项目" width="180" />
-          <el-table-column prop="meterScope" label="范围" width="100" />
-          <el-table-column prop="allocationBasis" label="分摊基数" width="120" />
-          <el-table-column label="操作" width="220">
+          <el-table-column prop="meterName" :label="t('energy.name')" width="160" />
+          <el-table-column prop="spaceId" :label="t('energy.spaceId')" width="180" />
+          <el-table-column prop="feeItemId" :label="t('energy.feeItem')" width="180" />
+          <el-table-column prop="meterScope" :label="t('energy.scope')" width="100" />
+          <el-table-column prop="allocationBasis" :label="t('energy.basis')" width="120" />
+          <el-table-column :label="t('energy.actions')" width="220">
             <template #default="{ row }">
-              <el-button link type="primary" @click="openRead(row)">人工抄表</el-button>
-              <el-button link @click="readNow(row)">即时抄表</el-button>
+              <el-button link type="primary" @click="openRead(row)">{{ t('energy.manualRead') }}</el-button>
+              <el-button link @click="readNow(row)">{{ t('energy.readNow') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
       </el-tab-pane>
 
-      <el-tab-pane label="策略" name="policy">
+      <el-tab-pane :label="t('energy.policyTab')" name="policy">
         <el-form :model="policy" label-width="120px" style="max-width:520px">
-          <el-form-item label="空床承担">
+          <el-form-item :label="t('energy.vacancyBearer')">
             <el-radio-group v-model="policy.vacancyBearer">
-              <el-radio label="OPERATOR">运营方</el-radio>
-              <el-radio label="OCCUPANTS">在住租户</el-radio>
+              <el-radio label="OPERATOR">{{ t('energy.operator') }}</el-radio>
+              <el-radio label="OCCUPANTS">{{ t('energy.occupants') }}</el-radio>
             </el-radio-group>
           </el-form-item>
-          <el-form-item label="警告阈值">
+          <el-form-item :label="t('energy.warnThreshold')">
             <el-input v-model.number="policy.warnRate" />
           </el-form-item>
-          <el-form-item label="告警阈值">
+          <el-form-item :label="t('energy.alarmThreshold')">
             <el-input v-model.number="policy.alarmRate" />
           </el-form-item>
-          <el-button type="primary" @click="savePolicy">保存策略</el-button>
+          <el-button type="primary" @click="savePolicy">{{ t('energy.savePolicy') }}</el-button>
         </el-form>
       </el-tab-pane>
     </el-tabs>
 
-    <el-dialog v-model="pointVisible" title="新增表计" width="480px">
+    <el-dialog v-model="pointVisible" :title="t('energy.addPointTitle')" width="480px">
       <el-form :model="pf" label-width="100px">
-        <el-form-item label="空间 ID" required><el-input v-model="pf.spaceId" /></el-form-item>
-        <el-form-item label="收费项目" required>
+        <el-form-item :label="t('energy.spaceId')" required><el-input v-model="pf.spaceId" /></el-form-item>
+        <el-form-item :label="t('energy.feeItem')" required>
           <el-select v-model="pf.feeItemId" filterable style="width:100%">
             <el-option v-for="f in feeItems" :key="f.id" :label="f.itemName" :value="String(f.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item label="床位容量">
-          <el-input v-model.number="pf.bedCapacity" placeholder="房间床位数" />
+        <el-form-item :label="t('energy.bedCapacity')">
+          <el-input v-model.number="pf.bedCapacity" :placeholder="t('energy.bedCapacityHint')" />
         </el-form-item>
-        <el-form-item label="名称"><el-input v-model="pf.meterName" /></el-form-item>
-        <el-form-item label="范围">
+        <el-form-item :label="t('energy.name')"><el-input v-model="pf.meterName" /></el-form-item>
+        <el-form-item :label="t('energy.scope')">
           <el-select v-model="pf.meterScope" style="width:100%">
-            <el-option label="房间表" value="ROOM" />
-            <el-option label="楼栋总表" value="BUILDING" />
+            <el-option :label="t('energy.roomMeter')" value="ROOM" />
+            <el-option :label="t('energy.buildingMeter')" value="BUILDING" />
           </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="pointVisible = false">取消</el-button>
-        <el-button type="primary" @click="savePoint">保存</el-button>
+        <el-button @click="pointVisible = false">{{ t('energy.cancel') }}</el-button>
+        <el-button type="primary" @click="savePoint">{{ t('energy.save') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="readVisible" title="人工抄表" width="420px">
+    <el-dialog v-model="readVisible" :title="t('energy.readTitle')" width="420px">
       <el-form label-width="90px">
-        <el-form-item label="读数"><el-input v-model.number="rf.reading" /></el-form-item>
-        <el-form-item label="抄表时间">
+        <el-form-item :label="t('energy.reading')"><el-input v-model.number="rf.reading" /></el-form-item>
+        <el-form-item :label="t('energy.readTime')">
           <el-date-picker v-model="rf.readTime" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss"
                           style="width:100%" />
         </el-form-item>
-        <el-form-item label="备注"><el-input v-model="rf.remark" /></el-form-item>
+        <el-form-item :label="t('energy.remark')"><el-input v-model="rf.remark" /></el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="readVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveRead">保存</el-button>
+        <el-button @click="readVisible = false">{{ t('energy.cancel') }}</el-button>
+        <el-button type="primary" @click="saveRead">{{ t('energy.save') }}</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 
+const { t } = useI18n()
 const tab = ref('alloc')
 const period = ref(new Date().toISOString().slice(0, 7))
 const points = ref([])
