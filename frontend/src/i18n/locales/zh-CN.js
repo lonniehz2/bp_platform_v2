@@ -639,6 +639,18 @@ export default {
     drawer: '明细（原始数据）',
     detailTitle: '详情',
   },
+  misc9: {
+    cohabitants: '同住人（保障人口）',
+    confirmTerminate: '确认终止',
+    editDraftTip: '签约后修改金额或租期请走「合同变更」，此处仅限草稿',
+    changeTip: '提交后进入「合同变更」审批；批准且到生效日后自动写回合同。',
+    submit: '提交',
+    quickSignTip: '用于存量人员/房源直接签约：系统会自动补一张「线下受理」申请单，保证可追溯',
+    generateContract: '生成合同',
+    swapTip: '换房会把合同迁到目标房源所在空间，原房源释放并留痕；请确认目标房源可租。',
+    lessee: '承租人',
+    confirmSwap: '确认换房',
+  },
   misc8: {
     multi: '多层',
     smallHigh: '小高层',

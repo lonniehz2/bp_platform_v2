@@ -226,7 +226,7 @@
     </el-dialog>
 
     <!-- 同住人（保障人口） -->
-    <el-drawer v-model="cohabitantVisible" title="同住人（保障人口）" size="620px">
+    <el-drawer v-model="cohabitantVisible" :title="t('misc9.cohabitants')" size="620px">
       <CohabitantPanel :contract-id="cohabitantContractId" />
     </el-drawer>
 
@@ -244,7 +244,7 @@
       </el-form>
       <template #footer>
         <el-button @click="termVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="danger" :loading="saving" @click="doTerminate">确认终止</el-button>
+        <el-button type="danger" :loading="saving" @click="doTerminate">{{ t('misc9.confirmTerminate') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -284,7 +284,7 @@
     <!-- 编辑合同（仅草稿） -->
     <el-dialog v-model="editVisible" :title="t('contract.editTitle')" width="620px">
       <el-alert type="warning" :closable="false" show-icon
-                title="签约后修改金额或租期请走「合同变更」，此处仅限草稿" />
+                :title="t('misc9.editDraftTip')" />
       <el-form :model="ef" label-width="100px" style="margin-top:12px">
         <el-row :gutter="12">
           <el-col :span="12"><el-form-item :label="labelOf('monthlyRent')">
@@ -344,17 +344,17 @@
         </el-form-item>
       </el-form>
       <el-alert type="info" :closable="false" show-icon
-                title="提交后进入「合同变更」审批；批准且到生效日后自动写回合同。" />
+                :title="t('misc9.changeTip')" />
       <template #footer>
         <el-button @click="chgVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="doChange">提交</el-button>
+        <el-button type="primary" :loading="saving" @click="doChange">{{ t('misc9.submit') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 快捷签约：存量人员 + 空置房源直接签约 -->
     <el-dialog v-model="quickSignVisible" :title="t('contract.quickTitle')" width="640px">
       <el-alert type="info" :closable="false" show-icon
-                title="用于存量人员/房源直接签约：系统会自动补一张「线下受理」申请单，保证可追溯" />
+                :title="t('misc9.quickSignTip')" />
       <el-form :model="qf" label-width="100px" style="margin-top:12px">
         <el-form-item :label="labelOf('lesseeName')" required>
           <PersonPicker v-model="qf.personId" />
@@ -390,17 +390,17 @@
       </el-form>
       <template #footer>
         <el-button @click="quickSignVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="doQuickSign">生成合同</el-button>
+        <el-button type="primary" :loading="saving" @click="doQuickSign">{{ t('misc9.generateContract') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 换房 -->
     <el-dialog v-model="swapVisible" :title="t('contract.swapTitle')" width="600px">
       <el-alert type="info" :closable="false" show-icon
-                title="换房会把合同迁到目标房源所在空间，原房源释放并留痕；请确认目标房源可租。" />
+                :title="t('misc9.swapTip')" />
       <el-form :model="sw" label-width="100px" style="margin-top:12px">
         <el-form-item :label="labelOf('contractNo')"><el-input :model-value="sw.contractNo" disabled /></el-form-item>
-        <el-form-item label="承租人"><el-input :model-value="sw.personName" disabled /></el-form-item>
+        <el-form-item :label="t('misc9.lessee')"><el-input :model-value="sw.personName" disabled /></el-form-item>
         <el-form-item :label="labelOf('oldHouseName')"><el-input :model-value="sw.oldHouseName" disabled /></el-form-item>
         <el-form-item :label="labelOf('oldLease')">
           <el-input :model-value="(sw.leaseStart || '') + ' ~ ' + (sw.leaseEnd || '')" disabled />
@@ -415,7 +415,7 @@
       </el-form>
       <template #footer>
         <el-button @click="swapVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="doSwap">确认换房</el-button>
+        <el-button type="primary" :loading="saving" @click="doSwap">{{ t('misc9.confirmSwap') }}</el-button>
       </template>
     </el-dialog>
 </template>

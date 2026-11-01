@@ -639,6 +639,18 @@ export default {
     drawer: 'Details (raw data)',
     detailTitle: 'Detail',
   },
+  misc9: {
+    cohabitants: 'Cohabitants (Household)',
+    confirmTerminate: 'Confirm Termination',
+    editDraftTip: 'After signing, change amounts or terms via Contract Change; this dialog is for drafts only',
+    changeTip: 'Submitting starts Contract Change approval; it is written back after approval and effective date.',
+    submit: 'Submit',
+    quickSignTip: 'For existing persons/housing: an offline-acceptance application is created automatically for traceability',
+    generateContract: 'Generate Contract',
+    swapTip: 'Swap moves the contract to the target housing, releases the original and keeps an audit trail; confirm the target is available.',
+    lessee: 'Lessee',
+    confirmSwap: 'Confirm Swap',
+  },
   misc8: {
     multi: 'Multi-storey',
     smallHigh: 'Mid-rise',
