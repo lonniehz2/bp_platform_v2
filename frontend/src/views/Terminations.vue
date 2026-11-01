@@ -1,11 +1,11 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">退租管理</h3>
+      <h3 style="margin:0">{{ t('termination.title') }}</h3>
       <el-tag size="small" type="info">过渡期 3 月 / 1.5 倍（可配）</el-tag>
       <div class="spacer" />
-      <el-button type="success" @click="openCreate">发起退租</el-button>
-      <el-button @click="load">刷新</el-button>
+      <el-button type="success" @click="openCreate">{{ t('termination.create') }}</el-button>
+      <el-button @click="load">{{ t('termination.refresh') }}</el-button>
     </div>
 
     <el-alert type="warning" :closable="false" show-icon
@@ -13,25 +13,25 @@
               style="margin-bottom:12px" />
 
     <FilterBar @search="resetAndLoad" @reset="resetQuery">
-      <el-select v-model="tf.status" placeholder="退租状态" clearable style="width:160px"
+      <el-select v-model="tf.status" :placeholder="t('termination.status')" clearable style="width:160px"
                  data-testid="term-status">
-        <el-option label="申请中" value="APPLYING" />
-        <el-option label="审批中" value="APPROVING" />
-        <el-option label="已批准" value="APPROVED" />
-        <el-option label="已完成" value="COMPLETED" />
-        <el-option label="已驳回" value="REJECTED" />
-        <el-option label="已撤销" value="CANCELLED" />
+        <el-option :label="t('termination.applying')" value="APPLYING" />
+        <el-option :label="t('termination.approving')" value="APPROVING" />
+        <el-option :label="t('termination.approved')" value="APPROVED" />
+        <el-option :label="t('termination.completed')" value="COMPLETED" />
+        <el-option :label="t('termination.rejected')" value="REJECTED" />
+        <el-option :label="t('termination.cancelled')" value="CANCELLED" />
       </el-select>
       <template #more>
         <OrgSelect v-model="tf.orgId" width="200px" testid="term-org" />
         <HouseSelect v-model="tf.houseId" width="200px" testid="term-house" />
-        <el-input v-model="tf.keyword" placeholder="退租单号/承租人" clearable
+        <el-input v-model="tf.keyword" :placeholder="t('termination.keyword')" clearable
                   style="width:200px" data-testid="term-keyword" />
         <ContractSelect v-model="tf.contractId" width="200px" testid="contract-select" />
-        <el-select v-model="tf.type" placeholder="退租类型" clearable style="width:160px">
-          <el-option label="协商终止" value="AGREEMENT" />
-          <el-option label="违约终止" value="BREACH" />
-          <el-option label="到期终止" value="EXPIRE" />
+        <el-select v-model="tf.type" :placeholder="t('termination.type')" clearable style="width:160px">
+          <el-option :label="t('termination.agreement')" value="AGREEMENT" />
+          <el-option :label="t('termination.breach')" value="BREACH" />
+          <el-option :label="t('termination.expire')" value="EXPIRE" />
         </el-select>
       </template>
     </FilterBar>
@@ -42,26 +42,26 @@
           <DetailView :row="row" />
         </template>
       </el-table-column>
-      <el-table-column prop="terminationNo" label="退租单号" width="170" />
-      <el-table-column prop="contractId" label="合同" width="130">
+      <el-table-column prop="terminationNo" :label="t('termination.no')" width="170" />
+      <el-table-column prop="contractId" :label="t('termination.contract')" width="130">
         <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
       </el-table-column>
-      <el-table-column prop="orgName" label="组织" width="150" />
-      <el-table-column prop="houseName" label="房源" width="140" />
-      <el-table-column prop="lesseeName" label="承租人" width="110" />
-      <el-table-column label="租期" width="180">
+      <el-table-column prop="orgName" :label="t('termination.org')" width="150" />
+      <el-table-column prop="houseName" :label="t('termination.house')" width="140" />
+      <el-table-column prop="lesseeName" :label="t('termination.lessee')" width="110" />
+      <el-table-column :label="t('termination.lease')" width="180">
         <template #default="{ row }">{{ row.leaseStart }} ~ {{ row.leaseEnd }}</template>
       </el-table-column>
-      <el-table-column label="月租" width="100" >
+      <el-table-column :label="t('termination.rent')" width="100" >
           <template #default="{ row }">{{ $money(row.monthlyRent) }}</template>
         </el-table-column>
-      <el-table-column label="押金" width="100" >
+      <el-table-column :label="t('termination.deposit')" width="100" >
           <template #default="{ row }">{{ $money(row.depositAmount) }}</template>
         </el-table-column>
-      <el-table-column prop="terminationType" label="类型" width="120">
+      <el-table-column prop="terminationType" :label="t('termination.type')" width="120">
         <template #default="{ row }">{{ row.terminationTypeLabel || enumLabel('terminationType', row.terminationType) }}</template>
       </el-table-column>
-      <el-table-column label="退出日期" width="150">
+      <el-table-column :label="t('termination.exitDate')" width="150">
         <template #default="{ row }">
           <span v-if="row.actualExitDate">{{ row.actualExitDate }}</span>
           <span v-else-if="row.planExitDate" class="muted">
@@ -70,7 +70,7 @@
           <span v-else class="muted">—</span>
         </template>
       </el-table-column>
-      <el-table-column prop="terminationStatus" label="状态" width="130">
+      <el-table-column prop="terminationStatus" :label="t('termination.statusCol')" width="130">
         <template #default="{ row }">
           <el-tag size="small" :type="row.terminationStatus === 'COMPLETED' ? 'success'
             : (row.terminationStatus === 'REJECTED' ? 'danger' : 'warning')">
@@ -78,11 +78,11 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="320" fixed="right">
+      <el-table-column :label="t('termination.actions')" width="320" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">详情</el-button>
+          <el-button link type="primary" @click="openDetail(row)" data-testid="row-detail">{{ t('termination.detail') }}</el-button>
           <el-dropdown style="margin:0 8px">
-            <el-button link type="primary">更多▾</el-button>
+            <el-button link type="primary">{{ t('termination.more') }}</el-button>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="doSubmit(row)">提交</el-dropdown-item>
@@ -94,10 +94,10 @@
           </el-dropdown>
           <el-button v-if="row.inspectStatus && row.inspectStatus !== 'PENDING'"
                      link type="success" @click="openDetail(row)">已查验</el-button>
-          <el-button v-else link @click="openInspect(row)">查验</el-button>
+          <el-button v-else link @click="openInspect(row)">{{ t('termination.inspect') }}</el-button>
           <el-button v-if="row.settleStatus === 'SETTLED'" link type="success"
                      @click="openDetail(row)">结算单</el-button>
-          <el-button v-else link type="primary" @click="openEnergy(row)">能耗结算</el-button>
+          <el-button v-else link type="primary" @click="openEnergy(row)">{{ t('termination.energy') }}</el-button>
           <el-button v-if="row.settleStatus !== 'SETTLED'" link type="warning" :disabled="!row.inspectStatus
                      || row.inspectStatus === 'PENDING'" @click="openSettle(row)">结算</el-button>
           <el-button v-if="row.settleStatus === 'SETTLED'" link type="success"
@@ -111,45 +111,45 @@
                    @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
 
     <!-- 发起退租 TerminationCreateCmd -->
-    <el-dialog v-model="createVisible" title="发起退租" width="560px">
+    <el-dialog v-model="createVisible" :title="t('termination.createTitle')" width="560px">
       <el-form :model="c" label-width="120px">
-        <el-form-item label="人员" required>
+        <el-form-item :label="t('termination.person')" required>
           <PersonPicker v-model="c.personId" width="260px" testid="person-picker" />
         </el-form-item>
-        <el-form-item label="原合同">
+        <el-form-item :label="t('termination.origContract')">
           <el-input :model-value="auto.contractNo || c.contractId" disabled />
         </el-form-item>
-        <el-form-item label="原房源">
+        <el-form-item :label="t('termination.origHouse')">
           <el-input :model-value="auto.houseName || c.houseId" disabled />
         </el-form-item>
-        <el-form-item label="组织">
+        <el-form-item :label="t('termination.org')">
           <el-input :model-value="auto.orgName" disabled />
         </el-form-item>
-        <el-form-item label="租期">
+        <el-form-item :label="t('termination.leaseTerm')">
           <el-input :model-value="auto.leaseStart + ' ~ ' + auto.leaseEnd" disabled />
         </el-form-item>
         <el-row :gutter="12">
-          <el-col :span="12"><el-form-item label="月租">
+          <el-col :span="12"><el-form-item :label="t('termination.rent')">
             <el-input :model-value="auto.monthlyRent" disabled /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="押金">
+          <el-col :span="12"><el-form-item :label="t('termination.deposit')">
             <el-input :model-value="auto.depositAmount" disabled /></el-form-item></el-col>
         </el-row>
         <el-alert v-if="c.personId && !auto.contractNo" type="warning" :closable="false"
                   title="该人员当前没有生效合同，无法发起退租" style="margin-bottom:8px" />
         <el-form-item label="退租类型">
           <el-select v-model="c.terminationType" style="width:100%">
-            <el-option label="正常退租" value="NORMAL" />
-            <el-option label="违规清退" value="EXPEL" />
-            <el-option label="到期不续" value="EXPIRE" />
-            <el-option label="换房退出" value="EXCHANGE" />
-            <el-option label="其他" value="OTHER" />
+            <el-option :label="t('termination.normal')" value="NORMAL" />
+            <el-option :label="t('termination.expel')" value="EXPEL" />
+            <el-option :label="t('termination.expireNotRenew')" value="EXPIRE" />
+            <el-option :label="t('termination.exchange')" value="EXCHANGE" />
+            <el-option :label="t('termination.other')" value="OTHER" />
           </el-select></el-form-item>
-        <el-form-item label="计划退出日">
+        <el-form-item :label="t('termination.planExit')">
           <el-date-picker v-model="c.planExitDate" type="date"
                           value-format="YYYY-MM-DD" style="width:100%" /></el-form-item>
-        <el-form-item label="退出原因">
+        <el-form-item :label="t('termination.exitReason')">
           <el-input v-model="c.exitReason" type="textarea" :rows="2" /></el-form-item>
-        <el-form-item label="过渡期(月)">
+        <el-form-item :label="t('termination.transitionMonths')">
           <el-input v-model.number="c.transitionMonths" placeholder="默认 3" /></el-form-item>
         <el-form-item label="过渡期租金倍率">
           <el-input v-model.number="c.transitionRentMultiplier" placeholder="默认 1.5" />
@@ -159,7 +159,7 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
+        <el-button @click="createVisible = false">{{ t('termination.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doCreate">提交</el-button>
       </template>
     </el-dialog>
@@ -272,7 +272,9 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /** 通用详情弹窗（复用 DetailView，字段与中文名来自后端字段字典） */
+const { t } = useI18n()
 const dvVisible = ref(false)
 const dvRow = ref({})
 function openDetail(row) {

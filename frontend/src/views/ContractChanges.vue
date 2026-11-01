@@ -1,15 +1,15 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">合同变更</h3>
+      <h3 style="margin:0">{{ t('change.title') }}</h3>
       <el-tag size="small" type="info">调租 / 租期 / 承租人变更，批准后写回合同</el-tag>
       <div class="spacer" />
-      <el-select v-model="query.changeStatus" placeholder="状态" clearable
+      <el-select v-model="query.changeStatus" :placeholder="t('change.status')" clearable
                  style="width:150px" @change="reload">
         <el-option v-for="s in statuses" :key="s" :label="enumLabel(null, s)" :value="s" />
       </el-select>
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
+      <el-button type="primary" @click="reload">{{ t('change.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('change.reset') }}</el-button>
     </div>
 
     <el-table :data="rows" v-loading="loading" border size="small" empty-text="暂无数据，可调整筛选条件或点击右上角新建">
@@ -21,26 +21,26 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="changeNo" label="变更号" width="170" />
-      <el-table-column prop="houseName" label="房源" width="150" />
-      <el-table-column prop="lesseeName" label="承租人" width="110" />
-      <el-table-column prop="contractId" label="合同" width="200">
+      <el-table-column prop="changeNo" :label="t('change.no')" width="170" />
+      <el-table-column prop="houseName" :label="t('change.house')" width="150" />
+      <el-table-column prop="lesseeName" :label="t('change.lessee')" width="110" />
+      <el-table-column prop="contractId" :label="t('change.contract')" width="200">
         <template #default="{ row }">{{ row.contractIdName || row.contractId }}</template>
       </el-table-column>
-      <el-table-column label="变更类型" width="130">
+      <el-table-column :label="t('change.type')" width="130">
         <template #default="{ row }">
           {{ row.changeTypeLabel || enumLabel('changeType', row.changeType) }}
         </template>
       </el-table-column>
-      <el-table-column label="变更前" width="200" show-overflow-tooltip>
+      <el-table-column :label="t('change.before')" width="200" show-overflow-tooltip>
         <template #default="{ row }">{{ beforeText(row) }}</template>
       </el-table-column>
-      <el-table-column label="变更后" width="200" show-overflow-tooltip>
+      <el-table-column :label="t('change.after')" width="200" show-overflow-tooltip>
         <template #default="{ row }">{{ afterText(row) }}</template>
       </el-table-column>
-      <el-table-column prop="changeReason" label="变更原因" width="160" show-overflow-tooltip />
-      <el-table-column prop="effectiveDate" label="生效日" width="120" />
-      <el-table-column label="状态" width="110">
+      <el-table-column prop="changeReason" :label="t('change.reason')" width="160" show-overflow-tooltip />
+      <el-table-column prop="effectiveDate" :label="t('change.effective')" width="120" />
+      <el-table-column :label="t('change.statusCol')" width="110">
         <template #default="{ row }">
           <el-tag size="small" :type="row.approveStatus === 'APPROVED' ? 'success'
             : (row.approveStatus === 'REJECTED' ? 'danger' : 'warning')">
@@ -48,24 +48,24 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column :label="t('change.actions')" width="200" fixed="right">
         <template #default="{ row }">
           <el-button link type="success" :disabled="row.approveStatus === 'APPROVED'"
-                     @click="approve(row)">批准</el-button>
+                     @click="approve(row)">{{ t('change.approve') }}</el-button>
           <el-button link type="danger" :disabled="row.approveStatus === 'REJECTED'"
-                     @click="reject(row)">驳回</el-button>
-          <el-button link @click="openChange(row)">详情</el-button>
+                     @click="reject(row)">{{ t('change.reject') }}</el-button>
+          <el-button link @click="openChange(row)">{{ t('change.detail') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog v-model="changeVisible" title="合同变更详情" width="760px">
+    <el-dialog v-model="changeVisible" :title="t('change.detailTitle')" width="760px">
       <el-descriptions :column="2" border size="small">
-        <el-descriptions-item label="变更号">{{ current?.changeNo }}</el-descriptions-item>
-        <el-descriptions-item label="合同">{{ current?.contractIdName || current?.contractId }}</el-descriptions-item>
-        <el-descriptions-item label="类型">{{ current?.changeTypeLabel || current?.changeType }}</el-descriptions-item>
-        <el-descriptions-item label="生效日">{{ current?.effectiveDate }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ current?.approveStatusLabel || current?.approveStatus }}</el-descriptions-item>
-        <el-descriptions-item label="原因">{{ current?.changeReason || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('change.no')">{{ current?.changeNo }}</el-descriptions-item>
+        <el-descriptions-item :label="t('change.contract')">{{ current?.contractIdName || current?.contractId }}</el-descriptions-item>
+        <el-descriptions-item :label="t('change.type')">{{ current?.changeTypeLabel || current?.changeType }}</el-descriptions-item>
+        <el-descriptions-item :label="t('change.effective')">{{ current?.effectiveDate }}</el-descriptions-item>
+        <el-descriptions-item :label="t('change.statusCol')">{{ current?.approveStatusLabel || current?.approveStatus }}</el-descriptions-item>
+        <el-descriptions-item :label="t('change.reason')">{{ current?.changeReason || '—' }}</el-descriptions-item>
       </el-descriptions>
       <el-row :gutter="12" style="margin-top:10px">
         <el-col :span="12">
@@ -84,7 +84,7 @@
         </el-col>
       </el-row>
       <template #footer>
-        <el-button @click="changeVisible = false">关闭</el-button>
+        <el-button @click="changeVisible = false">{{ t('change.close') }}</el-button>
       </template>
     </el-dialog>
 
@@ -93,39 +93,39 @@
                    :current-page="query.pageNum"
                    @current-change="(p) => { query.pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { query.pageSize = s; query.pageNum = 1; load() }" />
 
-    <el-drawer v-model="show" title="变更详情" size="520px">
+    <el-drawer v-model="show" :title="t('change.drawerTitle')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
-    <el-dialog v-model="createVisible" title="从合同发起变更" width="520px">
+    <el-dialog v-model="createVisible" :title="t('change.createTitle')" width="520px">
       <el-form :model="cf" label-width="120px">
-        <el-form-item label="合同ID" required>
+        <el-form-item :label="t('change.contractId')" required>
           <el-input v-model.number="cf.contractId" />
         </el-form-item>
-        <el-form-item label="变更类型" required>
+        <el-form-item :label="t('change.type')" required>
           <el-select v-model="cf.changeType" style="width:100%">
-            <el-option label="调租" value="RENT_ADJUST" />
-            <el-option label="续租" value="RENEW" />
-            <el-option label="租期调整" value="PERIOD" />
-            <el-option label="变更承租人" value="LESSEE" />
-            <el-option label="其他" value="OTHER" />
+            <el-option :label="t('change.rentAdjust')" value="RENT_ADJUST" />
+            <el-option :label="t('change.renew')" value="RENEW" />
+            <el-option :label="t('change.period')" value="PERIOD" />
+            <el-option :label="t('change.lesseeChange')" value="LESSEE" />
+            <el-option :label="t('change.other')" value="OTHER" />
           </el-select>
         </el-form-item>
         <el-form-item v-if="cf.changeType === 'RENT_ADJUST' || cf.changeType === 'RENEW'"
-                      label="新月租金">
+                      :label="t('change.newRent')">
           <el-input v-model.number="cf.newMonthlyRent" />
         </el-form-item>
         <el-form-item v-if="cf.changeType === 'PERIOD' || cf.changeType === 'RENEW'"
-                      label="新止租日">
+                      :label="t('change.newEnd')">
           <el-date-picker v-model="cf.newLeaseEnd" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
-        <el-form-item label="变更原因">
+        <el-form-item :label="t('change.reasonLabel')">
           <el-input v-model="cf.changeReason" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="createVisible = false">取消</el-button>
-        <el-button type="primary" @click="doCreateChange">创建</el-button>
+        <el-button @click="createVisible = false">{{ t('change.cancel') }}</el-button>
+        <el-button type="primary" @click="doCreateChange">{{ t('change.create') }}</el-button>
       </template>
     </el-dialog>
 
@@ -133,12 +133,14 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
 import DetailView from '@/components/DetailView.vue'
 
+const { t } = useI18n()
 const statuses = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']
 const loading = ref(false)
 const rows = ref([])
