@@ -1,14 +1,14 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">监管报送</h3>
+      <h3 style="margin:0">{{ t('gov.title') }}</h3>
       <el-tag size="small" type="info">对接房管局/公安</el-tag>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字/ID" clearable
+      <el-input v-model="keyword" :placeholder="t('gov.keyword')" clearable
                 style="width:170px" @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="success" @click="openCreate">发起报送</el-button>
+      <el-button type="primary" @click="reload">{{ t('gov.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('gov.reset') }}</el-button>
+      <el-button type="success" @click="openCreate">{{ t('gov.create') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon
@@ -18,18 +18,18 @@
       <el-table-column type="expand">
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
-      <el-table-column prop="taskNo" label="任务号" width="170" />
-      <el-table-column prop="targetSystem" label="目标系统" width="150" />
-      <el-table-column prop="reportType" label="类型" width="110">
+      <el-table-column prop="taskNo" :label="t('gov.no')" width="170" />
+      <el-table-column prop="targetSystem" :label="t('gov.target')" width="150" />
+      <el-table-column prop="reportType" :label="t('gov.type')" width="110">
         <template #default="{ row }">{{ row.reportTypeLabel || enumLabel('reportType', row.reportType) }}</template>
       </el-table-column>
-      <el-table-column prop="taskStatus" label="状态" width="110">
+      <el-table-column prop="taskStatus" :label="t('gov.status')" width="110">
         <template #default="{ row }">{{ row.taskStatusLabel || enumLabel('taskStatus', row.taskStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" :width="ROWACTIONS ? 210 : 110" fixed="right">
+      <el-table-column :label="t('gov.actions')" :width="ROWACTIONS ? 210 : 110" fixed="right">
         <template #default="{ row }">
-          <el-button link type="warning" @click="retry(row)">补报</el-button>
-          <el-button link @click="openDetail(row)">详情</el-button>
+          <el-button link type="warning" @click="retry(row)">{{ t('gov.retry') }}</el-button>
+          <el-button link @click="openDetail(row)">{{ t('gov.detail') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -61,24 +61,26 @@
       <el-alert v-if="formNote" :closable="false" show-icon type="warning"
                 :title="formNote" style="margin-top:8px" />
       <template #footer>
-        <el-button @click="formVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submit">提交</el-button>
+        <el-button @click="formVisible = false">{{ t('gov.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="submit">{{ t('gov.submit') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="detailVisible" title="明细（原始数据）" size="520px">
+    <el-drawer v-model="detailVisible" :title="t('gov.drawer')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { govApi } from '@/api/modules'
 
+const { t } = useI18n()
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref([])

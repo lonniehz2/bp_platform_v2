@@ -1,15 +1,15 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">短租订单</h3>
+      <h3 style="margin:0">{{ t('shortRent.title') }}</h3>
       <el-tag size="small" type="info">民宿/网约房</el-tag>
       <div class="spacer" />
-      <el-input v-model="keyword" placeholder="关键字/ID" clearable
+      <el-input v-model="keyword" :placeholder="t('shortRent.keyword')" clearable
                 style="width:170px" @keyup.enter="reload" />
-      <el-button type="primary" @click="reload">查询</el-button>
-      <el-button @click="resetQuery">清空</el-button>
-      <el-button type="primary" plain @click="byHouseVisible = true">按房源查</el-button>
-      <el-button plain @click="nightsVisible = true">住晚计算</el-button>
+      <el-button type="primary" @click="reload">{{ t('shortRent.search') }}</el-button>
+      <el-button @click="resetQuery">{{ t('shortRent.reset') }}</el-button>
+      <el-button type="primary" plain @click="byHouseVisible = true">{{ t('shortRent.byHouse') }}</el-button>
+      <el-button plain @click="nightsVisible = true">{{ t('shortRent.nights') }}</el-button>
 
     </div>
 
@@ -20,30 +20,30 @@
       <el-table-column type="expand">
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
-      <el-table-column prop="orderNo" label="订单号" width="170" />
-      <el-table-column prop="houseId" label="房源" width="120">
+      <el-table-column prop="orderNo" :label="t('shortRent.no')" width="170" />
+      <el-table-column prop="houseId" :label="t('shortRent.house')" width="120">
         <template #default="{ row }">{{ row.houseIdName || row.houseId }}</template>
       </el-table-column>
-      <el-table-column prop="checkInTime" label="入住" width="120" />
-      <el-table-column prop="checkOutTime" label="退房" width="120" />
-      <el-table-column prop="orderStatus" label="状态" width="110">
+      <el-table-column prop="checkInTime" :label="t('shortRent.checkIn')" width="120" />
+      <el-table-column prop="checkOutTime" :label="t('shortRent.checkOut')" width="120" />
+      <el-table-column prop="orderStatus" :label="t('shortRent.status')" width="110">
         <template #default="{ row }">{{ row.orderStatusLabel || enumLabel('orderStatus', row.orderStatus) }}</template>
       </el-table-column>
-      <el-table-column label="操作" :width="ROWACTIONS ? 210 : 110" fixed="right">
+      <el-table-column :label="t('shortRent.actions')" :width="ROWACTIONS ? 210 : 110" fixed="right">
         <template #default="{ row }">
 
           <el-button v-if="row.orderStatus === 'PENDING'" link type="primary"
-                       @click="doConfirm(row)" data-testid="sr-confirm">确认</el-button>
+                       @click="doConfirm(row)" data-testid="sr-confirm">{{ t('shortRent.confirm') }}</el-button>
             <el-button v-if="row.orderStatus === 'CONFIRMED'" link type="success"
-                       @click="doCheckIn(row)" data-testid="sr-checkin">入住</el-button>
+                       @click="doCheckIn(row)" data-testid="sr-checkin">{{ t('shortRent.checkInAction') }}</el-button>
             <el-button v-if="row.orderStatus === 'CHECKED_IN'" link type="warning"
-                       @click="doCheckOut(row)" data-testid="sr-checkout">退房</el-button>
+                       @click="doCheckOut(row)" data-testid="sr-checkout">{{ t('shortRent.checkOutAction') }}</el-button>
             <el-button v-if="row.orderStatus === 'CONFIRMED'" link
-                       @click="doNoShow(row)">未到</el-button>
+                       @click="doNoShow(row)">{{ t('shortRent.noShow') }}</el-button>
             <el-button v-if="row.orderStatus === 'CHECKED_OUT'" link type="primary"
-                       @click="doPay(row)">收款</el-button>
-            <el-button link type="danger" @click="cancel(row)">取消</el-button>
-          <el-button link @click="openDetail(row)">详情</el-button>
+                       @click="doPay(row)">{{ t('shortRent.collect') }}</el-button>
+            <el-button link type="danger" @click="cancel(row)">{{ t('shortRent.cancel') }}</el-button>
+          <el-button link @click="openDetail(row)">{{ t('shortRent.detail') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -75,23 +75,23 @@
       <el-alert v-if="formNote" :closable="false" show-icon type="warning"
                 :title="formNote" style="margin-top:8px" />
       <template #footer>
-        <el-button @click="formVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submit">提交</el-button>
+        <el-button @click="formVisible = false">{{ t('shortRent.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="submit">{{ t('shortRent.submit') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-drawer v-model="detailVisible" title="明细（原始数据）" size="520px">
+    <el-drawer v-model="detailVisible" :title="t('shortRent.detail')" size="520px">
       <DetailView :row="detail || {}" />
     </el-drawer>
   </div>
 
     <!-- 按房源查当日订单 -->
-    <el-dialog v-model="byHouseVisible" title="按房源查订单" width="760px">
+    <el-dialog v-model="byHouseVisible" :title="t('shortRent.byHouseTitle')" width="760px">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
         <HouseSelect v-model="bh.houseId" width="260px" testid="sr-byhouse-house" />
         <el-date-picker v-model="bh.date" type="date" value-format="YYYY-MM-DD"
                         placeholder="日期" style="width:150px" />
-        <el-button type="primary" :loading="bhLoading" @click="loadByHouse">查询</el-button>
+        <el-button type="primary" :loading="bhLoading" @click="loadByHouse">{{ t('shortRent.search') }}</el-button>
       </div>
 
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
@@ -100,7 +100,7 @@
                         placeholder="入住" style="width:140px" />
         <el-date-picker v-model="bh.checkOut" type="date" value-format="YYYY-MM-DD"
                         placeholder="退房" style="width:140px" />
-        <el-button plain :loading="avLoading" @click="checkAvailability">查可用性</el-button>
+        <el-button plain :loading="avLoading" @click="checkAvailability">{{ t('shortRent.checkAvail') }}</el-button>
       </div>
       <el-alert v-if="av" :type="av.available ? 'success' : 'warning'" :closable="false"
                 :title="(av.houseName || av.houseCode || '房源') + '：' + (av.available ? '可整段出租' : '不可整段出租')
@@ -108,20 +108,20 @@
                 style="margin-bottom:10px" />
       <el-table :data="bhRows" size="small" border max-height="360">
         <el-table-column prop="orderNo" label="订单号" width="170" />
-        <el-table-column prop="checkInTime" label="入住" width="150" />
-        <el-table-column prop="checkOutTime" label="退房" width="150" />
-        <el-table-column prop="orderStatusLabel" label="状态" width="110" />
-        <el-table-column label="金额" width="100" >
+        <el-table-column prop="checkInTime" :label="t('shortRent.checkIn')" width="150" />
+        <el-table-column prop="checkOutTime" :label="t('shortRent.checkOut')" width="150" />
+        <el-table-column prop="orderStatusLabel" :label="t('shortRent.status')" width="110" />
+        <el-table-column :label="t('shortRent.amount')" width="100" >
           <template #default="{ row }">{{ $money(row.totalAmount) }}</template>
         </el-table-column>
       </el-table>
       <template #footer>
-        <el-button @click="byHouseVisible = false">关闭</el-button>
+        <el-button @click="byHouseVisible = false">{{ t('shortRent.close') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 住晚计算 -->
-    <el-dialog v-model="nightsVisible" title="住晚计算" width="520px">
+    <el-dialog v-model="nightsVisible" :title="t('shortRent.nightsTitle')" width="520px">
       <el-alert type="info" :closable="false" show-icon
                 title="退房时刻必须晚于入住时刻；跨夜按自然夜计算。" />
       <el-form label-width="90px" style="margin-top:12px">
@@ -137,13 +137,14 @@
       <el-alert v-if="ngNights !== null" :type="ngNights > 0 ? 'success' : 'error'"
                 :closable="false" :title="ngNights > 0 ? ('共 ' + ngNights + ' 晚') : '退房时间不合法'" />
       <template #footer>
-        <el-button @click="nightsVisible = false">关闭</el-button>
-        <el-button type="primary" @click="calcNights">计算</el-button>
+        <el-button @click="nightsVisible = false">{{ t('shortRent.close') }}</el-button>
+        <el-button type="primary" @click="calcNights">{{ t('shortRent.calc') }}</el-button>
       </template>
     </el-dialog>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
 import { ref, reactive, onMounted } from 'vue'
@@ -152,6 +153,7 @@ import { shortRentApi } from '@/api/modules'
 import req from '@/api/request'
 import HouseSelect from '@/components/HouseSelect.vue'
 
+const { t } = useI18n()
 const loading = ref(false)
 const saving = ref(false)
 const rows = ref([])
