@@ -1,18 +1,18 @@
 <template>
   <div class="page-card">
     <div class="toolbar">
-      <h3 style="margin:0">IoT 联调工具</h3>
+      <h3 style="margin:0">{{ t('iot.title') }}</h3>
       <el-tag size="small" type="info">验签 / 回调日志 / 重放</el-tag>
       <div class="spacer" />
-      <el-button @click="loadLogs">刷新日志</el-button>
+      <el-button @click="loadLogs">{{ t('iot.refreshLogs') }}</el-button>
     </div>
 
     <el-tabs v-model="tab">
-      <el-tab-pane label="签名自测" name="sign">
+      <el-tab-pane :label="t('iot.signTab')" name="sign">
         <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
                   title="用于与 IoT 方对照签名：填写同样的 appId/时间戳/nonce/body，双方算出的 signature 应完全一致。" />
         <el-form :model="sf" label-width="110px" style="max-width:720px">
-          <el-form-item label="回调动作">
+          <el-form-item :label="t('iot.action')">
             <el-select v-model="sf.action" style="width:100%">
               <el-option label="event" value="event" />
               <el-option label="access" value="access" />
@@ -24,23 +24,23 @@
               <el-option label="alarm-ack" value="alarm-ack" />
             </el-select>
           </el-form-item>
-          <el-form-item label="appId">
-            <el-input v-model="sf.appId" placeholder="留空用系统参数" />
+          <el-form-item :label="t('iot.appId')">
+            <el-input v-model="sf.appId" :placeholder="t('iot.blankParam')" />
           </el-form-item>
-          <el-form-item label="appSecret">
+          <el-form-item :label="t('iot.appSecret')">
             <el-input v-model="sf.appSecret" placeholder="留空用系统参数" show-password />
           </el-form-item>
-          <el-form-item label="timestamp">
-            <el-input v-model="sf.timestamp" placeholder="留空取当前秒" />
+          <el-form-item :label="t('iot.timestamp')">
+            <el-input v-model="sf.timestamp" :placeholder="t('iot.blankTimestamp')" />
           </el-form-item>
-          <el-form-item label="nonce">
-            <el-input v-model="sf.nonce" placeholder="留空用 testnonce" />
+          <el-form-item :label="t('iot.nonce')">
+            <el-input v-model="sf.nonce" :placeholder="t('iot.blankNonce')" />
           </el-form-item>
-          <el-form-item label="body">
+          <el-form-item :label="t('iot.body')">
             <el-input v-model="sf.body" type="textarea" :rows="5" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" :loading="signing" @click="doSign">计算签名</el-button>
+            <el-button type="primary" :loading="signing" @click="doSign">{{ t('iot.calcSign') }}</el-button>
           </el-form-item>
         </el-form>
         <div v-if="signed.signature">
@@ -50,12 +50,12 @@
               <pre class="mono">{{ signed.canonical }}</pre>
             </el-descriptions-item>
             <el-descriptions-item label="signature">{{ signed.signature }}</el-descriptions-item>
-            <el-descriptions-item label="请求头">{{ signed.headerHint }}</el-descriptions-item>
+            <el-descriptions-item :label="t('iot.header')">{{ signed.headerHint }}</el-descriptions-item>
           </el-descriptions>
         </div>
       </el-tab-pane>
 
-      <el-tab-pane label="对接能力" name="cap">
+      <el-tab-pane :label="t('iot.capTab')" name="cap">
         <el-alert type="info" :closable="false" show-icon
                   title="展示当前接入模式、凭证配置与仍需 IoT 提供的能力（联调/上线切换前先看这里）"
                   style="margin-bottom:10px" />
@@ -63,33 +63,33 @@
           <el-col :span="12">
             <div class="card-title">客户端模式</div>
             <el-table :data="capModeRows" size="small" border>
-              <el-table-column prop="name" label="客户端" width="140" />
-              <el-table-column prop="mode" label="当前模式" />
+              <el-table-column prop="name" :label="t('iot.client')" width="140" />
+              <el-table-column prop="mode" :label="t('iot.mode')" />
             </el-table>
             <div class="card-title" style="margin-top:12px">回调配置</div>
             <el-descriptions :column="1" border size="small">
-              <el-descriptions-item label="验签">{{ cap.callback?.verify }}</el-descriptions-item>
-              <el-descriptions-item label="回调 AppId">{{ cap.callback?.appId || '—' }}</el-descriptions-item>
-              <el-descriptions-item label="时间戳窗口">
+              <el-descriptions-item :label="t('iot.verify')">{{ cap.callback?.verify }}</el-descriptions-item>
+              <el-descriptions-item :label="t('iot.callbackAppId')">{{ cap.callback?.appId || '—' }}</el-descriptions-item>
+              <el-descriptions-item :label="t('iot.tsWindow')">
                 {{ cap.callback?.timestampToleranceSeconds }} 秒
               </el-descriptions-item>
-              <el-descriptions-item label="Nonce 缓存">
+              <el-descriptions-item :label="t('iot.nonceCache')">
                 {{ cap.callback?.nonceCacheMinutes }} 分钟
               </el-descriptions-item>
-              <el-descriptions-item label="默认租户">{{ cap.callback?.defaultTenant }}</el-descriptions-item>
+              <el-descriptions-item :label="t('iot.defaultTenant')">{{ cap.callback?.defaultTenant }}</el-descriptions-item>
             </el-descriptions>
           </el-col>
           <el-col :span="12">
             <div class="card-title">平台凭证</div>
             <el-descriptions :column="1" border size="small">
-              <el-descriptions-item label="IoT 地址">{{ cap.iotCredential?.baseUrl || '—' }}</el-descriptions-item>
-              <el-descriptions-item label="AppId">
+              <el-descriptions-item :label="t('iot.iotUrl')">{{ cap.iotCredential?.baseUrl || '—' }}</el-descriptions-item>
+              <el-descriptions-item :label="t('iot.appId')">
                 {{ cap.iotCredential?.appIdConfigured ? '已配置' : '未配置' }}
               </el-descriptions-item>
-              <el-descriptions-item label="Secret">
+              <el-descriptions-item :label="t('iot.secret')">
                 {{ cap.iotCredential?.appSecretConfigured ? '已配置' : '未配置' }}
               </el-descriptions-item>
-              <el-descriptions-item label="可切真实环境">
+              <el-descriptions-item :label="t('iot.canSwitch')">
                 {{ cap.readyForReal ? '是' : '否（凭证未配齐）' }}
               </el-descriptions-item>
             </el-descriptions>
@@ -98,31 +98,31 @@
               仍需 IoT 提供（{{ (cap.pendingFromIot || []).length }}）
             </div>
             <el-table :data="cap.pendingFromIot || []" size="small" border>
-              <el-table-column prop="name" label="事项" min-width="180" show-overflow-tooltip />
-              <el-table-column prop="note" label="说明" min-width="200" show-overflow-tooltip />
+              <el-table-column prop="name" :label="t('iot.item')" min-width="180" show-overflow-tooltip />
+              <el-table-column prop="note" :label="t('iot.note')" min-width="200" show-overflow-tooltip />
             </el-table>
           </el-col>
         </el-row>
       </el-tab-pane>
 
-      <el-tab-pane label="凭据同步" name="cred">
+      <el-tab-pane :label="t('iot.credTab')" name="cred">
         <div class="toolbar" style="margin-bottom:10px">
-          <el-select v-model="credQuery.status" placeholder="同步状态" clearable
+          <el-select v-model="credQuery.status" :placeholder="t('iot.syncStatus')" clearable
                      style="width:140px" @change="reloadCred">
-            <el-option label="成功" value="SUCCESS" />
-            <el-option label="失败" value="FAILED" />
-            <el-option label="待同步" value="PENDING" />
+            <el-option :label="t('iot.success')" value="SUCCESS" />
+            <el-option :label="t('iot.failed')" value="FAILED" />
+            <el-option :label="t('iot.pending')" value="PENDING" />
           </el-select>
-          <el-button type="primary" @click="reloadCred">查询</el-button>
+          <el-button type="primary" @click="reloadCred">{{ t('iot.search') }}</el-button>
           <span class="muted">共 {{ credTotal }} 条 ｜ 密码/卡/人脸/离线码下发记录</span>
         </div>
         <el-table :data="creds" border size="small">
-          <el-table-column prop="createTime" label="时间" width="170" />
-          <el-table-column prop="keyType" label="类型" width="130" />
-          <el-table-column prop="action" label="动作" width="100" />
-          <el-table-column prop="keyringId" label="钥匙ID" width="190" />
-          <el-table-column prop="personId" label="人员ID" width="190" />
-          <el-table-column label="状态" width="100">
+          <el-table-column prop="createTime" :label="t('iot.time')" width="170" />
+          <el-table-column prop="keyType" :label="t('iot.type')" width="130" />
+          <el-table-column prop="action" :label="t('iot.actionCol')" width="100" />
+          <el-table-column prop="keyringId" :label="t('iot.keyringId')" width="190" />
+          <el-table-column prop="personId" :label="t('iot.personId')" width="190" />
+          <el-table-column :label="t('iot.status')" width="100">
             <template #default="{ row }">
               <el-tag size="small" :type="row.status === 'SUCCESS' ? 'success'
                 : (row.status === 'FAILED' ? 'danger' : 'info')">
@@ -130,7 +130,7 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="errorMsg" label="错误" min-width="160" show-overflow-tooltip />
+          <el-table-column prop="errorMsg" :label="t('iot.error')" min-width="160" show-overflow-tooltip />
         </el-table>
         <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
                        :total="+credTotal || 0" :page-size="credQuery.pageSize"
@@ -138,29 +138,29 @@
                        @current-change="(p) => { credQuery.pageNum = p; loadCred() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { credQuery.pageSize = s; credQuery.pageNum = 1; loadCred() }" />
       </el-tab-pane>
 
-      <el-tab-pane label="回调日志" name="logs">
+      <el-tab-pane :label="t('iot.logTab')" name="logs">
         <div class="toolbar" style="margin-bottom:10px">
-          <el-select v-model="query.msgType" placeholder="动作" clearable style="width:160px"
+          <el-select v-model="query.msgType" :placeholder="t('iot.msgType')" clearable style="width:160px"
                      @change="reloadLogs">
             <el-option v-for="a in ACTIONS" :key="a" :label="a" :value="a" />
           </el-select>
-          <el-select v-model="query.processStatus" placeholder="处理状态" clearable
+          <el-select v-model="query.processStatus" :placeholder="t('iot.processStatus')" clearable
                      style="width:140px" @change="reloadLogs">
-            <el-option label="已处理" value="DONE" />
-            <el-option label="处理失败" value="FAILED" />
-            <el-option label="已拒绝" value="REJECTED" />
-            <el-option label="重复" value="DUPLICATE" />
+            <el-option :label="t('iot.done')" value="DONE" />
+            <el-option :label="t('iot.handleFailed')" value="FAILED" />
+            <el-option :label="t('iot.rejected')" value="REJECTED" />
+            <el-option :label="t('iot.duplicate')" value="DUPLICATE" />
           </el-select>
-          <el-button type="primary" @click="reloadLogs">查询</el-button>
+          <el-button type="primary" @click="reloadLogs">{{ t('iot.search') }}</el-button>
           <el-button type="warning" plain :loading="replaying" @click="replayRange">
-            重放近 24h 失败
+            {{ t('iot.replayFailures') }}
           </el-button>
           <span class="muted">共 {{ total }} 条</span>
         </div>
         <el-table :data="logs" border size="small">
-          <el-table-column prop="receiveTime" label="接收时间" width="170" />
-          <el-table-column prop="msgType" label="动作" width="130" />
-          <el-table-column prop="eventId" label="事件/幂等号" width="230" />
+          <el-table-column prop="receiveTime" :label="t('iot.receiveTime')" width="170" />
+          <el-table-column prop="msgType" :label="t('iot.msgType')" width="130" />
+          <el-table-column prop="eventId" :label="t('iot.eventId')" width="230" />
           <el-table-column label="验签" width="80">
             <template #default="{ row }">
               <el-tag size="small" :type="row.signOk ? 'success' : 'danger'">
@@ -168,7 +168,7 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="处理" width="100">
+          <el-table-column :label="t('iot.process')" width="100">
             <template #default="{ row }">
               <el-tag size="small" :type="statusType(row.processStatus)">
                 {{ statusLabel(row.processStatus) }}
@@ -176,10 +176,10 @@
             </template>
           </el-table-column>
           <el-table-column prop="errorMsg" label="错误" min-width="160" show-overflow-tooltip />
-          <el-table-column prop="rawBody" label="报文" min-width="220" show-overflow-tooltip />
-          <el-table-column label="操作" width="110" fixed="right">
+          <el-table-column prop="rawBody" :label="t('iot.bodyCol')" min-width="220" show-overflow-tooltip />
+          <el-table-column :label="t('iot.actions')" width="110" fixed="right">
             <template #default="{ row }">
-              <el-button link type="primary" @click="replay(row)">重放</el-button>
+              <el-button link type="primary" @click="replay(row)">{{ t('iot.replay') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -192,6 +192,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 /**
  * IoT 联调工具：签名自测、回调日志、历史回调重放。
  */
@@ -199,6 +200,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 
+const { t } = useI18n()
 const ACTIONS = ['event', 'access', 'command/ack', 'grant/ack', 'heartbeat', 'meter',
   'device-status', 'alarm-ack']
 
