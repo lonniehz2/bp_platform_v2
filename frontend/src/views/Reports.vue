@@ -124,6 +124,7 @@ import { enumLabel } from '@/constants/enums'
 import { ElMessage } from 'element-plus'
 import { rptApi } from '@/api/modules'
 import req from '@/api/request'
+import { getLocale } from '@/i18n'
 
 const { t, locale } = useI18n()
 
