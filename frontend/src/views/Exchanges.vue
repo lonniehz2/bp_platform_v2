@@ -60,7 +60,7 @@
 
     <el-dialog v-model="createVisible" :title="t('exchange.createTitle')" width="720px">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
-                title="字段与后端 ExchangeCreateCmd 一致；带 * 为必填" />
+                :title="t('exchange.formHint')" />
       <el-form :model="form" label-width="120px">
         <el-row :gutter="12">
           <el-col :span="12"><el-form-item :label="t('exchange.personId')" required>
@@ -77,8 +77,8 @@
           <el-col :span="12"><el-form-item :label="t('exchange.oldHouseId')" required>
             <el-input :model-value="auto.houseName || form.oldHouseId" disabled
                       data-testid="f-oldHouseId" /></el-form-item></el-col>
-          <el-col :span="12"><el-form-item :label="t('exchange.newHouseId')" required>
-            <el-input v-model="form.newHouseId" data-testid="f-newHouseId" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item :label="t('exchange.newHouse')" required>
+            <HouseSelect v-model="form.newHouseId" width="100%" testid="f-newHouseId" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('exchange.reasonCode')">
             <el-select v-model="form.exchangeReasonCode" style="width:100%" clearable>
               <el-option :label="t('exchange.marriage')" value="MARRIAGE" />

@@ -542,7 +542,11 @@ const gridCells = computed(() => {
 
 /** 格子操作：预订 / 停用 / 恢复 / 改价 */
 async function onDayCommand(cmd, cell) {
-  const date = String(cell.date)
+  if (!cell || !cell.date) {
+    ElMessage.warning(t('calendar.dateRequired'))
+    return
+  }
+  const date = String(cell.date).slice(0, 10)
   try {
     if (cmd === 'book') {
       openBook()

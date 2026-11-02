@@ -107,28 +107,24 @@
         <el-button @click="scan">{{ t('arrears.scanOverdue') }}</el-button>
       </div>
 
-      <el-table :data="rows" v-loading="loading" border size="small">
-        <el-table-column type="expand">
-          <template #default="{ row }"><DetailView :row="row" /></template>
-        </el-table-column>
-        <el-table-column prop="billId" :label="t('arrears.billId')" width="150">
+      <el-table :data="rows" v-loading="loading" border size="small"
+                :empty-text="t('arrears.noDunning')">
+        <el-table-column prop="dunningNo" :label="t('arrears.dunningNo')" width="90" />
+        <el-table-column prop="billId" :label="t('arrears.billId')" min-width="180">
           <template #default="{ row }">{{ row.billIdName || row.billId }}</template>
         </el-table-column>
-        <el-table-column prop="personId" :label="t('arrears.person')" width="120">
-          <template #default="{ row }">{{ row.personIdName || row.personId }}</template>
+        <el-table-column prop="personId" :label="t('arrears.person')" min-width="140">
+          <template #default="{ row }">{{ row.personIdName || row.personId || '—' }}</template>
         </el-table-column>
-        <el-table-column prop="actionType" :label="t('arrears.method')" width="120">
-          <template #default="{ row }">{{ row.actionTypeLabel || enumLabel('actionType', row.actionType) }}</template>
-        </el-table-column>
-        <el-table-column prop="triggerType" :label="t('arrears.level')" width="120">
-          <template #default="{ row }">{{ row.dunningLevelLabel || enumLabel('dunningLevel', row.dunningLevel) }}</template>
-        </el-table-column>
-        <el-table-column prop="executeTime" :label="t('arrears.time')" width="170" />
-        <el-table-column prop="remark" :label="t('arrears.remark')" min-width="160" />
-        <el-table-column :label="t('arrears.actions')" width="90" fixed="right">
+        <el-table-column prop="dunningType" :label="t('arrears.method')" width="110">
           <template #default="{ row }">
-            <el-button link @click="detail = row; show = true">{{ t('misc5.detail') }}</el-button>
+            {{ row.dunningTypeLabel || enumLabel('dunningType', row.dunningType) }}
           </template>
+        </el-table-column>
+        <el-table-column prop="dunningContent" :label="t('arrears.content')" min-width="200" />
+        <el-table-column prop="dunningTime" :label="t('arrears.dunningTime')" width="170" />
+        <el-table-column prop="dunningResult" :label="t('arrears.result')" min-width="140">
+          <template #default="{ row }">{{ row.dunningResult || '—' }}</template>
         </el-table-column>
       </el-table>
 

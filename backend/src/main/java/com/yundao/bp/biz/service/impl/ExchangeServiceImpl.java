@@ -381,10 +381,25 @@ public class ExchangeServiceImpl implements ExchangeService {
 
         nc.setRentPrice(oldCt.getRentPrice());
         nc.setRentUnit(oldCt.getRentUnit());
-        nc.setMonthlyRent(oldCt.getMonthlyRent());
+        BigDecimal newRent = oldCt.getMonthlyRent();
+        boolean noExchange = e.getNoExchangeFlag() != null && e.getNoExchangeFlag() == 1;
+        BigDecimal multiplier = e.getRentMultiplier() == null
+                ? BigDecimal.ONE : e.getRentMultiplier();
+        if (noExchange && newRent != null && multiplier.compareTo(BigDecimal.ONE) > 0) {
+            newRent = newRent.multiply(multiplier)
+                    .setScale(2, java.math.RoundingMode.HALF_UP);
+            log.info("换房单 {} 标记应换不换，新合同租金 {} × {} = {}",
+                    e.getExchangeNo(), oldCt.getMonthlyRent(), multiplier, newRent);
+        }
+        nc.setMonthlyRent(newRent);
         nc.setDepositAmount(oldCt.getDepositAmount());
         nc.setSubsidyAmount(oldCt.getSubsidyAmount());
-        nc.setActualPay(oldCt.getActualPay());
+        BigDecimal actualPay = oldCt.getActualPay();
+        if (noExchange && newRent != null && oldCt.getSubsidyAmount() != null) {
+            actualPay = newRent.subtract(oldCt.getSubsidyAmount())
+                    .setScale(2, java.math.RoundingMode.HALF_UP);
+        }
+        nc.setActualPay(actualPay);
         nc.setBillingPersonCount(oldCt.getBillingPersonCount());
         nc.setBillingBedCount(oldCt.getBillingBedCount() == null ? 1 : oldCt.getBillingBedCount());
         nc.setQuantityUpdatedAt(LocalDateTime.now());

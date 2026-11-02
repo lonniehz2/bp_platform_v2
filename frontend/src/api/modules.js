@@ -336,7 +336,7 @@ export const shortRentApi = {
   page: (params) => req.get('/short-rent-orders', { params }),
   get: (id) => req.get(`/short-rent-orders/${id}`),
   cancel: (id, reason) =>
-    req.post(`/short-rent-orders/${id}/cancel`, null, { params: { reason } }),
+    req.post(`/short-rent-orders/${id}/cancel`, { reason }),
   create: (data) => req.post('/short-rent-orders', data),
   confirm: (id) => req.post(`/short-rent-orders/${id}/confirm`),
   checkIn: (id) => req.post(`/short-rent-orders/${id}/check-in`),

@@ -32,7 +32,23 @@
       <el-table-column prop="houseCode" :label="t('house.code')" width="150" />
       <el-table-column prop="houseName" :label="t('house.name')" min-width="140" />
       <el-table-column prop="orgId" :label="t('house.orgCol')" width="150">
-        <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
+        <template #default="{ row }">{{ row.orgIdName || row.orgId }}    <el-dialog v-model="statusVisible" :title="t('house.changeStatus')" width="420px">
+      <el-form label-width="90px">
+        <el-form-item :label="t('house.status')">
+          <el-select v-model="statusValue" style="width:100%">
+            <el-option v-for="st in statuses" :key="st"
+                       :label="enumLabel('houseStatus', st)" :value="st" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="statusVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doChangeStatus">
+          {{ t('common.save') }}
+        </el-button>
+      </template>
+    </el-dialog>
+</template>
       </el-table-column>
       <el-table-column :label="t('house.space')" width="170" show-overflow-tooltip>
             <template #default="{ row }">
@@ -463,12 +479,20 @@ async function doCreate() {
   } finally { saving.value = false }
 }
 
-async function changeStatus(row) {
-  const { value } = await ElMessageBox.prompt(
-    '输入状态：VACANT / PENDING_ALLOC / ALLOCATED / OCCUPIED / LOCKED / REPAIR / OFFLINE',
-    '变更房源状态', { inputValue: row.houseStatus || 'VACANT' })
-  await houseApi.setStatus(row.id, { status: value })
-  ElMessage.success('已更新'); load()
+function changeStatus(row) {
+  statusRow.value = row
+  statusValue.value = row.houseStatus || 'VACANT'
+  statusVisible.value = true
+}
+
+async function doChangeStatus() {
+  saving.value = true
+  try {
+    await houseApi.setStatus(statusRow.value.id, { status: statusValue.value })
+    ElMessage.success(t('common.success'))
+    statusVisible.value = false
+    load()
+  } finally { saving.value = false }
 }
 
 function resetQuery() {
@@ -748,6 +772,9 @@ async function doCreateBeds() {
 
 
 /** 床位调换 */
+const statusVisible = ref(false)
+const statusRow = ref(null)
+const statusValue = ref('VACANT')
 const swapVisible = ref(false)
 const swapForm = reactive({ contractId: '', fromBed: '', occupant: '',
   targetHouseId: '', reason: '' })

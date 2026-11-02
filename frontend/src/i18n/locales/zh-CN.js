@@ -162,6 +162,22 @@ export default {
     requiredPassword: '请输入密码'
   },
   bill: {
+    orgName: '组织名称',
+    orgSearch: '搜索组织',
+    feeItem: '收费项目',
+    selectFeeItem: '请选择收费项目',
+    ruleName: '计费规则',
+    ruleAuto: '自动匹配',
+    ruleManual: '指定规则',
+    ruleNone: '不使用规则',
+    dryRun: '试运行',
+    paymentNo: '收款单号',
+    availableAmount: '可用余额',
+    targetBill: '核销账单',
+    allocateAmount: '核销金额',
+    periodStart: '费用开始日',
+    periodEnd: '费用结束日',
+    billingDaysNote: '计费天数按费用区间与合同租期交集计算，包含开始日和结束日；跨月按自然月天数折算。',
     meterTitle: '抄表录入',
     meterTip: '录入本次读数后自动带出上次读数、用量与金额；确认无误再点「出账生成账单」',
     recordReading: '录入读数',
@@ -517,6 +533,7 @@ export default {
     date: '对账日期：{date} ｜ 生成时间：{time}',
   },
   exchange: {
+    formHint: '字段与后端 ExchangeCreateCmd 一致；带 * 为必填',
     approve: '批准',
     reject: '驳回',
     complete: '完成',
@@ -530,7 +547,7 @@ export default {
     no: '换房单号',
     person: '人员',
     oldHouse: '原房源',
-    newHouse: '新入住',
+    newHouse: '新房源',
     times: '已换次数',
     status: '状态',
     actions: '操作',
@@ -580,6 +597,7 @@ export default {
     status: '状态',
   },
   calendar: {
+    dateRequired: '请选择有效日期',
     title: '日房态',
     keyword: '关键字/ID',
     search: '查询',
@@ -2419,6 +2437,13 @@ export default {
     detailTitle: '明细（原始数据）'
   },
   fee: {
+    fixed: '固定金额',
+    byArea: '按面积',
+    byHouse: '按套',
+    byPerson: '按人',
+    byBed: '按床位',
+    byNight: '按房晚',
+    meter: '按抄表',
     operation: '操作',
     edit: '编辑',
     typeHint: '停用后新增计费项目时不再出现在下拉里，历史项目不受影响。',
@@ -2455,6 +2480,7 @@ export default {
     submit: '提交申请'
   },
   arrears: {
+    dunningNo: '次数', noDunning: '暂无催缴记录', content: '催缴内容', dunningTime: '催缴时间', result: '催缴结果',
     riskConfirm: '确认安全风险',
     mainDoorHint: '停用大门需勾选',
     cancel: '取消',

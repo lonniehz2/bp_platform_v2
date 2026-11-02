@@ -439,6 +439,33 @@ public class SubsidyServiceImpl implements SubsidyService {
 
     // ==================== 计算 ====================
 
+    /** 该合同在指定补贴期间内账单覆盖的月数（跨月账单按自然月计）。 */
+    private int billMonths(Long contractId, String period) {
+        if (contractId == null || period == null || !period.matches("\\d{4}-\\d{2}")) {
+            return 1;
+        }
+        YearMonth ym = YearMonth.parse(period);
+        LocalDate ps = ym.atDay(1);
+        LocalDate pe = ym.atEndOfMonth();
+        List<FinBill> bills = billMapper.selectList(new LambdaQueryWrapper<FinBill>()
+                .eq(FinBill::getContractId, contractId)
+                .eq(FinBill::getIsDeleted, 0)
+                .le(FinBill::getPeriodStart, pe)
+                .ge(FinBill::getPeriodEnd, ps));
+        int max = 1;
+        for (FinBill b : bills) {
+            if (b.getPeriodStart() == null || b.getPeriodEnd() == null) {
+                continue;
+            }
+            long months = java.time.temporal.ChronoUnit.MONTHS.between(
+                    YearMonth.from(b.getPeriodStart()), YearMonth.from(b.getPeriodEnd())) + 1;
+            if (months > max) {
+                max = (int) months;
+            }
+        }
+        return max;
+    }
+
     /** 按标准与合同算补贴。 */
     private SubsidyCalcResult calc(FinSubsidyStandard std, BizContract ct, BigDecimal areaIn,
                                    Integer personIn, BigDecimal rentIn, String period) {
@@ -467,7 +494,17 @@ public class SubsidyServiceImpl implements SubsidyService {
 
         BigDecimal amount;
         String explain;
-        switch (mode) {
+        boolean useContractSubsidy = ct.getSubsidyAmount() != null
+                && ct.getSubsidyAmount().compareTo(BigDecimal.ZERO) > 0;
+        // 合同已约定月补贴标准时，以合同为准（测试反馈：批量发放 6 元 vs 合同 200 元）。
+        // 账单跨多月时，按该期间账单覆盖的月数发放。
+        if (useContractSubsidy) {
+            int months = billMonths(ct.getId(), period);
+            amount = ct.getSubsidyAmount().multiply(BigDecimal.valueOf(months))
+                    .setScale(2, RoundingMode.HALF_UP);
+            explain = "合同月补贴 " + ct.getSubsidyAmount().toPlainString()
+                    + " × " + months + " 个月";
+        } else switch (mode) {
             case FIXED -> {
                 amount = value;
                 explain = "定额 " + value + " 元/月";
@@ -497,7 +534,8 @@ public class SubsidyServiceImpl implements SubsidyService {
         // 封顶
         boolean capped = false;
         BigDecimal finalAmount = amount;
-        if (std.getMaxAmount() != null && amount.compareTo(std.getMaxAmount()) > 0) {
+        if (!useContractSubsidy && std.getMaxAmount() != null
+                && amount.compareTo(std.getMaxAmount()) > 0) {
             finalAmount = money(std.getMaxAmount());
             capped = true;
             explain = explain + " → 封顶 " + finalAmount;

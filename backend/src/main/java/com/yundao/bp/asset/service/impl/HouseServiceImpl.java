@@ -196,7 +196,7 @@ public class HouseServiceImpl implements HouseService {
             // 「105房间」这类口语输入转换为「105室」，与房源名称匹配
             String roomKeyword = keyword.trim().replace("房间", "室");
             qw.and(w -> w.like(AssetHouse::getHouseCode, keyword)
-                    .or().like(AssetHouse::getHouseName, keyword));
+                    .or().like(AssetHouse::getHouseName, roomKeyword));
         }
         IPage<AssetHouse> page = houseMapper.selectPage(new Page<>(pageNum, pageSize), qw);
         // 用可变列表：fillSpaceInfo 会回填所属空间（房间/床位）信息

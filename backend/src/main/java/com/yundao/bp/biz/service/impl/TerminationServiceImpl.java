@@ -401,6 +401,20 @@ public class TerminationServiceImpl implements TerminationService {
         if (e.getInspectStatus() == null || "PENDING".equals(e.getInspectStatus())) {
             throw BizException.stateConflict("尚未完成退租查验，不能办结");
         }
+        // 办结前置：合同下不能仍有未结账单，否则退租后欠费将留在账上无人处理
+        if (jdbc != null) {
+            java.math.BigDecimal unpaid = jdbc.queryForObject(
+                    "select coalesce(sum(bill_amount - discount_amount + late_fee "
+                            + "- paid_amount - waived_amount),0) from bp_fin_bill "
+                            + "where contract_id = ? and bill_status in ('UNPAID','PARTIAL','OVERDUE') "
+                            + "and is_deleted = 0",
+                    java.math.BigDecimal.class, e.getContractId());
+            if (unpaid != null && unpaid.compareTo(java.math.BigDecimal.ZERO) > 0) {
+                throw BizException.stateConflict(
+                        "仍有未缴账单（合计 " + unpaid.setScale(2, java.math.RoundingMode.HALF_UP)
+                                + " 元），请结清后再办结");
+            }
+        }
         // 办结自动腾退：终止合同、释放房源、清占用
         e.setHouseReleased(1);
         e.setGrantRevoked(1);

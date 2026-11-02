@@ -206,6 +206,7 @@ public class ContractChangeServiceImpl implements ContractChangeService {
             log.info("变更单 {} 已批准，生效日 {}，到期自动写回", id, eff);
             return ChangeVO.from(e);
         }
+        BigDecimal oldRent = ct.getMonthlyRent();
         applyToContract(ct, after);
 
         // ⭐ 真正写回合同
@@ -233,6 +234,14 @@ public class ContractChangeServiceImpl implements ContractChangeService {
         }
         ct.setUpdateTime(LocalDateTime.now());
         contractMapper.updateById(ct);
+
+        // 调租批准后，重算生效日之后尚未收款的租金账单，避免账单仍按旧租金收取
+        if (after.containsKey("monthlyRent")) {
+            BigDecimal newRent = new BigDecimal(String.valueOf(after.get("monthlyRent")))
+                    .setScale(2, RoundingMode.HALF_UP);
+            recalculateRentBills(ct.getId(), oldRent, newRent,
+                    e.getEffectiveDate() == null ? LocalDate.now() : e.getEffectiveDate());
+        }
 
         e.setApproveStatus(ApproveStatus.APPROVED.name());
         e.setApplied(1);
@@ -320,6 +329,65 @@ public class ContractChangeServiceImpl implements ContractChangeService {
         m.put("lesseePersonId", ct.getLesseePersonId());
         m.put("lesseeName", ct.getLesseeName());
         return m;
+    }
+
+    /**
+     * 调租批准后的账单重算：仅处理生效日之后、尚未收款的 RENT 账单。
+     * 保持减免与滞纳金不变，按新/旧租金比例重算应收与待缴。
+     */
+    private void recalculateRentBills(Long contractId, BigDecimal oldRent,
+                                       BigDecimal newRent, LocalDate effectiveDate) {
+        if (jdbc == null || oldRent == null || newRent == null
+                || oldRent.compareTo(BigDecimal.ZERO) <= 0
+                || oldRent.compareTo(newRent) == 0) {
+            return;
+        }
+        BigDecimal ratio = newRent.divide(oldRent, 8, RoundingMode.HALF_UP);
+        List<Map<String, Object>> bills = jdbc.queryForList(
+                "select id, bill_amount, discount_amount, waived_amount, late_fee "
+                        + "from bp_fin_bill where contract_id = ? and is_deleted = 0 "
+                        + "and bill_status in ('UNPAID','PARTIAL','OVERDUE') "
+                        + "and (paid_amount is null or paid_amount = 0) "
+                        + "and period_end >= ? "
+                        + "and fee_item_id in (select id from bp_fin_fee_item where item_type = 'RENT')",
+                contractId, effectiveDate);
+        int changed = 0;
+        for (Map<String, Object> b : bills) {
+            BigDecimal oldAmount = toDecimal(b.get("bill_amount"));
+            if (oldAmount == null || oldAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+            BigDecimal newAmount = oldAmount.multiply(ratio)
+                    .setScale(2, RoundingMode.HALF_UP);
+            BigDecimal discount = nz(toDecimal(b.get("discount_amount")));
+            BigDecimal waived = nz(toDecimal(b.get("waived_amount")));
+            BigDecimal late = nz(toDecimal(b.get("late_fee")));
+            BigDecimal payable = newAmount.subtract(discount).subtract(waived).add(late)
+                    .setScale(2, RoundingMode.HALF_UP);
+            if (payable.compareTo(BigDecimal.ZERO) < 0) {
+                payable = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+            }
+            jdbc.update("update bp_fin_bill set bill_amount = ?, payable_amount = ?, "
+                            + "remark = concat(coalesce(remark, ''), '；合同变更重算'), "
+                            + "update_time = now() where id = ?",
+                    newAmount, payable, b.get("id"));
+            changed++;
+        }
+        if (changed > 0) {
+            log.info("合同 {} 调租 {} → {}，重算未收款租金账单 {} 张",
+                    contractId, oldRent, newRent, changed);
+        }
+    }
+
+    private static BigDecimal toDecimal(Object o) {
+        if (o == null) {
+            return null;
+        }
+        return o instanceof BigDecimal b ? b : new BigDecimal(String.valueOf(o));
+    }
+
+    private static BigDecimal nz(BigDecimal v) {
+        return v == null ? BigDecimal.ZERO : v.setScale(2, RoundingMode.HALF_UP);
     }
 
     private BizContract requireContract(Long id) {

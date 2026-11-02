@@ -189,6 +189,27 @@ public class UtilityAllocationService {
         return computeExit(p, period, contractId, monthStart, exitDate, start, exitReading);
     }
 
+    /** 退租结算用：只返回合同所在房间/房源的计量表计。 */
+    public List<MeterPoint> pointsByContract(Long contractId) {
+        BizContract ct = contractMapper.selectById(contractId);
+        if (ct == null) {
+            throw BizException.notFound("合同");
+        }
+        Long spaceId = ct.getSpaceId();
+        if (spaceId == null && ct.getHouseId() != null) {
+            AssetHouse h = houseMapper.selectById(ct.getHouseId());
+            spaceId = h == null ? null : h.getSpaceId();
+        }
+        if (spaceId == null) {
+            return List.of();
+        }
+        return pointMapper.selectList(new LambdaQueryWrapper<MeterPoint>()
+                .eq(MeterPoint::getSpaceId, spaceId)
+                .eq(MeterPoint::getStatus, "ENABLED")
+                .orderByAsc(MeterPoint::getMeterScope)
+                .orderByAsc(MeterPoint::getId));
+    }
+
     public List<UtilityAllocation> allocations(String period) {
         return allocationMapper.selectList(new LambdaQueryWrapper<UtilityAllocation>()
                 .eq(period != null && !period.isBlank(), UtilityAllocation::getPeriod, period)

@@ -163,6 +163,22 @@ export default {
     requiredPassword: 'Password is required'
   },
   bill: {
+    orgName: 'Organization',
+    orgSearch: 'Search organization',
+    feeItem: 'Fee Item',
+    selectFeeItem: 'Select fee item',
+    ruleName: 'Billing Rule',
+    ruleAuto: 'Auto Match',
+    ruleManual: 'Specify Rule',
+    ruleNone: 'No Rule',
+    dryRun: 'Dry Run',
+    paymentNo: 'Payment No.',
+    availableAmount: 'Available Amount',
+    targetBill: 'Target Bill',
+    allocateAmount: 'Allocation Amount',
+    periodStart: 'Period Start',
+    periodEnd: 'Period End',
+    billingDaysNote: 'Billable days are the overlap of the period and lease, inclusive of both start and end dates; cross-month portions are prorated by calendar days.',
     meterTitle: 'Meter Reading Entry',
     meterTip: 'Enter the current reading to derive previous reading, usage and amount; then generate the bill.',
     recordReading: 'Save Reading',
@@ -518,6 +534,7 @@ export default {
     date: 'Date: {date} | Generated at: {time}',
   },
   exchange: {
+    formHint: 'Fields match ExchangeCreateCmd; * required',
     approve: 'Approve',
     reject: 'Reject',
     complete: 'Complete',
@@ -581,6 +598,7 @@ export default {
     status: 'Status',
   },
   calendar: {
+    dateRequired: 'Please select a valid date',
     title: 'Daily Availability',
     keyword: 'Keyword / ID',
     search: 'Search',
@@ -2448,6 +2466,13 @@ export default {
     detailTitle: 'Details (raw data)'
   },
   fee: {
+    fixed: 'Fixed Amount',
+    byArea: 'By Area',
+    byHouse: 'By Unit',
+    byPerson: 'By Person',
+    byBed: 'By Bed',
+    byNight: 'By Night',
+    meter: 'By Meter',
     operation: 'Actions',
     edit: 'Edit',
     typeHint: 'Disabled fee types no longer appear in new fee item dropdowns; existing items are unaffected.',
@@ -2484,6 +2509,7 @@ export default {
     submit: 'Submit Request'
   },
   arrears: {
+    dunningNo: 'No.', noDunning: 'No dunning records', content: 'Dunning Content', dunningTime: 'Dunning Time', result: 'Result',
     riskConfirm: 'Confirm Safety Risk',
     mainDoorHint: 'Check to disable the main door',
     cancel: 'Cancel',

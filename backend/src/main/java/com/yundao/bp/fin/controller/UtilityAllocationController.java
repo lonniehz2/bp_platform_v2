@@ -22,7 +22,10 @@ public class UtilityAllocationController {
     }
 
     @GetMapping("/meter-points")
-    public R<List<MeterPoint>> points() {
+    public R<List<MeterPoint>> points(@RequestParam(required = false) Long contractId) {
+        if (contractId != null) {
+            return R.ok(service.pointsByContract(contractId));
+        }
         return R.ok(service.points());
     }
 

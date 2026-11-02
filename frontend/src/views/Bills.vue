@@ -113,21 +113,21 @@
                        :value="String(o.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="labelOf('feeItemName')" required>
+        <el-form-item :label="t('bill.feeItem')" required>
           <el-select v-model="g.feeItemId" filterable style="width:100%"
                      :placeholder="t('bill.selectFeeItem')" @change="loadGenRules">
             <el-option v-for="f in feeItems" :key="f.id"
                        :label="f.itemName || f.feeItemName || f.id" :value="String(f.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="labelOf('ruleName')">
+        <el-form-item :label="t('bill.ruleName')">
           <el-radio-group v-model="g.ruleMode">
             <el-radio-button label="AUTO">{{ t('bill.ruleAuto') }}</el-radio-button>
             <el-radio-button label="MANUAL">{{ t('bill.ruleManual') }}</el-radio-button>
             <el-radio-button label="NONE">{{ t('bill.ruleNone') }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item v-if="g.ruleMode === 'MANUAL'" :label="labelOf('ruleName')" required>
+        <el-form-item v-if="g.ruleMode === 'MANUAL'" :label="t('bill.ruleName')" required>
           <el-select v-model="g.ruleId" filterable style="width:100%"
                      :placeholder="t('bill.selectRule')">
             <el-option v-for="r in genRules" :key="r.id"
@@ -142,6 +142,8 @@
           <el-date-picker v-model="g.periodEnd" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
+        <el-alert type="warning" :closable="false" show-icon style="margin-bottom:8px"
+                  :title="t('bill.billingDaysNote')" />
         <el-form-item :label="t('bill.dryRun')">
           <el-switch v-model="g.dryRun" /></el-form-item>
       </el-form>
@@ -207,7 +209,7 @@
             <el-option v-for="o in orgOptions" :key="o.id" :label="o.orgName" :value="String(o.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="labelOf('feeItemName')" required>
+        <el-form-item :label="t('bill.feeItem')" required>
           <el-select v-model="sf.feeItemId" filterable style="width:100%">
             <el-option v-for="f in feeItems" :key="f.id"
                        :label="f.itemName || f.feeItemName || f.itemCode || f.id"
@@ -255,7 +257,7 @@
             <el-option v-for="h in meterHouses" :key="h.id" :label="h.houseName" :value="String(h.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="labelOf('feeItemName')">
+        <el-form-item :label="t('bill.feeItem')">
           <el-select v-model="mf.feeItemId" filterable style="width:200px">
             <el-option v-for="f in meterItems" :key="f.id"
                        :label="`${f.itemName}（${f.unitPrice}/${f.unit || '单位'}）`"
@@ -355,14 +357,14 @@
       </div>
       <el-table :data="payments" border size="small" max-height="420"
                 empty-text="暂无收款单，点击「登记收款」新增">
-        <el-table-column prop="paymentNo" :label="labelOf('paymentNo')" width="185" />
+        <el-table-column prop="paymentNo" :label="t('bill.paymentNo')" width="185" />
         <el-table-column :label="labelOf('payerName')" width="130">
           <template #default="{ row }">
             {{ row.payerName || row.personIdName || row.personId || '—' }}
           </template>
         </el-table-column>
         <el-table-column prop="payAmount" :label="labelOf('payAmount')" width="110" />
-        <el-table-column prop="reconciledAmount" :label="labelOf('allocateAmount')" width="110" />
+        <el-table-column prop="reconciledAmount" :label="t('bill.allocateAmount')" width="110" />
         <el-table-column prop="remainAmount" :label="labelOf('balance')" width="110" />
         <el-table-column :label="labelOf('status')" width="110">
           <template #default="{ row }">{{ row.payStatusLabel || row.payStatus }}</template>
@@ -385,12 +387,12 @@
     <!-- 收款单详情：使用明细 -->
     <el-dialog v-model="payDetailVisible" title="收款单详情" width="820px">
       <el-descriptions v-if="payDetail" :column="2" border size="small">
-        <el-descriptions-item :label="labelOf('paymentNo')">{{ payDetail.paymentNo }}</el-descriptions-item>
+        <el-descriptions-item :label="t('bill.paymentNo')">{{ payDetail.paymentNo }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('payerName')">
           {{ payDetail.payerName || payDetail.personIdName || payDetail.personId || '—' }}
         </el-descriptions-item>
         <el-descriptions-item :label="labelOf('payAmount')">{{ payDetail.payAmount }}</el-descriptions-item>
-        <el-descriptions-item :label="labelOf('allocateAmount')">{{ payDetail.reconciledAmount }}</el-descriptions-item>
+        <el-descriptions-item :label="t('bill.allocateAmount')">{{ payDetail.reconciledAmount }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('balance')">{{ payDetail.remainAmount }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('channel')">
           {{ enumLabel('payChannel', payDetail.payChannel) || payDetail.payChannel }}
@@ -405,7 +407,7 @@
       <el-table :data="payUsage" border size="small"
                 :empty-text="t('bill.noUsage')">
         <el-table-column prop="bill_no" :label="labelOf('billNo')" width="190" />
-        <el-table-column prop="allocate_amount" :label="labelOf('allocateAmount')" width="120" />
+        <el-table-column prop="allocate_amount" :label="t('bill.allocateAmount')" width="120" />
         <el-table-column prop="create_time" :label="labelOf('allocateTime')" />
       </el-table>
     </el-dialog>
@@ -415,21 +417,21 @@
       <el-alert type="info" :closable="false" show-icon
                 :title="t('bill.useTip')" />
       <el-form label-width="110px" style="margin-top:10px">
-        <el-form-item :label="labelOf('paymentNo')">
+        <el-form-item :label="t('bill.paymentNo')">
           <el-input :model-value="usePaymentRow?.paymentNo" disabled />
         </el-form-item>
-        <el-form-item :label="labelOf('availableAmount')">
+        <el-form-item :label="t('bill.availableAmount')">
           <el-input :model-value="usePaymentRow?.remainAmount" disabled />
         </el-form-item>
-        <el-form-item :label="labelOf('targetBill')" required>
+        <el-form-item :label="t('bill.targetBill')" required>
           <el-select v-model="useBillId" filterable style="width:100%"
                      :placeholder="t('bill.selectBill')" @change="onUseBillChange">
             <el-option v-for="b in useBills" :key="b.id"
-                       :label="b.billNo + ' · ' + (b.billPeriod || '') + ' · ' + t('bill.pendingAmount') + ' ' + b.payableAmount"
+                       :label="b.billNo + ' · ' + (b.feeItemIdName || b.feeItemName || b.feeItemId || '') + ' · ' + (b.payerName || '') + ' · ' + (b.billPeriod || '') + ' · ' + t('bill.pendingAmount') + ' ' + b.payableAmount"
                        :value="String(b.id)" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="labelOf('allocateAmount')">
+        <el-form-item :label="t('bill.allocateAmount')">
           <el-input v-model.number="useAmount" :placeholder="t('bill.amountHint')" />
         </el-form-item>
       </el-form>
@@ -448,7 +450,7 @@
           <el-input :model-value="current?.billNo" disabled /></el-form-item>
         <el-form-item :label="labelOf('billPayable')">
           <el-input :model-value="current?.payableAmount" disabled /></el-form-item>
-        <el-form-item :label="labelOf('paymentNo')" required>
+        <el-form-item :label="t('bill.paymentNo')" required>
           <el-select v-model="a.paymentId" filterable style="width:100%"
                      :placeholder="t('bill.selectPayment')">
             <el-option v-for="x in openPaymentsList" :key="x.id"
@@ -459,7 +461,7 @@
             {{ t('bill.noPaymentHint') }}
           </span>
         </el-form-item>
-        <el-form-item :label="labelOf('allocateAmount')">
+        <el-form-item :label="t('bill.allocateAmount')">
           <el-input v-model.number="a.amount" :placeholder="t('bill.amountHint')" /></el-form-item>
       </el-form>
       <template #footer>
@@ -508,7 +510,7 @@
         <el-descriptions-item :label="labelOf('houseName')">
           {{ dvRow.houseIdName || dvRow.houseId || '—' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="labelOf('feeItemName')">
+        <el-descriptions-item :label="t('bill.feeItem')">
           {{ dvRow.feeItemIdName || dvRow.feeItemName || dvRow.feeItemId || '—' }}
         </el-descriptions-item>
         <el-descriptions-item :label="labelOf('billPeriod')">{{ dvRow.billPeriod }}（{{ dvRow.periodStart }} ~ {{ dvRow.periodEnd }}）</el-descriptions-item>
@@ -524,11 +526,11 @@
         <div style="font-weight:600;margin-bottom:6px">{{ t('bill.paymentsDetail') }}</div>
         <el-table :data="billPayments" size="small" border
                   :empty-text="t('bill.noPayments')">
-          <el-table-column prop="payment_no" :label="labelOf('paymentNo')" width="185" />
+          <el-table-column prop="payment_no" :label="t('bill.paymentNo')" width="185" />
           <el-table-column :label="labelOf('payerName')" width="110">
             <template #default="{ row }">{{ row.payer_name || '—' }}</template>
           </el-table-column>
-          <el-table-column prop="allocate_amount" :label="labelOf('allocateAmount')" width="110" />
+          <el-table-column prop="allocate_amount" :label="t('bill.allocateAmount')" width="110" />
           <el-table-column :label="labelOf('channel')" width="90">
             <template #default="{ row }">
               {{ enumLabel('payChannel', row.pay_channel) || row.pay_channel }}
@@ -934,7 +936,8 @@ async function usePayment(row) {
     if (row.personId) params.personId = row.personId
     const d = await req.get('/fin/bills', { params })
     let rows = (d && d.rows) || []
-    if (!rows.length) {
+    // 没有缴费人时才退回全部未缴账单；有缴费人时不得跨人核销
+    if (!rows.length && !row.personId) {
       const all = await req.get('/fin/bills', { params: { pageNum: 1, pageSize: 100, status: 'UNPAID' } })
       rows = (all && all.rows) || []
     }

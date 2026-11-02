@@ -212,11 +212,11 @@
     <!-- 续签 RenewCmd -->
     <el-dialog v-model="renewVisible" :title="t('contract.renewTitle')" width="460px">
       <el-form :model="rn" label-width="110px">
-        <el-form-item :label="labelOf('newLeaseEnd')">
+        <el-form-item :label="t('change.newEnd')">
           <el-date-picker v-model="rn.newLeaseEnd" type="date"
                           value-format="YYYY-MM-DD" style="width:100%" />
         </el-form-item>
-        <el-form-item :label="labelOf('newMonthlyRent')">
+        <el-form-item :label="t('change.newRent')">
           <el-input v-model.number="rn.newMonthlyRent" /></el-form-item>
       </el-form>
       <template #footer>
@@ -320,18 +320,18 @@
     <el-dialog v-model="chgVisible" :title="t('contract.changeTitle')" width="560px">
       <el-form :model="chg" label-width="110px">
         <el-form-item :label="labelOf('contractNo')"><el-input :model-value="chg.contractNo" disabled /></el-form-item>
-        <el-form-item :label="labelOf('changeType')">
+        <el-form-item :label="t('change.type')">
           <el-select v-model="chg.changeType" style="width:100%">
               <el-option :label="enumLabel('changeType', 'RENT_ADJUST')" value="RENT_ADJUST" />
-            <el-option :label="labelOf('leaseChange')" value="PERIOD" />
+            <el-option :label="t('change.period')" value="PERIOD" />
               <el-option :label="enumLabel('changeType', 'RENEW')" value="RENEW" />
               <el-option :label="enumLabel('changeType', 'OTHER')" value="OTHER" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="labelOf('newMonthlyRent')">
+        <el-form-item :label="t('change.newRent')">
           <el-input v-model.number="chg.newMonthlyRent" :placeholder="t('contract.rentAdjustHint')" />
         </el-form-item>
-        <el-form-item :label="labelOf('newLeaseEnd')">
+        <el-form-item :label="t('change.newEnd')">
           <el-date-picker v-model="chg.newLeaseEnd" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
@@ -339,7 +339,7 @@
           <el-date-picker v-model="chg.effectiveDate" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
-        <el-form-item :label="labelOf('changeReason')">
+        <el-form-item :label="t('change.reasonLabel')">
           <el-input v-model="chg.changeReason" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>

@@ -101,7 +101,10 @@
           <el-button v-if="row.settleStatus !== 'SETTLED'" link type="warning" :disabled="!row.inspectStatus
                      || row.inspectStatus === 'PENDING'" @click="openSettle(row)">{{ t('misc2.settle') }}</el-button>
           <el-button v-if="row.settleStatus === 'SETTLED'" link type="success"
-                     @click="doComplete(row)">{{ t('misc2.complete') }}</el-button>
+                     :disabled="row.terminationStatus === 'COMPLETED'"
+                     @click="doComplete(row)">
+            {{ row.terminationStatus === 'COMPLETED' ? t('misc2.completed') : t('misc2.complete') }}
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -456,7 +459,7 @@ async function doInspect() {
 async function openEnergy(row) {
   current.value = row
   try {
-    energyPoints.value = (await req.get('/fin/meter-points')) || []
+    energyPoints.value = (await req.get('/fin/meter-points', { params: { contractId: row.contractId } })) || []
   } catch (e) { energyPoints.value = [] }
   ef.meterPointId = ''
   ef.reading = null
@@ -472,7 +475,7 @@ async function doEnergy() {
   try {
     await req.post('/fin/utility-allocations/exit', {
       meterPointId: ef.meterPointId,
-      contractId: current.value.contractId || current.value.id,
+      contractId: current.value.contractId,
       exitDate: ef.exitDate,
       reading: ef.reading
     })
