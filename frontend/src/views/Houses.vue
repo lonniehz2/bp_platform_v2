@@ -32,23 +32,7 @@
       <el-table-column prop="houseCode" :label="t('house.code')" width="150" />
       <el-table-column prop="houseName" :label="t('house.name')" min-width="140" />
       <el-table-column prop="orgId" :label="t('house.orgCol')" width="150">
-        <template #default="{ row }">{{ row.orgIdName || row.orgId }}    <el-dialog v-model="statusVisible" :title="t('house.changeStatus')" width="420px">
-      <el-form label-width="90px">
-        <el-form-item :label="t('house.status')">
-          <el-select v-model="statusValue" style="width:100%">
-            <el-option v-for="st in statuses" :key="st"
-                       :label="enumLabel('houseStatus', st)" :value="st" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="statusVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="saving" @click="doChangeStatus">
-          {{ t('common.save') }}
-        </el-button>
-      </template>
-    </el-dialog>
-</template>
+        <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
       </el-table-column>
       <el-table-column :label="t('house.space')" width="170" show-overflow-tooltip>
             <template #default="{ row }">
@@ -358,6 +342,22 @@
       <template #footer>
         <el-button @click="swapVisible = false">{{ t('common.cancel') }}</el-button>
         <el-button type="primary" :loading="saving" @click="doSwapBed">{{ t('house.confirmSwap') }}</el-button>
+      </template>
+    </el-dialog>
+    <el-dialog v-model="statusVisible" :title="t('house.changeStatus')" width="420px">
+      <el-form label-width="90px">
+        <el-form-item :label="t('house.status')">
+          <el-select v-model="statusValue" style="width:100%">
+            <el-option v-for="st in statuses" :key="st"
+                       :label="enumLabel('houseStatus', st)" :value="st" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="statusVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="doChangeStatus">
+          {{ t('common.save') }}
+        </el-button>
       </template>
     </el-dialog>
 </template>
