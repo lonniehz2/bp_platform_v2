@@ -55,7 +55,7 @@
 
     <el-dialog v-model="createVisible" :title="t('appeal.createTitle')" width="700px">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom:10px"
-                title="字段与后端 AppealCreateCmd 一致；带 * 为必填" />
+                :title="t('appeal.formHint')" />
       <JsonForm :model="form" :schema="SCHEMA"
                 @update:model="(m) => Object.assign(form, m)" />
       <template #footer>

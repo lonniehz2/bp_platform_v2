@@ -876,6 +876,7 @@ export default {
     addHint: '选择本批次参与配租的房源',
   },
   appeal: {
+    formHint: '字段与后端 AppealCreateCmd 一致；带 * 为必填',
     bizHint: '填真实主键',
     daysHint: '默认 7',
     evidenceHint: '说明或链接，≤2000 字',

@@ -877,6 +877,7 @@ export default {
     addHint: 'Select housing for this batch',
   },
   appeal: {
+    formHint: 'Fields match AppealCreateCmd; * required',
     bizHint: 'Enter a real primary key',
     daysHint: 'default 7',
     evidenceHint: 'Description or link, up to 2000 characters',
