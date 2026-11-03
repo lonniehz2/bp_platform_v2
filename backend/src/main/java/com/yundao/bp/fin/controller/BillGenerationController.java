@@ -63,8 +63,11 @@ public class BillGenerationController {
     /** 手工触发自动出账（补跑/运维）。 */
     @com.yundao.bp.iam.security.RequirePerm("fin:bill:batch")
     @PostMapping("/bills/auto-run")
-    public R<Integer> autoRun() {
-        return R.ok(autoBillingJob.runNow());
+    public R<Integer> autoRun(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String tenantCode,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Long feeItemId,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "false") boolean dryRun) {
+        return R.ok(autoBillingJob.runNow(tenantCode, feeItemId, dryRun));
     }
 
     @com.yundao.bp.iam.security.RequirePerm("fin:bill:batch")

@@ -178,6 +178,7 @@ public class DeviceController {
                         continue;
                     }
                     Long spaceId = null;
+                    Long orgId = null;
                     if (houseCode != null) {
                         com.yundao.bp.asset.entity.AssetHouse h = houseMapper.selectOne(
                                 new LambdaQueryWrapper<com.yundao.bp.asset.entity.AssetHouse>()
@@ -187,6 +188,7 @@ public class DeviceController {
                             throw BizException.notFound("房源 " + houseCode);
                         }
                         spaceId = h.getSpaceId();
+                        orgId = h.getOrgId();
                     }
                     DevDevice d = new DevDevice();
                     d.setId(idGen.nextId());
@@ -196,6 +198,7 @@ public class DeviceController {
                     d.setDeviceType(deviceType);
                     d.setDeviceMac(mac);
                     d.setSpaceId(spaceId);
+                    d.setOrgId(orgId);
                     d.setOnlineStatus(0);
                     d.setCreateTime(java.time.LocalDateTime.now());
                     d.setUpdateTime(java.time.LocalDateTime.now());

@@ -453,6 +453,19 @@ const TYPE_OVERRIDE = {
     SOUTHEAST: '东南', SOUTHWEST: '西南', NORTHEAST: '东北', NORTHWEST: '西北',
     NORTH_SOUTH: '南北通透'
   },
+  contractType: {
+    PUBLIC_RENTAL: '公租房', AFFORDABLE: '保障性租赁住房', TALENT: '人才公寓',
+    LOW_RENT: '廉租房', DORMITORY: '宿舍', SERVICE: '服务式公寓'
+  },
+  paymentCycle: {
+    MONTH: '按月', QUARTER: '按季', HALF_YEAR: '半年', YEAR: '按年'
+  },
+  signMethod: {
+    OFFLINE: '线下签约', ESIGN: '电子签章', CA: 'CA 证书'
+  },
+  settleStatus: {
+    PENDING: '待结算', SETTLED: '已结算', WAIVED: '已免除'
+  },
   rentUnit: {
     AREA_MONTH: '元/㎡·月', HOUSE_MONTH: '元/套·月', BED_MONTH: '元/床·月',
     HOUSE_NIGHT: '元/套·夜', BED_NIGHT: '元/床·夜'

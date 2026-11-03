@@ -108,10 +108,10 @@
         <el-row :gutter="12">
           <el-col :span="12"><el-form-item :label="labelOf('contractType')">
             <el-select v-model="c.contractType" style="width:100%">
-              <el-option :label="enumLabel('houseType', 'PUBLIC_RENTAL')" value="PUBLIC_RENTAL" />
-              <el-option :label="enumLabel('houseType', 'AFFORDABLE')" value="AFFORDABLE" />
-              <el-option :label="enumLabel('houseType', 'TALENT')" value="TALENT" />
-              <el-option :label="enumLabel('houseType', 'LOW_RENT')" value="LOW_RENT" />
+              <el-option :label="enumLabel('contractType', 'PUBLIC_RENTAL')" value="PUBLIC_RENTAL" />
+              <el-option :label="enumLabel('contractType', 'AFFORDABLE')" value="AFFORDABLE" />
+              <el-option :label="enumLabel('contractType', 'TALENT')" value="TALENT" />
+              <el-option :label="enumLabel('contractType', 'LOW_RENT')" value="LOW_RENT" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('orgName')" required>
             <OrgSelect v-model="c.orgId" testid="c-org-id" /></el-form-item></el-col>
@@ -153,11 +153,8 @@
             <el-input v-model.number="c.rentPrice" data-testid="c-rent-price" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('rentUnit')">
             <el-select v-model="c.rentUnit" style="width:100%" data-testid="c-rent-unit">
-              <el-option :label="enumLabel('rentUnit', 'AREA_MONTH')" value="AREA_MONTH" />
-              <el-option :label="enumLabel('rentUnit', 'HOUSE_MONTH')" value="HOUSE_MONTH" />
-              <el-option :label="enumLabel('rentUnit', 'BED_MONTH')" value="BED_MONTH" />
-              <el-option :label="enumLabel('rentUnit', 'HOUSE_NIGHT')" value="HOUSE_NIGHT" />
-              <el-option :label="enumLabel('rentUnit', 'BED_NIGHT')" value="BED_NIGHT" />
+              <el-option v-for="u in rentUnitOptions" :key="u"
+                         :label="enumLabel('rentUnit', u)" :value="u" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="labelOf('depositAmount')">
             <el-input v-model.number="c.depositAmount" data-testid="c-deposit" /></el-form-item></el-col>
@@ -424,7 +421,7 @@
 import { useI18n } from 'vue-i18n'
 import { enumLabel } from '@/constants/enums'
 import { labelOf } from '@/constants/fieldLabels'
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { contractApi } from '@/api/modules'
@@ -481,6 +478,16 @@ const c = reactive({ contractType: 'PUBLIC_RENTAL', orgId: null, lessorOrgId: nu
   houseAddress: '', houseArea: null, leaseStart: '', leaseEnd: '', rentPrice: null,
   rentUnit: 'HOUSE_MONTH', monthlyRent: null, depositAmount: null, subsidyAmount: 0,
   payCycle: 'MONTH', payDay: 5, allocationId: null, remark: '' })
+const rentUnitOptions = computed(() => {
+  if (c.contractType === 'DORMITORY') return ['BED_MONTH', 'BED_NIGHT', 'HOUSE_MONTH']
+  if (c.contractType === 'SERVICE') return ['HOUSE_NIGHT', 'BED_NIGHT']
+  return ['AREA_MONTH', 'HOUSE_MONTH']
+})
+watch(() => c.contractType, () => {
+  if (!rentUnitOptions.value.includes(c.rentUnit)) {
+    c.rentUnit = rentUnitOptions.value[0]
+  }
+})
 /** 选承租人：自动带出姓名/电话/脱敏证件 */
 watch(() => c.lesseePersonId, async (v) => {
   if (!v) return

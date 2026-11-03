@@ -163,6 +163,10 @@ export default {
     requiredPassword: 'Password is required'
   },
   bill: {
+    contract: 'Contract',
+    payChannel: 'Channel',
+    remark: 'Remark',
+    time: 'Time',
     prepayTransfer: 'Transfer Prepay',
     transferTarget: 'Target Contract',
     transferAmount: 'Transfer Amount',
@@ -1743,6 +1747,8 @@ export default {
     drawer: 'Details (raw data)'
   },
   waitlist: {
+    publicRental: 'Public Rental',
+    affordable: 'Affordable Housing',
     title: 'Waitlist', orgHint: 'Organization', keyword: 'Name / phone',
     search: 'Search', reset: 'Reset', enqueue: 'Enqueue', recalc: 'Recalculate Score',
     tip: 'Lottery orders by total score descending, then enrollment time ascending; priority score adds points for eligible groups',

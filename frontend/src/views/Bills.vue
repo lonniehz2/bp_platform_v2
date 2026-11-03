@@ -523,10 +523,14 @@
       </el-form>
       <el-table :data="prepayAccount?.flows || []" border size="small" max-height="260"
                 style="margin-top:12px">
-        <el-table-column prop="flowType" :label="t('bill.flowType')" width="90" />
+        <el-table-column :label="t('bill.flowType')" width="90">
+          <template #default="{ row }">{{ enumLabel('flowType', row.flowType) }}</template>
+        </el-table-column>
         <el-table-column prop="amount" :label="t('bill.amount')" width="100" />
         <el-table-column prop="balanceAfter" :label="t('bill.prepayBalance')" width="110" />
-        <el-table-column prop="bizType" :label="t('bill.bizType')" width="110" />
+        <el-table-column :label="t('bill.bizType')" width="110">
+          <template #default="{ row }">{{ enumLabel('bizType', row.bizType) }}</template>
+        </el-table-column>
         <el-table-column prop="remark" :label="t('bill.remark')" min-width="160" />
         <el-table-column prop="createTime" :label="t('bill.time')" width="170" />
       </el-table>

@@ -66,8 +66,9 @@ public class SubsidyController {
     /** 补贴试算（不落库）。 */
     @com.yundao.bp.iam.security.RequirePerm("fin:subsidy:calc")
     @PostMapping("/calc")
-    public R<SubsidyService.SubsidyCalcResult> calc(@Valid @RequestBody SubsidyCalcCmd cmd) {
-        return R.ok(service.preview(cmd));
+    public R<SubsidyService.SubsidyCalcResult> calc(@Valid @RequestBody SubsidyCalcCmd cmd,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String period) {
+        return R.ok(service.preview(cmd, period));
     }
 
     // ---------- 发放 ----------

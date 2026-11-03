@@ -283,7 +283,9 @@
       </el-row>
       <el-table :data="deviceAccount?.flows || []" border size="small" max-height="240"
                 style="margin-top:12px">
-        <el-table-column prop="flowType" :label="t('meter.flowType')" width="90" />
+        <el-table-column :label="t('meter.flowType')" width="90">
+          <template #default="{ row }">{{ enumLabel('flowType', row.flowType) }}</template>
+        </el-table-column>
         <el-table-column prop="amount" :label="t('meter.amount')" width="100" />
         <el-table-column prop="balanceAfter" :label="t('meter.deviceBalance')" width="110" />
         <el-table-column prop="usageAmount" :label="t('meter.usage')" width="100" />
@@ -305,6 +307,7 @@ import { useI18n } from 'vue-i18n'
  */
 import { ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { enumLabel } from '@/constants/enums'
 import req from '@/api/request'
 import DeviceSelect from '@/components/DeviceSelect.vue'
 import HouseSelect from '@/components/HouseSelect.vue'

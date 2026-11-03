@@ -186,12 +186,17 @@ public class SubsidyServiceImpl implements SubsidyService {
 
     @Override
     public SubsidyCalcResult preview(SubsidyCalcCmd cmd) {
+        return preview(cmd, null);
+    }
+
+    @Override
+    public SubsidyCalcResult preview(SubsidyCalcCmd cmd, String period) {
         BizContract ct = contractMapper.selectById(cmd.contractId());
         if (ct == null) {
             throw BizException.notFound("合同");
         }
-        FinSubsidyStandard std = resolveStandard(cmd.standardId(), ct, null);
-        return calc(std, ct, cmd.area(), cmd.personCount(), cmd.monthlyRent(), null);
+        FinSubsidyStandard std = resolveStandard(cmd.standardId(), ct, period);
+        return calc(std, ct, cmd.area(), cmd.personCount(), cmd.monthlyRent(), period);
     }
 
     // ==================== 发放 ====================
@@ -439,10 +444,13 @@ public class SubsidyServiceImpl implements SubsidyService {
 
     // ==================== 计算 ====================
 
-    /** 该合同在指定补贴期间内账单覆盖的月数（跨月账单按自然月计）。 */
-    private int billMonths(Long contractId, String period) {
+    /**
+     * 补贴与租金同口径：按补贴期间内租金账单实际覆盖天数 / 当月天数计算折算月数。
+     * 多张账单时取最大覆盖比例，避免物业、水电账单重复放大补贴。
+     */
+    private BigDecimal billProration(Long contractId, String period) {
         if (contractId == null || period == null || !period.matches("\\d{4}-\\d{2}")) {
-            return 1;
+            return BigDecimal.ONE;
         }
         YearMonth ym = YearMonth.parse(period);
         LocalDate ps = ym.atDay(1);
@@ -452,18 +460,31 @@ public class SubsidyServiceImpl implements SubsidyService {
                 .eq(FinBill::getIsDeleted, 0)
                 .le(FinBill::getPeriodStart, pe)
                 .ge(FinBill::getPeriodEnd, ps));
-        int max = 1;
+        BigDecimal max = BigDecimal.ZERO;
         for (FinBill b : bills) {
             if (b.getPeriodStart() == null || b.getPeriodEnd() == null) {
                 continue;
             }
-            long months = java.time.temporal.ChronoUnit.MONTHS.between(
-                    YearMonth.from(b.getPeriodStart()), YearMonth.from(b.getPeriodEnd())) + 1;
-            if (months > max) {
-                max = (int) months;
+            LocalDate from = b.getPeriodStart().isBefore(ps) ? ps : b.getPeriodStart();
+            LocalDate to = b.getPeriodEnd().isAfter(pe) ? pe : b.getPeriodEnd();
+            if (from.isAfter(to)) {
+                continue;
+            }
+            long days = java.time.temporal.ChronoUnit.DAYS.between(from, to) + 1;
+            int monthDays = YearMonth.from(b.getPeriodStart()).lengthOfMonth();
+            // 租金账单已保存实际计费天数时，必须与租金同口径；
+            // 账单费用区间可能仍是整月，但合同从月中起租，billingDays 才是真实计费天数。
+            if (b.getBillingDays() != null && b.getBillingDays() > 0) {
+                days = b.getBillingDays();
+                monthDays = YearMonth.from(b.getPeriodStart()).lengthOfMonth();
+            }
+            BigDecimal factor = BigDecimal.valueOf(days)
+                    .divide(BigDecimal.valueOf(monthDays), 6, RoundingMode.HALF_UP);
+            if (factor.compareTo(max) > 0) {
+                max = factor;
             }
         }
-        return max;
+        return max.compareTo(BigDecimal.ZERO) > 0 ? max : BigDecimal.ONE;
     }
 
     /** 按标准与合同算补贴。 */
@@ -496,14 +517,13 @@ public class SubsidyServiceImpl implements SubsidyService {
         String explain;
         boolean useContractSubsidy = ct.getSubsidyAmount() != null
                 && ct.getSubsidyAmount().compareTo(BigDecimal.ZERO) > 0;
-        // 合同已约定月补贴标准时，以合同为准（测试反馈：批量发放 6 元 vs 合同 200 元）。
-        // 账单跨多月时，按该期间账单覆盖的月数发放。
+        BigDecimal proration = billProration(ct.getId(), period);
+        // 合同已约定月补贴标准时，以合同为准；补贴与租金同口径按实际计费天数折算。
         if (useContractSubsidy) {
-            int months = billMonths(ct.getId(), period);
-            amount = ct.getSubsidyAmount().multiply(BigDecimal.valueOf(months))
+            amount = ct.getSubsidyAmount().multiply(proration)
                     .setScale(2, RoundingMode.HALF_UP);
             explain = "合同月补贴 " + ct.getSubsidyAmount().toPlainString()
-                    + " × " + months + " 个月";
+                    + " × " + proration.stripTrailingZeros().toPlainString();
         } else switch (mode) {
             case FIXED -> {
                 amount = value;
@@ -528,6 +548,10 @@ public class SubsidyServiceImpl implements SubsidyService {
                 explain = "按租金比例 " + value + " × 月租 " + r;
             }
             default -> throw BizException.paramInvalid("补贴方式不合法");
+        }
+        if (!useContractSubsidy) {
+            amount = amount.multiply(proration);
+            explain = explain + " × " + proration.stripTrailingZeros().toPlainString();
         }
         amount = amount.setScale(2, RoundingMode.HALF_UP);
 

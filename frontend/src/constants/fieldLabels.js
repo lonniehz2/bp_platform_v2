@@ -8,6 +8,28 @@ import { trField } from '@/i18n/labels'
  * 新增字段时在这里加一行即可，无需改页面。
  */
 export const FIELD_LABEL = {
+  // ---------- 合同 / 收费 ----------
+  contractType: '合同类型',
+  lesseePhone: '承租人电话',
+  idNumber: '证件号码',
+  paymentCycle: '付款周期',
+  rentUnit: '租金单位',
+  paymentDay: '付款日',
+  allocationId: '配租编号',
+  signMethod: '签约方式',
+  lessorName: '出租方',
+  leaseTerm: '租期',
+  signDate: '签约日期',
+  subsidyAmount: '补贴',
+  billPayable: '账单待缴',
+  waiveAmount: '减免金额',
+  payDue: '应付金额',
+  lateFee: '滞纳金',
+  item: '收费项目',
+  transactionNo: '交易号',
+  unknownSource: '未知来源',
+  balance: '可核销余额',
+  actions: '操作',
   // ---------- 账单计费口径 ----------
   settlementDate: '费用确认日',
   billDate: '账单生成日',
@@ -258,7 +280,7 @@ export const FIELD_LABEL = {
   spaceName: '空间名称',
   startDate: '开始',
   status: '状态',
-  subsidyAmount: '金额',
+  subsidyAmount: '补贴',
   subsidyMode: '方式',
   subsidyPeriod: '周期',
   suspectIdle: '疑似空置',
@@ -341,8 +363,8 @@ export function loadRemoteLabels(api) {
 
 /** 同步取标签：远程 → 静态 → 驼峰兜底（xxxId → xxxID） */
 export function labelOf(key) {
-  if (remote[key]) return trField(key, remote[key])
   if (FIELD_LABEL[key]) return trField(key, FIELD_LABEL[key])
+  if (remote[key]) return trField(key, remote[key])
   // 兜底：把 Id 结尾的字段拆成「基础字段名 + ID」
   const m = /^(\w+?)Id$/.exec(key)
   if (m) {

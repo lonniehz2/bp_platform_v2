@@ -36,6 +36,9 @@ public interface SubsidyService {
     /** 试算（不落库）。 */
     SubsidyCalcResult preview(SubsidyCalcCmd cmd);
 
+    /** 按所属期试算（补贴与租金同口径）。 */
+    SubsidyCalcResult preview(SubsidyCalcCmd cmd, String period);
+
     // ---------- 发放 ----------
     /** 单户单期发放（自动匹配标准、算金额、建记录）。 */
     SubsidyRecordVO grant(SubsidyGrantCmd cmd);

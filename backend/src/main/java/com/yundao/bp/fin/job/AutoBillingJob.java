@@ -70,6 +70,17 @@ public class AutoBillingJob {
 
     /** 手工触发/补跑入口，返回实际执行的项目数。 */
     public int runNow() {
+        return runNow(null, null, false);
+    }
+
+    /**
+     * 手工触发/补跑。
+     *
+     * @param tenantCode 仅执行指定租户，为空=全部启用租户
+     * @param feeItemId  仅执行指定收费项目，为空=全部
+     * @param dryRun     true=只试算不落库、不写执行标记
+     */
+    public int runNow(String tenantCode, Long feeItemId, boolean dryRun) {
         LocalDate today = LocalDate.now();
         int executed = 0;
         for (IamTenant tenant : tenantMapper.selectList(
@@ -79,9 +90,13 @@ public class AutoBillingJob {
             if (tenant.getTenantCode() == null || tenant.getTenantCode().isBlank()) {
                 continue;
             }
+            if (tenantCode != null && !tenantCode.isBlank()
+                    && !tenantCode.equals(tenant.getTenantCode())) {
+                continue;
+            }
             TenantContext.set(TenantInfo.of(tenant.getTenantCode()));
             try {
-                executed += runTenant(today);
+                executed += runTenant(today, feeItemId, dryRun);
             } catch (Exception ex) {
                 log.error("自动出账租户 {} 失败：{}", tenant.getTenantCode(), ex.getMessage(), ex);
             } finally {
@@ -91,12 +106,15 @@ public class AutoBillingJob {
         return executed;
     }
 
-    private int runTenant(LocalDate today) {
+    private int runTenant(LocalDate today, Long feeItemId, boolean dryRun) {
         int executed = 0;
         for (FinFeeItem item : feeItemMapper.selectList(
                 new LambdaQueryWrapper<FinFeeItem>()
                         .eq(FinFeeItem::getStatus, "ENABLED")
                         .eq(FinFeeItem::getIsDeleted, 0))) {
+            if (feeItemId != null && !feeItemId.equals(item.getId())) {
+                continue;
+            }
             String mode = billingMode(item);
             if (mode == null) {
                 continue;
@@ -111,7 +129,7 @@ public class AutoBillingJob {
             String period = target.toString();
             String markerKey = "billing.auto.lastRun." + TenantContext.tenantId()
                     + "." + item.getId() + "." + period;
-            if (period.equals(configService.getString(markerKey, ""))) {
+            if (!dryRun && period.equals(configService.getString(markerKey, ""))) {
                 continue;
             }
             LocalDate ps = target.atDay(1);
@@ -128,11 +146,14 @@ public class AutoBillingJob {
             try {
                 generationService.generate(new GenerateBillsCmd(
                         item.getId(), null, null, ps, pe, period, due,
-                        null, null, null, null, false));
-                configService.set(markerKey, period, "自动出账执行标记");
+                        null, null, null, null, dryRun));
+                if (!dryRun) {
+                    configService.set(markerKey, period, "auto billing marker");
+                }
                 executed++;
-                log.info("自动出账完成：租户 {} 项目 {} 期间 {} 到期 {}",
-                        TenantContext.tenantId(), item.getItemName(), period, due);
+                log.info("Auto billing {}: tenant {} item {} period {} due {}",
+                        dryRun ? "dry-run" : "done", TenantContext.tenantId(),
+                        item.getItemName(), period, due);
             } catch (Exception ex) {
                 log.error("自动出账失败：租户 {} 项目 {} 期间 {}：{}",
                         TenantContext.tenantId(), item.getItemName(), period, ex.getMessage());

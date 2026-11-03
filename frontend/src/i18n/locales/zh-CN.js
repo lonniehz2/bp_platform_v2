@@ -162,6 +162,10 @@ export default {
     requiredPassword: '请输入密码'
   },
   bill: {
+    contract: '合同',
+    payChannel: '收款渠道',
+    remark: '备注',
+    time: '时间',
     prepayTransfer: '预收结转',
     transferTarget: '转入合同',
     transferAmount: '结转金额',
@@ -1739,6 +1743,8 @@ export default {
     drawer: '明细（原始数据）'
   },
   waitlist: {
+    publicRental: '公租房',
+    affordable: '保障性租赁住房',
     title: '轮候管理', orgHint: '组织名称', keyword: '姓名/手机号', search: '查询',
     reset: '清空', enqueue: '入队登记', recalc: '重算总分',
     tip: '摇号按总分降序、入队时间升序取前 N 名；优先附加分用于优抚对象加分',

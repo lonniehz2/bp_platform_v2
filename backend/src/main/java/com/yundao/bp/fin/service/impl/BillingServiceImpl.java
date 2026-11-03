@@ -296,6 +296,7 @@ public class BillingServiceImpl implements BillingService {
         e.setTenantId(tenantId);
         e.setPaymentNo("FP" + id);
         e.setOrgId(cmd.orgId());
+        e.setContractId(cmd.contractId());
         e.setPersonId(cmd.personId());
         e.setPayerName(cmd.payerName());
         e.setPayAmount(money(cmd.payAmount()));
@@ -396,9 +397,28 @@ public class BillingServiceImpl implements BillingService {
             pay.setUpdateTime(java.time.LocalDateTime.now());
             paymentMapper.updateById(pay);
         }
-        // 单事务内逐张核销：任一张失败则全部回滚，避免收款单部分核销
+        // 按选择顺序核销：余额不足时把剩余金额核到当前账单，
+        // 不再因为后面的大额账单失败而回滚前面已能核销的小额账单。
+        BigDecimal payRemain = money(pay.getPayAmount())
+                .subtract(money(pay.getReconciledAmount()));
         for (AllocateItem item : items) {
-            out.add(doAllocate(paymentId, item.billId(), item.amount()));
+            FinBill bill = requireBill(item.billId());
+            BigDecimal billRemain = money(bill.getPayableAmount());
+            BigDecimal requested = item.amount() == null ? billRemain : money(item.amount());
+            BigDecimal use = requested.min(billRemain).min(payRemain);
+            if (use.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+            out.add(doAllocate(paymentId, item.billId(), use));
+            payRemain = payRemain.subtract(use);
+            if (payRemain.compareTo(BigDecimal.ZERO) <= 0) {
+                break;
+            }
+        }
+        if (out.isEmpty()) {
+            throw BizException.paramInvalid(messageResolver == null
+                    ? "billing.payment.insufficient"
+                    : messageResolver.get("billing.payment.insufficient"));
         }
         return out;
     }
@@ -487,6 +507,9 @@ public class BillingServiceImpl implements BillingService {
     /** 资金流水记录器（可选注入，便于单测时不依赖） */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.fin.service.CashFlowService cashFlowService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.common.i18n.MessageResolver messageResolver;
 
     private void writeFlow(com.yundao.bp.fin.constant.FlowType type,
                            com.yundao.bp.fin.constant.FlowBizType bizType,
