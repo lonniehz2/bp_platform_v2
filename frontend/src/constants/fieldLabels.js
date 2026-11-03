@@ -8,6 +8,14 @@ import { trField } from '@/i18n/labels'
  * 新增字段时在这里加一行即可，无需改页面。
  */
 export const FIELD_LABEL = {
+  // ---------- 账单计费口径 ----------
+  settlementDate: '费用确认日',
+  billDate: '账单生成日',
+  billingDays: '计费天数',
+  prorationMonths: '折算月数',
+  unitPriceSnapshot: '计价单价',
+  priceSource: '价格来源',
+
   // ---------- 走访/核查（实测补充） ----------
   idle: '是否空置',
   illegalUse: '是否违规使用',
