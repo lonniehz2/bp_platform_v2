@@ -355,7 +355,13 @@ const TYPE_OVERRIDE = {
     CASH: '现金',
     OTHER: '其他'
   },
-  bizType: { RENT: '租金', DEPOSIT: '押金', SUBSIDY: '补贴', PROPERTY: '物业费' },
+  bizType: {
+    RENT: '租金', DEPOSIT: '押金', SUBSIDY: '补贴', PROPERTY: '物业费',
+    SUBSIDY_ADJUST: '补贴冲减',
+    PREPAY_IN: '预收充值', PREPAY_REFUND: '预收退款',
+    DEVICE_PREPAY_IN: '设备预存', DEVICE_PREPAY_REFUND: '设备退款',
+    DEVICE_CONSUME: '设备扣减', BILL: '账单抵扣'
+  },
   deviceType: {
     LOCK: '门锁',
     ACCESS: '门禁',

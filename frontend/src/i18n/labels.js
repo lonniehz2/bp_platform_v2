@@ -256,6 +256,7 @@ export const ENUM_LABEL_EN = {
   WECHAT: 'WeChat Pay',
   ALIPAY: 'Alipay',
   PREPAY: 'Prepaid Offset',
+  SUBSIDY_ADJUST: 'Subsidy Adjustment',
   ECONOMIC: 'Affordable Housing',
   MONTH: 'Monthly',
   QUARTER: 'Quarterly',
