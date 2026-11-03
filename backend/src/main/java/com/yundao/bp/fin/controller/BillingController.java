@@ -210,6 +210,22 @@ public class BillingController {
         return R.ok(billingService.allocate(paymentId, cmd.billId(), cmd.amount()));
     }
 
+    /** 同一合同多张账单合并核销。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:payment:pay")
+    @PostMapping("/payments/{paymentId}/allocate-batch")
+    public R<java.util.List<BillVO>> allocateBatch(@PathVariable Long paymentId,
+                                                    @RequestBody AllocateBatchCmd cmd) {
+        java.util.List<com.yundao.bp.fin.service.BillingService.AllocateItem> items =
+                new java.util.ArrayList<>();
+        if (cmd.items() != null) {
+            for (AllocateItemCmd it : cmd.items()) {
+                items.add(new com.yundao.bp.fin.service.BillingService.AllocateItem(
+                        it.billId(), it.amount()));
+            }
+        }
+        return R.ok(billingService.allocateBatch(paymentId, items));
+    }
+
     public record WaiveCmd(BigDecimal waiveAmount, String reason) {
     }
 
@@ -217,6 +233,12 @@ public class BillingController {
     }
 
     public record AllocateCmd(Long billId, BigDecimal amount) {
+    }
+
+    public record AllocateItemCmd(Long billId, BigDecimal amount) {
+    }
+
+    public record AllocateBatchCmd(java.util.List<AllocateItemCmd> items) {
     }
 
     private static java.math.BigDecimal zero(java.math.BigDecimal v) {

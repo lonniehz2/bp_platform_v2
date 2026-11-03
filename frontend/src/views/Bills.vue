@@ -423,17 +423,25 @@
         <el-form-item :label="t('bill.availableAmount')">
           <el-input :model-value="usePaymentRow?.remainAmount" disabled />
         </el-form-item>
-        <el-form-item :label="t('bill.targetBill')" required>
-          <el-select v-model="useBillId" filterable style="width:100%"
-                     :placeholder="t('bill.selectBill')" @change="onUseBillChange">
-            <el-option v-for="b in useBills" :key="b.id"
-                       :label="b.billNo + ' · ' + (b.feeItemIdName || b.feeItemName || b.feeItemId || '') + ' · ' + (b.payerName || '') + ' · ' + (b.billPeriod || '') + ' · ' + t('bill.pendingAmount') + ' ' + b.payableAmount"
-                       :value="String(b.id)" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('bill.allocateAmount')">
-          <el-input v-model.number="useAmount" :placeholder="t('bill.amountHint')" />
-        </el-form-item>
+        <div style="font-weight:600;margin:6px 0">{{ t('bill.targetBill') }}</div>
+        <el-table :data="useBills" border size="small" max-height="300"
+                  @selection-change="onUseSelection">
+          <el-table-column type="selection" width="42" />
+          <el-table-column prop="billNo" :label="t('bill.no')" width="165" />
+          <el-table-column prop="feeItemId" :label="t('bill.feeItem')" min-width="120">
+            <template #default="{ row }">
+              {{ row.feeItemIdName || row.feeItemName || row.feeItemId }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="billPeriod" :label="t('bill.billingPeriod')" width="90" />
+          <el-table-column :label="t('bill.pendingAmount')" width="100">
+            <template #default="{ row }">{{ $money(row.payableAmount) }}</template>
+          </el-table-column>
+        </el-table>
+        <div class="muted" style="margin-top:8px">
+          {{ t('bill.selectedBills', { n: useSelected.length }) }}
+          · {{ t('bill.selectedTotal') }} {{ $money(useTotal) }}
+        </div>
       </el-form>
       <template #footer>
         <el-button @click="useVisible = false">{{ t('common.cancel') }}</el-button>
@@ -917,6 +925,9 @@ const usePaymentRow = ref(null)
 const useBills = ref([])
 const useBillId = ref('')
 const useAmount = ref(null)
+const useSelected = ref([])
+const useTotal = computed(() =>
+  useSelected.value.reduce((sum, b) => sum + Number(b.payableAmount || 0), 0))
 
 async function openPaymentDetail(row) {
   payDetail.value = row
@@ -933,12 +944,14 @@ async function usePayment(row) {
   usePaymentRow.value = row
   useBillId.value = ''
   useAmount.value = null
+  useSelected.value = []
   useBills.value = []
   paymentsVisible.value = false
   useVisible.value = true
   try {
     const params = { pageNum: 1, pageSize: 100, status: 'UNPAID' }
-    if (row.personId) params.personId = row.personId
+    if (row.contractId) params.contractId = row.contractId
+    else if (row.personId) params.personId = row.personId
     const d = await req.get('/fin/bills', { params })
     let rows = (d && d.rows) || []
     // 没有缴费人时才退回全部未缴账单；有缴费人时不得跨人核销
@@ -953,16 +966,20 @@ async function usePayment(row) {
 function onUseBillChange(id) {
   const b = useBills.value.find((x) => String(x.id) === String(id))
   if (!b) return
-  const pay = Number(usePaymentRow.value?.remainAmount || 0)
-  const due = Number(b.payableAmount || 0)
-  useAmount.value = Math.min(pay, due).toFixed(2)
+  useAmount.value = Number(b.payableAmount || 0)
+}
+
+function onUseSelection(rows) {
+  useSelected.value = rows || []
+  useAmount.value = useTotal.value
 }
 
 async function confirmUse() {
-  if (!useBillId.value) { ElMessage.warning(t('msg.selectBill')); return }
+  if (!useSelected.value.length) { ElMessage.warning(t('msg.selectBill')); return }
   saving.value = true
   try {
-    await financeApi.allocate(usePaymentRow.value.id, useBillId.value, useAmount.value)
+    await financeApi.allocateBatch(usePaymentRow.value.id,
+      useSelected.value.map((b) => ({ billId: b.id, amount: b.payableAmount })))
     ElMessage.success(t('msg.verified'))
     useVisible.value = false
     load()

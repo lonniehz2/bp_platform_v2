@@ -163,6 +163,8 @@ export default {
     requiredPassword: 'Password is required'
   },
   bill: {
+    selectedBills: '{n} bills selected',
+    selectedTotal: 'Total',
     settlementDate: 'Fee Confirmed Date',
     billDate: 'Bill Date',
     billingDays: 'Billing Days',

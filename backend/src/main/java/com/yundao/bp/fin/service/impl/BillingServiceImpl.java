@@ -370,6 +370,39 @@ public class BillingServiceImpl implements BillingService {
         }
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public java.util.List<BillVO> allocateBatch(Long paymentId,
+                                                 java.util.List<AllocateItem> items) {
+        if (items == null || items.isEmpty()) {
+            throw BizException.paramInvalid("请选择要核销的账单");
+        }
+        FinPayment pay = requirePayment(paymentId);
+        if (!PayStatus.SUCCESS.name().equals(pay.getPayStatus())) {
+            throw BizException.stateConflict("收款单未成功，不能核销");
+        }
+        Long contractId = pay.getContractId();
+        java.util.List<BillVO> out = new java.util.ArrayList<>();
+        for (AllocateItem item : items) {
+            FinBill bill = requireBill(item.billId());
+            if (contractId == null) {
+                contractId = bill.getContractId();
+            } else if (!contractId.equals(bill.getContractId())) {
+                throw BizException.paramInvalid("同一收款单只能核销同一合同的账单");
+            }
+        }
+        if (pay.getContractId() == null) {
+            pay.setContractId(contractId);
+            pay.setUpdateTime(java.time.LocalDateTime.now());
+            paymentMapper.updateById(pay);
+        }
+        // 单事务内逐张核销：任一张失败则全部回滚，避免收款单部分核销
+        for (AllocateItem item : items) {
+            out.add(doAllocate(paymentId, item.billId(), item.amount()));
+        }
+        return out;
+    }
+
     /** 核销分片锁：key = billId。 */
     private static final java.util.concurrent.ConcurrentHashMap<String, Object> ALLOC_LOCKS
             = new java.util.concurrent.ConcurrentHashMap<>();

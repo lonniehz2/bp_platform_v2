@@ -145,6 +145,8 @@ export const financeApi = {
   /** 核销：paymentId 在路径上 */
   allocate: (paymentId, billId, amount) =>
     req.post(`/fin/payments/${paymentId}/allocate`, { billId, amount }),
+  allocateBatch: (paymentId, items) =>
+    req.post(`/fin/payments/${paymentId}/allocate-batch`, { items }),
   deposits: (params) => req.get('/fin/deposits', { params }),
   depositByContract: (contractId) =>
     req.get('/fin/deposits/by-contract/' + contractId),

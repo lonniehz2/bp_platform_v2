@@ -162,6 +162,8 @@ export default {
     requiredPassword: '请输入密码'
   },
   bill: {
+    selectedBills: '已选 {n} 张账单',
+    selectedTotal: '合计',
     settlementDate: '费用确认日',
     billDate: '账单生成日',
     billingDays: '计费天数',

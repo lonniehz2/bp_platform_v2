@@ -12,6 +12,7 @@ public record PaymentVO(
         Long id,
         String paymentNo,
         Long orgId,
+        Long contractId,
         Long personId,
         String payerName,
         BigDecimal payAmount,
@@ -40,7 +41,8 @@ public record PaymentVO(
         }
         BigDecimal paid = e.getPayAmount() == null ? BigDecimal.ZERO : e.getPayAmount();
         BigDecimal done = e.getReconciledAmount() == null ? BigDecimal.ZERO : e.getReconciledAmount();
-        return new PaymentVO(e.getId(), e.getPaymentNo(), e.getOrgId(), e.getPersonId(),
+        return new PaymentVO(e.getId(), e.getPaymentNo(), e.getOrgId(), e.getContractId(),
+                e.getPersonId(),
                 e.getPayerName(), e.getPayAmount(), e.getPayChannel(), e.getPayTime(),
                 e.getTradeNo(), e.getPayStatus(), st.label(), e.getReconcileStatus(),
                 e.getReconciledAmount(), paid.subtract(done), 

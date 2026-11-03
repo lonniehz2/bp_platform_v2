@@ -49,6 +49,12 @@ public interface BillingService {
      */
     BillVO allocate(Long paymentId, Long billId, BigDecimal amount);
 
+    /** 同一合同多张账单合并核销；跨合同拒绝。 */
+    java.util.List<BillVO> allocateBatch(Long paymentId, java.util.List<AllocateItem> items);
+
+    record AllocateItem(Long billId, BigDecimal amount) {
+    }
+
     /** 公摊费用分摊出账。 */
     java.util.Map<String, Object> generateSharedBills(
             com.yundao.bp.fin.dto.SharedBillCmd cmd);

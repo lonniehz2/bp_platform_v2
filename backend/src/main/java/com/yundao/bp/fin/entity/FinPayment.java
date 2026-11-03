@@ -24,6 +24,7 @@ public class FinPayment {
     private Long accountSetId;
 
     private Long orgId;
+    private Long contractId;
     private Long personId;
     private String payerName;
 

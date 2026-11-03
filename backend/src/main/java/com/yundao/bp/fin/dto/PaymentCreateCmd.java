@@ -13,6 +13,7 @@ public record PaymentCreateCmd(
 
         @NotNull(message = "组织不能为空")
         Long orgId,
+        Long contractId,
         Long personId,
         String payerName,
 
