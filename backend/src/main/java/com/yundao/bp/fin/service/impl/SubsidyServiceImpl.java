@@ -71,6 +71,8 @@ public class SubsidyServiceImpl implements SubsidyService {
     /** 同住人 Mapper（用于按人补贴的保障人口计算） */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private BizContractCohabitantMapper cohabitantMapper;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.fin.mapper.FinFeeItemMapper feeItemMapper;
 
     public SubsidyServiceImpl(FinSubsidyStandardMapper standardMapper,
                               FinSubsidyRecordMapper recordMapper,
@@ -464,6 +466,13 @@ public class SubsidyServiceImpl implements SubsidyService {
         for (FinBill b : bills) {
             if (b.getPeriodStart() == null || b.getPeriodEnd() == null) {
                 continue;
+            }
+            // 补贴只跟随租金账单，避免物业/水电账单的 billingDays 放大补贴
+            if (feeItemMapper != null && b.getFeeItemId() != null) {
+                com.yundao.bp.fin.entity.FinFeeItem fi = feeItemMapper.selectById(b.getFeeItemId());
+                if (fi != null && !"RENT".equals(fi.getItemType())) {
+                    continue;
+                }
             }
             LocalDate from = b.getPeriodStart().isBefore(ps) ? ps : b.getPeriodStart();
             LocalDate to = b.getPeriodEnd().isAfter(pe) ? pe : b.getPeriodEnd();
