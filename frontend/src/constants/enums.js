@@ -458,7 +458,8 @@ const TYPE_OVERRIDE = {
   // 资金：对账与收款
   payChannel: {
     WECHAT: '微信', ALIPAY: '支付宝', BANK: '银行转账', CASH: '现金',
-    POS: '刷卡', OTHER: '其他', PREPAY: '预收抵扣'
+    POS: '刷卡', OTHER: '其他',
+    PREPAY: '预收抵扣'
   },
   reconcileType: { CHANNEL: '渠道对账', DAILY: '日终对账', MANUAL: '手工对账' },
   reconcileStatus: { MATCHED: '一致', DIFF: '有差异', HANDLED: '已处理' },
