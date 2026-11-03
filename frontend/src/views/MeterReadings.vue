@@ -322,6 +322,54 @@ const query = reactive({ pageNum: 1, pageSize: 20, houseId: '', feeItemId: '',
 const rf = reactive({ houseId: '', feeItemId: '', reading: '', readDate: '', deviceId: '' })
 const devices = ref([])
 const deviceRows = ref([])
+const devicePrepayVisible = ref(false)
+const devicePoints = ref([])
+const devicePointId = ref('')
+const deviceAccount = ref(null)
+const deviceAmount = ref(null)
+const deviceConsume = ref(null)
+
+async function openDevicePrepay() {
+  devicePrepayVisible.value = true
+  deviceAccount.value = null
+  deviceAmount.value = null
+  deviceConsume.value = null
+  try {
+    devicePoints.value = (await req.get('/fin/meter-points')) || []
+  } catch (e) { devicePoints.value = [] }
+}
+
+async function loadDeviceAccount() {
+  if (!devicePointId.value) { deviceAccount.value = null; return }
+  try {
+    deviceAccount.value = await req.get('/fin/device-prepay/' + devicePointId.value)
+  } catch (e) { deviceAccount.value = null }
+}
+
+async function doDevicePayIn() {
+  if (!devicePointId.value || !deviceAmount.value) return
+  saving.value = true
+  try {
+    deviceAccount.value = await req.post('/fin/device-prepay/in', {
+      meterPointId: devicePointId.value, amount: Number(deviceAmount.value)
+    })
+    deviceAmount.value = null
+    ElMessage.success(t('common.success'))
+  } finally { saving.value = false }
+}
+
+async function doDeviceConsume() {
+  if (!devicePointId.value || !deviceConsume.value) return
+  saving.value = true
+  try {
+    deviceAccount.value = await req.post('/fin/device-prepay/consume', {
+      meterPointId: devicePointId.value, amount: Number(deviceConsume.value)
+    })
+    deviceConsume.value = null
+    ElMessage.success(t('common.success'))
+  } finally { saving.value = false }
+}
+
 const batchVisible = ref(false)
 const batchRows = ref([])
 const batchResult = ref(null)
