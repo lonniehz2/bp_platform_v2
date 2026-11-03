@@ -147,6 +147,10 @@ export const financeApi = {
     req.post(`/fin/payments/${paymentId}/allocate`, { billId, amount }),
   allocateBatch: (paymentId, items) =>
     req.post(`/fin/payments/${paymentId}/allocate-batch`, { items }),
+  prepayAccount: (contractId) => req.get(`/fin/prepay/${contractId}`),
+  prepayIn: (data) => req.post('/fin/prepay/in', data),
+  prepayRefund: (data) => req.post('/fin/prepay/refund', data),
+  prepayApply: (contractId) => req.post(`/fin/prepay/apply/${contractId}`),
   deposits: (params) => req.get('/fin/deposits', { params }),
   depositByContract: (contractId) =>
     req.get('/fin/deposits/by-contract/' + contractId),

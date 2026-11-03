@@ -26,6 +26,7 @@
         <el-button type="warning" plain @click="openShared" data-testid="shared-bill">{{ t('bill.shared') }}</el-button>
         <el-button plain @click="openEnergy" data-testid="bill-energy">{{ t('bill.energy') }}</el-button>
         <el-button @click="openPay">{{ t('bill.pay') }}</el-button>
+        <el-button plain @click="openPrepay">{{ t('bill.prepay') }}</el-button>
         <el-button plain @click="openPayments" data-testid="bill-payments">{{ t('bill.payments') }}</el-button>
         <el-button @click="scanOverdue">{{ t('bill.overdue') }}</el-button>
         <el-button plain data-testid="bill-export" :loading="exporting"
@@ -449,6 +450,75 @@
       </template>
     </el-dialog>
 
+    <!-- 合同预收余额 -->
+    <el-dialog v-model="prepayVisible" :title="t('bill.prepayTitle')" width="760px">
+      <el-form label-width="110px">
+        <el-form-item :label="t('bill.contract')">
+          <ContractSelect v-model="prepayContractId" width="100%"
+                          @update:model-value="loadPrepay" />
+        </el-form-item>
+      </el-form>
+      <el-descriptions v-if="prepayAccount" :column="3" border size="small">
+        <el-descriptions-item :label="t('bill.prepayBalance')">
+          {{ $money(prepayAccount.balanceAmount) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('bill.prepayTotalIn')">
+          {{ $money(prepayAccount.totalIn) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('bill.prepayTotalOut')">
+          {{ $money(prepayAccount.totalOut) }}
+        </el-descriptions-item>
+      </el-descriptions>
+      <el-row :gutter="12" style="margin-top:12px">
+        <el-col :span="12">
+          <el-form label-width="90px">
+            <el-form-item :label="t('bill.prepayAmount')">
+              <el-input v-model.number="prepayAmount" type="number" />
+            </el-form-item>
+            <el-form-item :label="t('bill.payChannel')">
+              <el-select v-model="prepayChannel" style="width:100%">
+                <el-option label="现金" value="CASH" />
+                <el-option label="银行转账" value="BANK_TRANSFER" />
+                <el-option label="微信" value="WECHAT" />
+                <el-option label="支付宝" value="ALIPAY" />
+              </el-select>
+            </el-form-item>
+            <el-button type="primary" :loading="saving" @click="doPrepayIn">
+              {{ t('bill.prepayIn') }}
+            </el-button>
+            <el-button type="warning" plain :loading="saving" @click="doPrepayApply">
+              {{ t('bill.prepayApply') }}
+            </el-button>
+          </el-form>
+        </el-col>
+        <el-col :span="12">
+          <el-form label-width="90px">
+            <el-form-item :label="t('bill.refundAmount')">
+              <el-input v-model.number="refundAmount" type="number" />
+            </el-form-item>
+            <el-form-item :label="t('bill.refundFee')">
+              <el-input v-model.number="refundFee" type="number" />
+            </el-form-item>
+            <el-button type="danger" plain :loading="saving" @click="doPrepayRefund">
+              {{ t('bill.prepayRefund') }}
+            </el-button>
+          </el-form>
+        </el-col>
+      </el-row>
+      <el-table :data="prepayAccount?.flows || []" border size="small" max-height="260"
+                style="margin-top:12px">
+        <el-table-column prop="flowType" :label="t('bill.flowType')" width="90" />
+        <el-table-column prop="amount" :label="t('bill.amount')" width="100" />
+        <el-table-column prop="balanceAfter" :label="t('bill.prepayBalance')" width="110" />
+        <el-table-column prop="bizType" :label="t('bill.bizType')" width="110" />
+        <el-table-column prop="remark" :label="t('bill.remark')" min-width="160" />
+        <el-table-column prop="createTime" :label="t('bill.time')" width="170" />
+      </el-table>
+      <template #footer>
+        <el-button @click="prepayVisible = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 核销 AllocateCmd -->
     <el-dialog v-model="allocVisible" :title="t('bill.allocTitle')" width="480px">
       <el-alert type="info" :closable="false" show-icon
@@ -656,6 +726,7 @@ import { financeApi } from '@/api/modules'
 import req from '@/api/request'
 import { downloadCsv, fetchAllPages } from '@/utils/csv'
 import OrgSelect from '@/components/OrgSelect.vue'
+import ContractSelect from '@/components/ContractSelect.vue'
 import LineTrend from '@/components/LineTrend.vue'
 
 const statuses = ['UNPAID', 'PARTIAL', 'PAID', 'OVERDUE', 'WAIVED', 'CANCELLED']
@@ -984,6 +1055,73 @@ async function confirmUse() {
     useVisible.value = false
     load()
     loadPayments()
+  } finally { saving.value = false }
+}
+
+const prepayVisible = ref(false)
+const prepayContractId = ref('')
+const prepayAccount = ref(null)
+const prepayAmount = ref(null)
+const prepayChannel = ref('CASH')
+const refundAmount = ref(null)
+const refundFee = ref(0)
+
+async function openPrepay() {
+  prepayVisible.value = true
+  prepayAccount.value = null
+  prepayAmount.value = null
+  refundAmount.value = null
+  refundFee.value = 0
+}
+
+async function loadPrepay() {
+  if (!prepayContractId.value) { prepayAccount.value = null; return }
+  try {
+    prepayAccount.value = await financeApi.prepayAccount(prepayContractId.value)
+  } catch (e) { prepayAccount.value = null }
+}
+
+async function doPrepayIn() {
+  if (!prepayContractId.value) { ElMessage.warning(t('bill.contract')); return }
+  if (!prepayAmount.value || Number(prepayAmount.value) <= 0) {
+    ElMessage.warning(t('bill.prepayAmount')); return
+  }
+  saving.value = true
+  try {
+    prepayAccount.value = await financeApi.prepayIn({
+      contractId: prepayContractId.value,
+      amount: Number(prepayAmount.value),
+      payChannel: prepayChannel.value
+    })
+    prepayAmount.value = null
+    ElMessage.success(t('common.success'))
+  } finally { saving.value = false }
+}
+
+async function doPrepayApply() {
+  if (!prepayContractId.value) return
+  saving.value = true
+  try {
+    const n = await financeApi.prepayApply(prepayContractId.value)
+    ElMessage.success(t('bill.prepayApplied', { n }))
+    await loadPrepay()
+    load()
+  } finally { saving.value = false }
+}
+
+async function doPrepayRefund() {
+  if (!prepayContractId.value || !refundAmount.value) return
+  saving.value = true
+  try {
+    prepayAccount.value = await financeApi.prepayRefund({
+      contractId: prepayContractId.value,
+      amount: Number(refundAmount.value),
+      feeAmount: Number(refundFee.value || 0),
+      payChannel: prepayChannel.value
+    })
+    refundAmount.value = null
+    refundFee.value = 0
+    ElMessage.success(t('common.success'))
   } finally { saving.value = false }
 }
 

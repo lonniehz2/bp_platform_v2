@@ -75,6 +75,10 @@ public class BillGenerationServiceImpl implements BillGenerationService {
     private final BillingCalculator calculator;
     private final SnowflakeIdGenerator idGen;
 
+    /** 预收余额自动抵扣（可选注入，便于计费单测） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.fin.service.PrepayService prepayService;
+
     public BillGenerationServiceImpl(BizContractMapper contractMapper,
                                      AssetHouseMapper houseMapper,
                                      FinFeeItemMapper feeItemMapper,
@@ -327,6 +331,9 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                 b.setIsDeleted(0);
                 b.setCreateTime(now);
                 billMapper.insert(b);
+                if (prepayService != null) {
+                    prepayService.offsetBill(b);
+                }
                 billId = id;
             }
             generated++;
