@@ -151,6 +151,7 @@ export const financeApi = {
   prepayIn: (data) => req.post('/fin/prepay/in', data),
   prepayRefund: (data) => req.post('/fin/prepay/refund', data),
   prepayApply: (contractId) => req.post(`/fin/prepay/apply/${contractId}`),
+  prepayTransfer: (data) => req.post('/fin/prepay/transfer', data),
   deposits: (params) => req.get('/fin/deposits', { params }),
   depositByContract: (contractId) =>
     req.get('/fin/deposits/by-contract/' + contractId),

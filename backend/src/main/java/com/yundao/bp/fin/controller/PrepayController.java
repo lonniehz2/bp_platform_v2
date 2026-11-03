@@ -41,6 +41,17 @@ public class PrepayController {
         return R.ok(service.refund(cmd));
     }
 
+    public record TransferCmd(Long fromContractId, Long toContractId,
+                             java.math.BigDecimal amount, String remark) {
+    }
+
+    @com.yundao.bp.iam.security.RequirePerm("fin:payment:pay")
+    @PostMapping("/transfer")
+    public R<Map<String, Object>> transfer(@RequestBody TransferCmd cmd) {
+        return R.ok(service.transfer(cmd.fromContractId(), cmd.toContractId(),
+                cmd.amount(), cmd.remark()));
+    }
+
     @com.yundao.bp.iam.security.RequirePerm("fin:payment:pay")
     @PostMapping("/apply/{contractId}")
     public R<Integer> apply(@PathVariable Long contractId) {

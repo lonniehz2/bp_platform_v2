@@ -162,6 +162,9 @@ export default {
     requiredPassword: '请输入密码'
   },
   bill: {
+    prepayTransfer: '预收结转',
+    transferTarget: '转入合同',
+    transferAmount: '结转金额',
     paymentDueDate: '付款到期日',
     paymentDueHint: '为空按生成月月末',
     prepay: '预收余额',

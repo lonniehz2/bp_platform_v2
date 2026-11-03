@@ -509,6 +509,18 @@
           </el-form>
         </el-col>
       </el-row>
+      <el-divider content-position="left">{{ t('bill.prepayTransfer') }}</el-divider>
+      <el-form label-width="110px" inline>
+        <el-form-item :label="t('bill.transferTarget')">
+          <ContractSelect v-model="prepayTargetId" width="240px" />
+        </el-form-item>
+        <el-form-item :label="t('bill.transferAmount')">
+          <el-input v-model.number="transferAmount" type="number" style="width:150px" />
+        </el-form-item>
+        <el-button type="primary" plain :loading="saving" @click="doPrepayTransfer">
+          {{ t('bill.prepayTransfer') }}
+        </el-button>
+      </el-form>
       <el-table :data="prepayAccount?.flows || []" border size="small" max-height="260"
                 style="margin-top:12px">
         <el-table-column prop="flowType" :label="t('bill.flowType')" width="90" />
@@ -1110,6 +1122,23 @@ async function doPrepayApply() {
     ElMessage.success(t('bill.prepayApplied', { n }))
     await loadPrepay()
     load()
+  } finally { saving.value = false }
+}
+
+const prepayTargetId = ref('')
+const transferAmount = ref(null)
+
+async function doPrepayTransfer() {
+  if (!prepayContractId.value || !prepayTargetId.value || !transferAmount.value) return
+  saving.value = true
+  try {
+    prepayAccount.value = await financeApi.prepayTransfer({
+      fromContractId: prepayContractId.value,
+      toContractId: prepayTargetId.value,
+      amount: Number(transferAmount.value)
+    })
+    transferAmount.value = null
+    ElMessage.success(t('common.success'))
   } finally { saving.value = false }
 }
 

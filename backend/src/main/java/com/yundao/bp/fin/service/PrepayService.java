@@ -149,6 +149,64 @@ public class PrepayService {
         return account(cmd.contractId());
     }
 
+    /** 合同间预收结转（续租/换房）。 */
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> transfer(Long fromContractId, Long toContractId, BigDecimal amount,
+                                        String remark) {
+        if (fromContractId == null || toContractId == null
+                || fromContractId.equals(toContractId)) {
+            throw BizException.paramInvalid("转出与转入合同不能相同");
+        }
+        BigDecimal amt = money(amount);
+        if (amt.compareTo(BigDecimal.ZERO) <= 0) {
+            throw BizException.paramInvalid("结转金额必须大于 0");
+        }
+        FinPrepayAccount from = lock(fromContractId);
+        FinPrepayAccount to = lock(toContractId);
+        if (from == null) {
+            throw BizException.notFound("转出预收账户");
+        }
+        if (money(from.getBalanceAmount()).compareTo(amt) < 0) {
+            throw BizException.paramInvalid("预收余额不足，当前余额 " + from.getBalanceAmount());
+        }
+        if (to == null) {
+            BizContract ct = contractMapper.selectById(toContractId);
+            if (ct == null) {
+                throw BizException.notFound("转入合同");
+            }
+            to = createAccount(ct);
+        }
+        LocalDateTime now = LocalDateTime.now();
+        from.setBalanceAmount(money(from.getBalanceAmount()).subtract(amt));
+        from.setTotalOut(money(from.getTotalOut()).add(amt));
+        from.setUpdateTime(now);
+        accountMapper.updateById(from);
+        to.setBalanceAmount(money(to.getBalanceAmount()).add(amt));
+        to.setTotalIn(money(to.getTotalIn()).add(amt));
+        to.setUpdateTime(now);
+        accountMapper.updateById(to);
+
+        writeFlow(from, "TRANSFER_OUT", amt, "PREPAY_TRANSFER", "结转至合同 " + toContractId + " " + (remark == null ? "" : remark), now);
+        writeFlow(to, "TRANSFER_IN", amt, "PREPAY_TRANSFER", "合同 " + fromContractId + " 转入 " + (remark == null ? "" : remark), now);
+        return account(fromContractId);
+    }
+
+    private void writeFlow(FinPrepayAccount a, String type, BigDecimal amount, String bizType,
+                           String remark, LocalDateTime now) {
+        FinPrepayFlow f = new FinPrepayFlow();
+        f.setId(idGen.nextId());
+        f.setTenantId(TenantContext.tenantId());
+        f.setAccountId(a.getId());
+        f.setContractId(a.getContractId());
+        f.setFlowType(type);
+        f.setAmount(amount);
+        f.setBalanceAfter(a.getBalanceAmount());
+        f.setBizType(bizType);
+        f.setRemark(remark);
+        f.setCreateTime(now);
+        flowMapper.insert(f);
+    }
+
     /** 账单生成后自动抵扣该合同预收余额。 */
     @Transactional(rollbackFor = Exception.class)
     public BigDecimal offsetBill(FinBill bill) {
@@ -258,12 +316,8 @@ public class PrepayService {
         return accountMapper.lockByContract(TenantContext.tenantId(), contractId);
     }
 
-    private FinPrepayAccount lockOrCreate(BizContract ct) {
-        FinPrepayAccount a = lock(ct.getId());
-        if (a != null) {
-            return a;
-        }
-        a = new FinPrepayAccount();
+    private FinPrepayAccount createAccount(BizContract ct) {
+        FinPrepayAccount a = new FinPrepayAccount();
         a.setId(idGen.nextId());
         a.setTenantId(TenantContext.tenantId());
         a.setContractId(ct.getId());
@@ -277,6 +331,14 @@ public class PrepayService {
         a.setUpdateTime(LocalDateTime.now());
         accountMapper.insert(a);
         return a;
+    }
+
+    private FinPrepayAccount lockOrCreate(BizContract ct) {
+        FinPrepayAccount a = lock(ct.getId());
+        if (a != null) {
+            return a;
+        }
+        return createAccount(ct);
     }
 
     private Map<String, Object> flowMap(FinPrepayFlow f) {
