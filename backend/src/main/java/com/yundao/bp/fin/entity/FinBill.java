@@ -39,8 +39,14 @@ public class FinBill {
     private String billPeriod;
     private LocalDate periodStart;
     private LocalDate periodEnd;
+    /** 实际费用确认日（金额最终确定日，不含付款含义） */
+    private LocalDate settlementDate;
 
     private BigDecimal billAmount;
+    /** 本次实际使用的计价单价快照 */
+    private BigDecimal unitPriceSnapshot;
+    /** CONTRACT_RENT / FEE_ITEM */
+    private String priceSource;
     private BigDecimal discountAmount;
     private BigDecimal lateFee;
     private BigDecimal paidAmount;
@@ -49,6 +55,8 @@ public class FinBill {
     private BigDecimal payableAmount;
 
     private LocalDate dueDate;
+    /** 账单生成日（业务日期；create_time 为系统时间） */
+    private LocalDate billDate;
     /** UNPAID / PARTIAL / PAID / OVERDUE / WAIVED / CANCELLED */
     private String billStatus;
     private Integer overdueDays;
@@ -62,6 +70,10 @@ public class FinBill {
     private String ruleSnapshot;
     /** 本单计费数量（人/床/间夜/套） */
     private Integer billingQuantity;
+    /** 计费天数（含首尾） */
+    private Integer billingDays;
+    /** 折算月数，如 1.483870 */
+    private BigDecimal prorationMonths;
     private String quantityUnit;
     private String quantitySource;
     private String tierDetail;

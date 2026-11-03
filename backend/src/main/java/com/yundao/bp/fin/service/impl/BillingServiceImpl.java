@@ -169,7 +169,18 @@ public class BillingServiceImpl implements BillingService {
         e.setBillPeriod(cmd.billPeriod());
         e.setPeriodStart(cmd.periodStart());
         e.setPeriodEnd(cmd.periodEnd());
+        e.setSettlementDate(cmd.periodEnd());
         e.setBillAmount(bill);
+        e.setBillDate(now.toLocalDate());
+        long billDays = java.time.temporal.ChronoUnit.DAYS.between(
+                cmd.periodStart(), cmd.periodEnd()) + 1;
+        e.setBillingDays((int) billDays);
+        if (java.time.YearMonth.from(cmd.periodStart())
+                .equals(java.time.YearMonth.from(cmd.periodEnd()))) {
+            e.setProrationMonths(BigDecimal.valueOf(billDays)
+                    .divide(BigDecimal.valueOf(cmd.periodStart().lengthOfMonth()),
+                            6, RoundingMode.HALF_UP));
+        }
         e.setDiscountAmount(discount);
         e.setLateFee(lateFee);
         e.setPaidAmount(money(null));

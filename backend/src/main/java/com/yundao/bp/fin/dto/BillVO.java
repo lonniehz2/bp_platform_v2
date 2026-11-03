@@ -22,13 +22,17 @@ public record BillVO(
         String billPeriod,
         LocalDate periodStart,
         LocalDate periodEnd,
+        LocalDate settlementDate,
         BigDecimal billAmount,
+        BigDecimal unitPriceSnapshot,
+        String priceSource,
         BigDecimal discountAmount,
         BigDecimal lateFee,
         BigDecimal paidAmount,
         BigDecimal waivedAmount,
         BigDecimal payableAmount,
         LocalDate dueDate,
+        LocalDate billDate,
         String billStatus,
         String billStatusLabel,
         Integer overdueDays,
@@ -36,6 +40,8 @@ public record BillVO(
         Boolean overdueNow,
         String generateType,
         String remark,
+        Integer billingDays,
+        BigDecimal prorationMonths,
         LocalDateTime createTime
 ) {
     public static BillVO from(FinBill e) {
@@ -57,10 +63,11 @@ public record BillVO(
         }
         return new BillVO(e.getId(), e.getBillNo(), e.getOrgId(), e.getContractId(),
                 e.getHouseId(), e.getPersonId(), e.getPayerName(), e.getFeeItemId(),
-                e.getBillPeriod(), e.getPeriodStart(), e.getPeriodEnd(), e.getBillAmount(),
+                e.getBillPeriod(), e.getPeriodStart(), e.getPeriodEnd(), e.getSettlementDate(),
+                e.getBillAmount(), e.getUnitPriceSnapshot(), e.getPriceSource(),
                 e.getDiscountAmount(), e.getLateFee(), e.getPaidAmount(), e.getWaivedAmount(),
-                e.getPayableAmount(), e.getDueDate(), e.getBillStatus(), st.label(),
+                e.getPayableAmount(), e.getDueDate(), e.getBillDate(), e.getBillStatus(), st.label(),
                 e.getOverdueDays(), overdueNow, e.getGenerateType(), e.getRemark(),
-                e.getCreateTime());
+                e.getBillingDays(), e.getProrationMonths(), e.getCreateTime());
     }
 }

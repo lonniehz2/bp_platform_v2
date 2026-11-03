@@ -162,6 +162,11 @@ export default {
     requiredPassword: '请输入密码'
   },
   bill: {
+    settlementDate: '费用确认日',
+    billDate: '账单生成日',
+    billingDays: '计费天数',
+    prorationMonths: '折算月数',
+    unitPriceSnapshot: '计价单价',
     orgName: '组织名称',
     orgSearch: '搜索组织',
     feeItem: '收费项目',
@@ -1876,6 +1881,7 @@ export default {
     downloadPdf: '下载 PDF 版', print: '打印 / 另存 PDF', noMatch: '没有匹配的章节'
   },
   msg: {
+    noCrossMonth: '长租账单不能跨自然月，请按自然月分别生成',
     requiredFields: '请填写必填项：{fields}', contractCreated: '合同已创建',
     submitted: '已提交待签', signing: '已进入签约中', signed: '签约成功',
     renewed: '续签成功', terminateReason: '请填写终止原因', terminated: '合同已终止',

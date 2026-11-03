@@ -514,6 +514,11 @@
           {{ dvRow.feeItemIdName || dvRow.feeItemName || dvRow.feeItemId || '—' }}
         </el-descriptions-item>
         <el-descriptions-item :label="labelOf('billPeriod')">{{ dvRow.billPeriod }}（{{ dvRow.periodStart }} ~ {{ dvRow.periodEnd }}）</el-descriptions-item>
+        <el-descriptions-item :label="t('bill.settlementDate')">{{ dvRow.settlementDate || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('bill.billDate')">{{ dvRow.billDate || dvRow.createTime || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('bill.billingDays')">{{ dvRow.billingDays ?? '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('bill.prorationMonths')">{{ dvRow.prorationMonths ?? '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('bill.unitPriceSnapshot')">{{ dvRow.unitPriceSnapshot ?? '—' }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('payDue')">{{ dvRow.dueDate || '—' }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('billAmount')">{{ dvRow.billAmount }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('paidAmount')">{{ dvRow.paidAmount }}</el-descriptions-item>
@@ -988,6 +993,10 @@ async function doGenerate() {
   if (!g.feeItemId) { ElMessage.warning(t('msg.selectFeeItem')); return }
   if (!g.periodStart || !g.periodEnd) { ElMessage.warning(t('msg.feeDates')); return }
   if (g.periodEnd <= g.periodStart) { ElMessage.warning(t('msg.endAfterStart')); return }
+  if (g.periodStart.slice(0, 7) !== g.periodEnd.slice(0, 7)) {
+    ElMessage.warning(t('msg.noCrossMonth'))
+    return
+  }
   if (g.ruleMode === 'MANUAL' && !g.ruleId) {
     ElMessage.warning(t('msg.selectRule')); return
   }

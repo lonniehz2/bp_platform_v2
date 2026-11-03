@@ -163,6 +163,11 @@ export default {
     requiredPassword: 'Password is required'
   },
   bill: {
+    settlementDate: 'Fee Confirmed Date',
+    billDate: 'Bill Date',
+    billingDays: 'Billing Days',
+    prorationMonths: 'Proration Months',
+    unitPriceSnapshot: 'Unit Price Snapshot',
     orgName: 'Organization',
     orgSearch: 'Search organization',
     feeItem: 'Fee Item',
@@ -1887,6 +1892,7 @@ export default {
     downloadPdf: 'Download PDF', print: 'Print / Save as PDF', noMatch: 'No matching chapters'
   },
   msg: {
+    noCrossMonth: 'Long-term bills cannot cross calendar months; generate each month separately',
     requiredFields: 'Please fill required fields: {fields}', contractCreated: 'Contract created',
     submitted: 'Submitted for signing', signing: 'Signing in progress', signed: 'Signed',
     renewed: 'Renewed', terminateReason: 'Please enter a termination reason',

@@ -119,6 +119,13 @@ public class BillGenerationServiceImpl implements BillGenerationService {
         if (cmd.periodEnd().isBefore(cmd.periodStart())) {
             throw BizException.paramInvalid("费用截止日不能早于起始日");
         }
+        // 长租/固定费用账单必须按自然月出账，禁止一张账单跨两个自然月；
+        // 首月、末月、调租月通过租期/费用区间交集在本月内折算。
+        if (!java.time.YearMonth.from(cmd.periodStart())
+                .equals(java.time.YearMonth.from(cmd.periodEnd()))) {
+            throw BizException.paramInvalid(
+                    "账单不能跨自然月，请按自然月分别生成（如 2026-11-01~2026-11-30）");
+        }
 
         String ruleMode = cmd.ruleMode() == null || cmd.ruleMode().isBlank()
                 ? (cmd.ruleId() != null ? "MANUAL" : "AUTO")
@@ -165,7 +172,10 @@ public class BillGenerationServiceImpl implements BillGenerationService {
         List<BizContract> contracts = contractMapper.selectList(cw);
 
         String billPeriod = normalizePeriod(cmd.billPeriod(), cmd.periodStart());
-        LocalDate dueDate = cmd.dueDate() == null ? cmd.periodStart() : cmd.dueDate();
+        // 默认付款到期日取“生成月月末”；跨月补账/预收场景由调用方显式传入实际到期日。
+        LocalDate dueDate = cmd.dueDate() == null
+                ? LocalDate.now().with(java.time.temporal.TemporalAdjusters.lastDayOfMonth())
+                : cmd.dueDate();
         int nights = (int) Math.max(1,
                 ChronoUnit.DAYS.between(cmd.periodStart(), cmd.periodEnd()));
 
@@ -225,6 +235,8 @@ public class BillGenerationServiceImpl implements BillGenerationService {
             BigDecimal amount;
             BigDecimal discount = money(null);
             String calcExplain;
+            BigDecimal unitPriceSnapshot = item.getUnitPrice();
+            String priceSource = "FEE_ITEM";
             // 仅“整套/面积/固定”租金用合同月租覆盖；
             // 按人/按床/按夜的租金项目按收费项目单价×数量，不能套整间月租
             if ("RENT".equals(item.getItemType())
@@ -233,6 +245,8 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                     && (mode == CalcMode.BY_HOUSE || mode == CalcMode.BY_AREA
                         || mode == CalcMode.FIXED)) {
                 amount = money(ct.getMonthlyRent().multiply(pro.months()));
+                unitPriceSnapshot = ct.getMonthlyRent();
+                priceSource = "CONTRACT_RENT";
                 calcExplain = "合同月租 " + ct.getMonthlyRent().toPlainString()
                         + " × " + pro.months().stripTrailingZeros().toPlainString() + " 个月";
                 // 合同租金仍受规则约束：EXEMPT 归零、DISCOUNT 打折
@@ -283,13 +297,17 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                 b.setBillPeriod(billPeriod);
                 b.setPeriodStart(cmd.periodStart());
                 b.setPeriodEnd(cmd.periodEnd());
+                b.setSettlementDate(cmd.periodEnd());
                 b.setBillAmount(amount);
+                b.setUnitPriceSnapshot(unitPriceSnapshot);
+                b.setPriceSource(priceSource);
                 b.setDiscountAmount(discount);
                 b.setLateFee(money(null));
                 b.setPaidAmount(money(null));
                 b.setWaivedAmount(money(null));
                 b.setPayableAmount(payable);
                 b.setDueDate(dueDate);
+                b.setBillDate(LocalDate.now());
                 b.setBillStatus("UNPAID");
                 b.setOverdueDays(0);
                 b.setGenerateType("AUTO");
@@ -297,6 +315,8 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                 b.setRuleVersion(effectiveRule == null ? null : effectiveRule.getRuleVersion());
                 b.setRuleSnapshot(snapshot(effectiveRule));
                 b.setBillingQuantity(qty);
+                b.setBillingDays(pro.days());
+                b.setProrationMonths(pro.months());
                 b.setQuantityUnit(quantityUnit(mode));
                 b.setQuantitySource(quantitySource(mode));
                 b.setRemark("批量出账：" + item.getItemName()
