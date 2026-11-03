@@ -37,6 +37,11 @@ public class MeterReadingServiceImpl implements MeterReadingService {
     private com.yundao.bp.biz.mapper.BizContractMapper contractMapper;
     private final FinFeeItemMapper feeItemMapper;
     private final BillingService billingService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.fin.service.DevicePrepayService devicePrepayService;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbcForPrepay;
     private final SnowflakeIdGenerator idGen;
 
 
@@ -200,6 +205,22 @@ public class MeterReadingServiceImpl implements MeterReadingService {
                         .set(FinMeterReading::getBillId, bill.id()));
         if (claimed == 0) {
             throw BizException.stateConflict("该抄表记录已出账");
+        }
+        // 抄表账单按「房源空间 + 收费项目」匹配房间表计，使用设备预存抵扣
+        if (devicePrepayService != null && jdbcForPrepay != null) {
+            try {
+                java.util.List<Long> ids = jdbcForPrepay.queryForList(
+                        "select mp.id from bp_fin_meter_point mp "
+                                + "join bp_asset_house h on h.space_id = mp.space_id "
+                                + "where h.id = ? and mp.fee_item_id = ? "
+                                + "and mp.status = 'ENABLED' limit 1",
+                        Long.class, e.getHouseId(), e.getFeeItemId());
+                if (!ids.isEmpty()) {
+                    devicePrepayService.applyToBill(bill.id(), ids.get(0));
+                }
+            } catch (Exception ex) {
+                // 预存抵扣失败不阻断出账；账单仍可正常收款
+            }
         }
         return bill;
     }
