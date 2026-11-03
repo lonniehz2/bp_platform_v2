@@ -163,6 +163,8 @@ export default {
     requiredPassword: 'Password is required'
   },
   bill: {
+    paymentDueDate: 'Payment Due Date',
+    paymentDueHint: 'Blank = end of generation month',
     prepay: 'Prepay Balance',
     prepayTitle: 'Contract Prepay Balance',
     prepayBalance: 'Prepay Balance',

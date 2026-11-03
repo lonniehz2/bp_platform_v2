@@ -162,6 +162,8 @@ export default {
     requiredPassword: '请输入密码'
   },
   bill: {
+    paymentDueDate: '付款到期日',
+    paymentDueHint: '为空按生成月月末',
     prepay: '预收余额',
     prepayTitle: '合同预收余额',
     prepayBalance: '预收余额',

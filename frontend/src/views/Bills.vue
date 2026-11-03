@@ -143,6 +143,10 @@
           <el-date-picker v-model="g.periodEnd" type="date" value-format="YYYY-MM-DD"
                           style="width:100%" />
         </el-form-item>
+        <el-form-item :label="t('bill.paymentDueDate')">
+          <el-date-picker v-model="g.dueDate" type="date" value-format="YYYY-MM-DD"
+                          style="width:100%" :placeholder="t('bill.paymentDueHint')" />
+        </el-form-item>
         <el-alert type="warning" :closable="false" show-icon style="margin-bottom:8px"
                   :title="t('bill.billingDaysNote')" />
         <el-form-item :label="t('bill.dryRun')">
@@ -830,7 +834,7 @@ const selectedCalcMode = computed(() => {
 })
 
 function openGen() {
-  Object.assign(g, { orgId: '', feeItemId: '', periodStart: '', periodEnd: '',
+  Object.assign(g, { orgId: '', feeItemId: '', periodStart: '', periodEnd: '', dueDate: '',
     billPeriod: '', dryRun: false, ruleMode: 'AUTO', ruleId: '' })
   genRules.value = []
   loadGenOptions()
@@ -888,7 +892,7 @@ async function loadTrend() {
 const current = ref(null)
 
 const genVisible = ref(false)
-const g = reactive({ orgId: null, billPeriod: '', dryRun: true,
+const g = reactive({ orgId: null, billPeriod: '', dueDate: '', dryRun: true,
   ruleMode: 'AUTO', ruleId: '', feeItemId: '', periodStart: '', periodEnd: '' })
 const genRules = ref([])
 
@@ -1165,7 +1169,7 @@ async function doGenerate() {
     const r = await financeApi.generate({
       orgId: g.orgId || undefined, feeItemId: g.feeItemId,
       periodStart: g.periodStart, periodEnd: g.periodEnd,
-      billPeriod: g.periodStart.slice(0, 7).replace('-', ''),
+      dueDate: g.dueDate || undefined, billPeriod: g.periodStart.slice(0, 7).replace('-', ''),
       dryRun: !!g.dryRun
     })
     genResult.value = r
