@@ -1,5 +1,49 @@
 <template>
   <div>
+    <div class="page-card" style="margin-bottom:12px">
+      <div class="toolbar" style="margin-bottom:10px">
+        <h4 style="margin:0">{{ t('report.financeTitle') }}</h4>
+        <el-input v-model="financePeriod" style="width:130px" />
+        <el-button type="primary" @click="loadFinance">{{ t('report.search') }}</el-button>
+        <span class="muted">{{ t('report.financeHint') }}</span>
+      </div>
+      <el-descriptions v-if="finance" :column="4" border size="small">
+        <el-descriptions-item :label="t('report.billReceivable')">
+          {{ $money(finance.billReceivable) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('report.billGenerated')">
+          {{ $money(finance.billGenerated) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('report.cashIn')">
+          {{ $money(finance.cashIn) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('report.subsidy')">
+          {{ $money(finance.subsidy) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('report.prepayRefund')">
+          {{ $money(finance.prepayRefund) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('report.deviceRefund')">
+          {{ $money(finance.deviceRefund) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('report.prepayBalance')">
+          {{ $money(finance.prepayBalance) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('report.devicePrepayBalance')">
+          {{ $money(finance.devicePrepayBalance) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('report.outstanding')">
+          {{ $money(finance.outstanding) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('report.overdueAmount')">
+          {{ $money(finance.overdueAmount) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('report.billCount')">
+          {{ finance.billCount }}
+        </el-descriptions-item>
+      </el-descriptions>
+    </div>
+
     <div class="page-card">
       <div class="toolbar">
         <el-select v-model="reportCode" :placeholder="t('report.select')" style="width:220px"
@@ -127,6 +171,17 @@ import req from '@/api/request'
 import { getLocale } from '@/i18n'
 
 const { t, locale } = useI18n()
+const financePeriod = ref(new Date().toISOString().slice(0, 7))
+const finance = ref(null)
+
+async function loadFinance() {
+  if (!financePeriod.value) return
+  try {
+    finance.value = await req.get('/fin/finance-report', { params: { period: financePeriod.value } })
+  } catch (e) { finance.value = null }
+}
+
+
 
 const REPORT_EN = {
   HOUSE_LEDGER: 'Housing Ledger',
