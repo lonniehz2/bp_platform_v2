@@ -62,7 +62,7 @@ public class AutoBillingJob {
     /** 每日 00:10 运行；到期日/生成日由配置决定。 */
     @Scheduled(cron = "${bp.fin.auto-billing.cron:0 10 0 * * *}")
     public void runDaily() {
-        if (!enabled) {
+        if (!enabled && !configService.getBool("billing.auto.enabled", false)) {
             return;
         }
         runNow();

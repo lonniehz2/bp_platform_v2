@@ -71,6 +71,31 @@
       </el-tab-pane>
 
       <el-tab-pane :label="t('sys.configTab')" name="config">
+        <!-- 自动出账参数 -->
+        <el-card shadow="never" style="margin-bottom:14px"
+                 body-style="padding:12px 14px">
+          <div class="toolbar" style="margin-bottom:10px">
+            <h4 style="margin:0">{{ t('sysAdminX.billingTitle') }}</h4>
+            <el-tag size="small" type="info">BILLING</el-tag>
+            <div class="spacer" />
+            <el-button size="small" @click="loadBillingConfigs">{{ t('sys.reloadIot') }}</el-button>
+            <el-button size="small" type="primary" :loading="billingSaving"
+                       @click="saveBillingAll">{{ t('sysAdminX.saveAll') }}</el-button>
+          </div>
+          <el-table :data="billingRows" border size="small">
+            <el-table-column prop="label" :label="t('sys.param')" width="230" />
+            <el-table-column :label="t('sys.value')" width="220">
+              <template #default="{ row }">
+                <el-switch v-if="row.type === 'bool'" v-model="row.value"
+                           active-value="true" inactive-value="false" />
+                <el-input v-else v-model="row.value" size="small" />
+              </template>
+            </el-table-column>
+            <el-table-column prop="unit" :label="t('sys.unit')" width="90" />
+            <el-table-column prop="description" :label="t('sys.desc')" min-width="280" />
+          </el-table>
+        </el-card>
+
         <!-- IoT 对接参数（契约参数，可配置） -->
         <el-card shadow="never" style="margin-bottom:14px"
                  body-style="padding:12px 14px">
@@ -274,7 +299,48 @@ async function load() { loadAudit(); loadDictTypes(); loadDict(); loadConfigs() 
 onMounted(() => {
   load()
   loadIotConfigs()
+  loadBillingConfigs()
 })
+// ---------------- 自动出账参数 ----------------
+const billingRows = ref([])
+const billingSaving = ref(false)
+const BILLING_META = [
+  { key: 'billing.auto.enabled', label: t('sysAdminX.autoEnabled'), type: 'bool',
+    value: 'false', unit: '', description: t('sysAdminX.autoEnabledDesc') },
+  { key: 'billing.rent.generateDay', label: t('sysAdminX.rentDay'), type: 'number',
+    value: '1', unit: t('sysAdminX.day'), description: t('sysAdminX.rentDayDesc') },
+  { key: 'billing.property.generateDay', label: t('sysAdminX.propertyDay'), type: 'number',
+    value: '1', unit: t('sysAdminX.day'), description: t('sysAdminX.propertyDayDesc') },
+  { key: 'billing.rent.creditDays', label: t('sysAdminX.rentCredit'), type: 'number',
+    value: '0', unit: t('sysAdminX.day'), description: t('sysAdminX.rentCreditDesc') },
+  { key: 'billing.property.creditDays', label: t('sysAdminX.propertyCredit'), type: 'number',
+    value: '30', unit: t('sysAdminX.day'), description: t('sysAdminX.propertyCreditDesc') },
+  { key: 'billing.minPaymentDays', label: t('sysAdminX.minPayDays'), type: 'number',
+    value: '7', unit: t('sysAdminX.day'), description: t('sysAdminX.minPayDaysDesc') }
+]
+
+async function loadBillingConfigs() {
+  try {
+    const list = await sysApi.configs() || []
+    const map = {}
+    list.forEach((x) => { map[x.configKey] = x.configValue })
+    billingRows.value = BILLING_META.map((m) => ({ ...m, value: map[m.key] ?? m.value }))
+  } catch (e) {
+    billingRows.value = BILLING_META.map((m) => ({ ...m }))
+  }
+}
+
+async function saveBillingAll() {
+  billingSaving.value = true
+  try {
+    for (const row of billingRows.value) {
+      await sysApi.setConfig({ key: row.key, value: String(row.value), description: row.description })
+    }
+    ElMessage.success(t('sysAdminX.billingSaved'))
+    loadBillingConfigs()
+  } finally { billingSaving.value = false }
+}
+
 // ---------------- IoT 对接参数（分组 IOT，可配置） ----------------
 const IOT_META = [
   { key: 'iot.callback.signAlgorithm', label: t('sysAdminX.signAlgo'), unit: '',
