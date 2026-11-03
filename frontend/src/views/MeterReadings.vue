@@ -27,6 +27,7 @@
       <el-button type="success" plain @click="openRecord" data-testid="meter-new">{{ t('meter.new') }}</el-button>
       <el-button type="primary" plain @click="openBatch" data-testid="meter-batch">{{ t('meter.batch') }}</el-button>
       <el-button type="warning" plain @click="batchBill">{{ t('meter.batchBill') }}</el-button>
+      <el-button plain @click="openDevicePrepay">{{ t('meter.devicePrepay') }}</el-button>
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px"
@@ -234,6 +235,65 @@
       </template>
     </el-dialog>
   </div>
+
+    <!-- 设备水电预存 -->
+    <el-dialog v-model="devicePrepayVisible" :title="t('meter.devicePrepayTitle')" width="760px">
+      <el-form label-width="110px">
+        <el-form-item :label="t('meter.meter')">
+          <el-select v-model="devicePointId" filterable style="width:100%"
+                     @change="loadDeviceAccount">
+            <el-option v-for="p in devicePoints" :key="p.id"
+                       :label="(p.meterName || p.id) + '（' + (p.meterScope || '') + '）'"
+                       :value="String(p.id)" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <el-descriptions v-if="deviceAccount" :column="3" border size="small">
+        <el-descriptions-item :label="t('meter.deviceBalance')">
+          {{ $money(deviceAccount.balanceAmount) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('meter.deviceTotalIn')">
+          {{ $money(deviceAccount.totalIn) }}
+        </el-descriptions-item>
+        <el-descriptions-item :label="t('meter.deviceTotalOut')">
+          {{ $money(deviceAccount.totalOut) }}
+        </el-descriptions-item>
+      </el-descriptions>
+      <el-row :gutter="12" style="margin-top:12px">
+        <el-col :span="12">
+          <el-form label-width="90px">
+            <el-form-item :label="t('meter.deviceAmount')">
+              <el-input v-model.number="deviceAmount" type="number" />
+            </el-form-item>
+            <el-button type="primary" :loading="saving" @click="doDevicePayIn">
+              {{ t('meter.devicePayIn') }}
+            </el-button>
+          </el-form>
+        </el-col>
+        <el-col :span="12">
+          <el-form label-width="90px">
+            <el-form-item :label="t('meter.deviceConsume')">
+              <el-input v-model.number="deviceConsume" type="number" />
+            </el-form-item>
+            <el-button type="warning" :loading="saving" @click="doDeviceConsume">
+              {{ t('meter.deviceConsumeBtn') }}
+            </el-button>
+          </el-form>
+        </el-col>
+      </el-row>
+      <el-table :data="deviceAccount?.flows || []" border size="small" max-height="240"
+                style="margin-top:12px">
+        <el-table-column prop="flowType" :label="t('meter.flowType')" width="90" />
+        <el-table-column prop="amount" :label="t('meter.amount')" width="100" />
+        <el-table-column prop="balanceAfter" :label="t('meter.deviceBalance')" width="110" />
+        <el-table-column prop="usageAmount" :label="t('meter.usage')" width="100" />
+        <el-table-column prop="remark" :label="t('meter.remark')" min-width="150" />
+        <el-table-column prop="createTime" :label="t('meter.time')" width="170" />
+      </el-table>
+      <template #footer>
+        <el-button @click="devicePrepayVisible = false">{{ t('common.close') }}</el-button>
+      </template>
+    </el-dialog>
 </template>
 
 <script setup>
