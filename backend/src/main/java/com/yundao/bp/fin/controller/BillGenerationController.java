@@ -9,6 +9,7 @@ import com.yundao.bp.fin.dto.RecalcBillsCmd;
 import com.yundao.bp.fin.dto.RecalcBillsResult;
 import com.yundao.bp.fin.dto.BillExplainVO;
 import com.yundao.bp.fin.service.BillGenerationService;
+import com.yundao.bp.fin.job.AutoBillingJob;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,9 +27,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class BillGenerationController {
 
     private final BillGenerationService service;
+    private final AutoBillingJob autoBillingJob;
 
-    public BillGenerationController(BillGenerationService service) {
+    public BillGenerationController(BillGenerationService service,
+                                    AutoBillingJob autoBillingJob) {
         this.service = service;
+        this.autoBillingJob = autoBillingJob;
     }
 
     @com.yundao.bp.iam.security.RequirePerm("fin:bill:create")
@@ -54,6 +58,13 @@ public class BillGenerationController {
     @PostMapping("/bills/recalculate")
     public R<RecalcBillsResult> recalculate(@RequestBody RecalcBillsCmd cmd) {
         return R.ok(service.recalculate(cmd));
+    }
+
+    /** 手工触发自动出账（补跑/运维）。 */
+    @com.yundao.bp.iam.security.RequirePerm("fin:bill:batch")
+    @PostMapping("/bills/auto-run")
+    public R<Integer> autoRun() {
+        return R.ok(autoBillingJob.runNow());
     }
 
     @com.yundao.bp.iam.security.RequirePerm("fin:bill:batch")
