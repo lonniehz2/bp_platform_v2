@@ -27,6 +27,9 @@ public interface GrantService {
     /** 撤销授权（同时生成 REVOKE 任务）。 */
     GrantVO revoke(Long id, String reason);
 
+    /** 按来源单据批量撤销授权（合同到期/终止/换房）。 */
+    int revokeBySource(String sourceType, Long sourceId, String reason);
+
     /** 执行下发（供 MQ 消费者/重试任务调用）；幂等。 */
     void dispatch(Long taskId);
 

@@ -50,6 +50,10 @@ public class ContractServiceImpl implements ContractService {
     /** 合同状态变化驱动房源占用；与合同变更同事务 */
     private final OccupancyService occupancyService;
 
+    /** 合同驱动授权（可选注入，授权模块不可用时不影响合同） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.grant.service.GrantService grantService;
+
 
     /** 房源查询（快捷签约需要房源组织与地址） */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -331,7 +335,8 @@ public class ContractServiceImpl implements ContractService {
         // 合同生效即占房：写入占用流水并把房源推进到「已入住」
         occupancyService.occupyByContract(e.getId(), e.getHouseId(), e.getSpaceId(),
                 e.getLesseePersonId(), e.getLeaseStart(), e.getLeaseEnd());
-        log.info("合同 {} 已生效，autoGrant={}（授权下发需与合同事务解耦，待接入）",
+        syncContractGrant(e);
+        log.info("合同 {} 已生效，autoGrant={}",
                 e.getContractNo(), e.getAutoGrant());
         return ContractVO.from(e);
     }
@@ -371,6 +376,7 @@ public class ContractServiceImpl implements ContractService {
         mapper.updateById(e);
         // 续签：同步延长占用结束日，避免合同还在履约而占用已过期
         occupancyService.extendByContract(e.getId(), newLeaseEnd);
+        syncContractGrant(e);
         return ContractVO.from(e);
     }
 
@@ -384,7 +390,8 @@ public class ContractServiceImpl implements ContractService {
         mapper.updateById(e);
         // 终止即退房：释放占用，房源回到空置
         occupancyService.releaseByContract(e.getId(), e.getTerminateTime().toLocalDate());
-        log.info("合同 {} 已终止，autoExpire={}（撤权需与合同事务解耦，待接入）",
+        revokeContractGrant(e);
+        log.info("合同 {} 已终止，autoExpire={}",
                 e.getContractNo(), e.getAutoExpire());
         return ContractVO.from(e);
     }
@@ -398,6 +405,7 @@ public class ContractServiceImpl implements ContractService {
         mapper.updateById(e);
         // 幂等兜底：已生效再作废时也要退房
         occupancyService.releaseByContract(e.getId(), LocalDate.now());
+        revokeContractGrant(e);
         return ContractVO.from(e);
     }
 
@@ -415,6 +423,7 @@ public class ContractServiceImpl implements ContractService {
             mapper.updateById(e);
             // 到期即退房
             occupancyService.releaseByContract(e.getId(), e.getLeaseEnd());
+            revokeContractGrant(e);
             n++;
         }
         if (n > 0) {
@@ -513,6 +522,40 @@ public class ContractServiceImpl implements ContractService {
         if (!allowed.contains(rentUnit)) {
             throw BizException.paramInvalid("业态 " + contractType + " 不支持租金单位 " + rentUnit
                     + "，可选：" + String.join("/", allowed));
+        }
+    }
+
+    /** 合同生效/续签：撤销旧合同授权并按最新租期重新下发。 */
+    private void syncContractGrant(BizContract e) {
+        if (grantService == null || e.getAutoGrant() == null || e.getAutoGrant() != 1
+                || e.getLesseePersonId() == null || e.getSpaceId() == null) {
+            return;
+        }
+        try {
+            grantService.revokeBySource("CONTRACT", e.getId(), "contract rebind");
+            if (!ContractStatus.EFFECTIVE.name().equals(e.getContractStatus())) {
+                return;
+            }
+            LocalDateTime end = e.getLeaseEnd() == null ? LocalDateTime.now().plusYears(1)
+                    : e.getLeaseEnd().atTime(23, 59, 59);
+            grantService.apply(new com.yundao.bp.grant.dto.GrantApplyCmd(
+                    e.getLesseePersonId(), e.getSpaceId(), "USAGE",
+                    e.getLeaseStart() == null ? LocalDateTime.now()
+                            : e.getLeaseStart().atStartOfDay(),
+                    end, null, "CONTRACT", e.getId(), "contract auto grant"));
+        } catch (Exception ex) {
+            log.warn("contract {} grant sync failed: {}", e.getContractNo(), ex.getMessage());
+        }
+    }
+
+    private void revokeContractGrant(BizContract e) {
+        if (grantService == null || e.getId() == null) {
+            return;
+        }
+        try {
+            grantService.revokeBySource("CONTRACT", e.getId(), "contract terminated/expired");
+        } catch (Exception ex) {
+            log.warn("contract {} grant revoke failed: {}", e.getContractNo(), ex.getMessage());
         }
     }
 

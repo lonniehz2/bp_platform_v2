@@ -230,6 +230,29 @@ public class GrantServiceImpl implements GrantService {
     // ==================== 查询 ====================
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int revokeBySource(String sourceType, Long sourceId, String reason) {
+        List<GrantEntitlement> list = entitlementMapper.selectList(
+                new LambdaQueryWrapper<GrantEntitlement>()
+                        .eq(GrantEntitlement::getSourceType, sourceType)
+                        .eq(GrantEntitlement::getSourceId, sourceId)
+                        .in(GrantEntitlement::getGrantStatus,
+                                List.of(GrantStatus.PENDING.name(),
+                                        GrantStatus.EFFECTIVE.name(),
+                                        GrantStatus.FROZEN.name())));
+        int n = 0;
+        for (GrantEntitlement e : list) {
+            try {
+                revoke(e.getId(), reason);
+                n++;
+            } catch (Exception ex) {
+                log.warn("revoke source {}:{} failed: {}", sourceType, sourceId, ex.getMessage());
+            }
+        }
+        return n;
+    }
+
+    @Override
     public GrantVO get(Long id) {
         GrantEntitlement e = entitlementMapper.selectById(id);
         if (e == null) {
