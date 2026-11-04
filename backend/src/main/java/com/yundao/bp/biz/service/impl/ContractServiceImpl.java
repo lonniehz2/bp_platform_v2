@@ -533,7 +533,8 @@ public class ContractServiceImpl implements ContractService {
         }
         try {
             grantService.revokeBySource("CONTRACT", e.getId(), "contract rebind");
-            if (!ContractStatus.EFFECTIVE.name().equals(e.getContractStatus())) {
+            if (!ContractStatus.EFFECTIVE.name().equals(e.getContractStatus())
+                    && !ContractStatus.RENEWING.name().equals(e.getContractStatus())) {
                 return;
             }
             LocalDateTime end = e.getLeaseEnd() == null ? LocalDateTime.now().plusYears(1)
