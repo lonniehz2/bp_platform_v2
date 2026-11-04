@@ -14,6 +14,12 @@ export const menuRoutes = [
     meta: { title: '运营驾驶舱', icon: 'DataBoard', group: '工作台' }
   },
   {
+    path: '/search',
+    name: 'unifiedSearch',
+    component: () => import('@/views/UnifiedSearch.vue'),
+    meta: { title: '统一查询', icon: 'Search', group: '工作台' }
+  },
+  {
     path: '/applications',
     name: 'applications',
     component: () => import('@/views/Applications.vue'),

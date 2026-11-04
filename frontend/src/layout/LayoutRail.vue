@@ -130,7 +130,7 @@ watch(() => groups.value.length, () => {
 })
 
 function openScreen() {
-  window.open('./view-screen.html', 'bp-screen', 'width=1600,height=900')
+  window.open('./#/screen', 'bp-screen', 'width=1600,height=900')
 }
 
 function toHelp() {

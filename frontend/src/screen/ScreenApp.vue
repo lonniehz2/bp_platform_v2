@@ -5,6 +5,14 @@
       <el-tag size="small" style="background:transparent;color:#6db3ff;border-color:#2a5b96">
         {{ screenName }}
       </el-tag>
+      <el-select v-model="orgId" size="small" clearable :placeholder="t('screen.allCommunities')"
+                 style="width:160px" @change="onOrgChange">
+        <el-option v-for="c in communities" :key="c.id" :label="c.name" :value="String(c.id)" />
+      </el-select>
+      <el-select v-model="buildingId" size="small" clearable :placeholder="t('screen.allBuildings')"
+                 style="width:140px" @change="load">
+        <el-option v-for="b in buildings" :key="b.id" :label="b.name" :value="String(b.id)" />
+      </el-select>
       <div class="spacer" />
       <span class="clock">{{ clock }}</span>
       <el-button size="small" type="primary" plain @click="load">{{ t('screen.refresh') }}</el-button>
@@ -34,6 +42,30 @@
           <div ref="moneyRef" class="chart" />
         </div>
       </div>
+      <div class="screen-lower">
+        <div class="panel room-panel">
+          <div class="title">
+            {{ t('screen.roomWall') }}
+            <span class="room-stat">
+              {{ t('screen.total') }} {{ screenStats.total || 0 }} · {{ t('screen.rented') }} {{ screenStats.occupied || 0 }}
+              · {{ t('screen.occupancyRate') }} {{ screenStats.occupancyRate || 0 }}%
+            </span>
+          </div>
+          <div class="room-grid">
+            <div v-for="r in rooms" :key="r.id" :class="['room', roomClass(r)]"
+                 :title="(r.houseName || r.houseCode) + ' · ' + enumLabel('houseStatus', r.houseStatus) + (r.personName ? ' · ' + r.personName : '')">
+              <div class="room-code">{{ r.houseName || r.houseCode }}</div>
+              <div class="room-status">{{ enumLabel('houseStatus', r.houseStatus) }}</div>
+              <div v-if="r.personName" class="room-person">{{ r.personName }}</div>
+            </div>
+            <div v-if="!rooms.length" class="room-empty">{{ t('screen.noRooms') }}</div>
+          </div>
+        </div>
+        <div class="panel age-panel">
+          <div class="title">{{ t('screen.ageDistribution') }}</div>
+          <div ref="ageRef" class="chart age-chart" />
+        </div>
+      </div>
       <!-- 值班关注：挂墙时最要紧的是「有多少事等着处理」 -->
       <div class="kpi-row focus-row">
         <div v-for="f in focusList" :key="f.label" class="kpi" :class="f.tone">
@@ -61,6 +93,7 @@ import { rptApi } from '@/api/modules'
 import req from '@/api/request'
 import { metricLabel, metricUnit } from '@/constants/metrics'
 import { useI18n } from 'vue-i18n'
+import { enumLabel } from '@/constants/enums'
 
 const { t } = useI18n()
 
@@ -73,6 +106,14 @@ const error = ref('')
 const pieRef = ref()
 const barRef = ref()
 const moneyRef = ref()
+const ageRef = ref()
+const orgId = ref('')
+const buildingId = ref('')
+const communities = ref([])
+const buildings = ref([])
+const rooms = ref([])
+const screenStats = ref({})
+const ageBuckets = ref([])
 
 /**
  * 值班关注：挂墙场景最关心「有多少事等着处理」。
@@ -87,6 +128,59 @@ const focusList = computed(() => [
   { label: t('screen.effective'), value: focus.value.effective, unit: t('screen.unitContract'), tone: 'ok' },
   { label: t('screen.renewing'), value: focus.value.renewing, unit: t('screen.unitContract'), tone: '' }
 ])
+
+async function loadScreen() {
+  try {
+    const d = await req.get('/screen/overview', {
+      params: {
+        orgId: orgId.value || undefined,
+        buildingId: buildingId.value || undefined
+      }
+    })
+    communities.value = d.communities || []
+    buildings.value = d.buildings || []
+    rooms.value = d.rooms || []
+    screenStats.value = d.stats || {}
+    ageBuckets.value = d.ageBuckets || []
+    renderAge()
+  } catch (e) {
+    // 大屏主数据失败时不阻断原有 KPI/趋势
+  }
+}
+
+function onOrgChange() {
+  buildingId.value = ''
+  loadScreen()
+}
+
+function roomClass(r) {
+  if (r.hasAlert) return 'alert'
+  const s = String(r.houseStatus || '')
+  if (s === 'OCCUPIED') return 'occupied'
+  if (s === 'VACANT') return 'vacant'
+  if (s === 'PENDING_ALLOC') return 'pending'
+  if (s === 'ALLOCATED' || s === 'LOCKED') return 'allocated'
+  if (s === 'MAINTENANCE') return 'maintenance'
+  if (s === 'DISABLED') return 'disabled'
+  return ''
+}
+
+function ageLabel(v) {
+  return t('screen.age' + String(v || 'UNKNOWN'))
+}
+
+function renderAge() {
+  if (!charts.age) return
+  const rows = ageBuckets.value || []
+  charts.age.setOption({
+    tooltip: { trigger: 'axis' },
+    grid: { left: 44, right: 16, top: 18, bottom: 28 },
+    xAxis: { type: 'category', data: rows.map((x) => ageLabel(x.label)), ...AXIS },
+    yAxis: { type: 'value', ...AXIS },
+    series: [{ type: 'bar', barWidth: 22, data: rows.map((x) => Number(x.count || 0)),
+      itemStyle: { color: '#3f8cff', borderRadius: [4, 4, 0, 0] } }]
+  })
+}
 
 async function loadFocus() {
   const total = async (path, params) => {
@@ -143,6 +237,7 @@ function initCharts() {
   charts.pie = echarts.init(pieRef.value || undefined)
   charts.bar = echarts.init(barRef.value || undefined)
   charts.money = echarts.init(moneyRef.value || undefined)
+  charts.age = echarts.init(ageRef.value || undefined)
   window.addEventListener('resize', resize)
   // 某些浏览器首帧容器高度为 0，下一帧再校正一次
   requestAnimationFrame(() => resize())
@@ -248,6 +343,7 @@ function renderCharts() {
 
 async function load() {
   error.value = ''
+  await loadScreen()
   try {
     const data = await rptApi.screenData('OVERVIEW')
     screenName.value = data.screenName || '总览'
@@ -258,6 +354,7 @@ async function load() {
     await nextTick()
     if (!charts.pie) initCharts()
     renderCharts()
+    renderAge()
   } catch (e) {
     error.value = '数据加载失败：请确认已登录且后端可达后点「刷新」'
     // 仍渲染图表框架，避免整屏空白
@@ -282,7 +379,7 @@ onMounted(async () => {
   // 容器尺寸变化（侧边栏折叠/缩放）时确保图表跟随
   if (window.ResizeObserver) {
     const ro = new ResizeObserver(() => resize())
-    ;[pieRef.value, barRef.value, moneyRef.value].forEach((el) => el && ro.observe(el))
+    ;[pieRef.value, barRef.value, moneyRef.value, ageRef.value].forEach((el) => el && ro.observe(el))
     chartsRo = ro
   }
   await load()

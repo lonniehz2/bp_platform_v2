@@ -14,6 +14,7 @@ export const GROUP_EN = {
 }
 
 export const PAGE_EN = {
+  '统一查询': 'Unified Search',
   运营驾驶舱: 'Operations Dashboard',
   申请受理: 'Applications',
   配租摇号: 'Allocation & Lottery',
