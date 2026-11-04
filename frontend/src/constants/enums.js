@@ -446,8 +446,12 @@ const TYPE_OVERRIDE = {
     OFFLINE_CODE: '离线激活码', PASSWORD: '密码', ID_CARD: '身份证'
   },
   keySource: {
-    PLATFORM: '平台录入', MANUAL: '手工录入', ADMIN: '管理端录入',
-    SELF: '自助申请', IMPORT: '批量导入', IOT: '设备侧生成'
+    PLATFORM: '平台录入',
+    MANUAL: '手工录入',
+    ADMIN: '管理端录入',
+    SELF: '自助申请',
+    IMPORT: '批量导入',
+    IOT: '设备侧生成'
   },
   syncScope: {
     HOUSE_DOOR: '本房门锁', ALL_GRANTED: '全部授权设备', COMMUNITY: '小区门禁'
