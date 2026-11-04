@@ -118,8 +118,12 @@
         </div>
         <el-table :data="creds" border size="small">
           <el-table-column prop="createTime" :label="t('iot.time')" width="170" />
-          <el-table-column prop="keyType" :label="t('iot.type')" width="130" />
-          <el-table-column prop="action" :label="t('iot.actionCol')" width="100" />
+          <el-table-column :label="t('iot.type')" width="130">
+            <template #default="{ row }">{{ keyTypeLabel(row.keyType) }}</template>
+          </el-table-column>
+          <el-table-column :label="t('iot.actionCol')" width="100">
+            <template #default="{ row }">{{ actionLabel(row.action) }}</template>
+          </el-table-column>
           <el-table-column prop="keyringId" :label="t('iot.keyringId')" width="190" />
           <el-table-column prop="personId" :label="t('iot.personId')" width="190" />
           <el-table-column :label="t('iot.status')" width="100">
@@ -142,7 +146,7 @@
         <div class="toolbar" style="margin-bottom:10px">
           <el-select v-model="query.msgType" :placeholder="t('iot.msgType')" clearable style="width:160px"
                      @change="reloadLogs">
-            <el-option v-for="a in ACTIONS" :key="a" :label="a" :value="a" />
+            <el-option v-for="a in ACTIONS" :key="a" :label="actionLabel(a)" :value="a" />
           </el-select>
           <el-select v-model="query.processStatus" :placeholder="t('iot.processStatus')" clearable
                      style="width:140px" @change="reloadLogs">
@@ -159,7 +163,9 @@
         </div>
         <el-table :data="logs" border size="small">
           <el-table-column prop="receiveTime" :label="t('iot.receiveTime')" width="170" />
-          <el-table-column prop="msgType" :label="t('iot.msgType')" width="130" />
+          <el-table-column :label="t('iot.msgType')" width="130">
+            <template #default="{ row }">{{ actionLabel(row.msgType) }}</template>
+          </el-table-column>
           <el-table-column prop="eventId" :label="t('iot.eventId')" width="230" />
           <el-table-column label="验签" width="80">
             <template #default="{ row }">
@@ -257,6 +263,21 @@ const STATUS = { DONE: { label: t('misc4.handled'), type: 'success' },
   RECEIVED: { label: t('iot.received'), type: 'info' } }
 
 function statusLabel(s) { return (STATUS[s] || {}).label || s || '—' }
+const ACTION_LABEL = {
+  event: t('iot.actionEvent'), access: t('iot.actionAccess'), 'command/ack': t('iot.actionCommandAck'),
+  'grant/ack': t('iot.actionGrantAck'), heartbeat: t('iot.actionHeartbeat'), meter: t('iot.actionMeter'),
+  'device-status': t('iot.actionDeviceStatus'), 'alarm-ack': t('iot.actionAlarmAck'),
+  ADD: t('iot.syncAdd'), UPDATE: t('iot.syncUpdate'), REMOVE: t('iot.syncRemove'),
+  FREEZE: t('iot.syncFreeze'), UNFREEZE: t('iot.syncUnfreeze')
+}
+const KEY_TYPE_LABEL = {
+  PASSWORD: t('iot.keyPassword'), OFFLINE_CODE: t('iot.keyOfflineCode'), FACE: t('iot.keyFace'),
+  FINGERPRINT: t('iot.keyFingerprint'), CARD: t('iot.keyCard'), QRCODE: t('iot.keyQrcode'),
+  ID_CARD: t('iot.keyIdCard')
+}
+function actionLabel(v) { return ACTION_LABEL[v] || v || '—' }
+function keyTypeLabel(v) { return KEY_TYPE_LABEL[v] || v || '—' }
+
 function statusType(s) { return (STATUS[s] || {}).type || 'info' }
 
 async function doSign() {

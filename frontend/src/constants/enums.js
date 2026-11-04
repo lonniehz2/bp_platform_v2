@@ -341,7 +341,7 @@ const TYPE_OVERRIDE = {
                   FINAL: '终审', DONE: '已完成' },
   visitStatus: { VISIT: '来访', PENDING: '待处理', DONE: '已完成' },
   actionType: { VISIT: '上门', PHONE: '电话', SMS: '短信', LETTER: '律师函' },
-  flowType: { IN: '收入', OUT: '支出' },
+  flowType: { IN: '收入', OUT: '支出', INCOME: '收入', EXPENSE: '支出' },
   payMode: {
     FIXED: '定额',
     RATIO: '按比例',
@@ -397,12 +397,7 @@ const TYPE_OVERRIDE = {
     EXPIRED: '已过期',
     DELETED: '已删除'
   },
-  keySource: {
-    ADMIN: '管理端录入',
-    SELF: '自助申请',
-    IMPORT: '批量导入',
-    IOT: '设备侧生成'
-  },
+
   rulesetStatus: { DRAFT: '草稿', PUBLISHED: '已发布', DISABLED: '已停用' },
   ruleStatus: { ENABLED: '启用', DISABLED: '停用' },
   subsidyMode: { FIXED: '定额', RATIO: '按比例' },
@@ -423,10 +418,63 @@ const TYPE_OVERRIDE = {
     IMPORTANT: '重要',
     CRITICAL: '严重'
   },
-  alertLevel: { INFO: '提示', WARNING: '警告', CRITICAL: '严重' },
+  contractStatus: {
+    DRAFT: '草稿', SIGNING: '签约中', EFFECTIVE: '履约中', RENEWING: '续签中',
+    TERMINATED: '已终止', EXPIRED: '已到期', CANCELLED: '已作废', CHANGING: '变更中'
+  },
+  billStatus: {
+    UNPAID: '未缴', PARTIAL: '部分缴', PAID: '已缴', OVERDUE: '逾期',
+    WAIVED: '已减免', CANCELLED: '已作废'
+  },
+  personStatus: {
+    NORMAL: '正常', DISABLED: '停用', DECEASED: '死亡', BLACKLIST: '黑名单',
+    PENDING: '待审核', ACTIVE: '有效', INACTIVE: '无效'
+  },
+  alertLevel: {
+    INFO: '提示', WARNING: '警告', CRITICAL: '严重',
+    URGENT: '紧急', IMPORTANT: '重要', NORMAL: '一般'
+  },
   creditLevel: { MINOR: '轻微', MAJOR: '较重', SEVERE: '严重' },
   handleStatus: { PENDING: '待处理', HANDLED: '已处理', IGNORED: '已忽略' },
   dayStatus: { FREE: '空闲', FULL: '满房', LOCKED: '锁定', CLOSED: '关闭' },
+  keyClass: {
+    PERSONAL_REAL: '个人实名', PERSONAL_UNREAL: '个人非实名',
+    PUBLIC_REAL: '公共实名', PUBLIC_UNREAL: '公共非实名'
+  },
+  keyType: {
+    FACE: '人脸', FINGERPRINT: '指纹', CARD: '实体卡', QRCODE: '二维码',
+    OFFLINE_CODE: '离线激活码', PASSWORD: '密码', ID_CARD: '身份证'
+  },
+  keySource: {
+    PLATFORM: '平台录入', MANUAL: '手工录入', ADMIN: '管理端录入',
+    SELF: '自助申请', IMPORT: '批量导入', IOT: '设备侧生成'
+  },
+  syncScope: {
+    HOUSE_DOOR: '本房门锁', ALL_GRANTED: '全部授权设备', COMMUNITY: '小区门禁'
+  },
+  reportMode: { INTERFACE: '接口', FILE: '文件', MANUAL: '手工' },
+  reportCycle: { ONCE: '单次', DAILY: '每日', MONTHLY: '每月', QUARTERLY: '每季' },
+  targetSystem: {
+    HOUSING: '住建', HOUSING_BUREAU: '房管局', PUBLIC_HOUSING: '公租房平台',
+    POLICE: '公安', REAL_ESTATE: '不动产'
+  },
+  reportType: {
+    HOUSE: '房源', TENANT: '承租人', CONTRACT: '合同',
+    MONTHLY: '月报', HOUSE_OPERATION: '房源运营'
+  },
+  meterScope: { ROOM: '房间表', BUILDING: '楼栋总表', AREA: '区域表' },
+  allocationBasis: {
+    PERSON_DAYS: '按人天', BY_AREA: '按面积', BY_HOUSE: '按套',
+    BY_PERSON: '按人', BY_BED: '按床位', BY_NIGHT: '按房晚'
+  },
+  appType: {
+    PARTNER: '合作伙伴', INTERNAL: '内部应用', GOV: '政府应用', THIRD_PARTY: '第三方应用'
+  },
+  spaceStatus: { ENABLED: '启用', DISABLED: '停用' },
+  workOrderLogAction: {
+    CREATE: '创建工单', ASSIGN: '派单', ACCEPT: '接单', FINISH: '完工',
+    CLOSE: '关闭', ESCALATE: '升级', CANCEL: '取消'
+  },
   // 授权：EFFECTIVE 在合同里是「履约中」，这里必须是「已生效」
   grantStatus: {
     PENDING: '待生效', EFFECTIVE: '已生效', EXPIRED: '已到期',

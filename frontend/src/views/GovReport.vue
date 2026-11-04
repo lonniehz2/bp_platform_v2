@@ -19,7 +19,9 @@
         <template #default="{ row }"><DetailView :row="row" /></template>
       </el-table-column>
       <el-table-column prop="taskNo" :label="t('gov.no')" width="170" />
-      <el-table-column prop="targetSystem" :label="t('gov.target')" width="150" />
+      <el-table-column :label="t('gov.target')" width="150">
+          <template #default="{ row }">{{ enumLabel('targetSystem', row.targetSystem) || row.targetSystem }}</template>
+        </el-table-column>
       <el-table-column prop="reportType" :label="t('gov.type')" width="110">
         <template #default="{ row }">{{ row.reportTypeLabel || enumLabel('reportType', row.reportType) }}</template>
       </el-table-column>
@@ -77,6 +79,7 @@ import { useI18n } from 'vue-i18n'
 import { labelOf } from '@/constants/fieldLabels'
 import DetailView from '@/components/DetailView.vue'
 import { enumLabel } from '@/constants/enums'
+
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { govApi } from '@/api/modules'
@@ -121,7 +124,23 @@ async function load() {
 }
 
 function reload() { pageNum.value = 1; load() }
-function openDetail(row) { detail.value = row; detailVisible.value = true }
+function formatDataScope(raw) {
+  if (raw == null || raw === '') return '—'
+  let obj = raw
+  if (typeof raw === 'string') {
+    try { obj = JSON.parse(raw) } catch (e) { return raw }
+  }
+  if (!obj || typeof obj !== 'object') return String(obj)
+  return Object.keys(obj).map((k) => labelOf(k) + '：' + (typeof obj[k] === 'object' ? JSON.stringify(obj[k]) : obj[k])).join('；')
+}
+function openDetail(row) {
+  const { dataScope, ...rest } = row || {}
+  detail.value = {
+    ...rest,
+    dataRange: formatDataScope(row?.dataRange ?? dataScope)
+  }
+  detailVisible.value = true
+}
 
 function openForm(title, fieldDefs, fn, preset = {}, note = '') {
   formTitle.value = title

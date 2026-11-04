@@ -143,7 +143,7 @@
     <el-drawer v-model="logVisible" :title="t('workorder.logTitle')" size="460px">
       <el-timeline>
         <el-timeline-item v-for="l in logList" :key="l.id" :timestamp="l.createTime">
-          {{ l.action }} — {{ l.operatorName }}
+          {{ enumLabel('workOrderLogAction', l.action) || l.action }} — {{ l.operatorName }}
         </el-timeline-item>
       </el-timeline>
       <el-empty v-if="!logList.length" :description="t('workorder.noLogs')" />

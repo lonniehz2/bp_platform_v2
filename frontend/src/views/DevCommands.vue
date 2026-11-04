@@ -39,7 +39,7 @@
       </el-table-column>
       <el-table-column prop="resultMsg" :label="t('devCmd.result')" min-width="180"
                        show-overflow-tooltip>
-        <template #default="{ row }">{{ row.resultMsg || '—' }}</template>
+        <template #default="{ row }">{{ resultText(row.resultMsg) }}</template>
       </el-table-column>
       <el-table-column prop="retryCount" :label="t('devCmd.retry')" width="70" />
       <el-table-column prop="costMs" :label="t('devCmd.cost')" width="90" />
@@ -106,7 +106,7 @@
         <el-descriptions-item :label="t('devCmd.device')">{{ detail?.deviceId }}</el-descriptions-item>
         <el-descriptions-item :label="t('devCmd.status')">{{ statusLabel(detail?.status) }}</el-descriptions-item>
         <el-descriptions-item :label="t('devCmd.resultCode')">{{ detail?.resultCode || '—' }}</el-descriptions-item>
-        <el-descriptions-item :label="t('devCmd.resultMsg')">{{ detail?.resultMsg || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('devCmd.resultMsg')">{{ resultText(detail?.resultMsg) }}</el-descriptions-item>
         <el-descriptions-item :label="t('devCmd.dispatchTime')">{{ detail?.dispatchTime || '—' }}</el-descriptions-item>
         <el-descriptions-item :label="t('devCmd.ackTime')">{{ detail?.ackTime || '—' }}</el-descriptions-item>
         <el-descriptions-item :label="t('devCmd.cost')">{{ detail?.costMs ?? '—' }}</el-descriptions-item>
@@ -166,6 +166,16 @@ function typeLabel(v) {
 }
 function statusLabel(v) { return (STATUS[v] || {}).label || v || '—' }
 function statusType(v) { return (STATUS[v] || {}).type || 'info' }
+
+function resultText(v) {
+  if (!v) return '—'
+  const key = String(v).trim().toLowerCase()
+  const map = {
+    ok: t('devCmd.success'), success: t('devCmd.success'), 'mock ok': t('devCmd.resultMockOk'),
+    failed: t('devCmd.failed'), fail: t('devCmd.failed'), timeout: t('devCmd.timeout'), error: t('devCmd.resultError')
+  }
+  return map[key] || v
+}
 
 async function load() {
   loading.value = true

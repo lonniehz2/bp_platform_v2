@@ -11,7 +11,7 @@
           <el-input v-model="period" :placeholder="t('energy.period')" style="width:120px" />
           <el-select v-model="pointId" :placeholder="t('energy.meter')" clearable style="width:220px">
             <el-option v-for="p in points" :key="p.id"
-                       :label="(p.meterName || p.id) + '｜' + p.meterScope" :value="p.id" />
+                       :label="(p.meterName || p.id) + '｜' + (enumLabel('meterScope', p.meterScope) || p.meterScope)" :value="p.id" />
           </el-select>
           <el-button type="primary" :loading="loading" @click="preview">{{ t('energy.preview') }}</el-button>
           <el-button type="success" :disabled="!previewData" @click="confirm">{{ t('energy.confirm') }}</el-button>
@@ -57,9 +57,15 @@
         <el-table :data="points" border size="small">
           <el-table-column prop="meterName" :label="t('energy.name')" width="160" />
           <el-table-column prop="spaceId" :label="t('energy.spaceId')" width="180" />
-          <el-table-column prop="feeItemId" :label="t('energy.feeItem')" width="180" />
-          <el-table-column prop="meterScope" :label="t('energy.scope')" width="100" />
-          <el-table-column prop="allocationBasis" :label="t('energy.basis')" width="120" />
+          <el-table-column :label="t('energy.feeItem')" width="180">
+            <template #default="{ row }">{{ feeItemName(row.feeItemId) }}</template>
+          </el-table-column>
+          <el-table-column :label="t('energy.scope')" width="100">
+            <template #default="{ row }">{{ enumLabel('meterScope', row.meterScope) || row.meterScope }}</template>
+          </el-table-column>
+          <el-table-column :label="t('energy.basis')" width="120">
+            <template #default="{ row }">{{ enumLabel('allocationBasis', row.allocationBasis) || row.allocationBasis }}</template>
+          </el-table-column>
           <el-table-column :label="t('energy.actions')" width="220">
             <template #default="{ row }">
               <el-button link type="primary" @click="openRead(row)">{{ t('energy.manualRead') }}</el-button>
@@ -135,6 +141,7 @@ import { useI18n } from 'vue-i18n'
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
+import { enumLabel } from '@/constants/enums'
 
 const { t } = useI18n()
 const tab = ref('alloc')
@@ -146,6 +153,10 @@ const stat = ref(null)
 const analysisItem = ref('')
 const loading = ref(false)
 const feeItems = ref([])
+function feeItemName(id) {
+  const hit = (feeItems.value || []).find((f) => String(f.id) === String(id))
+  return hit?.itemName || id || '—'
+}
 const pointVisible = ref(false)
 const readVisible = ref(false)
 const currentPoint = ref(null)

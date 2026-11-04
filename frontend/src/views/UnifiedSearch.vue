@@ -67,17 +67,31 @@
           <el-table-column prop="personName" :label="t('search.personName')" width="140" />
           <el-table-column prop="phone" :label="t('search.phone')" width="140" />
           <el-table-column prop="idCardMask" :label="t('search.idCard')" min-width="180" />
-          <el-table-column prop="personStatus" :label="t('search.status')" width="110" />
+          <el-table-column :label="t('search.detail')" width="80" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" @click="openDetail(row)">{{ t('search.detail') }}</el-button>
+            </template>
+          </el-table-column>
+          <el-table-column prop="personStatus" :label="t('search.status')" width="110">
+            <template #default="{ row }">{{ enumLabel('personStatus', row.personStatus) || row.personStatus }}</template>
+          </el-table-column>
         </el-table>
       </el-tab-pane>
       <el-tab-pane :label="t('search.contracts', { n: result.contracts?.length || 0 })" name="contracts">
         <el-table :data="result.contracts || []" border size="small" :empty-text="t('search.empty')">
           <el-table-column prop="contractNo" :label="t('search.contractNo')" width="190" />
           <el-table-column prop="lesseeName" :label="t('search.lessee')" width="130" />
-          <el-table-column prop="contractStatus" :label="t('search.status')" width="110" />
+          <el-table-column prop="contractStatus" :label="t('search.status')" width="110">
+            <template #default="{ row }">{{ enumLabel('contractStatus', row.contractStatus) || row.contractStatus }}</template>
+          </el-table-column>
           <el-table-column prop="leaseStart" :label="t('search.leaseStart')" width="120" />
           <el-table-column prop="leaseEnd" :label="t('search.leaseEnd')" width="120" />
           <el-table-column prop="monthlyRent" :label="t('search.monthlyRent')" width="110" />
+          <el-table-column :label="t('search.detail')" width="80" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" @click="openDetail(row)">{{ t('search.detail') }}</el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </el-tab-pane>
       <el-tab-pane :label="t('search.houses', { n: result.houses?.length || 0 })" name="houses">
@@ -89,6 +103,11 @@
           </el-table-column>
           <el-table-column prop="personName" :label="t('search.lessee')" width="130" />
           <el-table-column prop="area" :label="t('search.area')" width="90" />
+          <el-table-column :label="t('search.detail')" width="80" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" @click="openDetail(row)">{{ t('search.detail') }}</el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </el-tab-pane>
       <el-tab-pane :label="t('search.bills', { n: result.bills?.length || 0 })" name="bills">
@@ -97,11 +116,22 @@
           <el-table-column prop="billPeriod" :label="t('search.billPeriod')" width="100" />
           <el-table-column prop="billAmount" :label="t('search.billAmount')" width="120" />
           <el-table-column prop="payableAmount" :label="t('search.payable')" width="120" />
-          <el-table-column prop="billStatus" :label="t('search.status')" width="110" />
+          <el-table-column :label="t('search.detail')" width="80" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" @click="openDetail(row)">{{ t('search.detail') }}</el-button>
+            </template>
+          </el-table-column>
+          <el-table-column prop="billStatus" :label="t('search.status')" width="110">
+            <template #default="{ row }">{{ enumLabel('billStatus', row.billStatus) || row.billStatus }}</template>
+          </el-table-column>
         </el-table>
       </el-tab-pane>
     </el-tabs>
   </div>
+
+    <el-drawer v-model="detailVisible" :title="t('search.detailTitle')" size="680px">
+      <DetailView :row="detailRow" />
+    </el-drawer>
 </template>
 
 <script setup>
@@ -110,6 +140,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
+import DetailView from '@/components/DetailView.vue'
 
 const { t } = useI18n()
 const loading = ref(false)
@@ -118,6 +149,8 @@ const tab = ref('persons')
 const communities = ref([])
 const buildings = ref([])
 const result = ref({})
+const detailVisible = ref(false)
+const detailRow = ref({})
 const statuses = ['PENDING_ALLOC', 'LOCKED', 'ALLOCATED', 'OCCUPIED', 'VACANT', 'MAINTENANCE', 'DISABLED']
 
 const form = reactive({
@@ -170,6 +203,8 @@ async function doSearch() {
     searched.value = true
   } finally { loading.value = false }
 }
+
+function openDetail(row) { detailRow.value = { ...row }; detailVisible.value = true }
 
 function reset() {
   Object.assign(form, { keyword: '', idCard: '', personName: '', orgId: '', buildingId: '', houseCode: '', houseStatus: '' })

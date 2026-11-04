@@ -47,7 +47,7 @@
           <el-descriptions-item :label="t('space.path')">{{ current.pathCode }}</el-descriptions-item>
           <el-descriptions-item :label="t('space.level')">{{ current.spaceLevel }}</el-descriptions-item>
           <el-descriptions-item :label="t('space.area')">{{ current.area || '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('space.status')">{{ current.status }}</el-descriptions-item>
+          <el-descriptions-item :label="t('space.status')">{{ enumLabel('spaceStatus', current.status) || current.status }}</el-descriptions-item>
         </el-descriptions>
         <el-empty v-else :description="t('spaceX.pickNode')" :image-size="60" />
         <div v-if="current" class="toolbar" style="margin:8px 0 12px">

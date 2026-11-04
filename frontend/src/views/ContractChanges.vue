@@ -71,14 +71,14 @@
         <el-col :span="12">
           <div class="card-title">{{ t('misc2.before') }}</div>
           <div class="kv">
-            <div v-for="(v, k) in beforeObj" :key="k"><b>{{ k }}</b>：{{ v }}</div>
+            <div v-for="(v, k) in beforeObj" :key="k"><b>{{ fieldLabel(k) }}</b>：{{ v }}</div>
             <div v-if="!Object.keys(beforeObj).length" class="muted">—</div>
           </div>
         </el-col>
         <el-col :span="12">
           <div class="card-title">{{ t('misc2.after') }}</div>
           <div class="kv">
-            <div v-for="(v, k) in afterObj" :key="k"><b>{{ k }}</b>：{{ v }}</div>
+            <div v-for="(v, k) in afterObj" :key="k"><b>{{ fieldLabel(k) }}</b>：{{ v }}</div>
             <div v-if="!Object.keys(afterObj).length" class="muted">—</div>
           </div>
         </el-col>
@@ -139,6 +139,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import req from '@/api/request'
 import { enumLabel } from '@/constants/enums'
 import DetailView from '@/components/DetailView.vue'
+import { fieldLabel } from '@/constants/fieldLabels'
 
 const { t, locale } = useI18n()
 const isEn = () => locale.value === 'en-US'
