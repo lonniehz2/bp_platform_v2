@@ -1,6 +1,5 @@
 <template>
-  <el-dialog :model-value="modelValue" :title="t('houseAccess.title')" width="820px"
-             @update:model-value="(v) => emit('update:modelValue', v)">
+  <el-dialog v-model="visible" :title="t('houseAccess.title')" width="820px">
     <div v-loading="loading">
       <el-descriptions :column="2" border size="small">
         <el-descriptions-item :label="t('houseAccess.house')">
@@ -95,6 +94,10 @@ const panel = ref({})
 const tempVisible = ref(false)
 const voiceText = ref('')
 const tempForm = reactive({ grantLevel: 'VISIT', validEnd: '' })
+const visible = computed({
+  get: () => props.modelValue,
+  set: (v) => emit('update:modelValue', v)
+})
 
 const defaultVoice = computed(() => t('houseAccess.defaultVoice', {
   house: panel.value.house?.houseName || panel.value.house?.houseCode || '',
