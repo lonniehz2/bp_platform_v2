@@ -71,6 +71,34 @@
       </el-tab-pane>
 
       <el-tab-pane :label="t('sys.configTab')" name="config">
+        <!-- 每日自动巡查参数 -->
+        <el-card shadow="never" style="margin-bottom:14px"
+                 body-style="padding:12px 14px">
+          <div class="toolbar" style="margin-bottom:10px">
+            <h4 style="margin:0">{{ t('sysAdminX.patrolTitle') }}</h4>
+            <el-tag size="small" type="info">PATROL</el-tag>
+            <div class="spacer" />
+            <el-button size="small" @click="loadPatrolConfigs">{{ t('sys.reloadIot') }}</el-button>
+            <el-button size="small" type="primary" :loading="patrolSaving"
+                       @click="savePatrolAll">{{ t('sysAdminX.saveAll') }}</el-button>
+          </div>
+          <el-table :data="patrolRows" border size="small">
+            <el-table-column prop="label" :label="t('sys.param')" width="230" />
+            <el-table-column :label="t('sys.value')" width="180">
+              <template #default="{ row }">
+                <el-switch v-if="row.type === 'bool'" v-model="row.value"
+                           active-value="true" inactive-value="false" />
+                <el-input v-else v-model="row.value" size="small" />
+              </template>
+            </el-table-column>
+            <el-table-column prop="unit" :label="t('sys.unit')" width="90" />
+            <el-table-column prop="description" :label="t('sys.desc')" min-width="300" />
+          </el-table>
+          <div class="muted" style="margin-top:8px">
+            {{ t('sysAdminX.patrolHint') }}
+          </div>
+        </el-card>
+
         <!-- 自动出账参数 -->
         <el-card shadow="never" style="margin-bottom:14px"
                  body-style="padding:12px 14px">
@@ -300,7 +328,48 @@ onMounted(() => {
   load()
   loadIotConfigs()
   loadBillingConfigs()
+  loadPatrolConfigs()
 })
+// ---------------- 每日自动巡查参数 ----------------
+const patrolRows = ref([])
+const patrolSaving = ref(false)
+const PATROL_META = [
+  { key: 'patrol.enabled', label: t('sysAdminX.patrolEnabled'), type: 'bool',
+    value: 'true', unit: '', description: t('sysAdminX.patrolEnabledDesc') },
+  { key: 'patrol.noOpenDays', label: t('sysAdminX.noOpenDays'), type: 'number',
+    value: '30', unit: t('sysAdminX.day'), description: t('sysAdminX.noOpenDaysDesc') },
+  { key: 'patrol.lowBatteryPercent', label: t('sysAdminX.lowBattery'), type: 'number',
+    value: '20', unit: '%', description: t('sysAdminX.lowBatteryDesc') },
+  { key: 'patrol.contractExpireDays', label: t('sysAdminX.expireDays'), type: 'number',
+    value: '30', unit: t('sysAdminX.day'), description: t('sysAdminX.expireDaysDesc') },
+  { key: 'patrol.deviceOfflineHours', label: t('sysAdminX.offlineHours'), type: 'number',
+    value: '24', unit: t('sysAdminX.hour'), description: t('sysAdminX.offlineHoursDesc') },
+  { key: 'patrol.idleDays', label: t('sysAdminX.idleDays'), type: 'number',
+    value: '30', unit: t('sysAdminX.day'), description: t('sysAdminX.idleDaysDesc') }
+]
+
+async function loadPatrolConfigs() {
+  try {
+    const list = await sysApi.configs() || []
+    const map = {}
+    list.forEach((x) => { map[x.configKey] = x.configValue })
+    patrolRows.value = PATROL_META.map((m) => ({ ...m, value: map[m.key] ?? m.value }))
+  } catch (e) {
+    patrolRows.value = PATROL_META.map((m) => ({ ...m }))
+  }
+}
+
+async function savePatrolAll() {
+  patrolSaving.value = true
+  try {
+    for (const row of patrolRows.value) {
+      await sysApi.setConfig({ key: row.key, value: String(row.value), description: row.description })
+    }
+    ElMessage.success(t('sysAdminX.patrolSaved'))
+    loadPatrolConfigs()
+  } finally { patrolSaving.value = false }
+}
+
 // ---------------- 自动出账参数 ----------------
 const billingRows = ref([])
 const billingSaving = ref(false)
