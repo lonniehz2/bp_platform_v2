@@ -99,6 +99,32 @@
           </div>
         </el-card>
 
+        <!-- 欠费自动处置参数 -->
+        <el-card shadow="never" style="margin-bottom:14px"
+                 body-style="padding:12px 14px">
+          <div class="toolbar" style="margin-bottom:10px">
+            <h4 style="margin:0">{{ t('sysAdminX.arrearsTitle') }}</h4>
+            <el-tag size="small" type="info">ARREARS</el-tag>
+            <div class="spacer" />
+            <el-button size="small" @click="loadArrearsConfigs">{{ t('sys.reloadIot') }}</el-button>
+            <el-button size="small" type="primary" :loading="arrearsSaving"
+                       @click="saveArrearsAll">{{ t('sysAdminX.saveAll') }}</el-button>
+          </div>
+          <el-table :data="arrearsRows" border size="small">
+            <el-table-column prop="label" :label="t('sys.param')" width="230" />
+            <el-table-column :label="t('sys.value')" width="180">
+              <template #default="{ row }">
+                <el-switch v-if="row.type === 'bool'" v-model="row.value"
+                           active-value="true" inactive-value="false" />
+                <el-input v-else v-model="row.value" size="small" />
+              </template>
+            </el-table-column>
+            <el-table-column prop="unit" :label="t('sys.unit')" width="90" />
+            <el-table-column prop="description" :label="t('sys.desc')" min-width="300" />
+          </el-table>
+          <div class="muted" style="margin-top:8px">{{ t('sysAdminX.arrearsHint') }}</div>
+        </el-card>
+
         <!-- 自动出账参数 -->
         <el-card shadow="never" style="margin-bottom:14px"
                  body-style="padding:12px 14px">
@@ -329,7 +355,42 @@ onMounted(() => {
   loadIotConfigs()
   loadBillingConfigs()
   loadPatrolConfigs()
+  loadArrearsConfigs()
 })
+// ---------------- 欠费自动处置参数 ----------------
+const arrearsRows = ref([])
+const arrearsSaving = ref(false)
+const ARREARS_META = [
+  { key: 'arrears.autoFreezeEnabled', label: t('sysAdminX.autoFreeze'), type: 'bool',
+    value: 'false', unit: '', description: t('sysAdminX.autoFreezeDesc') },
+  { key: 'arrears.autoFreezeDays', label: t('sysAdminX.autoFreezeDays'), type: 'number',
+    value: '30', unit: t('sysAdminX.day'), description: t('sysAdminX.autoFreezeDaysDesc') },
+  { key: 'arrears.autoRestoreEnabled', label: t('sysAdminX.autoRestore'), type: 'bool',
+    value: 'true', unit: '', description: t('sysAdminX.autoRestoreDesc') }
+]
+
+async function loadArrearsConfigs() {
+  try {
+    const list = await sysApi.configs() || []
+    const map = {}
+    list.forEach((x) => { map[x.configKey] = x.configValue })
+    arrearsRows.value = ARREARS_META.map((m) => ({ ...m, value: map[m.key] ?? m.value }))
+  } catch (e) {
+    arrearsRows.value = ARREARS_META.map((m) => ({ ...m }))
+  }
+}
+
+async function saveArrearsAll() {
+  arrearsSaving.value = true
+  try {
+    for (const row of arrearsRows.value) {
+      await sysApi.setConfig({ key: row.key, value: String(row.value), description: row.description })
+    }
+    ElMessage.success(t('sysAdminX.arrearsSaved'))
+    loadArrearsConfigs()
+  } finally { arrearsSaving.value = false }
+}
+
 // ---------------- 每日自动巡查参数 ----------------
 const patrolRows = ref([])
 const patrolSaving = ref(false)

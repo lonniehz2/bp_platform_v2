@@ -2097,6 +2097,15 @@ export default {
     actions: '操作', replay: '重放'
   },
   sysAdminX: {
+    arrearsTitle: '欠费自动处置参数',
+    autoFreeze: '启用逾期自动冻结',
+    autoFreezeDesc: '按逾期天数自动生成并执行冻结处置单（默认关闭）',
+    autoFreezeDays: '逾期冻结天数',
+    autoFreezeDaysDesc: '逾期超过该天数才自动冻结',
+    autoRestore: '缴清自动恢复',
+    autoRestoreDesc: '欠费结清后自动撤销冻结并恢复授权',
+    arrearsHint: '默认关闭自动冻结，避免误停；启用前请先确认安全底线和审批规则。',
+    arrearsSaved: '欠费自动处置参数已保存',
     patrolTitle: '每日自动巡查参数',
     patrolEnabled: '启用每日自动巡查',
     patrolEnabledDesc: '每日 02:00 自动执行，手工补跑接口不受此开关限制',

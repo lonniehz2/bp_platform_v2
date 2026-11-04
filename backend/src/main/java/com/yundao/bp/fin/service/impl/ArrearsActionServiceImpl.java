@@ -58,6 +58,10 @@ public class ArrearsActionServiceImpl implements ArrearsActionService {
     private final BizContractMapper contractMapper;
     private final SnowflakeIdGenerator idGen;
 
+    /** 授权联动（可选注入，授权模块不可用时不影响处置单） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.grant.service.GrantService grantService;
+
 
     /** 数据范围（ALL/ORG_SUB/ORG/SELF） */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -241,6 +245,16 @@ public class ArrearsActionServiceImpl implements ArrearsActionService {
         if (type.touchesGrant() && ct != null) {
             log.info("处置单 {} 状态已置 EXECUTED；授权联动目标：合同 {} 空间 {}（scope={}）",
                     e.getActionNo(), ct.getContractNo(), ct.getSpaceId(), scopeOf(e).label());
+            if (grantService != null) {
+                try {
+                    int revoked = grantService.revokeBySource("CONTRACT", ct.getId(),
+                            "arrears " + type.name());
+                    log.info("欠费处置 {} 撤销合同 {} 授权 {} 条", e.getActionNo(),
+                            ct.getContractNo(), revoked);
+                } catch (Exception ex) {
+                    log.warn("欠费处置 {} 撤销授权失败: {}", e.getActionNo(), ex.getMessage());
+                }
+            }
         }
         return ArrearsActionVO.from(e);
     }
@@ -254,6 +268,24 @@ public class ArrearsActionServiceImpl implements ArrearsActionService {
         e.setUpdateTime(LocalDateTime.now());
         mapper.updateById(e);
         log.info("处置单 {} 已撤销：{}", e.getActionNo(), e.getRevokeReason());
+        if (typeOf(e).touchesGrant() && grantService != null) {
+            try {
+                BizContract ct = contractMapper.selectById(e.getContractId());
+                if (ct != null && "EFFECTIVE".equals(ct.getContractStatus())
+                        && ct.getLesseePersonId() != null && ct.getSpaceId() != null) {
+                    java.time.LocalDateTime end = ct.getLeaseEnd() == null
+                            ? java.time.LocalDateTime.now().plusYears(1)
+                            : ct.getLeaseEnd().atTime(23, 59, 59);
+                    grantService.apply(new com.yundao.bp.grant.dto.GrantApplyCmd(
+                            ct.getLesseePersonId(), ct.getSpaceId(), "USAGE",
+                            java.time.LocalDateTime.now(), end, null, "CONTRACT",
+                            ct.getId(), "arrears restore"));
+                    log.info("欠费处置 {} 已恢复合同 {} 授权", e.getActionNo(), ct.getContractNo());
+                }
+            } catch (Exception ex) {
+                log.warn("欠费处置 {} 恢复授权失败: {}", e.getActionNo(), ex.getMessage());
+            }
+        }
         return ArrearsActionVO.from(e);
     }
 

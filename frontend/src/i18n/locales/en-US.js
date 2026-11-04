@@ -2115,6 +2115,15 @@ export default {
     process: 'Process', bodyCol: 'Payload', actions: 'Actions', replay: 'Replay'
   },
   sysAdminX: {
+    arrearsTitle: 'Arrears Automation',
+    autoFreeze: 'Enable Auto Freeze',
+    autoFreezeDesc: 'Create and execute freeze actions after the overdue threshold (off by default)',
+    autoFreezeDays: 'Freeze After Days',
+    autoFreezeDaysDesc: 'Only freeze after this many overdue days',
+    autoRestore: 'Auto Restore After Paid',
+    autoRestoreDesc: 'Revoke freeze and restore access after arrears are cleared',
+    arrearsHint: 'Auto freeze is off by default. Confirm safety and approval rules before enabling.',
+    arrearsSaved: 'Arrears automation settings saved',
     patrolTitle: 'Daily Patrol Settings',
     patrolEnabled: 'Enable Daily Patrol',
     patrolEnabledDesc: 'Runs daily at 02:00; manual run is always available',
