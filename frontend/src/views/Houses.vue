@@ -57,9 +57,10 @@
       <el-table-column :label="t('house.rent')" width="120">
         <template #default="{ row }">{{ row.rentStandard || '-' }}</template>
       </el-table-column>
-      <el-table-column :label="t('house.actions')" width="210" fixed="right">
+      <el-table-column :label="t('house.actions')" width="270" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="changeStatus(row)">{{ t('house.changeStatus') }}</el-button>
+          <el-button link type="success" @click="openAccess(row)">{{ t('houseAccess.title') }}</el-button>
           <el-button link @click="detail = row; show = true">{{ t('house.detail') }}</el-button>
           <el-button link type="primary" @click="openOccupancy(row)">{{ t('house.occupancy') }}</el-button>
         </template>
@@ -360,6 +361,8 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <HouseAccessPanel v-model="accessVisible" :house-id="accessHouse?.id" />
 </template>
 
 <script setup>
@@ -371,6 +374,7 @@ import req from '@/api/request'
 import { useAuthStore } from '@/store/auth'
 import { enumLabel } from '@/constants/enums'
 import DetailView from '@/components/DetailView.vue'
+import HouseAccessPanel from '@/components/HouseAccessPanel.vue'
 
 const { t } = useI18n()
 const statuses = ['VACANT', 'PENDING_ALLOC', 'ALLOCATED', 'OCCUPIED', 'LOCKED',
@@ -379,6 +383,9 @@ const loading = ref(false)
 const saving = ref(false)
 const auth = useAuthStore()
 const rows = ref([])
+const accessVisible = ref(false)
+const accessHouse = ref(null)
+function openAccess(row) { accessHouse.value = row; accessVisible.value = true }
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(20)
