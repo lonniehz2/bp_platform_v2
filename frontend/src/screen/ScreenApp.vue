@@ -6,11 +6,11 @@
         {{ screenName }}
       </el-tag>
       <el-select v-model="orgId" size="small" clearable :placeholder="t('screen.allCommunities')"
-                 style="width:160px" @change="onOrgChange">
+                 style="width:220px" @change="onOrgChange">
         <el-option v-for="c in communities" :key="c.id" :label="c.name" :value="String(c.id)" />
       </el-select>
       <el-select v-model="buildingId" size="small" clearable :placeholder="t('screen.allBuildings')"
-                 style="width:140px" @change="load">
+                 style="width:200px" @change="load">
         <el-option v-for="b in buildings" :key="b.id" :label="b.name" :value="String(b.id)" />
       </el-select>
       <div class="spacer" />

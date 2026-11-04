@@ -463,6 +463,11 @@ const TYPE_OVERRIDE = {
   signMethod: {
     OFFLINE: '线下签约', ESIGN: '电子签章', CA: 'CA 证书'
   },
+  pushStatus: {
+    PENDING: '待推送',
+    PUSHED: '已推送',
+    FAILED: '推送失败'
+  },
   settleStatus: {
     PENDING: '待结算', SETTLED: '已结算', WAIVED: '已免除'
   },
