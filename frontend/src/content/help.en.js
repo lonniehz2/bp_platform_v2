@@ -1,8 +1,15 @@
-export const HELP_VERSION_EN = 'v1.0 (2026-11-01)'
+export const HELP_VERSION_EN = 'v1.1 (2026-11-04)'
 export const HELP_PDF_EN = '/docs/user-manual-en.pdf'
 
 /** Concise English guide; full Chinese manual remains available in ZH. */
 export const HELP_SECTIONS_EN = [
+  {
+    id: 'latest',
+    title: 'Latest billing and allocation notes (English summary)',
+    blocks: [
+      { type: 'note', text: 'The Chinese help page is the complete manual. Latest rules: bills never cross calendar months; rent, first/last month and rent-change months are prorated by days; subsidy follows the rent billing days; direct/supplementary allocation can assign a person and unit after the batch is published; prepaid balance can offset bills, be refunded or transferred.' }
+    ]
+  },
   {
     id: 'start',
     title: 'Quick start',
