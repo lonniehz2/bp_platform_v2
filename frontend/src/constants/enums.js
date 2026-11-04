@@ -463,11 +463,24 @@ const TYPE_OVERRIDE = {
   signMethod: {
     OFFLINE: '线下签约', ESIGN: '电子签章', CA: 'CA 证书'
   },
+  alertCategory: {
+    SAFETY: '安全',
+    DEVICE: '设备',
+    BUSINESS: '业务',
+    VIOLATION: '违规'
+  },
   alertType: {
-    SUBLEASE: '转租转借', IDLE: '长期闲置', CONTRACT_EXPIRE: '合同即将到期',
-    DEVICE_OFFLINE: '设备离线', LOW_BATTERY: '低电量', TAMPER: '防拆告警',
-    NO_OPEN: '长期未开门', DURESS: '胁迫开门', POWER_OVER: '超功率',
-    ACCESS_ABNORMAL: '异常开门', ARREARS: '欠费'
+    SUBLEASE: '转租转借',
+    IDLE: '长期闲置',
+    CONTRACT_EXPIRE: '合同即将到期',
+    DEVICE_OFFLINE: '设备离线',
+    LOW_BATTERY: '低电量',
+    TAMPER: '防拆告警',
+    NO_OPEN: '长期未开门',
+    DURESS: '胁迫开门',
+    POWER_OVER: '超功率',
+    ACCESS_ABNORMAL: '异常开门',
+    ARREARS: '欠费'
   },
   pushStatus: {
     PENDING: '待推送',
