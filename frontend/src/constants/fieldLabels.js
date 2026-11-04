@@ -160,7 +160,7 @@ export const FIELD_LABEL = {
   currentNode: '当前环节',
   dayStatus: '日状态',
   deductAmount: '已抵扣',
-  depositAmount: '应收',
+  depositAmount: '押金',
   depositStatus: '状态',
   description: '说明',
   deviceId: '设备ID',

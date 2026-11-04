@@ -207,6 +207,39 @@ public class PrepayService {
         flowMapper.insert(f);
     }
 
+    /** 补贴抵扣时账单已缴清，剩余补贴转入合同预收余额。 */
+    @Transactional(rollbackFor = Exception.class)
+    public void creditSubsidy(Long contractId, BigDecimal amount, String remark) {
+        BigDecimal amt = money(amount);
+        if (contractId == null || amt.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        BizContract ct = contractMapper.selectById(contractId);
+        if (ct == null) {
+            throw BizException.notFound("合同");
+        }
+        FinPrepayAccount a = lockOrCreate(ct);
+        a.setBalanceAmount(money(a.getBalanceAmount()).add(amt));
+        a.setTotalIn(money(a.getTotalIn()).add(amt));
+        a.setUpdateTime(LocalDateTime.now());
+        accountMapper.updateById(a);
+
+        FinPrepayFlow f = new FinPrepayFlow();
+        f.setId(idGen.nextId());
+        f.setTenantId(TenantContext.tenantId());
+        f.setAccountId(a.getId());
+        f.setContractId(contractId);
+        f.setFlowType("IN");
+        f.setAmount(amt);
+        f.setBalanceAfter(a.getBalanceAmount());
+        f.setBizType("SUBSIDY_OFFSET");
+        f.setRemark(remark);
+        f.setActualAmount(amt);
+        f.setFeeAmount(zero());
+        f.setCreateTime(LocalDateTime.now());
+        flowMapper.insert(f);
+    }
+
     /** 账单生成后自动抵扣该合同预收余额。 */
     @Transactional(rollbackFor = Exception.class)
     public BigDecimal offsetBill(FinBill bill) {

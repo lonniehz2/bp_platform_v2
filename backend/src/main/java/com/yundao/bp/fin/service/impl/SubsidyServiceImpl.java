@@ -73,6 +73,8 @@ public class SubsidyServiceImpl implements SubsidyService {
     private BizContractCohabitantMapper cohabitantMapper;
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.fin.mapper.FinFeeItemMapper feeItemMapper;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.yundao.bp.fin.service.PrepayService prepayService;
 
     public SubsidyServiceImpl(FinSubsidyStandardMapper standardMapper,
                               FinSubsidyRecordMapper recordMapper,
@@ -405,7 +407,7 @@ public class SubsidyServiceImpl implements SubsidyService {
 
         // OFFSET_RENT 抵扣租金：直接冲减当期租金账单
         if ("OFFSET".equals(e.getPayMode()) || "OFFSET_RENT".equals(e.getPayMode())) {
-            int offset = offsetRent(e.getContractId(), e.getSubsidyPeriod(), paid);
+            int offset = offsetRent(e.getContractId(), e.getSubsidyPeriod(), paid, e.getRecordNo());
             log.info("补贴 {} 抵扣租金 {}：冲减 {} 张账单", e.getRecordNo(), paid, offset);
         }
         return SubsidyRecordVO.from(e);
@@ -642,7 +644,8 @@ public class SubsidyServiceImpl implements SubsidyService {
      *
      * <p>按账期匹配账单，逐张核销直到补贴额用尽；不足全额时账单转 PARTIAL。
      */
-    private int offsetRent(Long contractId, String subsidyPeriod, BigDecimal amount) {
+    private int offsetRent(Long contractId, String subsidyPeriod, BigDecimal amount,
+                           String recordNo) {
         List<FinBill> bills = billMapper.selectList(new LambdaQueryWrapper<FinBill>()
                 .eq(FinBill::getContractId, contractId)
                 .eq(FinBill::getBillPeriod, subsidyPeriod)
@@ -670,6 +673,11 @@ public class SubsidyServiceImpl implements SubsidyService {
             billMapper.updateById(b);
             remain = remain.subtract(use);
             n++;
+        }
+        // 账单已通过预收/其他方式缴清时，剩余补贴不能丢失，转入合同预收余额供后续抵扣
+        if (remain.compareTo(BigDecimal.ZERO) > 0 && prepayService != null) {
+            prepayService.creditSubsidy(contractId, remain,
+                    "subsidy " + recordNo + " credit");
         }
         return n;
     }

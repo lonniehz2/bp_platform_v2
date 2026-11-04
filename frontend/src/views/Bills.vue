@@ -617,10 +617,11 @@
         <el-descriptions-item :label="t('bill.billingDays')">{{ dvRow.billingDays ?? '—' }}</el-descriptions-item>
         <el-descriptions-item :label="t('bill.prorationMonths')">{{ dvRow.prorationMonths ?? '—' }}</el-descriptions-item>
         <el-descriptions-item :label="t('bill.unitPriceSnapshot')">{{ dvRow.unitPriceSnapshot ?? '—' }}</el-descriptions-item>
-        <el-descriptions-item :label="labelOf('payDue')">{{ dvRow.dueDate || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('payDue')">{{ dvRow.payableAmount ?? '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('dueDate')">{{ dvRow.dueDate || '—' }}</el-descriptions-item>
+        <el-descriptions-item :label="labelOf('subsidyAmount')">{{ dvRow.waivedAmount ?? 0 }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('billAmount')">{{ dvRow.billAmount }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('paidAmount')">{{ dvRow.paidAmount }}</el-descriptions-item>
-        <el-descriptions-item :label="labelOf('waiveAmount')">{{ dvRow.waivedAmount }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('payableAmount')">{{ dvRow.payableAmount }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('lateFee')">{{ dvRow.lateFee || 0 }}</el-descriptions-item>
         <el-descriptions-item :label="labelOf('overdueDays')">{{ dvRow.overdueDays || 0 }}</el-descriptions-item>

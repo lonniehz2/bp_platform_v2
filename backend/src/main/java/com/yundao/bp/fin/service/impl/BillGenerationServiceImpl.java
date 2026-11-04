@@ -79,6 +79,10 @@ public class BillGenerationServiceImpl implements BillGenerationService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.fin.service.PrepayService prepayService;
 
+    /** 调租历史查询（可选注入，便于计费单测） */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
     public BillGenerationServiceImpl(BizContractMapper contractMapper,
                                      AssetHouseMapper houseMapper,
                                      FinFeeItemMapper feeItemMapper,
@@ -248,11 +252,11 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                     && ct.getMonthlyRent().compareTo(BigDecimal.ZERO) > 0
                     && (mode == CalcMode.BY_HOUSE || mode == CalcMode.BY_AREA
                         || mode == CalcMode.FIXED)) {
-                amount = money(ct.getMonthlyRent().multiply(pro.months()));
-                unitPriceSnapshot = ct.getMonthlyRent();
+                RentCalc rc = rentCalc(ct, cmd.periodStart(), cmd.periodEnd(), pro);
+                amount = rc.amount();
+                unitPriceSnapshot = rc.unitPrice();
                 priceSource = "CONTRACT_RENT";
-                calcExplain = "合同月租 " + ct.getMonthlyRent().toPlainString()
-                        + " × " + pro.months().stripTrailingZeros().toPlainString() + " 个月";
+                calcExplain = rc.explain();
                 // 合同租金仍受规则约束：EXEMPT 归零、DISCOUNT 打折
                 BigDecimal adjusted = calculator.applyRuleToAmount(amount, effectiveRule);
                 if (adjusted.compareTo(amount) != 0) {
@@ -784,6 +788,101 @@ private static String normalizePeriod(String period, LocalDate start) {
 
     private static BigDecimal money(BigDecimal v) {
         return (v == null ? BigDecimal.ZERO : v).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private static final java.util.regex.Pattern RENT_JSON =
+            java.util.regex.Pattern.compile("\"monthlyRent\"\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)");
+
+    /** 租金账单按调租生效日分段：生效日前旧租金，生效日起新租金。 */
+    private RentCalc rentCalc(BizContract ct, LocalDate ps, LocalDate pe, Proration pro) {
+        LocalDate start = ct.getLeaseStart() != null && ct.getLeaseStart().isAfter(ps)
+                ? ct.getLeaseStart() : ps;
+        LocalDate end = ct.getLeaseEnd() != null && ct.getLeaseEnd().isBefore(pe)
+                ? ct.getLeaseEnd() : pe;
+        BigDecimal current = money(ct.getMonthlyRent());
+        if (jdbc == null || start.isAfter(end)) {
+            return new RentCalc(money(current.multiply(pro.months())), current,
+                    "rent " + current.toPlainString() + " x "
+                            + pro.months().stripTrailingZeros().toPlainString());
+        }
+        java.util.List<java.util.Map<String, Object>> changes = jdbc.queryForList(
+                "select before_json, after_json, effective_date from bp_biz_contract_change "
+                        + "where contract_id = ? and change_type = 'RENT_ADJUST' "
+                        + "and approve_status = 'APPROVED' and applied = 1 "
+                        + "and effective_date between ? and ? order by effective_date, id",
+                ct.getId(), start, end);
+        if (changes.isEmpty()) {
+            return new RentCalc(money(current.multiply(pro.months())), current,
+                    "rent " + current.toPlainString() + " x "
+                            + pro.months().stripTrailingZeros().toPlainString());
+        }
+        java.math.BigDecimal rent = rentFromJson(String.valueOf(changes.get(0).get("before_json")));
+        if (rent == null || rent.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            rent = current;
+        }
+        java.math.BigDecimal total = java.math.BigDecimal.ZERO;
+        StringBuilder detail = new StringBuilder();
+        LocalDate cursor = start;
+        for (java.util.Map<String, Object> ch : changes) {
+            LocalDate eff = toLocalDate(ch.get("effective_date"));
+            if (eff == null || eff.isAfter(end)) {
+                break;
+            }
+            if (eff.isAfter(cursor)) {
+                LocalDate segEnd = eff.minusDays(1).isAfter(end) ? end : eff.minusDays(1);
+                total = total.add(segmentRent(rent, cursor, segEnd));
+                detail.append(' ').append(rent.toPlainString()).append('[')
+                        .append(cursor).append('~').append(segEnd).append(']');
+                cursor = eff;
+            }
+            java.math.BigDecimal next = rentFromJson(String.valueOf(ch.get("after_json")));
+            if (next != null && next.compareTo(java.math.BigDecimal.ZERO) > 0) {
+                rent = next;
+            }
+        }
+        if (!cursor.isAfter(end)) {
+            total = total.add(segmentRent(rent, cursor, end));
+            detail.append(' ').append(rent.toPlainString()).append('[')
+                    .append(cursor).append('~').append(end).append(']');
+        }
+        return new RentCalc(money(total), rent, "rent split:" + detail);
+    }
+
+    private static java.math.BigDecimal segmentRent(java.math.BigDecimal monthly,
+                                                     LocalDate from, LocalDate to) {
+        if (from.isAfter(to) || monthly == null) {
+            return java.math.BigDecimal.ZERO;
+        }
+        long days = java.time.temporal.ChronoUnit.DAYS.between(from, to) + 1;
+        return monthly.multiply(java.math.BigDecimal.valueOf(days))
+                .divide(java.math.BigDecimal.valueOf(from.lengthOfMonth()), 2,
+                        RoundingMode.HALF_UP);
+    }
+
+    private static java.math.BigDecimal rentFromJson(String json) {
+        if (json == null) {
+            return null;
+        }
+        java.util.regex.Matcher m = RENT_JSON.matcher(json);
+        return m.find() ? new java.math.BigDecimal(m.group(1)) : null;
+    }
+
+    private static LocalDate toLocalDate(Object v) {
+        if (v instanceof LocalDate d) {
+            return d;
+        }
+        if (v instanceof java.sql.Date d) {
+            return d.toLocalDate();
+        }
+        if (v instanceof java.util.Date d) {
+            return d.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+        }
+        return null;
+    }
+
+    /** 租金分段计算结果。 */
+    private record RentCalc(java.math.BigDecimal amount, java.math.BigDecimal unitPrice,
+                            String explain) {
     }
 
     /** 计费折算结果：月数、计费天数、可读说明。 */
