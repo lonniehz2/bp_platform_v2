@@ -30,6 +30,7 @@ public record BillVO(
         BigDecimal lateFee,
         BigDecimal paidAmount,
         BigDecimal waivedAmount,
+        BigDecimal subsidyAmount,
         BigDecimal payableAmount,
         LocalDate dueDate,
         LocalDate billDate,
@@ -66,7 +67,7 @@ public record BillVO(
                 e.getBillPeriod(), e.getPeriodStart(), e.getPeriodEnd(), e.getSettlementDate(),
                 e.getBillAmount(), e.getUnitPriceSnapshot(), e.getPriceSource(),
                 e.getDiscountAmount(), e.getLateFee(), e.getPaidAmount(), e.getWaivedAmount(),
-                e.getPayableAmount(), e.getDueDate(), e.getBillDate(), e.getBillStatus(), st.label(),
+                e.getSubsidyAmount(), e.getPayableAmount(), e.getDueDate(), e.getBillDate(), e.getBillStatus(), st.label(),
                 e.getOverdueDays(), overdueNow, e.getGenerateType(), e.getRemark(),
                 e.getBillingDays(), e.getProrationMonths(), e.getCreateTime());
     }

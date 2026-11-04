@@ -313,6 +313,9 @@ public class BillGenerationServiceImpl implements BillGenerationService {
                 b.setLateFee(money(null));
                 b.setPaidAmount(money(null));
                 b.setWaivedAmount(money(null));
+                b.setSubsidyAmount("RENT".equals(item.getItemType())
+                        && ct.getSubsidyAmount() != null
+                        ? money(ct.getSubsidyAmount().multiply(pro.months())) : money(null));
                 b.setPayableAmount(payable);
                 b.setDueDate(dueDate);
                 b.setBillDate(LocalDate.now());

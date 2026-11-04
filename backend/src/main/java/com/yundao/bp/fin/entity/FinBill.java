@@ -51,6 +51,8 @@ public class FinBill {
     private BigDecimal lateFee;
     private BigDecimal paidAmount;
     private BigDecimal waivedAmount;
+    /** 合同应享补贴金额（不等于已抵扣额） */
+    private BigDecimal subsidyAmount;
     /** 应付金额 = 应收 - 减免 + 滞纳金 - 已收 - 已免 */
     private BigDecimal payableAmount;
 

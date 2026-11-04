@@ -169,6 +169,7 @@ public class BillMigrationService {
         b.setLateFee(late);
         b.setPaidAmount(money(null));
         b.setWaivedAmount(money(null));
+        b.setSubsidyAmount(old.getSubsidyAmount());
         b.setPayableAmount(amount.subtract(discount).add(late)
                 .setScale(2, RoundingMode.HALF_UP));
         b.setDueDate(old.getDueDate());
