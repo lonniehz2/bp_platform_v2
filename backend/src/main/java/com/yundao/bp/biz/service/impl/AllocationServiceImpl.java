@@ -941,7 +941,18 @@ public class AllocationServiceImpl implements AllocationService {
         String tenantId = TenantContext.tenantId();
         BizBatch b = requireBatch(cmd.batchId());
         BatchStatus bs = batchStatusOf(b);
-        if (bs != BatchStatus.LOTTERY_DONE && bs != BatchStatus.SELECTING) {
+        String batchType = b.getBatchType() == null ? "LOTTERY" : b.getBatchType();
+        boolean direct = "DIRECT".equals(batchType);
+        boolean supplement = "SUPPLEMENT".equals(batchType);
+        boolean directLike = direct || supplement;
+        if (directLike) {
+            // 直接配租/补充配租不走摇号，发布后即可指定人员与房源
+            if (bs == BatchStatus.DRAFT || bs == BatchStatus.CANCELLED
+                    || bs == BatchStatus.CLOSED) {
+                throw BizException.stateConflict("批次当前状态（" + bs.label()
+                        + "）不可配租，请先发布批次");
+            }
+        } else if (bs != BatchStatus.LOTTERY_DONE && bs != BatchStatus.SELECTING) {
             throw BizException.stateConflict(
                     "批次当前状态（" + bs.label() + "）不可配租，需先完成摇号");
         }
@@ -975,7 +986,7 @@ public class AllocationServiceImpl implements AllocationService {
                     .eq(BizLotteryResult::getPersonId, cmd.personId())
                     .last("LIMIT 1"));
         }
-        if (lr != null) {
+        if (!directLike && lr != null) {
             LotteryResultType rt;
             try {
                 rt = LotteryResultType.valueOf(lr.getResultType());
@@ -999,7 +1010,9 @@ public class AllocationServiceImpl implements AllocationService {
         a.setPersonId(cmd.personId());
         a.setHouseId(cmd.houseId());
         a.setSpaceId(pool.getSpaceId());
-        a.setAllocationType("LOTTERY");
+        a.setAllocationType(direct ? "DIRECT"
+                : supplement ? "SUPPLEMENT"
+                : "SELECT".equals(batchType) ? "SELECT" : "LOTTERY");
         a.setAllocationDate(LocalDate.now());
         a.setPlanRentStart(cmd.planRentStart());
         a.setPlanRentEnd(cmd.planRentEnd());

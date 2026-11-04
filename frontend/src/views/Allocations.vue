@@ -71,6 +71,10 @@
               </template>
             </el-dropdown>
             <el-button link type="primary" @click="runLottery(row)">{{ t('alloc.runLottery') }}</el-button>
+            <el-button v-if="['DIRECT','SUPPLEMENT'].includes(row.batchType)
+                             && !['DRAFT','CANCELLED','CLOSED'].includes(row.batchStatus)"
+                       link type="success" data-testid="batch-manual-alloc"
+                       @click="openManual(row)">{{ t('alloc.manualAllocate') }}</el-button>
             <el-button v-if="['LOTTERY_DONE','ALLOCATED','SELECTING'].includes(row.batchStatus)"
                        link type="success" data-testid="batch-gen-alloc"
                        @click="genAllocations(row)">{{ t('alloc.genAllocations') }}</el-button>
@@ -236,6 +240,37 @@
                    @click="doAddSelectedHouses">{{ t('alloc.addSelected', { n: selectedHouses.length }) }}</el-button>
       </template>
     </el-dialog>
+
+    <!-- 直接/补充配租：指定人员与房源 -->
+    <el-dialog v-model="manualVisible" :title="t('alloc.manualAllocateTitle')" width="620px">
+      <el-form label-width="110px">
+        <el-form-item :label="t('alloc.batchLabel', { no: manualBatch?.batchNo, name: manualBatch?.batchName })" />
+        <el-form-item :label="t('alloc.manualPerson')" required>
+          <PersonPicker v-model="manualForm.personId" width="100%" />
+        </el-form-item>
+        <el-form-item :label="t('alloc.manualHouse')" required>
+          <el-select v-model="manualForm.houseId" filterable style="width:100%"
+                     :placeholder="t('alloc.manualHouseHint')">
+            <el-option v-for="h in manualHouses" :key="h.houseId"
+                       :label="(h.houseName || h.houseCode) + '（' + h.houseCode + '）'"
+                       :value="String(h.houseId)" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="t('alloc.manualPlanStart')">
+          <el-date-picker v-model="manualForm.planRentStart" type="date" value-format="YYYY-MM-DD"
+                          style="width:100%" />
+        </el-form-item>
+        <el-form-item :label="t('alloc.manualPlanEnd')">
+          <el-date-picker v-model="manualForm.planRentEnd" type="date" value-format="YYYY-MM-DD"
+                          style="width:100%" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="manualVisible = false">{{ t('alloc.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" :disabled="!manualForm.personId || !manualForm.houseId"
+                   @click="doManualAllocate">{{ t('alloc.manualSubmit') }}</el-button>
+      </template>
+    </el-dialog>
 </template>
 
 <script setup>
@@ -256,6 +291,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { allocationApi } from '@/api/modules'
 import req from '@/api/request'
 import FilterBar from '@/components/FilterBar.vue'
+import PersonPicker from '@/components/PersonPicker.vue'
 
 const loading = ref(false)
 const batches = ref([])
@@ -528,6 +564,47 @@ const TRANSITION_TIP = {
   SIGNUP: t('alloc.transSignup'),
   LOTTERY: t('alloc.transLottery'),
   CANCELLED: t('alloc.transCancel')
+}
+
+const manualVisible = ref(false)
+const manualBatch = ref(null)
+const manualHouses = ref([])
+const manualForm = reactive({ personId: null, houseId: '', planRentStart: '', planRentEnd: '' })
+
+async function openManual(row) {
+  manualBatch.value = row
+  manualForm.personId = null
+  manualForm.houseId = ''
+  manualForm.planRentStart = ''
+  manualForm.planRentEnd = ''
+  manualHouses.value = []
+  manualVisible.value = true
+  try {
+    const list = await req.get('/allocation/batches/' + row.id + '/houses/detail')
+    manualHouses.value = (list || []).filter((h) => h.inPoolStatus === 'AVAILABLE')
+  } catch (e) { manualHouses.value = [] }
+}
+
+async function doManualAllocate() {
+  if (!manualForm.personId || !manualForm.houseId) {
+    ElMessage.warning(t('alloc.manualRequired'))
+    return
+  }
+  saving.value = true
+  try {
+    await req.post('/allocation/allocations', {
+      batchId: manualBatch.value.id,
+      personId: manualForm.personId,
+      houseId: manualForm.houseId,
+      planRentStart: manualForm.planRentStart || null,
+      planRentEnd: manualForm.planRentEnd || null
+    })
+    ElMessage.success(t('alloc.manualSuccess'))
+    manualVisible.value = false
+    load(); loadAllocations()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || t('alloc.manualFailed'))
+  } finally { saving.value = false }
 }
 
 /** 摇号完成 → 按中签顺序生成配租单 */
