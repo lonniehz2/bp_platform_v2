@@ -1,25 +1,24 @@
 /**
- * 菜单信息架构：9 分组 + 组内分区 + 排序 + 角标 + 说明。
+ * 菜单信息架构：8 分组 + 组内分区 + 排序 + 角标 + 说明。
  *
- * 设计目标（A+ 方案）：
- *  1. 组内按「使用频率」排序，配置类置末
- *  2. 大组加分区标题（收费作业 / 资金管理 / 基础配置…），避免一长串
- *  3. 每个菜单项一句说明（hover 显示），降低学习成本
- *  4. 角标数字对应「有没有活要干」，来自 /menu/badges
+ * 设计目标：
+ *  1. 先按「使用场景」分组，再按组内使用频率排序
+ *  2. 预警、冻结、自动巡查等风险动作独立成组，不再埋在服务/收费末尾
+ *  3. 合同、房源、退租、换房放在同一业务链
+ *  4. 设备与通行合并，避免「设备告警」和「告警中心」重复
  */
 export const GROUP_ORDER = [
-  '工作台', '保障与资格', '合同与租赁', '收费与账务', '计量与能耗',
-  '房源与空间', '设备与通行', '服务与监督', '系统与数据'
+  '工作台', '风险与预警', '保障服务', '合同与房源', '收费与账务',
+  '通行与设备', '服务与监督', '系统与数据'
 ]
 
 export const GROUP_ICON = {
   工作台: 'HomeFilled',
-  保障与资格: 'UserFilled',
-  合同与租赁: 'Document',
+  风险与预警: 'Warning',
+  保障服务: 'UserFilled',
+  合同与房源: 'Document',
   收费与账务: 'Money',
-  计量与能耗: 'Odometer',
-  房源与空间: 'OfficeBuilding',
-  设备与通行: 'Cpu',
+  通行与设备: 'Cpu',
   服务与监督: 'Service',
   系统与数据: 'Setting'
 }
@@ -30,18 +29,23 @@ export const GROUP_ALIAS = {
   仪表盘: '工作台',
   管理后台: '系统与数据',
   系统与集成: '系统与数据',
-  保障对象: '保障与资格',
-  资格准入: '保障与资格',
-  会员: '保障与资格',
-  线索: '保障与资格',
-  合同管理: '合同与租赁',
-  合同: '合同与租赁',
+  保障对象: '保障服务',
+  资格准入: '保障服务',
+  会员: '保障服务',
+  线索: '保障服务',
+  保障与资格: '保障服务',
+  合同管理: '合同与房源',
+  合同: '合同与房源',
+  合同与租赁: '合同与房源',
+  房源: '合同与房源',
+  房源与空间: '合同与房源',
+  资产台账: '合同与房源',
+  资产与设备: '通行与设备',
+  授权与交房: '通行与设备',
+  设备与通行: '通行与设备',
   账务收费: '收费与账务',
   财务: '收费与账务',
-  资产与设备: '房源与空间',
-  房源: '房源与空间',
-  授权与交房: '设备与通行',
-  资产台账: '房源与空间',
+  计量与能耗: '收费与账务',
   服务与监督: '服务与监督',
   更多: '服务与监督',
   退出与监督: '服务与监督'
@@ -49,22 +53,30 @@ export const GROUP_ALIAS = {
 
 /** 组内分区：3 项以上的大组分段展示（顺序即展示顺序） */
 export const SUBGROUPS = {
-  收费与账务: [
-    { title: '收费作业', paths: ['/bills', '/arrears'] },
-    { title: '资金管理', paths: ['/deposits', '/subsidies', '/cashflow'] },
-    { title: '基础配置', paths: ['/fee-items'] }
+  风险与预警: [
+    { title: '预警与处置', paths: ['/alerts', '/patrol', '/arrears'] },
+    { title: '权限与核查', paths: ['/house-access', '/credits', '/visits'] }
   ],
-  房源与空间: [
-    { title: '台账', paths: ['/houses', '/spaces'] },
+  保障服务: [
+    { title: '申请与配租', paths: ['/applications', '/waitlist', '/allocations', '/publicities'] },
+    { title: '人员与复核', paths: ['/persons', '/annual-reviews'] }
+  ],
+  合同与房源: [
+    { title: '合同', paths: ['/contracts', '/contract-changes', '/exchanges', '/terminations'] },
+    { title: '房源', paths: ['/houses', '/spaces'] },
     { title: '经营', paths: ['/house-calendar', '/short-rent'] }
   ],
-  设备与通行: [
+  收费与账务: [
+    { title: '收费作业', paths: ['/bills'] },
+    { title: '资金管理', paths: ['/deposits', '/subsidies', '/cashflow'] },
+    { title: '计量与计费', paths: ['/meter-readings', '/energy', '/fee-items'] }
+  ],
+  通行与设备: [
     { title: '设备', paths: ['/devices', '/device-bind', '/dev-events', '/dev-commands', '/iot-tools', '/iot-monitor', '/iot-reconcile'] },
     { title: '通行与授权', paths: ['/access', '/keyring', '/grants'] }
   ],
   服务与监督: [
-    { title: '服务作业', paths: ['/workorders', '/complaints', '/appeals'] },
-    { title: '记录与规则', paths: ['/credits', '/visits', '/alerts'] }
+    { title: '服务作业', paths: ['/workorders', '/complaints', '/appeals'] }
   ],
   系统与数据: [
     { title: '数据', paths: ['/reports', '/gov'] },
@@ -76,17 +88,17 @@ export const SUBGROUPS = {
 /** 组内排序：高频在前、配置置末 */
 export const MENU_RANK = {
   '/dashboard': 1, '/todos': 2, '/messages': 3,
+  '/alerts': 4, '/patrol': 5, '/arrears': 6, '/house-access': 7, '/credits': 8, '/visits': 9,
   '/persons': 10, '/applications': 11, '/waitlist': 12, '/allocations': 13,
   '/publicities': 14, '/annual-reviews': 19,
   '/contracts': 20, '/contract-changes': 21, '/exchanges': 22, '/terminations': 23,
-  '/bills': 30, '/arrears': 31, '/deposits': 32, '/subsidies': 33,
+  '/bills': 30, '/deposits': 32, '/subsidies': 33,
   '/cashflow': 34, '/fee-items': 39,
   '/meter-readings': 40, '/energy': 41,
   '/houses': 50, '/house-calendar': 51, '/short-rent': 52, '/spaces': 59,
   '/devices': 60, '/device-bind': 61, '/dev-events': 62, '/dev-commands': 63, '/iot-tools': 64, '/iot-monitor': 65, '/iot-reconcile': 66,
   '/access': 63, '/keyring': 64, '/grants': 65,
   '/workorders': 70, '/complaints': 71, '/appeals': 72,
-  '/credits': 73, '/visits': 74, '/alerts': 79,
   '/reports': 80, '/gov': 81, '/orgs': 82, '/rbac': 83,
   '/sys': 84, '/open': 85, '/help': 86, '/ops-center': 87, '/ops-extras': 88
 }
@@ -107,7 +119,7 @@ export const MENU_DESC = {
   '/exchanges': '换房申请与房源调整',
   '/terminations': '退租申请、验房与结算',
   '/bills': '出账、收款登记与账单核销',
-  '/arrears': '逾期扫描、催缴动作与欠费停权',
+  '/arrears': '逾期扫描、催缴动作、冻结与恢复',
   '/deposits': '押金收取、抵扣与退还',
   '/subsidies': '补贴标准、发放与租金抵扣',
   '/cashflow': '流水 / 对账单 / 收款确认',
@@ -131,9 +143,11 @@ export const MENU_DESC = {
   '/workorders': '报修维保工单派单与完工',
   '/complaints': '投诉登记、处理与归档',
   '/appeals': '申诉受理与结果反馈',
+  '/house-access': '按房源一键冻结、恢复、临时授权与应急密码',
+  '/patrol': '查看巡查阈值并手工补跑每日预警/欠费处置',
   '/credits': '违规扣分与惩戒期限',
   '/visits': '入户核查房屋使用情况（转租/空置/违规）',
-  '/alerts': '告警事件处置：处理/解决/忽略/升级',
+  '/alerts': '预警事件处置：处理/解决/忽略/升级，含告警规则',
   '/reports': '业务报表查询与导出',
   '/gov': '适配器配置、报送任务与明细',
   '/orgs': '组织层级与标准地址',
@@ -151,6 +165,7 @@ export const MENU_BADGE_KEY = {
   '/bills': 'overdueBills',
   '/arrears': 'pendingArrears',
   '/dev-events': 'devAlerts',
+  '/alerts': 'pendingAlerts',
   '/workorders': 'pendingWorkOrders'
 }
 
@@ -169,4 +184,4 @@ export function basePathOf(path, parent) {
  *   扩展台 6 个页签 → 消息/告警规则/开放平台/权限/授权/日房态 均已存在
  * 因此不再占用菜单项，减少「系统与数据」的拥挤。
  */
-export const HIDDEN_PATHS = ['/ops-center', '/ops-extras']
+export const HIDDEN_PATHS = ['/ops-center', '/ops-extras', '/energy-allocation']

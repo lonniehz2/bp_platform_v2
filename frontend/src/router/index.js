@@ -145,10 +145,22 @@ export const menuRoutes = [
     meta: { title: '工单维保', icon: 'Tools', group: '服务与监督' }
   },
   {
+    path: '/house-access',
+    name: 'houseAccess',
+    component: () => import('@/views/HouseAccess.vue'),
+    meta: { title: '房源权限', icon: 'Lock', group: '风险与预警', perm: 'asset:grant:view' }
+  },
+  {
+    path: '/patrol',
+    name: 'opsPatrol',
+    component: () => import('@/views/OpsPatrol.vue'),
+    meta: { title: '自动巡查', icon: 'AlarmClock', group: '风险与预警', perm: 'ops:alert:view' }
+  },
+  {
     path: '/alerts',
     name: 'alerts',
     component: () => import('@/views/Alerts.vue'),
-    meta: { title: '告警处理', icon: 'Warning', group: '服务与监督' }
+    meta: { title: '预警中心', icon: 'Warning', group: '风险与预警' }
   },
   {
     path: '/keyring',
@@ -190,7 +202,7 @@ export const menuRoutes = [
     path: '/credits',
     name: 'credits',
     component: () => import('@/views/Credits.vue'),
-    meta: { title: '信用惩戒', icon: 'WarningFilled', group: '服务与监督', perm: 'credit:manage' }
+    meta: { title: '信用惩戒', icon: 'WarningFilled', group: '风险与预警', perm: 'credit:manage' }
   },
   {
     path: '/exchanges',
@@ -208,7 +220,7 @@ export const menuRoutes = [
     path: '/visits',
     name: 'visits',
     component: () => import('@/views/Visits.vue'),
-    meta: { title: '入户走访', icon: 'Postcard', group: '服务与监督' }
+    meta: { title: '入户走访', icon: 'Postcard', group: '风险与预警' }
   },
   {
     path: '/short-rent',
@@ -286,7 +298,7 @@ export const menuRoutes = [
     path: '/arrears',
     name: 'arrears',
     component: () => import('@/views/Arrears.vue'),
-    meta: { title: '催缴管理', icon: 'Bell', group: '收费与账务' }
+    meta: { title: '欠费与冻结', icon: 'Bell', group: '风险与预警' }
   },
   {
     path: '/cashflow',

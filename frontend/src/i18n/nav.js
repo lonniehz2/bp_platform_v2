@@ -2,6 +2,10 @@ import { getLocale } from './index'
 
 export const GROUP_EN = {
   工作台: 'Workspace',
+  风险与预警: 'Risk & Alerts',
+  通行与设备: 'Access & Devices',
+  合同与房源: 'Contracts & Housing',
+  保障服务: 'Eligibility Services',
   保障与资格: 'Eligibility',
   合同与租赁: 'Contracts & Leasing',
   收费与账务: 'Billing & Finance',
@@ -94,7 +98,11 @@ export const PAGE_EN = {
   记录与规则: 'Records & Rules',
   数据: 'Data',
   组织与权限: 'Organization & Permissions',
-  平台: 'Platform'
+  平台: 'Platform',
+  '房源权限': 'House Access',
+  '自动巡查': 'Automated Patrol',
+  '预警中心': 'Alert Center',
+  '欠费与冻结': 'Arrears & Freeze',
 }
 
 export const PAGE_DESC_EN = {
