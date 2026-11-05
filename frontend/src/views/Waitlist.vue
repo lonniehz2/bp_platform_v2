@@ -8,6 +8,11 @@
                  style="width:200px" data-testid="wait-org" @change="reload">
         <el-option v-for="o in orgs" :key="o.id" :label="o.orgName" :value="o.id" />
       </el-select>
+      <el-select v-model="query.status" :placeholder="t('waitlist.status')" clearable
+                 style="width:130px" @change="reload">
+        <el-option v-for="s in ['WAITING','FROZEN','EXITED','CANCELLED']" :key="s"
+                   :label="enumLabel('queueStatus', s)" :value="s" />
+      </el-select>
       <el-input v-model="keyword" :placeholder="t('waitlist.keyword')" clearable style="width:170px"
                 @keyup.enter="reload" />
       <el-button type="primary" @click="reload">{{ t('waitlist.search') }}</el-button>
@@ -124,7 +129,7 @@ async function loadOrgs() {
 const show = ref(false)
 const detail = ref(null)
 const enqueueVisible = ref(false)
-const query = reactive({ pageNum: 1, pageSize: 20 })
+const query = reactive({ pageNum: 1, pageSize: 20, status: '' })
 const ef = reactive({ personId: null, applicationId: null, orgId: null,
   securityType: 'PUBLIC', priorityScore: 0, priorityReason: '' })
 
@@ -190,6 +195,7 @@ async function recalc() {
 function resetQuery() {
   orgId.value = null
   keyword.value = ''
+  query.status = ''
   reload()
 }
 

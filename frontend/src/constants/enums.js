@@ -451,6 +451,13 @@ const TYPE_OVERRIDE = {
     PERSONAL_REAL: '个人实名', PERSONAL_UNREAL: '个人非实名',
     PUBLIC_REAL: '公共实名', PUBLIC_UNREAL: '公共非实名'
   },
+  openType: {
+    CARD: '刷卡', FACE: '人脸', PASSWORD: '密码', QRCODE: '二维码',
+    FINGERPRINT: '指纹', APP: 'App', REMOTE: '远程', KEY: '钥匙'
+  },
+  appealType: {
+    CREDIT: '信用惩戒', CONTRACT: '合同', ALLOCATION: '配租', TERMINATION: '退租', OTHER: '其他'
+  },
   keyType: {
     FACE: '人脸', FINGERPRINT: '指纹', CARD: '实体卡', QRCODE: '二维码',
     OFFLINE_CODE: '离线激活码', PASSWORD: '密码', ID_CARD: '身份证'

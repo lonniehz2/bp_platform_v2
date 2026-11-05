@@ -2564,6 +2564,7 @@ export default {
     cancel: 'Cancel', bind: 'Bind', batchTitle: 'Batch Device Binding', close: 'Close'
   },
   access: {
+    openType: 'Open Type',
     noTrace: 'No door records in this period',
     traceSummary: '{n} openings, first {first}, latest {last}{abnormal}',
     abnormalPart: ', {n} abnormal',

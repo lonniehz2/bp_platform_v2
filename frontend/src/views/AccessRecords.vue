@@ -4,6 +4,11 @@
       <div class="toolbar">
         <HouseSelect v-model="query.houseId" width="210px" testid="house-select" />
         <PersonPicker v-model="query.personId" width="240px" testid="person-picker" />
+        <el-select v-model="query.openType" clearable :placeholder="t('access.openType')"
+                   style="width:130px">
+          <el-option v-for="x in ['CARD','FACE','PASSWORD','QRCODE']" :key="x"
+                     :label="enumLabel('openType', x)" :value="x" />
+        </el-select>
         <el-checkbox v-model="query.abnormalOnly">{{ t('misc2.abnormalOnly') }}</el-checkbox>
         <el-button type="primary" @click="load">{{ t('access.search') }}</el-button>
         <el-button @click="resetQuery">{{ t('access.reset') }}</el-button>
@@ -123,7 +128,7 @@ const loading = ref(false)
 const rows = ref([])
 const total = ref(0)
 const query = reactive({
-  pageNum: 1, pageSize: 20, houseId: '', personId: '', abnormalOnly: false
+  pageNum: 1, pageSize: 20, houseId: '', personId: '', openType: '', abnormalOnly: false
 })
 
 const traceVisible = ref(false)
@@ -140,6 +145,7 @@ async function load() {
       pageNum: query.pageNum, pageSize: query.pageSize,
       houseId: query.houseId || undefined,
       personId: query.personId || undefined,
+      openType: query.openType || undefined,
       abnormalOnly: query.abnormalOnly || undefined
     })
     rows.value = data.rows || []

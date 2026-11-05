@@ -2538,6 +2538,7 @@ export default {
     cancel: '取消', bind: '绑定', batchTitle: '设备批量绑定', close: '关闭'
   },
   access: {
+    openType: '开门方式',
     noTrace: '区间内无开门记录',
     traceSummary: '共 {n} 次开门，首次 {first}，最近 {last}{abnormal}',
     abnormalPart: '，其中异常 {n} 次',

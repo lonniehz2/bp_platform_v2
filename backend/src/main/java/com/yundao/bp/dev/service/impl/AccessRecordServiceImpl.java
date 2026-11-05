@@ -143,11 +143,12 @@ public class AccessRecordServiceImpl implements AccessRecordService {
     @Override
     public PageResult<AccessVO> page(long pageNum, long pageSize, Long personId, Long houseId,
                                      LocalDate dateFrom, LocalDate dateTo,
-                                     Boolean abnormalOnly) {
+                                     Boolean abnormalOnly, String openType) {
         LambdaQueryWrapper<DevAccessRecord> qw = new LambdaQueryWrapper<DevAccessRecord>()
                 .eq(personId != null, DevAccessRecord::getPersonId, personId)
                 .eq(houseId != null, DevAccessRecord::getHouseId, houseId)
                 .eq(Boolean.TRUE.equals(abnormalOnly), DevAccessRecord::getIsAbnormal, 1)
+                .eq(openType != null && !openType.isBlank(), DevAccessRecord::getOpenType, openType)
                 .orderByDesc(DevAccessRecord::getOpenTime)
                 .orderByDesc(DevAccessRecord::getId);
         applyDataScope(qw, DevAccessRecord::getOrgId, DevAccessRecord::getPersonId, true);

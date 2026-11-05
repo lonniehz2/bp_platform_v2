@@ -60,9 +60,10 @@ public class AccessRecordController {
             LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate dateTo,
-            @RequestParam(required = false) Boolean abnormalOnly) {
+            @RequestParam(required = false) Boolean abnormalOnly,
+            @RequestParam(required = false) String openType) {
         return R.ok(service.page(pageNum, pageSize, personId, houseId, dateFrom, dateTo,
-                abnormalOnly));
+                abnormalOnly, openType));
     }
 
     /** ⭐ 人员行为轨迹。 */

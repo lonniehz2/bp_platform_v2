@@ -33,7 +33,7 @@ public interface AccessRecordService {
     int reportBatch(List<AccessReportCmd> cmds);
 
     PageResult<AccessVO> page(long pageNum, long pageSize, Long personId, Long houseId,
-                              LocalDate dateFrom, LocalDate dateTo, Boolean abnormalOnly);
+                              LocalDate dateFrom, LocalDate dateTo, Boolean abnormalOnly, String openType);
 
     /** ⭐ 行为轨迹：某人在区间的开门时间线。 */
     TraceVO traceByPerson(Long personId, LocalDate dateFrom, LocalDate dateTo);
