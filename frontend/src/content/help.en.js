@@ -311,6 +311,18 @@ export const HELP_SECTIONS_EN = [
       {
         "type": "p",
         "text": "Qualification checks income level, property ownership and talent validity. Exiting a person closes the eligibility file and removes the person from the waiting queue."
+      },
+      {
+        "type": "h3",
+        "text": "Housing and space nodes"
+      },
+      {
+        "type": "p",
+        "text": "The space tree is maintained to building/unit/floor. Rooms and beds are maintained in Housing. Creating a house under a floor creates a hidden room space automatically."
+      },
+      {
+        "type": "note",
+        "text": "Room/bed space nodes remain in the database for device binding and access inheritance; they are hidden from Space Management."
       }
     ]
   },

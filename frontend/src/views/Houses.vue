@@ -5,10 +5,15 @@
       <div class="spacer" />
       <el-select v-model="orgFilter" :placeholder="t('house.org')" clearable filterable
                  style="width:200px" data-testid="house-org-filter"
-                 @change="reload">
+                 @change="onOrgFilterChange">
         <el-option v-for="o in orgOptions" :key="o.id"
                    :label="o.orgName" :value="o.id" />
       </el-select>
+      <el-tree-select v-model="spaceFilter" :data="floorSpaceTree" check-strictly clearable
+                      filterable :render-after-expand="false"
+                      :props="{ label: 'spaceName', value: 'id', children: 'children' }"
+                      :placeholder="t('house.spaceFilterHint')" style="width:220px"
+                      data-testid="house-space-filter" @change="reload" />
       <el-input v-model="keyword" :placeholder="t('house.keyword')" clearable
                 style="width:180px" @keyup.enter="reload" />
       <el-select v-model="houseStatus" :placeholder="t('house.status')" clearable
@@ -34,11 +39,11 @@
       <el-table-column prop="orgId" :label="t('house.orgCol')" width="150">
         <template #default="{ row }">{{ row.orgIdName || row.orgId }}</template>
       </el-table-column>
-      <el-table-column :label="t('house.space')" width="170" show-overflow-tooltip>
+      <el-table-column :label="t('house.spaceNode')" width="260" show-overflow-tooltip>
             <template #default="{ row }">
-              <span v-if="row.spaceName">
+              <span v-if="row.spaceFullName || row.spaceName">
                 <el-tag v-if="row.spaceType === 'BED'" size="small" type="warning">{{ t('misc7.bed') }}</el-tag>
-                {{ row.spaceName }}
+                {{ row.spaceFullName || row.spaceName }}
               </span>
               <span v-else class="muted">—</span>
             </template>
@@ -101,7 +106,7 @@
                          :label="o.orgName" :value="o.id" />
             </el-select></el-form-item></el-col>
           <el-col :span="12"><el-form-item :label="t('house.spaceNode')" required>
-            <el-tree-select v-model="f.spaceId" :data="spaceTree" check-strictly
+            <el-tree-select v-model="f.spaceId" :data="createSpaceTree" check-strictly
                             filterable :render-after-expand="false"
                             :props="{ label: 'spaceName', value: 'id', children: 'children' }"
                             :placeholder="t('house.spaceSearch')" style="width:100%"
@@ -445,6 +450,8 @@ async function load() {
     const d = await houseApi.page({
       pageNum: pageNum.value, pageSize: pageSize.value,
       orgId: orgFilter.value || undefined,
+      spaceId: spaceFilter.value || undefined,
+      includeChildren: true,
       keyword: keyword.value || undefined,
       houseStatus: houseStatus.value || undefined,
       houseType: houseTypeFilter.value || undefined
@@ -504,6 +511,8 @@ async function doChangeStatus() {
 
 function resetQuery() {
   orgFilter.value = null
+  spaceFilter.value = ''
+  spaceTree.value = []
   houseStatus.value = ''
   houseTypeFilter.value = ''
   keyword.value = ''
@@ -689,6 +698,44 @@ async function openBeds() {
  * 否则房间下拉会是空白（本次修复点）。
  */
 const orgOptions = ref([])
+const spaceFilter = ref('')
+
+/** 空间树去掉 ROOM/BED：房间/床位在房源台账维护，空间只到楼层。 */
+function stripRoomNodes(nodes) {
+  const out = []
+  for (const n of nodes || []) {
+    if (n.spaceType === 'ROOM' || n.spaceType === 'BED') continue
+    const copy = { ...n }
+    if (n.children && n.children.length) copy.children = stripRoomNodes(n.children)
+    out.push(copy)
+  }
+  return out
+}
+const floorSpaceTree = computed(() => stripRoomNodes(spaceTree.value))
+
+/** 建房只允许选楼层；楼栋/单元保留为可展开但不可选的父节点。 */
+function floorOnlyTree(nodes) {
+  const out = []
+  for (const n of nodes || []) {
+    if (n.spaceType === 'ROOM' || n.spaceType === 'BED') continue
+    const copy = { ...n, disabled: n.spaceType !== 'FLOOR' }
+    if (n.children && n.children.length) copy.children = floorOnlyTree(n.children)
+    out.push(copy)
+  }
+  return out
+}
+const createSpaceTree = computed(() => floorOnlyTree(spaceTree.value))
+
+async function onOrgFilterChange(id) {
+  spaceFilter.value = ''
+  spaceTree.value = []
+  if (id) {
+    try {
+      spaceTree.value = await req.get('/spaces/tree', { params: { orgId: id } }) || []
+    } catch (e) { spaceTree.value = [] }
+  }
+  reload()
+}
 
 /** 组织变化时重新加载空间树 */
 async function onOrgChange(orgId) {
@@ -735,8 +782,10 @@ async function ensureSpaceTree() {
 function onSpacePicked(id) {
   const hit = findNode(spaceTree.value, id)
   if (!hit) return
-  if (!f.houseName) f.houseName = hit.spaceName
-  if (!f.houseCode) f.houseCode = hit.spaceCode
+  if (hit.spaceType !== 'FLOOR') {
+    if (!f.houseName) f.houseName = hit.spaceName
+    if (!f.houseCode) f.houseCode = hit.spaceCode
+  }
   if (!f.orgId && hit.orgId) f.orgId = hit.orgId
   if (!f.area && hit.area) f.area = Number(hit.area)
 }

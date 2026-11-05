@@ -2906,6 +2906,7 @@ export default {
     recordsTitle: '审核轨迹', noRecords: '暂无审核记录', detailTitle: '详情'
   },
   house: {
+    spaceFilterHint: '选择空间节点（含下级）',
     confirmSwap: '确认调换',
     title: '房源台账',
     org: '组织名称',

@@ -7,6 +7,9 @@ import com.yundao.bp.asset.constant.HouseStatus;
 import com.yundao.bp.asset.constant.SpaceType;
 import com.yundao.bp.asset.dto.HouseCreateCmd;
 import com.yundao.bp.asset.dto.HouseVO;
+import com.yundao.bp.asset.dto.SpaceCreateCmd;
+import com.yundao.bp.asset.dto.SpaceVO;
+import com.yundao.bp.asset.service.SpaceService;
 import com.yundao.bp.asset.entity.AssetHouse;
 import com.yundao.bp.asset.entity.AssetSpace;
 import com.yundao.bp.asset.mapper.AssetHouseMapper;
@@ -86,6 +89,10 @@ public class HouseServiceImpl implements HouseService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.asset.mapper.AssetSpaceMapper bedSpaceMapper;
 
+    /** 空间服务：从楼层创建房源时自动生成隐藏的 ROOM 节点 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private SpaceService spaceService;
+
     /** 合同（床位租住状态） */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.yundao.bp.biz.mapper.BizContractMapper bedContractMapper;
@@ -106,6 +113,18 @@ public class HouseServiceImpl implements HouseService {
         AssetSpace space = spaceMapper.selectById(cmd.spaceId());
         if (space == null) {
             throw BizException.notFound("空间节点");
+        }
+        // 方案A：空间树只维护到楼层；在楼层下建房源时自动创建隐藏 ROOM 节点，
+        // 房间仍作为设备/授权锚点存在，但不要求用户先到空间管理里维护。
+        if ("FLOOR".equals(space.getSpaceType())) {
+            if (spaceService == null) {
+                throw BizException.stateConflict("空间服务不可用，无法自动创建房间节点");
+            }
+            String roomCode = uniqueRoomSpaceCode(cmd.houseCode().trim());
+            SpaceVO room = spaceService.create(new SpaceCreateCmd(
+                    space.getOrgId(), space.getId(), roomCode,
+                    cmd.houseName().trim(), "ROOM", cmd.area(), null, null));
+            space = spaceMapper.selectById(room.id());
         }
         SpaceType type;
         try {
@@ -135,7 +154,7 @@ public class HouseServiceImpl implements HouseService {
         e.setTenantId(tenantId);
         // ★ orgId 从空间节点派生，不采信前端，避免跨组织挂载
         e.setOrgId(space.getOrgId());
-        e.setSpaceId(cmd.spaceId());
+        e.setSpaceId(space.getId());
         e.setHouseCode(cmd.houseCode().trim());
         e.setHouseName(cmd.houseName().trim());
         e.setHouseType(cmd.houseType());
@@ -182,10 +201,19 @@ public class HouseServiceImpl implements HouseService {
 
     @Override
     public PageResult<HouseVO> page(long pageNum, long pageSize, Long orgId,
-                                    Long spaceId, String houseStatus, String houseType, String keyword) {
+                                    Long spaceId, String houseStatus, String houseType, String keyword,
+                                    Boolean includeChildren) {
         LambdaQueryWrapper<AssetHouse> qw = new LambdaQueryWrapper<AssetHouse>()
-                .eq(orgId != null, AssetHouse::getOrgId, orgId)
-                .eq(spaceId != null, AssetHouse::getSpaceId, spaceId)
+                .eq(orgId != null, AssetHouse::getOrgId, orgId);
+        if (spaceId != null) {
+            if (Boolean.TRUE.equals(includeChildren)) {
+                java.util.List<Long> spaceIds = descendantSpaceIds(spaceId);
+                qw.in(AssetHouse::getSpaceId, spaceIds);
+            } else {
+                qw.eq(AssetHouse::getSpaceId, spaceId);
+            }
+        }
+        qw
                 .eq(houseStatus != null && !houseStatus.isBlank(),
                         AssetHouse::getHouseStatus, houseStatus)
                 .eq(houseType != null && !houseType.isBlank(),
@@ -226,14 +254,36 @@ public class HouseServiceImpl implements HouseService {
         for (AssetSpace sp : spaceMapper.selectBatchIds(ids)) {
             byId.put(sp.getId(), sp);
         }
+        // 祖先也预取，避免逐行查库
+        java.util.Set<Long> ancestorIds = new java.util.HashSet<>();
+        for (AssetSpace sp : byId.values()) {
+            if (sp.getSpacePath() == null || sp.getSpacePath().isBlank()) {
+                continue;
+            }
+            for (String x : sp.getSpacePath().split("/")) {
+                if (!x.isBlank()) {
+                    try {
+                        ancestorIds.add(Long.valueOf(x));
+                    } catch (NumberFormatException ignored) {
+                        // 忽略异常历史数据
+                    }
+                }
+            }
+        }
+        if (!ancestorIds.isEmpty()) {
+            for (AssetSpace sp : spaceMapper.selectBatchIds(ancestorIds)) {
+                byId.put(sp.getId(), sp);
+            }
+        }
         for (int i = 0; i < entities.size(); i++) {
             AssetSpace sp = byId.get(entities.get(i).getSpaceId());
             if (sp == null) {
                 continue;
             }
             HouseVO old = rows.get(i);
+            String fullName = buildSpaceFullName(sp, byId);
             rows.set(i, HouseVO.from(entities.get(i), old.houseStatusLabel(), old.vacantDays(),
-                    sp.getSpaceName(), sp.getSpaceType()));
+                    sp.getSpaceName(), sp.getSpaceType(), fullName));
         }
     }
 
@@ -271,6 +321,64 @@ public class HouseServiceImpl implements HouseService {
      * （{@link HouseStatus#POOLABLE} = PENDING_ALLOC / VACANT）计算，
      * 从状态变更时间起算；其它状态返回 null（表示"非空置"，而非"空置 0 天"）。
      */
+    /** 用 space_path 的祖先链拼出「楼栋/单元/楼层/房间/床位」完整路径。 */
+    private String buildSpaceFullName(AssetSpace sp, java.util.Map<Long, AssetSpace> byId) {
+        java.util.List<String> names = new java.util.ArrayList<>();
+        if (sp.getSpacePath() != null && !sp.getSpacePath().isBlank()) {
+            for (String x : sp.getSpacePath().split("/")) {
+                if (x.isBlank()) {
+                    continue;
+                }
+                try {
+                    AssetSpace parent = byId.get(Long.valueOf(x));
+                    if (parent != null && parent.getSpaceName() != null) {
+                        names.add(parent.getSpaceName());
+                    }
+                } catch (NumberFormatException ignored) {
+                    // 忽略异常历史数据
+                }
+            }
+        }
+        if (sp.getSpaceName() != null) {
+            names.add(sp.getSpaceName());
+        }
+        return names.isEmpty() ? sp.getFullName() : String.join(" / ", names);
+    }
+
+    private java.util.List<Long> descendantSpaceIds(Long spaceId) {
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        AssetSpace selected = spaceMapper.selectById(spaceId);
+        if (selected == null) {
+            ids.add(spaceId);
+            return ids;
+        }
+        ids.add(spaceId);
+        String prefix = (selected.getSpacePath() == null ? "" : selected.getSpacePath())
+                + selected.getId() + "/";
+        java.util.List<AssetSpace> children = spaceMapper.selectList(
+                new LambdaQueryWrapper<AssetSpace>()
+                        .likeRight(AssetSpace::getSpacePath, prefix));
+        for (AssetSpace c : children) {
+            if (!ids.contains(c.getId())) {
+                ids.add(c.getId());
+            }
+        }
+        return ids;
+    }
+
+    private String uniqueRoomSpaceCode(String base) {
+        String root = base.length() > 58 ? base.substring(0, 58) : base;
+        for (int i = 0; i < 100; i++) {
+            String code = i == 0 ? root : root + "-R" + i;
+            Long n = spaceMapper.selectCount(new LambdaQueryWrapper<AssetSpace>()
+                    .eq(AssetSpace::getSpaceCode, code));
+            if (n == null || n == 0) {
+                return code;
+            }
+        }
+        throw BizException.stateConflict("无法生成房间空间编码: " + base);
+    }
+
     private HouseVO toVO(AssetHouse e) {
         HouseStatus st;
         try {

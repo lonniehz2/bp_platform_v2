@@ -2936,6 +2936,7 @@ export default {
     recordsTitle: 'Review History', noRecords: 'No review records', detailTitle: 'Detail'
   },
   house: {
+    spaceFilterHint: 'Select space node (with children)',
     confirmSwap: 'Confirm Swap',
     title: 'Housing',
     org: 'Organization',

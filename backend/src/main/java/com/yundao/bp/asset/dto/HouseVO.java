@@ -19,6 +19,8 @@ public record HouseVO(
         Long spaceId,
         /** 所属空间名称（房间 / 床位） */
         String spaceName,
+        /** 所属空间完整路径（楼栋/单元/楼层/房间/床位） */
+        String spaceFullName,
         /** 所属空间类型：ROOM / BED 等 */
         String spaceType,
         String houseCode,
@@ -45,17 +47,23 @@ public record HouseVO(
 ) {
 
     public static HouseVO from(AssetHouse e, String statusLabel, Long vacantDays) {
-        return from(e, statusLabel, vacantDays, null, null);
+        return from(e, statusLabel, vacantDays, null, null, null);
     }
 
     /** 带所属空间信息（宿舍/床位、合租场景用于定位）。 */
     public static HouseVO from(AssetHouse e, String statusLabel, Long vacantDays,
                                String spaceName, String spaceType) {
+        return from(e, statusLabel, vacantDays, spaceName, spaceType, null);
+    }
+
+    /** 带所属空间完整路径。 */
+    public static HouseVO from(AssetHouse e, String statusLabel, Long vacantDays,
+                               String spaceName, String spaceType, String spaceFullName) {
         if (e == null) {
             return null;
         }
-        return new HouseVO(e.getId(), e.getOrgId(), e.getSpaceId(), spaceName, spaceType,
-                e.getHouseCode(), e.getHouseName(), e.getHouseType(), e.getSecurityType(),
+        return new HouseVO(e.getId(), e.getOrgId(), e.getSpaceId(), spaceName, spaceFullName,
+                spaceType, e.getHouseCode(), e.getHouseName(), e.getHouseType(), e.getSecurityType(),
                 e.getUnitLayout(), e.getFloorNo(), e.getOrientation(), e.getArea(),
                 e.getRentStandard(), e.getRentUnit(), e.getMeterMode(), e.getMaxCapacity(),
                 e.getCurrentCapacity(), e.getHouseStatus(), statusLabel,

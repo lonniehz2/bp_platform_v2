@@ -97,9 +97,10 @@ public class HouseController {
                                        @RequestParam(required = false) Long spaceId,
                                        @RequestParam(required = false) String houseStatus,
                                        @RequestParam(required = false) String houseType,
-                                       @RequestParam(required = false) String keyword) {
+                                       @RequestParam(required = false) String keyword,
+                                       @RequestParam(required = false) Boolean includeChildren) {
         return R.ok(houseService.page(pageNum, pageSize, orgId, spaceId, houseStatus,
-                houseType, keyword));
+                houseType, keyword, includeChildren));
     }
 
 

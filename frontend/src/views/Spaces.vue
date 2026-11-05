@@ -23,7 +23,7 @@
 
     <el-row :gutter="14">
       <el-col :span="9">
-        <el-tree ref="treeRef" :data="tree" :props="{ label: 'spaceName', children: 'children' }"
+        <el-tree ref="treeRef" :data="visibleTree" :props="{ label: 'spaceName', children: 'children' }"
                  node-key="id" :key="treeKey" default-expand-all highlight-current
                  @node-click="onSelect">
           <template #default="{ data }">
@@ -159,13 +159,26 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import DetailView from '@/components/DetailView.vue'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { spaceApi, orgApi } from '@/api/modules'
 import { enumLabel } from '@/constants/enums'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const { t } = useI18n()
 const tree = ref([])
+
+/** 方案A：空间树只展示到楼层；房间/床位在房源台账维护，底层节点仍保留。 */
+function hideRoomNodes(nodes) {
+  const out = []
+  for (const n of nodes || []) {
+    if (n.spaceType === 'ROOM' || n.spaceType === 'BED') continue
+    const copy = { ...n }
+    if (n.children && n.children.length) copy.children = hideRoomNodes(n.children)
+    out.push(copy)
+  }
+  return out
+}
+const visibleTree = computed(() => hideRoomNodes(tree.value))
 const current = ref(null)
 const orgId = ref(null)
 const expandAll = ref(true)
