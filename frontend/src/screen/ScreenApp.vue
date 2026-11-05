@@ -257,12 +257,14 @@ const AXIS = {
 }
 
 function renderCharts() {
-  // widget 优先，缺失时用实时统计兜底（大屏 widgets 不含已出租/待配租）
-  const occupied = valueOf('HOUSE_OCCUPIED') || houseStat.value.occupied
-  const vacant = valueOf('HOUSE_VACANT') || houseStat.value.vacant
-  const total = valueOf('HOUSE_TOTAL')
+  // 有实时总览时优先使用实时分类，避免旧 widget 同时给出「空置/待配租」造成重复计数
+  const st = screenStats.value || {}
+  const realtime = Number(st.total || 0) > 0
+  const occupied = realtime ? Number(st.occupied || 0) : (valueOf('HOUSE_OCCUPIED') || houseStat.value.occupied)
+  const vacant = realtime ? Number(st.vacant || 0) : (valueOf('HOUSE_VACANT') || houseStat.value.vacant)
+  const total = realtime ? Number(st.total || 0) : valueOf('HOUSE_TOTAL')
   // 与「运营驾驶舱」口径统一：第三类用「待配租」，不再是笼统的「其他」
-  const pending = valueOf('PENDING_ALLOC') || houseStat.value.pending
+  const pending = realtime ? Number(st.pending || 0) : (valueOf('PENDING_ALLOC') || houseStat.value.pending)
   const other = Math.max(0, total - occupied - vacant - pending)
 
   charts.pie?.setOption({
