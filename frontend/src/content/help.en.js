@@ -412,6 +412,26 @@ export const HELP_SECTIONS_EN = [
       {
         "type": "p",
         "text": "Keyrings bind persons to face, fingerprint, palm vein, password, card, ID card or QR credentials. Access grants can be reconciled against IoT and audited."
+      },
+      {
+        "type": "h3",
+        "text": "Device binding"
+      },
+      {
+        "type": "p",
+        "text": "Access & Devices → Device Binding. Devices are bound to a space; a house is located through house.space_id, and devices in parent spaces are inherited by child houses."
+      },
+      {
+        "type": "h3",
+        "text": "Space view binding"
+      },
+      {
+        "type": "p",
+        "text": "Access & Devices → Device Binding → Space View. Bind a device directly to a community, building, unit, floor or room; all child houses inherit it. Unbind only at the space where the device is actually bound."
+      },
+      {
+        "type": "note",
+        "text": "Typical use: bind a unit gate to a unit, a building master meter to a building, and a room lock to one room."
       }
     ]
   },

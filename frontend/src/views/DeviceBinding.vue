@@ -5,6 +5,7 @@
                 style="width:240px" @keyup.enter="loadHouses" />
       <el-button type="primary" @click="loadHouses">{{ t('binding.search') }}</el-button>
       <el-button type="success" plain @click="openBatchBind" data-testid="device-batch-bind">{{ t('binding.batchBind') }}</el-button>
+      <el-button type="primary" plain @click="openSpaceView" data-testid="device-space-bind">{{ t('bindingX.spaceView') }}</el-button>
       <span class="muted" style="font-size:12px">
         {{ t('bindingX.spaceOnly') }}
       </span>
@@ -172,6 +173,85 @@
           {{ t('binding.startBind') }}
         </el-button>
         <el-button v-if="batchStep === 3" @click="loadDevices">{{ t('binding.refreshDevices') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 空间视角：设备直接绑定到楼栋/单元/楼层/房间 -->
+    <el-dialog v-model="spaceVisible" :title="t('bindingX.spaceTitle')" width="820px"
+               @close="resetSpace">
+      <el-alert type="info" :closable="false" show-icon
+                :title="t('bindingX.spaceHint')" style="margin-bottom:10px" />
+      <el-form inline>
+        <el-form-item :label="t('bindingX.org')">
+          <el-select v-model="spaceOrgId" filterable style="width:190px" @change="loadSpaceTree">
+            <el-option v-for="o in orgs" :key="o.id" :label="o.orgName" :value="String(o.id)" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="t('bindingX.spaceNode')">
+          <el-tree-select v-model="spaceId" :data="spaceTree" check-strictly filterable
+                          :render-after-expand="false"
+                          :props="{ label: 'spaceName', value: 'id', children: 'children' }"
+                          style="width:300px" :placeholder="t('bindingX.spacePlaceholder')"
+                          @change="loadSpaceDevices" />
+        </el-form-item>
+      </el-form>
+
+      <template v-if="!spaceBindMode">
+        <div class="toolbar" style="margin:8px 0">
+          <span style="font-weight:600">
+            {{ spaceName ? spaceName + ' ' + t('bindingX.spaceDevices') : t('bindingX.spacePlaceholder') }}
+          </span>
+          <div class="spacer" />
+          <el-button v-if="spaceId" type="primary" plain size="small" @click="openSpaceBind">
+            {{ t('bindingX.bindSpace') }}
+          </el-button>
+          <el-button v-if="spaceId" size="small" @click="loadSpaceDevices">{{ t('binding.refresh') }}</el-button>
+        </div>
+        <el-table :data="spaceDevices" v-loading="spaceLoading" border size="small" max-height="360"
+                  :empty-text="t('bindingX.spaceEmpty')">
+          <el-table-column prop="deviceName" :label="t('binding.deviceName')" min-width="170" />
+          <el-table-column prop="deviceId" :label="t('binding.deviceId')" width="180" />
+          <el-table-column prop="deviceType" :label="t('binding.category')" width="110">
+            <template #default="{ row }">{{ typeLabel(row.deviceType) }}</template>
+          </el-table-column>
+          <el-table-column prop="onlineStatus" :label="t('binding.online')" width="80">
+            <template #default="{ row }">
+              <el-tag size="small" :type="row.onlineStatus === 1 ? 'success' : 'info'">
+                {{ row.onlineStatus === 1 ? t('bindingX.online') : t('bindingX.offline') }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column :label="t('binding.actions')" width="90" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="danger" @click="unbindSpace(row)">{{ t('binding.unbind') }}</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </template>
+
+      <template v-else>
+        <div class="toolbar" style="margin:8px 0">
+          <span style="font-weight:600">{{ t('bindingX.spaceBindTitle') }}</span>
+          <div class="spacer" />
+          <el-button size="small" @click="spaceBindMode = false">{{ t('bindingX.back') }}</el-button>
+        </div>
+        <el-table :data="spaceUnbound" v-loading="spaceBindLoading" border size="small" max-height="330"
+                  @selection-change="(v) => (spacePicked = v)">
+          <el-table-column type="selection" width="46" />
+          <el-table-column prop="deviceName" :label="t('bindingX.devName')" min-width="160" />
+          <el-table-column prop="deviceId" :label="t('bindingX.devId')" width="180" />
+          <el-table-column prop="deviceType" :label="t('bindingX.category')" width="110">
+            <template #default="{ row }">{{ typeLabel(row.deviceType) }}</template>
+          </el-table-column>
+        </el-table>
+      </template>
+
+      <template #footer>
+        <el-button @click="spaceVisible = false">{{ t('binding.close') }}</el-button>
+        <el-button v-if="spaceBindMode" type="primary" :loading="spaceSaving"
+                   :disabled="!spacePicked.length" @click="doSpaceBind">
+          {{ t('bindingX.bindSelected', { n: spacePicked.length }) }}
+        </el-button>
       </template>
     </el-dialog>
   </div>
@@ -401,6 +481,119 @@ async function unbind(row) {
   } catch (e) {
     ElMessage.error(e?.response?.data?.message || '解绑失败')
   }
+}
+
+// ---------------- 空间视角 ----------------
+const spaceVisible = ref(false)
+const orgs = ref([])
+const spaceOrgId = ref('')
+const spaceTree = ref([])
+const spaceId = ref('')
+const spaceName = ref('')
+const spaceDevices = ref([])
+const spaceUnbound = ref([])
+const spacePicked = ref([])
+const spaceLoading = ref(false)
+const spaceBindLoading = ref(false)
+const spaceSaving = ref(false)
+const spaceBindMode = ref(false)
+
+async function openSpaceView() {
+  spaceVisible.value = true
+  spaceBindMode.value = false
+  spaceId.value = ''
+  spaceName.value = ''
+  spaceDevices.value = []
+  await loadOrgs()
+  if (spaceOrgId.value) await loadSpaceTree()
+}
+
+async function loadOrgs() {
+  try {
+    const d = await req.get('/orgs', { params: { pageNum: 1, pageSize: 100 } })
+    orgs.value = d.rows || []
+    if (!spaceOrgId.value && orgs.value.length) spaceOrgId.value = String(orgs.value[0].id)
+  } catch (e) { orgs.value = [] }
+}
+
+async function loadSpaceTree() {
+  spaceId.value = ''
+  spaceName.value = ''
+  spaceTree.value = []
+  spaceDevices.value = []
+  if (!spaceOrgId.value) return
+  try {
+    spaceTree.value = await req.get('/spaces/tree', { params: { orgId: spaceOrgId.value } }) || []
+  } catch (e) { spaceTree.value = [] }
+}
+
+function findSpace(nodes, id) {
+  for (const n of nodes || []) {
+    if (String(n.id) === String(id)) return n
+    const hit = findSpace(n.children, id)
+    if (hit) return hit
+  }
+  return null
+}
+
+async function loadSpaceDevices() {
+  if (!spaceId.value) { spaceDevices.value = []; return }
+  spaceName.value = findSpace(spaceTree.value, spaceId.value)?.spaceName || ''
+  spaceLoading.value = true
+  try {
+    const d = await req.get('/devices', { params: { pageNum: 1, pageSize: 100, spaceId: spaceId.value } })
+    spaceDevices.value = (d && d.rows) || []
+  } catch (e) {
+    ElMessage.error(t('bindingX.loadSpaceFailed'))
+  } finally { spaceLoading.value = false }
+}
+
+async function openSpaceBind() {
+  if (!spaceId.value) { ElMessage.warning(t('bindingX.spacePlaceholder')); return }
+  spaceBindMode.value = true
+  spaceBindLoading.value = true
+  spacePicked.value = []
+  try {
+    spaceUnbound.value = await req.get('/devices/unbound') || []
+  } catch (e) {
+    ElMessage.error(t('bindingX.loadUnboundFailed'))
+  } finally { spaceBindLoading.value = false }
+}
+
+async function doSpaceBind() {
+  if (!spaceId.value || !spacePicked.value.length) return
+  spaceSaving.value = true
+  try {
+    for (const d of spacePicked.value) {
+      await req.post(`/devices/${d.id}/bind`, { spaceId: spaceId.value })
+    }
+    ElMessage.success(t('bindingX.spaceBound', { n: spacePicked.value.length }))
+    spaceBindMode.value = false
+    await loadSpaceDevices()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || t('bindingX.spaceBindFailed'))
+  } finally { spaceSaving.value = false }
+}
+
+async function unbindSpace(row) {
+  await ElMessageBox.confirm(t('bindingX.spaceUnbindConfirm'), t('binding.unbind'),
+    { type: 'warning' })
+  try {
+    await req.post(`/devices/${row.id}/bind`, { spaceId: null })
+    ElMessage.success(t('bindingX.spaceUnbound'))
+    await loadSpaceDevices()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || t('bindingX.spaceUnbindFailed'))
+  }
+}
+
+function resetSpace() {
+  spaceBindMode.value = false
+  spaceId.value = ''
+  spaceName.value = ''
+  spaceDevices.value = []
+  spaceUnbound.value = []
+  spacePicked.value = []
 }
 
 onMounted(loadHouses)
