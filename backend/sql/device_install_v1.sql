@@ -33,3 +33,9 @@ create table if not exists bp_asset_house_seq (
 
 -- 清理重复房源后再加唯一约束：
 -- alter table bp_asset_house add unique key uk_tenant_space (tenant_id, space_id, is_deleted);
+
+-- 一空间一房源：逻辑删除时只约束有效房源
+alter table bp_asset_house
+  add column active_space_id bigint generated always as (if(is_deleted = 0, space_id, null)) stored;
+alter table bp_asset_house
+  add unique key uk_tenant_active_space (tenant_id, active_space_id);
