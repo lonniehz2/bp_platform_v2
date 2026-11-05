@@ -39,7 +39,6 @@ public record HouseCreateCmd(
         @NotNull(message = "关联空间节点不能为空")
         Long spaceId,
 
-        @NotBlank(message = "房源编号不能为空")
         @Size(max = 64, message = "房源编号不能超过 64 字符")
         String houseCode,
 

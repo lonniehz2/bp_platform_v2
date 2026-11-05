@@ -104,6 +104,61 @@ public class HouseServiceImpl implements HouseService {
         this.idGen = idGen;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    /**
+     * 房源编号：H + 组织编码 + 6位序号。序号表按租户+组织原子递增。
+     * 表不可用时回退到“查重后递增”，保证测试/老库也能启动。
+     */
+    private String nextHouseCode(Long orgId) {
+        String orgCode = null;
+        try {
+            if (importOrgMapper != null) {
+                com.yundao.bp.iam.entity.IamOrg org = importOrgMapper.selectById(orgId);
+                if (org != null) {
+                    orgCode = org.getOrgCode();
+                }
+            }
+        } catch (Exception ignored) {
+            // 回退
+        }
+        if (orgCode == null || orgCode.isBlank()) {
+            orgCode = String.valueOf(orgId);
+        }
+        String prefix = "H" + orgCode;
+        if (jdbc != null) {
+            try {
+                String tenant = TenantContext.tenantId();
+                jdbc.update("insert into bp_asset_house_seq(tenant_id, org_code, next_val) "
+                        + "values(?, ?, 1) on duplicate key update next_val = next_val + 1",
+                        tenant, orgCode);
+                Long seq = jdbc.queryForObject(
+                        "select next_val from bp_asset_house_seq where tenant_id=? and org_code=?",
+                        Long.class, tenant, orgCode);
+                if (seq != null) {
+                    String code = prefix + String.format("%06d", seq);
+                    Long dup = houseMapper.selectCount(new LambdaQueryWrapper<AssetHouse>()
+                            .eq(AssetHouse::getHouseCode, code));
+                    if (dup == null || dup == 0) {
+                        return code;
+                    }
+                }
+            } catch (Exception ignored) {
+                // 回退到扫描
+            }
+        }
+        for (int i = 1; i < 1_000_000; i++) {
+            String code = prefix + String.format("%06d", i);
+            Long dup = houseMapper.selectCount(new LambdaQueryWrapper<AssetHouse>()
+                    .eq(AssetHouse::getHouseCode, code));
+            if (dup == null || dup == 0) {
+                return code;
+            }
+        }
+        throw BizException.stateConflict("无法生成房源编号");
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public HouseVO create(HouseCreateCmd cmd) {
@@ -114,13 +169,15 @@ public class HouseServiceImpl implements HouseService {
         if (space == null) {
             throw BizException.notFound("空间节点");
         }
+        String houseCode = cmd.houseCode() == null || cmd.houseCode().isBlank()
+                ? nextHouseCode(space.getOrgId()) : cmd.houseCode().trim();
         // 方案A：空间树只维护到楼层；在楼层下建房源时自动创建隐藏 ROOM 节点，
         // 房间仍作为设备/授权锚点存在，但不要求用户先到空间管理里维护。
         if ("FLOOR".equals(space.getSpaceType())) {
             if (spaceService == null) {
                 throw BizException.stateConflict("空间服务不可用，无法自动创建房间节点");
             }
-            String roomCode = uniqueRoomSpaceCode(cmd.houseCode().trim());
+            String roomCode = uniqueRoomSpaceCode(houseCode);
             SpaceVO room = spaceService.create(new SpaceCreateCmd(
                     space.getOrgId(), space.getId(), roomCode,
                     cmd.houseName().trim(), "ROOM", cmd.area(), null, null));
@@ -138,13 +195,18 @@ public class HouseServiceImpl implements HouseService {
                             + " 是 " + type.label());
         }
 
-        // ---- 2) 同组织内编码唯一 ----
+        // ---- 2) 一个空间只能有一个有效房源、同组织内编码唯一 ----
+        Long spaceDup = houseMapper.selectCount(new LambdaQueryWrapper<AssetHouse>()
+                .eq(AssetHouse::getSpaceId, space.getId()));
+        if (spaceDup != null && spaceDup > 0) {
+            throw BizException.stateConflict("该空间已存在房源，不能重复创建");
+        }
         Long dup = houseMapper.selectCount(new LambdaQueryWrapper<AssetHouse>()
                 .eq(AssetHouse::getOrgId, space.getOrgId())
-                .eq(AssetHouse::getHouseCode, cmd.houseCode().trim()));
+                .eq(AssetHouse::getHouseCode, houseCode));
         if (dup != null && dup > 0) {
             throw new BizException(ErrorCode.DUPLICATED,
-                    "房源编号已存在: " + cmd.houseCode().trim());
+                    "房源编号已存在: " + houseCode);
         }
 
         // ---- 3) 组装 ----
@@ -155,7 +217,7 @@ public class HouseServiceImpl implements HouseService {
         // ★ orgId 从空间节点派生，不采信前端，避免跨组织挂载
         e.setOrgId(space.getOrgId());
         e.setSpaceId(space.getId());
-        e.setHouseCode(cmd.houseCode().trim());
+        e.setHouseCode(houseCode);
         e.setHouseName(cmd.houseName().trim());
         e.setHouseType(cmd.houseType());
         e.setStructType(blankToNull(cmd.structType()));

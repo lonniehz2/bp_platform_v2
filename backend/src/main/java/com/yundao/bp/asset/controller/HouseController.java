@@ -24,9 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class HouseController {
 
     private final HouseService houseService;
+    private final com.yundao.bp.asset.service.impl.HouseImportService houseImportService;
 
-    public HouseController(HouseService houseService) {
+    public HouseController(HouseService houseService,
+                           com.yundao.bp.asset.service.impl.HouseImportService houseImportService) {
         this.houseService = houseService;
+        this.houseImportService = houseImportService;
     }
 
     @com.yundao.bp.iam.security.RequirePerm("asset:house:create")
@@ -110,6 +113,15 @@ public class HouseController {
      * <p>用于真实台账迁移：逐行校验组织、空间、枚举与编号唯一性，
      * 失败行返回行号与原因，不中断整批。
      */
+    /** 一张长表：自动创建空间、房源、虚拟设备并绑定。 */
+    @PostMapping("/import-batch")
+    @com.yundao.bp.iam.security.RequirePerm("asset:house:create")
+    public R<java.util.Map<String, Object>> importBatch(
+            @org.springframework.web.bind.annotation.RequestParam("file")
+            org.springframework.web.multipart.MultipartFile file) {
+        return R.ok(houseImportService.importCsv(file));
+    }
+
     @PostMapping("/import")
     @com.yundao.bp.iam.security.RequirePerm("asset:house:create")
     public R<java.util.Map<String, Object>> importCsv(

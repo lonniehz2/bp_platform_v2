@@ -44,6 +44,12 @@ public class DevDevice {
     private Long spaceId;
     private String installAddress;
     private LocalDateTime installTime;
+    /** 是否虚拟设备：导入/预生成、尚未绑定物理硬件 */
+    private Integer isVirtual;
+    /** VIRTUAL / PENDING_INSTALL / INSTALLED / PENDING_REPLACE / REPLACED */
+    private String installStatus;
+    private String iotOrderNo;
+    private LocalDateTime macUpdatedTime;
 
     private Integer onlineStatus;
     private LocalDateTime onlineTime;

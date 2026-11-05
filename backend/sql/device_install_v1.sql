@@ -1,0 +1,35 @@
+-- 设备安装/虚拟设备与房源编号序号（2026-11-05）
+-- 在既有库执行；install_time 已存在时跳过该列。
+
+alter table bp_dev_device add column is_virtual tinyint not null default 0 comment '是否虚拟设备';
+alter table bp_dev_device add column install_status varchar(32) not null default 'INSTALLED'
+  comment 'VIRTUAL/PENDING_INSTALL/INSTALLED/PENDING_REPLACE/REPLACED';
+alter table bp_dev_device add column iot_order_no varchar(64) null comment 'IoT安装单号';
+alter table bp_dev_device add column mac_updated_time datetime null comment 'MAC更新时间';
+
+create table if not exists bp_dev_device_hardware (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  device_id varchar(64) not null,
+  old_mac varchar(64) null,
+  new_mac varchar(64) null,
+  change_type varchar(20) not null,
+  iot_order_no varchar(64) null,
+  operator_id varchar(64) null,
+  operator_name varchar(100) null,
+  install_time datetime null,
+  remark varchar(500) null,
+  create_time datetime not null default current_timestamp,
+  key idx_hw_device (device_id),
+  key idx_hw_order (iot_order_no)
+) engine=InnoDB default charset=utf8mb4 comment='设备硬件/MAC更换历史';
+
+create table if not exists bp_asset_house_seq (
+  tenant_id varchar(32) not null,
+  org_code varchar(32) not null,
+  next_val bigint not null default 1,
+  primary key (tenant_id, org_code)
+) engine=InnoDB default charset=utf8mb4 comment='房源编号序号';
+
+-- 清理重复房源后再加唯一约束：
+-- alter table bp_asset_house add unique key uk_tenant_space (tenant_id, space_id, is_deleted);

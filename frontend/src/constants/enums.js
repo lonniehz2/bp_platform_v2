@@ -362,6 +362,14 @@ const TYPE_OVERRIDE = {
     DEVICE_PREPAY_IN: '设备预存', DEVICE_PREPAY_REFUND: '设备退款',
     DEVICE_CONSUME: '设备扣减', BILL: '账单抵扣'
   },
+  installStatus: {
+    VIRTUAL: '虚拟设备',
+    PENDING_INSTALL: '待安装',
+    INSTALLED: '已安装',
+    PENDING_REPLACE: '待替换',
+    REPLACED: '已替换',
+    OFFLINE: '离线'
+  },
   deviceType: {
     LOCK: '门锁',
     ACCESS: '门禁',
