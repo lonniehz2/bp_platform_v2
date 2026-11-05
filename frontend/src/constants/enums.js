@@ -373,6 +373,8 @@ const TYPE_OVERRIDE = {
     HEAT_METER: '热量表',
     CAMERA: '摄像头',
     SENSOR: '传感器',
+    CAR_LOCK: '汽车锁',
+    CONTROLLER: '控制器',
     OTHER: '其他'
   },
   calcMode: { FIXED: '定额', METER: '抄表' },

@@ -338,6 +338,13 @@ const TYPE_BY_TEXT = {
   视频: 'CAMERA', 电表: 'ELEC_METER', 水表: 'WATER_METER', 燃气表: 'GAS_METER',
   气表: 'GAS_METER', 传感器: 'SENSOR'
 }
+for (const code of ['CAR_LOCK', 'CONTROLLER']) {
+  const text = enumLabel('deviceType', code)
+  if (text && text !== code) {
+    DEVICE_TYPE_LABEL[code] = text
+    TYPE_BY_TEXT[text] = code
+  }
+}
 
 function openImport() {
   resetImport()

@@ -397,7 +397,7 @@ const TYPE_LABEL = {
   WATER_METER: '水表', ELEC_METER: '电表', GAS_METER: '燃气表', HEAT_METER: '热量表',
   CAMERA: '摄像头', SENSOR: '传感器', OTHER: '其他'
 }
-function typeLabel(code) { return TYPE_LABEL[code] || code || '—' }
+function typeLabel(code) { return TYPE_LABEL[code] || enumLabel('deviceType', code) || code || '—' }
 
 async function loadHouses() {
   try {

@@ -21,7 +21,9 @@ public enum OpenableDeviceType {
     GATEWAY("网关", false),
     COLLECTOR("采集器", false),
     BOX("车闸盒子", true),
-    VISITOR_CTRL("访客码控制器", true);
+    VISITOR_CTRL("访客码控制器", true),
+    CAR_LOCK("汽车锁", false),
+    CONTROLLER("控制器", false);
 
     private final String label;
     private final boolean openable;

@@ -278,12 +278,17 @@ public class DeviceController {
         m.put("燃气表", "GAS_METER");
         m.put("气表", "GAS_METER");
         m.put("传感器", "SENSOR");
+        for (com.yundao.bp.dev.constant.DevDeviceType type
+                : com.yundao.bp.dev.constant.DevDeviceType.values()) {
+            m.putIfAbsent(type.label(), type.name());
+        }
         if (m.containsKey(t)) {
             return m.get(t);
         }
         String up = t.toUpperCase();
         for (String code : java.util.List.of("LOCK", "ACCESS", "BARRIER", "CAMERA",
-                "ELEC_METER", "WATER_METER", "GAS_METER", "SENSOR")) {
+                "ELEC_METER", "WATER_METER", "GAS_METER", "SENSOR",
+                "CAR_LOCK", "CONTROLLER")) {
             if (code.equals(up)) {
                 return code;
             }

@@ -18,6 +18,8 @@ public enum DevDeviceType {
     HEAT_METER("热量表", "计量设备"),
     CAMERA("摄像头", "安防设备"),
     SENSOR("传感器", "安防设备"),
+    CAR_LOCK("汽车锁", "控制设备"),
+    CONTROLLER("控制器", "控制设备"),
     OTHER("其他", "其他");
 
     private final String label;
