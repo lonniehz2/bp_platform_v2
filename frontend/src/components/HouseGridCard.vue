@@ -82,7 +82,7 @@ const onlineText = computed(() => {
 </script>
 
 <style scoped>
-.house-card { border: 1px solid var(--el-border-color); border-left: 5px solid var(--el-border-color); border-radius: 6px; padding: 10px 12px; min-height: 210px; background: var(--el-bg-color); display: flex; flex-direction: column; gap: 5px; }
+.house-card { border: 1px solid var(--el-border-color); border-left: 5px solid var(--el-border-color); border-radius: 6px; padding: 8px 10px; min-height: 200px; background: var(--el-bg-color); display: flex; flex-direction: column; gap: 5px; }
 .house-card.occupied { border-left-color: #67c23a; }
 .house-card.vacant { border-left-color: #e6a23c; }
 .house-card.pending { border-left-color: #8b5cf6; }
@@ -91,8 +91,8 @@ const onlineText = computed(() => {
 .house-card.disabled { border-left-color: #909399; }
 .house-card.frozen { border-left-color: #f56c6c; background: rgba(245,108,108,.05); }
 .card-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.room-name { font-weight: 600; font-size: 15px; }
-.card-path { color: var(--el-text-color-secondary); font-size: 12px; }
+.room-name { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-path { color: var(--el-text-color-secondary); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card-row { display: flex; gap: 8px; font-size: 13px; }
 .card-row span { color: var(--el-text-color-secondary); }
 .card-freeze { color: #f56c6c; font-size: 12px; }
@@ -101,5 +101,6 @@ const onlineText = computed(() => {
 .device-line { color: var(--el-text-color-secondary); display: flex; justify-content: space-between; }
 .card-no-device { color: #e6a23c; font-size: 12px; }
 .card-alert { color: #f56c6c; font-size: 12px; }
-.card-actions { margin-top: auto; border-top: 1px solid var(--el-border-color-lighter); padding-top: 6px; display: flex; flex-wrap: wrap; gap: 2px 8px; }
+.card-actions { margin-top: auto; border-top: 1px solid var(--el-border-color-lighter); padding-top: 6px; display: flex; flex-wrap: wrap; gap: 2px 4px; }
+.card-actions :deep(.el-button) { margin-left: 0; padding: 0 2px; font-size: 12px; }
 </style>

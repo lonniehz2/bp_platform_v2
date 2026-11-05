@@ -85,7 +85,8 @@
     </div>
     <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
                    :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
-                   @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[12, 20, 40, 80]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
+                   @current-change="(p) => { pageNum = p; load() }"  :page-sizes="viewMode === 'grid' ? [20] : [12, 20, 40, 80]"
+                   @size-change="(s) => { pageSize = viewMode === 'grid' ? 20 : s; pageNum = 1; load() }" />
 
     <el-dialog v-model="occVisible" :title="t('house.occTitle')" width="560px">
       <el-descriptions v-if="occ && occ.occupied" :column="1" border size="small">
@@ -497,6 +498,7 @@ async function load() {
 function onViewChange(v) {
   viewMode.value = v
   localStorage.setItem('house-view-mode', v)
+  if (v === 'grid') pageSize.value = 20
   pageNum.value = 1
   load()
 }
@@ -949,3 +951,10 @@ async function doSwapBed() {
 
 onMounted(() => { load(); loadOrgFilterOptions() })
 </script>
+
+<style scoped>
+.house-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+@media (max-width: 1400px) { .house-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .house-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 800px) { .house-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
