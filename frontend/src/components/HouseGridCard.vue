@@ -8,7 +8,10 @@
 
     <div class="card-row">
       <span>{{ t('houseGrid.occupied') }}</span>
-      <b>{{ row.occupiedCount || 0 }} / {{ row.capacity || '-' }}</b>
+      <el-link type="primary" :underline="false" @click="$emit('occupancy', row)">
+        {{ row.occupiedCount || 0 }}
+      </el-link>
+      <span>/ {{ row.capacity || '-' }}</span>
     </div>
     <div v-if="row.lesseeName" class="card-row">
       <span>{{ t('houseGrid.lessee') }}</span>
@@ -41,6 +44,7 @@
       <el-button link size="small" :disabled="!row.lock || row.lock.onlineStatus !== 1"
                  @click="$emit('open', row)">{{ t('houseGrid.remoteOpen') }}</el-button>
       <el-button link size="small" @click="$emit('access', row)">{{ t('houseGrid.emergency') }}</el-button>
+      <el-button link size="small" @click="$emit('detail', row)">{{ t('houseGrid.detail') }}</el-button>
     </div>
   </div>
 </template>
@@ -50,7 +54,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps({ row: { type: Object, required: true } })
-defineEmits(['records', 'access', 'freeze', 'open'])
+defineEmits(['records', 'access', 'freeze', 'open', 'detail', 'occupancy'])
 const { t } = useI18n()
 
 const displayStatus = computed(() => {

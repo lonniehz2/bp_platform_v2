@@ -80,7 +80,7 @@
     <div v-else class="house-grid" v-loading="loading">
       <HouseGridCard v-for="r in gridRows" :key="r.houseId" :row="r"
                      @records="goRecords" @access="openAccess" @freeze="toggleFreeze"
-                     @open="remoteOpen" />
+                     @open="remoteOpen" @detail="openDetail" @occupancy="openOccupancy" />
       <el-empty v-if="!gridRows.length" :description="t('house.empty')" :image-size="60" />
     </div>
     <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
@@ -505,6 +505,11 @@ function onViewChange(v) {
 
 function goRecords(row) {
   router.push({ path: '/access', query: { houseId: row.houseId || row.id } })
+}
+
+function openDetail(row) {
+  detail.value = row
+  show.value = true
 }
 
 async function toggleFreeze(row) {

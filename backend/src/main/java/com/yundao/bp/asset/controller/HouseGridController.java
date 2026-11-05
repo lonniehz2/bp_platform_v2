@@ -112,6 +112,12 @@ public class HouseGridController {
             m.put("spaceFullName", h.spaceFullName());
             m.put("houseStatus", h.houseStatus());
             m.put("houseStatusLabel", h.houseStatusLabel());
+            m.put("houseType", h.houseType());
+            m.put("spaceType", h.spaceType());
+            m.put("area", h.area());
+            m.put("rentStandard", h.rentStandard());
+            m.put("rentUnit", h.rentUnit());
+            m.put("orgId", h.orgId() == null ? null : String.valueOf(h.orgId()));
             int cap = h.maxCapacity() == null || h.maxCapacity() <= 0 ? 1 : h.maxCapacity();
             m.put("capacity", cap);
             m.put("occupiedCount", occupied.getOrDefault(h.id(), 0));

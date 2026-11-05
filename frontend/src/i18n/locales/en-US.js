@@ -2983,6 +2983,7 @@ export default {
     recordsTitle: 'Review History', noRecords: 'No review records', detailTitle: 'Detail'
   },
   houseGrid: {
+    detail: 'Details',
     listView: 'List',
     gridView: 'Grid',
     freezeReason: 'Enter freeze reason',

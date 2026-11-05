@@ -2953,6 +2953,7 @@ export default {
     recordsTitle: '审核轨迹', noRecords: '暂无审核记录', detailTitle: '详情'
   },
   houseGrid: {
+    detail: '详情',
     listView: '列表',
     gridView: '格子',
     freezeReason: '请填写冻结原因',
