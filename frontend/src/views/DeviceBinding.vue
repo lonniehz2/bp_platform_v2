@@ -183,7 +183,7 @@
                 :title="t('bindingX.spaceHint')" style="margin-bottom:10px" />
       <el-form inline>
         <el-form-item :label="t('bindingX.org')">
-          <el-select v-model="spaceOrgId" filterable style="width:190px" @change="loadSpaceTree">
+          <el-select v-model="spaceOrgId" filterable style="width:200px" @change="loadSpaceTree">
             <el-option v-for="o in orgs" :key="o.id" :label="o.orgName" :value="String(o.id)" />
           </el-select>
         </el-form-item>
