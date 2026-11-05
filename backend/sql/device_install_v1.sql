@@ -39,3 +39,27 @@ alter table bp_asset_house
   add column active_space_id bigint generated always as (if(is_deleted = 0, space_id, null)) stored;
 alter table bp_asset_house
   add unique key uk_tenant_active_space (tenant_id, active_space_id);
+
+create table if not exists bp_grant_freeze (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  house_id bigint not null,
+  person_id bigint null,
+  grant_id bigint null,
+  keyring_id bigint null,
+  freeze_scope varchar(20) not null default 'HOUSE',
+  reason varchar(500) not null,
+  freeze_status varchar(20) not null default 'FROZEN',
+  original_status varchar(20) null,
+  iot_order_no varchar(64) null,
+  operator_id varchar(64) null,
+  operator_name varchar(100) null,
+  freeze_time datetime null,
+  restore_time datetime null,
+  error_msg varchar(500) null,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  key idx_freeze_house (house_id, freeze_status),
+  key idx_freeze_person (person_id, freeze_status),
+  key idx_freeze_grant (grant_id)
+) engine=InnoDB default charset=utf8mb4 comment='授权冻结记录';

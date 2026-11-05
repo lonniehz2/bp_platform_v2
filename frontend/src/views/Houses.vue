@@ -2,6 +2,10 @@
   <div class="page-card">
     <div class="toolbar">
       <h3 style="margin:0">{{ t('house.title') }}</h3>
+      <el-radio-group v-model="viewMode" size="small" @change="onViewChange">
+        <el-radio-button label="list">{{ t('houseGrid.listView') }}</el-radio-button>
+        <el-radio-button label="grid">{{ t('houseGrid.gridView') }}</el-radio-button>
+      </el-radio-group>
       <div class="spacer" />
       <el-select v-model="orgFilter" :placeholder="t('house.org')" clearable filterable
                  style="width:200px" data-testid="house-org-filter"
@@ -33,7 +37,8 @@
                    data-testid="house-import">{{ t('house.import') }}</el-button>
     </div>
 
-    <el-table :data="rows" v-loading="loading" border size="small" :empty-text="t('house.empty')">
+    <el-table v-if="viewMode === 'list'" :data="rows" v-loading="loading" border size="small"
+              :empty-text="t('house.empty')">
       <el-table-column prop="houseCode" :label="t('house.code')" width="150" />
       <el-table-column prop="houseName" :label="t('house.name')" min-width="140" />
       <el-table-column prop="orgId" :label="t('house.orgCol')" width="150">
@@ -71,9 +76,16 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <div v-else class="house-grid" v-loading="loading">
+      <HouseGridCard v-for="r in gridRows" :key="r.houseId" :row="r"
+                     @records="goRecords" @access="openAccess" @freeze="toggleFreeze"
+                     @open="remoteOpen" />
+      <el-empty v-if="!gridRows.length" :description="t('house.empty')" :image-size="60" />
+    </div>
     <el-pagination style="margin-top:12px" layout="total, sizes, prev, pager, next"
                    :total="+total || 0" :page-size="pageSize" :current-page="pageNum"
-                   @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[10, 20, 50, 100]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
+                   @current-change="(p) => { pageNum = p; load() }"  :page-sizes="[12, 20, 40, 80]" @size-change="(s) => { pageSize = s; pageNum = 1; load() }" />
 
     <el-dialog v-model="occVisible" :title="t('house.occTitle')" width="560px">
       <el-descriptions v-if="occ && occ.occupied" :column="1" border size="small">
@@ -377,9 +389,11 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { houseApi } from '@/api/modules'
 import req from '@/api/request'
 import { useAuthStore } from '@/store/auth'
+import { useRouter } from 'vue-router'
 import { enumLabel } from '@/constants/enums'
 import DetailView from '@/components/DetailView.vue'
 import HouseAccessPanel from '@/components/HouseAccessPanel.vue'
+import HouseGridCard from '@/components/HouseGridCard.vue'
 
 const { t } = useI18n()
 const statuses = ['VACANT', 'PENDING_ALLOC', 'ALLOCATED', 'OCCUPIED', 'LOCKED',
@@ -387,9 +401,12 @@ const statuses = ['VACANT', 'PENDING_ALLOC', 'ALLOCATED', 'OCCUPIED', 'LOCKED',
 const loading = ref(false)
 const saving = ref(false)
 const auth = useAuthStore()
+const router = useRouter()
 const rows = ref([])
 const accessVisible = ref(false)
 const accessHouse = ref(null)
+const viewMode = ref(localStorage.getItem('house-view-mode') || 'list')
+const gridRows = ref([])
 function openAccess(row) { accessHouse.value = row; accessVisible.value = true }
 const total = ref(0)
 const pageNum = ref(1)
@@ -447,18 +464,76 @@ async function loadOrgFilterOptions() {
 async function load() {
   loading.value = true
   try {
-    const d = await houseApi.page({
-      pageNum: pageNum.value, pageSize: pageSize.value,
-      orgId: orgFilter.value || undefined,
-      spaceId: spaceFilter.value || undefined,
-      includeChildren: true,
-      keyword: keyword.value || undefined,
-      houseStatus: houseStatus.value || undefined,
-      houseType: houseTypeFilter.value || undefined
-    })
-    rows.value = d.rows || []
+    let d
+    if (viewMode.value === 'grid') {
+      d = await req.get('/houses/grid', {
+        params: {
+          pageNum: pageNum.value, pageSize: pageSize.value,
+          orgId: orgFilter.value || undefined,
+          spaceId: spaceFilter.value || undefined,
+          includeChildren: true,
+          keyword: keyword.value || undefined,
+          houseStatus: houseStatus.value || undefined,
+          houseType: houseTypeFilter.value || undefined
+        }
+      })
+      gridRows.value = (d.rows || []).map((x) => ({ ...x, id: x.houseId }))
+    } else {
+      d = await houseApi.page({
+        pageNum: pageNum.value, pageSize: pageSize.value,
+        orgId: orgFilter.value || undefined,
+        spaceId: spaceFilter.value || undefined,
+        includeChildren: true,
+        keyword: keyword.value || undefined,
+        houseStatus: houseStatus.value || undefined,
+        houseType: houseTypeFilter.value || undefined
+      })
+      rows.value = d.rows || []
+    }
     total.value = Number(d.total || 0)
   } finally { loading.value = false }
+}
+
+function onViewChange(v) {
+  viewMode.value = v
+  localStorage.setItem('house-view-mode', v)
+  pageNum.value = 1
+  load()
+}
+
+function goRecords(row) {
+  router.push({ path: '/access', query: { houseId: row.houseId || row.id } })
+}
+
+async function toggleFreeze(row) {
+  const action = row.frozen ? 'restore' : 'freeze'
+  const { value } = await ElMessageBox.prompt(
+    action === 'freeze' ? t('houseGrid.freezeReason') : t('houseGrid.restoreReason'),
+    action === 'freeze' ? t('houseGrid.freeze') : t('houseGrid.restore'),
+    { inputPlaceholder: t('houseGrid.reasonHint'), inputValidator: (v) => !!(v && v.trim()) })
+  if (action === 'freeze') {
+    await req.post(`/house-access/${row.houseId}/freeze`, { reason: value })
+  } else {
+    await req.post(`/house-access/${row.houseId}/restore`, { reason: value })
+  }
+  ElMessage.success(t('houseGrid.done'))
+  await load()
+}
+
+async function remoteOpen(row) {
+  if (!row.lock || row.lock.onlineStatus !== 1) {
+    ElMessage.warning(t('houseGrid.lockOffline'))
+    return
+  }
+  await ElMessageBox.confirm(t('houseGrid.remoteConfirm'), t('houseGrid.remoteOpen'),
+    { type: 'warning' })
+  const { value } = await ElMessageBox.prompt(t('houseGrid.reason'), t('houseGrid.remoteOpen'),
+    { inputPlaceholder: t('houseGrid.reasonHint'), inputValidator: (v) => !!(v && v.trim()) })
+  await req.post('/dev-commands', {
+    commandType: 'LOCK_OPEN', deviceId: row.lock.deviceId,
+    source: 'HOUSE_GRID', reason: value
+  })
+  ElMessage.success(t('houseGrid.remoteDone'))
 }
 function reload() { pageNum.value = 1; load() }
 

@@ -113,10 +113,12 @@
 import { useI18n } from 'vue-i18n'
 import { enumLabel } from '@/constants/enums'
 import { computed, ref, reactive, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import PersonPicker from '@/components/PersonPicker.vue'
 import { devApi } from '@/api/modules'
 
 const { t } = useI18n()
+const route = useRoute()
 const loading = ref(false)
 const rows = ref([])
 const total = ref(0)
@@ -170,5 +172,8 @@ function resetQuery() {
   load()
 }
 
-onMounted(load)
+onMounted(() => {
+  if (route.query.houseId) query.houseId = String(route.query.houseId)
+  load()
+})
 </script>

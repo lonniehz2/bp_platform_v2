@@ -32,13 +32,54 @@ public class HouseAccessController {
     @PostMapping("/{houseId}/freeze")
     public R<Map<String, Object>> freeze(@PathVariable Long houseId,
             @RequestBody(required = false) ReasonCmd cmd) {
-        return R.ok(service.freeze(houseId, cmd == null ? null : cmd.reason()));
+        return R.ok(service.freeze(houseId, cmd == null ? null : cmd.reason(), null));
+    }
+
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:revoke")
+    @PostMapping("/{houseId}/keys/{keyringId}/freeze")
+    public R<Map<String, Object>> freezeKey(@PathVariable Long houseId,
+            @PathVariable Long keyringId, @RequestBody ReasonCmd cmd) {
+        return R.ok(service.freezeKey(houseId, keyringId, cmd.reason()));
+    }
+
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:create")
+    @PostMapping("/{houseId}/keys/{keyringId}/restore")
+    public R<Map<String, Object>> restoreKey(@PathVariable Long houseId,
+            @PathVariable Long keyringId, @RequestBody ReasonCmd cmd) {
+        return R.ok(service.restoreKey(houseId, keyringId, cmd.reason()));
     }
 
     @com.yundao.bp.iam.security.RequirePerm("asset:grant:create")
     @PostMapping("/{houseId}/restore")
-    public R<Map<String, Object>> restore(@PathVariable Long houseId) {
-        return R.ok(service.restore(houseId));
+    public R<Map<String, Object>> restore(@PathVariable Long houseId,
+            @RequestBody(required = false) ReasonCmd cmd) {
+        return R.ok(service.restore(houseId, cmd == null ? null : cmd.reason(), null));
+    }
+
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:revoke")
+    @PostMapping("/{houseId}/persons/{personId}/freeze")
+    public R<Map<String, Object>> freezePerson(@PathVariable Long houseId,
+            @PathVariable Long personId, @RequestBody ReasonCmd cmd) {
+        return R.ok(service.freeze(houseId, cmd.reason(), personId));
+    }
+
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:create")
+    @PostMapping("/{houseId}/persons/{personId}/restore")
+    public R<Map<String, Object>> restorePerson(@PathVariable Long houseId,
+            @PathVariable Long personId, @RequestBody ReasonCmd cmd) {
+        return R.ok(service.restore(houseId, cmd.reason(), personId));
+    }
+
+    public record PersonAuthCmd(Long personId, LocalDateTime validStart,
+                                LocalDateTime validEnd, String reason) {
+    }
+
+    @com.yundao.bp.iam.security.RequirePerm("asset:grant:create")
+    @PostMapping("/{houseId}/person-authorize")
+    public R<Map<String, Object>> personAuthorize(@PathVariable Long houseId,
+            @RequestBody PersonAuthCmd cmd) {
+        return R.ok(service.personAuthorize(houseId, cmd.personId(),
+                cmd.validStart(), cmd.validEnd(), cmd.reason()));
     }
 
     public record TempCmd(Long personId, String grantLevel, LocalDateTime validStart,

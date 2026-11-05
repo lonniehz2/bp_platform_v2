@@ -1,6 +1,8 @@
 package com.yundao.bp.grant.config;
 
+import com.yundao.bp.grant.iot.IotAuthorizationClient;
 import com.yundao.bp.grant.iot.IotGrantClient;
+import com.yundao.bp.grant.iot.MockIotAuthorizationClient;
 import com.yundao.bp.grant.iot.MockIotGrantClient;
 import com.yundao.bp.grant.iot.YmdGrantClient;
 import com.yundao.bp.iot.legacy.YmdClient;
@@ -23,6 +25,11 @@ import org.springframework.context.annotation.Configuration;
 public class GrantIotConfig {
 
     private static final Logger log = LoggerFactory.getLogger(GrantIotConfig.class);
+
+    @Bean
+    public IotAuthorizationClient iotAuthorizationClient() {
+        return new MockIotAuthorizationClient();
+    }
 
     @Bean
     public IotGrantClient iotGrantClient(
