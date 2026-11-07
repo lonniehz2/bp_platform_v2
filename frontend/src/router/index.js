@@ -395,6 +395,12 @@ const routes = [
         meta: { title: '物业项目' }
       },
       {
+        path: 'profit',
+        name: 'propertyProfit',
+        component: () => import('@/views/property/PropertyProfit.vue'),
+        meta: { title: '支出与利润' }
+      },
+      {
         path: 'parking',
         name: 'propertyParking',
         component: () => import('@/views/property/PropertyParking.vue'),
