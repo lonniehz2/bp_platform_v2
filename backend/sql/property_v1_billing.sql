@@ -1,0 +1,136 @@
+-- 智慧物业 V1 收费闭环基础表
+create table if not exists prop_fee_item (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  fee_item_code varchar(64) not null,
+  fee_item_name varchar(128) not null,
+  income_category varchar(32) not null,
+  income_subcategory varchar(32) null,
+  charge_basis varchar(32) not null,
+  billing_cycle varchar(20) null,
+  unit varchar(20) null,
+  default_price decimal(14,2) not null default 0,
+  status varchar(20) not null default 'ENABLED',
+  remark varchar(500) null,
+  is_deleted tinyint not null default 0,
+  create_by varchar(64) null,
+  create_time datetime not null default current_timestamp,
+  update_by varchar(64) null,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_prop_fee_item (tenant_id, project_id, fee_item_code),
+  key idx_prop_fee_item_project (project_id, status)
+) engine=InnoDB default charset=utf8mb4 comment='物业收费项目';
+
+create table if not exists prop_bill (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  bill_no varchar(64) not null,
+  income_category varchar(32) not null,
+  income_subcategory varchar(32) null,
+  fee_item_id bigint not null,
+  payer_type varchar(20) null,
+  payer_person_id bigint null,
+  payer_name varchar(128) null,
+  house_id bigint null,
+  parking_space_id bigint null,
+  shared_asset_id bigint null,
+  contract_id bigint null,
+  period_start date null,
+  period_end date null,
+  billing_cycle varchar(20) null,
+  cycle_count decimal(10,2) null,
+  quantity decimal(14,2) null,
+  unit_price decimal(14,2) null,
+  bill_amount decimal(14,2) not null,
+  discount_amount decimal(14,2) not null default 0,
+  late_fee decimal(14,2) not null default 0,
+  payable_amount decimal(14,2) not null,
+  paid_amount decimal(14,2) not null default 0,
+  bill_status varchar(20) not null default 'PENDING',
+  due_date date null,
+  source_type varchar(32) null,
+  source_id bigint null,
+  service_start_date date null,
+  service_end_date date null,
+  deferred_revenue_flag tinyint not null default 0,
+  remark varchar(500) null,
+  is_deleted tinyint not null default 0,
+  create_by varchar(64) null,
+  create_time datetime not null default current_timestamp,
+  update_by varchar(64) null,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_prop_bill_no (tenant_id, bill_no),
+  unique key uk_prop_bill_source (tenant_id, project_id, fee_item_id, house_id, period_start, period_end),
+  key idx_prop_bill_project (project_id, bill_status),
+  key idx_prop_bill_house (house_id),
+  key idx_prop_bill_due (due_date)
+) engine=InnoDB default charset=utf8mb4 comment='物业账单';
+
+create table if not exists prop_payment (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  payment_no varchar(64) not null,
+  payer_person_id bigint null,
+  payer_name varchar(128) null,
+  pay_amount decimal(14,2) not null,
+  pay_channel varchar(20) not null,
+  pay_status varchar(20) not null default 'SUCCESS',
+  gateway_trade_no varchar(128) null,
+  pay_time datetime not null,
+  operator_id bigint null,
+  remark varchar(500) null,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_prop_payment_no (tenant_id, payment_no),
+  key idx_prop_payment_project (project_id, pay_time)
+) engine=InnoDB default charset=utf8mb4 comment='物业收款';
+
+create table if not exists prop_payment_allocation (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  payment_id bigint not null,
+  bill_id bigint not null,
+  allocate_amount decimal(14,2) not null,
+  create_time datetime not null default current_timestamp,
+  key idx_prop_alloc_payment (payment_id),
+  key idx_prop_alloc_bill (bill_id)
+) engine=InnoDB default charset=utf8mb4 comment='物业收款分摊';
+
+create table if not exists prop_receipt (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  receipt_no varchar(64) not null,
+  payment_id bigint not null,
+  payer_name varchar(128) null,
+  amount decimal(14,2) not null,
+  receipt_status varchar(20) not null default 'ISSUED',
+  pdf_url varchar(500) null,
+  verify_code varchar(64) null,
+  issued_at datetime not null,
+  void_reason varchar(500) null,
+  invoice_status varchar(20) null,
+  invoice_no varchar(64) null,
+  invoice_url varchar(500) null,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_prop_receipt_no (tenant_id, receipt_no),
+  key idx_prop_receipt_payment (payment_id)
+) engine=InnoDB default charset=utf8mb4 comment='物业电子收据';
+
+-- 演示项目收费项目
+insert ignore into prop_fee_item
+(id, tenant_id, project_id, fee_item_code, fee_item_name, income_category, income_subcategory,
+ charge_basis, billing_cycle, unit, default_price, status, is_deleted)
+values
+(377200000000000001, '350600', 370988445033697280, 'PROPERTY_FEE', '物业费', 'PROPERTY_FEE',
+ 'PROPERTY_FEE_RESIDENTIAL', 'AREA', 'MONTH', '元/㎡·月', 2.50, 'ENABLED', 0),
+(377200000000000002, '350600', 370988445033697280, 'PARKING_MGMT', '车位管理费', 'PARKING',
+ 'PARKING_MANAGEMENT', 'SPACE_CYCLE', 'MONTH', '元/月', 100.00, 'ENABLED', 0),
+(377200000000000003, '350600', 370988445033697280, 'WATER', '水费', 'ENERGY',
+ 'ENERGY_WATER', 'METER', 'MONTH', '元/吨', 3.50, 'ENABLED', 0),
+(377200000000000004, '350600', 370988445033697280, 'MULTI_INCOME', '多经收入', 'MULTI_BUSINESS',
+ 'MULTI_OTHER', 'MANUAL', null, '元', 0.00, 'ENABLED', 0);
