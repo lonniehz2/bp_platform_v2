@@ -378,6 +378,25 @@ const routes = [
     meta: { group: '仪表盘' }
   },
   {
+    path: '/property',
+    component: () => import('@/views/property/PropertyShell.vue'),
+    redirect: '/property/dashboard',
+    children: [
+      {
+        path: 'dashboard',
+        name: 'propertyDashboard',
+        component: () => import('@/views/property/PropertyDashboard.vue'),
+        meta: { title: '智慧物业工作台' }
+      },
+      {
+        path: 'categories',
+        name: 'propertyCategories',
+        component: () => import('@/views/property/PropertyCategories.vue'),
+        meta: { title: '收入支出分类' }
+      }
+    ]
+  },
+  {
     // 可选 tab 参数：/ops-extras/rule 直达「告警规则」，/ops-extras 落到默认 tab
     path: '/ops-extras/:tab?',
     name: 'opsextras',
