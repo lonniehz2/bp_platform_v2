@@ -14,6 +14,10 @@
           <el-icon><DataBoard /></el-icon>
           <span>{{ t('property.dashboard') }}</span>
         </el-menu-item>
+        <el-menu-item index="/property/units">
+          <el-icon><House /></el-icon>
+          <span>{{ t('property.units') }}</span>
+        </el-menu-item>
         <el-menu-item index="/property/profit">
           <el-icon><TrendCharts /></el-icon>
           <span>{{ t('property.profit') }}</span>
@@ -69,7 +73,7 @@
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { DataBoard, Collection, OfficeBuilding, Money, Van, TrendCharts } from '@element-plus/icons-vue'
+import { DataBoard, Collection, OfficeBuilding, Money, Van, TrendCharts, House } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/store/auth'
 import { usePropertyStore } from '@/store/property'
 
@@ -84,6 +88,7 @@ const selectedProject = computed({
 })
 
 const pageTitle = computed(() => {
+  if (route.path.includes('units')) return t('property.units')
   if (route.path.includes('profit')) return t('property.profit')
   if (route.path.includes('parking')) return t('property.parking')
   if (route.path.includes('billing')) return t('property.billing')

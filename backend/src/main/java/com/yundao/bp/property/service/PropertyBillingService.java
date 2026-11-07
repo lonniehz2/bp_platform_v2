@@ -84,10 +84,13 @@ public class PropertyBillingService {
         BigDecimal price = (BigDecimal) fee.get("default_price");
         int months = months(cmd.periodStart(), cmd.periodEnd());
         List<Map<String, Object>> houses = jdbc.queryForList(
-                "select id, space_id spaceId, house_name houseName, area, owner_person_id ownerPersonId, "
-                        + "house_code houseCode from bp_asset_house "
-                        + "where tenant_id=? and org_id=? and is_deleted=0 and area is not null and area>0 "
-                        + "order by house_code", TenantContext.tenantId(), cmd.projectId());
+                "select h.id, h.space_id spaceId, h.house_name houseName, h.area, "
+                        + "coalesce((select ou.person_id from prop_owner_unit ou where ou.house_id=h.id "
+                        + " and ou.is_primary=1 and ou.status='ACTIVE' and ou.is_deleted=0 limit 1), "
+                        + "h.owner_person_id) ownerPersonId, h.house_code houseCode "
+                        + "from bp_asset_house h join bp_asset_space s on s.id=h.space_id and s.space_type='ROOM' "
+                        + "where h.tenant_id=? and h.org_id=? and h.is_deleted=0 and h.area is not null and h.area>0 "
+                        + "order by h.house_code", TenantContext.tenantId(), cmd.projectId());
         int created = 0, skipped = 0;
         for (Map<String, Object> h : houses) {
             Long houseId = ((Number) h.get("id")).longValue();
