@@ -14,6 +14,10 @@
           <el-icon><DataBoard /></el-icon>
           <span>{{ t('property.dashboard') }}</span>
         </el-menu-item>
+        <el-menu-item index="/property/projects">
+          <el-icon><OfficeBuilding /></el-icon>
+          <span>{{ t('property.projects') }}</span>
+        </el-menu-item>
         <el-menu-item index="/property/categories">
           <el-icon><Collection /></el-icon>
           <span>{{ t('property.categories') }}</span>
@@ -27,7 +31,14 @@
       <header class="property-head">
         <div>
           <div class="head-title">{{ pageTitle }}</div>
-          <div class="head-sub">{{ t('property.currentProject') }}：{{ t('property.allProjects') }}</div>
+          <div class="head-sub">
+            {{ t('property.currentProject') }}：
+            <el-select v-model="selectedProject" size="small" style="width:210px"
+                       :placeholder="t('property.selectProject')" @change="onProjectChange">
+              <el-option v-for="p in store.projects" :key="p.orgId"
+                         :label="p.projectName" :value="String(p.orgId)" />
+            </el-select>
+          </div>
         </div>
         <div class="head-actions">
           <el-tag size="small" type="warning">{{ t('property.phaseTag') }}</el-tag>
@@ -43,19 +54,34 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { DataBoard, Collection } from '@element-plus/icons-vue'
+import { DataBoard, Collection, OfficeBuilding } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/store/auth'
+import { usePropertyStore } from '@/store/property'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const store = usePropertyStore()
 const { t } = useI18n()
+const selectedProject = computed({
+  get: () => store.projectId,
+  set: (v) => store.selectProject(v)
+})
 
-const pageTitle = computed(() =>
-  route.path.includes('categories') ? t('property.categories') : t('property.dashboard'))
+const pageTitle = computed(() => {
+  if (route.path.includes('categories')) return t('property.categories')
+  if (route.path.includes('projects')) return t('property.projects')
+  return t('property.dashboard')
+})
+
+onMounted(async () => {
+  await store.loadProjects()
+})
+
+function onProjectChange() {}
 
 function goHousing() {
   router.push('/dashboard')

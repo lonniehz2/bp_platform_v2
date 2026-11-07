@@ -27,7 +27,7 @@ public record OrgCreateCmd(
         Long parentId,
 
         @NotBlank(message = "组织类型不能为空")
-        @Pattern(regexp = "DISTRICT|COMMUNITY|COMPANY|DEPARTMENT", message = "组织类型不合法")
+        @Pattern(regexp = "DISTRICT|COMMUNITY|COMPANY|DEPARTMENT|PROPERTY_PROJECT", message = "组织类型不合法")
         String orgType,
 
         @Size(max = 500, message = "地址不能超过 500 字符")

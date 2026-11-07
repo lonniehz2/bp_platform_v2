@@ -389,6 +389,12 @@ const routes = [
         meta: { title: '智慧物业工作台' }
       },
       {
+        path: 'projects',
+        name: 'propertyProjects',
+        component: () => import('@/views/property/PropertyProjects.vue'),
+        meta: { title: '物业项目' }
+      },
+      {
         path: 'categories',
         name: 'propertyCategories',
         component: () => import('@/views/property/PropertyCategories.vue'),
