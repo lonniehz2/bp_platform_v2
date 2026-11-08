@@ -97,6 +97,45 @@ public class BillingService {
         return out;
     }
 
+
+    public Map<String, Object> createOpeningBill(long contractId, BillCmd cmd) {
+        GuaranteeContractService.Contract contract = contractService.load(contractId);
+        dataScope.requireProject(contract.projectId());
+        if (cmd.periodStart() == null || cmd.periodEnd() == null) {
+            throw BizException.param("账期不能为空");
+        }
+        if (cmd.periodEnd().isBefore(cmd.periodStart())) {
+            throw BizException.param("账期结束日期不能早于开始日期");
+        }
+        BigDecimal amount = cmd.amount();
+        if (amount == null || amount.signum() <= 0) {
+            throw BizException.param("期初金额必须大于 0");
+        }
+        long id = idGen.nextId();
+        String billNo = "OP" + System.currentTimeMillis() + id % 1000;
+        try {
+            jdbc.update("insert into bp_bill(id,tenant_id,project_id,bill_no,biz_type,contract_type,"
+                            + "contract_id,house_id,person_id,fee_item_code,period_start,period_end,amount,"
+                            + "discount_amount,payable_amount,paid_amount,bill_status,due_date,source_type,source_id,is_deleted) "
+                            + "values(?,?,?,?, 'GUARANTEE_RENT','GUARANTEE_CONTRACT',?,?,?,?,?,?,?,0,?,0,"
+                            + "'UNPAID',?,'OPENING',?,0)",
+                    id, contract.tenantId(), contract.projectId(), billNo, contract.id(),
+                    contract.houseId(), contract.personId(), "OPENING_BALANCE",
+                    cmd.periodStart(), cmd.periodEnd(), amount, amount,
+                    cmd.dueDate() == null ? cmd.periodEnd() : cmd.dueDate(), contract.id());
+        } catch (DataIntegrityViolationException e) {
+            throw BizException.conflict("该合同同一账期已存在账单");
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("id", id);
+        out.put("billNo", billNo);
+        out.put("amount", amount);
+        out.put("payableAmount", amount);
+        out.put("billStatus", "UNPAID");
+        out.put("sourceType", "OPENING");
+        return out;
+    }
+
     @Transactional
     public Map<String, Object> pay(long billId, PaymentCmd cmd) {
         String tenant = TenantContext.require();

@@ -859,6 +859,22 @@ $approveSubmit = Api "POST" "/api/v1/platform/guarantee/contracts/$($approveCont
 $approvedContract = Api "POST" "/api/v1/platform/guarantee/contracts/$($approveContract.id)/approve" $null
 Assert-True ($approvedContract.contractStatus -eq "ACTIVE") "contract approved"
 
+
+$openingBill = Api "POST" "/api/v1/platform/billing/contracts/$($contract.id)/opening-bills" @{
+    periodStart = "2025-01-01"
+    periodEnd = "2025-01-31"
+    amount = 8600
+    dueDate = "2025-01-31"
+}
+Assert-True ($openingBill.sourceType -eq "OPENING") "opening bill created"
+$openingPay = Api "POST" "/api/v1/platform/billing/bills/$($openingBill.id)/pay" @{
+    amount = 1000
+    paymentMethod = "CASH"
+}
+Assert-True ($openingPay.billStatus -eq "PARTIAL") "opening bill partially paid"
+$dashOpening = Api "GET" "/api/v1/platform/dashboard/summary?projectId=$projectId&dateFrom=2025-01-01&dateTo=2025-12-31" $null
+Assert-True ([decimal]$dashOpening.openingOutstanding -ge 7600) "opening outstanding reflected"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

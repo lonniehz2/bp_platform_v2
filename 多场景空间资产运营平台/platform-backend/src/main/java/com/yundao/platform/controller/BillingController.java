@@ -43,6 +43,13 @@ public class BillingController {
         return R.ok(service.payContract(contractId, cmd));
     }
 
+    @PostMapping("/contracts/{contractId}/opening-bills")
+    public R<Map<String, Object>> openingBill(@PathVariable long contractId,
+                                              @RequestBody BillingService.BillCmd cmd) {
+        permissions.require("billing:opening");
+        return R.ok(service.createOpeningBill(contractId, cmd));
+    }
+
     @PostMapping("/bills/{billId}/pay")
     public R<Map<String, Object>> pay(@PathVariable long billId,
                                       @RequestBody BillingService.PaymentCmd cmd) {
