@@ -129,6 +129,7 @@ const GLOBAL = {
   COMMUNITY: '社区/小区',
   COMPANY: '公司',
   DEPARTMENT: '部门',
+  PROPERTY_PROJECT: '物业项目',
 
   // ---------- 合同 ----------
   DRAFT: '草稿',
