@@ -448,6 +448,7 @@ function translateTextNode(node) {
   if (!node || node.nodeType !== 3) return
   const parent = node.parentElement
   if (!parent || ['SCRIPT', 'STYLE', 'TEXTAREA'].includes(parent.tagName)) return
+  if (parent.closest('[data-no-i18n]')) return
   const raw = node.nodeValue || ''
   const key = raw.trim()
   if (!key) return

@@ -1,16 +1,21 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { api } from '../api'
 import { can } from '../permissions'
 
+const route = useRoute()
+const forcedType = computed(() => route.meta?.complaintType || '')
+const pageTitle = computed(() => ({ APPEAL: '申诉管理', VISIT: '入户走访' }[forcedType.value] || '投诉与申诉'))
+const visibleRecords = computed(() => forcedType.value ? records.value.filter(r => r.complaintType === forcedType.value) : records.value)
 const project = ref(null)
 const houses = ref([])
 const persons = ref([])
 const records = ref([])
-const type = ref('')
+const type = ref(forcedType.value || '')
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ complaintType: 'COMPLAINT', title: '', content: '', houseId: '', personId: '' })
+const form = reactive({ complaintType: forcedType.value || 'COMPLAINT', title: '', content: '', houseId: '', personId: '' })
 const handleForm = reactive({ id: '', complaintStatus: 'PROCESSING', handlerName: '客服中心', handleResult: '' })
 
 const typeName = (t) => ({ COMPLAINT: '投诉', APPEAL: '申诉', VISIT: '走访' }[t] || t)
@@ -32,6 +37,7 @@ async function load() {
     houses.value = h; persons.value = p; records.value = c
     if (!form.houseId && h.length) form.houseId = h[0].id
     if (!form.personId && p.length) form.personId = p[0].id
+    if (forcedType.value) type.value = forcedType.value
   } catch (e) { error.value = e.message }
 }
 
@@ -67,6 +73,7 @@ async function handle() {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+watch(forcedType, v => { if (v) { type.value = v; form.complaintType = v; load() } })
 onMounted(load)
 </script>
 
@@ -74,11 +81,11 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>投诉与申诉</h2><p>{{ project?.orgName || '未选择项目' }} · 投诉、申诉、入户走访</p></div>
-        <select v-model="type" @change="load" style="width:140px"><option value="">全部</option><option value="COMPLAINT">投诉</option><option value="APPEAL">申诉</option><option value="VISIT">走访</option></select>
+      <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project?.orgName || '未选择项目' }} · 投诉、申诉、入户走访</p></div>
+        <select v-if="!forcedType" v-model="type" @change="load" style="width:140px"><option value="">全部</option><option value="COMPLAINT">投诉</option><option value="APPEAL">申诉</option><option value="VISIT">走访</option></select>
       </div>
       <div class="row">
-        <div class="field"><label>类型</label><select v-model="form.complaintType"><option value="COMPLAINT">投诉</option><option value="APPEAL">申诉</option><option value="VISIT">走访</option></select></div>
+        <div class="field" v-if="!forcedType"><label>类型</label><select v-model="form.complaintType"><option value="COMPLAINT">投诉</option><option value="APPEAL">申诉</option><option value="VISIT">走访</option></select></div>
         <div class="field" style="flex:2"><label>标题</label><input v-model="form.title" /></div>
         <div class="field"><label>房屋</label><select v-model="form.houseId"><option value="">不关联</option><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></select></div>
         <div class="field"><label>人员</label><select v-model="form.personId"><option value="">不关联</option><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}</option></select></div>
@@ -94,7 +101,7 @@ onMounted(load)
         <table>
           <thead><tr><th>类型</th><th>标题</th><th>房屋</th><th>人员</th><th>状态</th><th>处理人</th><th>结果</th><th>操作</th></tr></thead>
           <tbody>
-            <tr v-for="r in records" :key="r.id">
+            <tr v-for="r in visibleRecords" :key="r.id">
               <td>{{ typeName(r.complaintType) }}</td><td>{{ r.title }}</td>
               <td>{{ r.houseName || '-' }}</td><td>{{ r.personName || '-' }}</td>
               <td><span class="badge" :class="statusClass(r.complaintStatus)">{{ r.complaintStatus }}</span></td>

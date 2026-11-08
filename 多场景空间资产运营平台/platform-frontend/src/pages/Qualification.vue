@@ -1,7 +1,10 @@
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { api } from '../api'
 
+const route = useRoute()
+const pageTitle = route.path === '/annual-reviews' ? '年审复核' : '资格复核'
 const project = ref(null)
 const contracts = ref([])
 const selectedContractId = ref('')
@@ -68,7 +71,7 @@ onMounted(load)
     <div v-if="!project" class="empty">请先创建项目</div>
     <template v-else>
       <div class="panel">
-        <div class="panel-head"><div><h2>资格复核</h2><p>{{ project.orgName }} · 合同年度资格复核</p></div>
+        <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project.orgName }} · 合同年度资格复核</p></div>
           <select v-model="selectedContractId" style="max-width:340px">
             <option value="">选择合同</option>
             <option v-for="c in contracts" :key="c.id" :value="c.id">{{ c.contractNo }} · {{ c.personName }}</option>

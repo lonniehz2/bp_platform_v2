@@ -53,6 +53,8 @@ import DeviceBinding from './pages/DeviceBinding.vue'
 import AccessRecords from './pages/AccessRecords.vue'
 import Orgs from './pages/Orgs.vue'
 import PlatformInfo from './pages/PlatformInfo.vue'
+import Sys from './pages/Sys.vue'
+import Translations from './pages/Translations.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -96,7 +98,7 @@ const router = createRouter({
     { path: '/todos', component: Todos, meta: { title: '我的待办' } },
     { path: '/patrol', component: Alerts, meta: { title: '自动巡查' } },
     { path: '/house-access', component: Devices, meta: { title: '房源权限' } },
-    { path: '/visits', component: Complaints, meta: { title: '入户走访' } },
+    { path: '/visits', component: Complaints, meta: { title: '入户走访', complaintType: 'VISIT' } },
     { path: '/waitlist', component: Waitlist, meta: { title: '轮候管理' } },
     { path: '/allocations', component: Allocations, meta: { title: '配租摇号' } },
     { path: '/annual-reviews', component: Qualification, meta: { title: '年审复核' } },
@@ -113,12 +115,12 @@ const router = createRouter({
     { path: '/access', component: AccessRecords, meta: { title: '通行记录' } },
     { path: '/keyring', component: Keyring, meta: { title: '钥匙包' } },
     { path: '/grants', component: Grants, meta: { title: '通行授权' } },
-    { path: '/appeals', component: Complaints, meta: { title: '申诉管理' } },
+    { path: '/appeals', component: Complaints, meta: { title: '申诉管理', complaintType: 'APPEAL' } },
     { path: '/orgs', component: Orgs, meta: { title: '组织机构' } },
     { path: '/gov', component: GovReport, meta: { title: '监管报送' } },
     { path: '/rbac', component: Users, meta: { title: '用户与权限' } },
-    { path: '/sys', component: Menus, meta: { title: '系统支撑' } },
-    { path: '/translations', component: Help, meta: { title: '业务数据翻译' } },
+    { path: '/sys', component: Sys, meta: { title: '系统支撑' } },
+    { path: '/translations', component: Translations, meta: { title: '业务数据翻译' } },
     { path: '/platform-info', component: PlatformInfo, meta: { title: '平台信息' } },
     { path: '/short-rent', component: ShortRent, meta: { title: '短租订单' } }
   ]

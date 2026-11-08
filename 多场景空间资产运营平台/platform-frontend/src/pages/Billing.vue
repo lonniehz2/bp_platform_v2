@@ -1,9 +1,12 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { api } from '../api'
 import { can } from '../permissions'
 import Pager from '../components/Pager.vue'
 
+const route = useRoute()
+const pageTitle = route.path === '/bills' ? '账单与缴费' : '收款'
 const project = ref(null)
 const bills = ref([])
 const payments = ref([])
@@ -68,7 +71,7 @@ onMounted(load)
     <div v-if="!project" class="empty">请先创建项目</div>
     <template v-else>
       <div class="panel">
-        <div class="panel-head"><div><h2>收款</h2><p>{{ project.orgName }} · 按应付金额收款，自动生成收据</p></div><span class="pill">BILLING</span></div>
+        <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project.orgName }} · 按应付金额收款，自动生成收据</p></div><span class="pill">BILLING</span></div>
         <div class="row">
           <div class="field"><label>账单</label>
             <select v-model="payForm.billId" @change="selectBill(bills.find(b => b.id === payForm.billId))">
