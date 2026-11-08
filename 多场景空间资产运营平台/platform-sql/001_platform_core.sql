@@ -274,3 +274,104 @@ values
 (910000000000004016,'350600','PROPERTY','OFFICE','办公','HOUSE',6),
 (910000000000004017,'350600','PROPERTY','PARKING_GARAGE','车库车位','PARKING',7),
 (910000000000004018,'350600','PROPERTY','PARKING_OPEN','露天车位','PARKING',8);
+
+
+-- =========================================================
+-- 保障房合同与平台计费内核
+-- =========================================================
+
+create table if not exists guarantee_contract (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  contract_no varchar(64) not null,
+  house_id bigint not null,
+  person_id bigint not null,
+  start_date date not null,
+  end_date date not null,
+  rent_amount decimal(14,2) not null default 0,
+  deposit_amount decimal(14,2) not null default 0,
+  billing_cycle varchar(20) not null default 'MONTH',
+  bill_day int not null default 1,
+  contract_status varchar(20) not null default 'ACTIVE',
+  remark varchar(500) null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_guarantee_contract_no (tenant_id, contract_no),
+  key idx_guarantee_contract_project (tenant_id, project_id, contract_status),
+  key idx_guarantee_contract_house (tenant_id, house_id, contract_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房租赁合同';
+
+create table if not exists bp_bill (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  bill_no varchar(64) not null,
+  biz_type varchar(32) not null,
+  contract_type varchar(32) null,
+  contract_id bigint null,
+  house_id bigint null,
+  person_id bigint null,
+  fee_item_code varchar(64) not null,
+  period_start date not null,
+  period_end date not null,
+  amount decimal(14,2) not null,
+  discount_amount decimal(14,2) not null default 0,
+  paid_amount decimal(14,2) not null default 0,
+  bill_status varchar(20) not null default 'UNPAID',
+  due_date date null,
+  source_type varchar(20) null,
+  source_id bigint null,
+  remark varchar(500) null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_bp_bill_no (tenant_id, bill_no),
+  unique key uk_bp_bill_contract_period (tenant_id, contract_id, period_start, period_end),
+  key idx_bp_bill_project (tenant_id, project_id, bill_status),
+  key idx_bp_bill_person (tenant_id, person_id, bill_status)
+) engine=InnoDB default charset=utf8mb4 comment='平台账单';
+
+create table if not exists bp_payment (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  payment_no varchar(64) not null,
+  payer_person_id bigint null,
+  amount decimal(14,2) not null,
+  payment_method varchar(32) not null default 'CASH',
+  payment_status varchar(20) not null default 'SUCCESS',
+  paid_time datetime not null default current_timestamp,
+  remark varchar(500) null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  unique key uk_bp_payment_no (tenant_id, payment_no),
+  key idx_bp_payment_project (tenant_id, project_id, payment_status)
+) engine=InnoDB default charset=utf8mb4 comment='平台收款';
+
+create table if not exists bp_payment_allocation (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  payment_id bigint not null,
+  bill_id bigint not null,
+  amount decimal(14,2) not null,
+  create_time datetime not null default current_timestamp,
+  unique key uk_bp_payment_allocation (tenant_id, payment_id, bill_id),
+  key idx_bp_payment_allocation_bill (tenant_id, bill_id)
+) engine=InnoDB default charset=utf8mb4 comment='收款分摊';
+
+create table if not exists bp_receipt (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  receipt_no varchar(64) not null,
+  payment_id bigint not null,
+  amount decimal(14,2) not null,
+  receipt_status varchar(20) not null default 'ISSUED',
+  issued_time datetime not null default current_timestamp,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  unique key uk_bp_receipt_no (tenant_id, receipt_no),
+  unique key uk_bp_receipt_payment (tenant_id, payment_id)
+) engine=InnoDB default charset=utf8mb4 comment='收据';

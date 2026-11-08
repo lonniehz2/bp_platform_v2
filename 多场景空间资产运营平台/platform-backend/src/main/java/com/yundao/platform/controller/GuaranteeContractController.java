@@ -1,0 +1,44 @@
+package com.yundao.platform.controller;
+
+import com.yundao.platform.common.api.R;
+import com.yundao.platform.service.BillingService;
+import com.yundao.platform.service.GuaranteeContractService;
+import java.util.List;
+import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/v1/platform/guarantee/contracts")
+public class GuaranteeContractController {
+
+    private final GuaranteeContractService contractService;
+    private final BillingService billingService;
+
+    public GuaranteeContractController(GuaranteeContractService contractService,
+                                       BillingService billingService) {
+        this.contractService = contractService;
+        this.billingService = billingService;
+    }
+
+    @GetMapping
+    public R<List<Map<String, Object>>> list(@RequestParam long projectId) {
+        return R.ok(contractService.list(projectId));
+    }
+
+    @PostMapping
+    public R<Map<String, Object>> create(@RequestBody GuaranteeContractService.ContractCmd cmd) {
+        return R.ok(contractService.create(cmd));
+    }
+
+    @PostMapping("/{contractId}/bills")
+    public R<Map<String, Object>> generateBill(@PathVariable long contractId,
+                                               @RequestBody BillingService.BillCmd cmd) {
+        return R.ok(billingService.generate(contractId, cmd));
+    }
+}

@@ -128,6 +128,10 @@ platform-frontend/README.md
 保障房模板
 保障房 7 级空间树
 房屋/内房/床位房源
+人员与房屋关系
+保障房合同
+租金账单
+收款/收据
 ```
 
 自验证：
@@ -136,4 +140,4 @@ platform-frontend/README.md
 powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\verify-core.ps1
 ```
 
-已验证 13 个断言通过。
+已验证 27 个断言通过。

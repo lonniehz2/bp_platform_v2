@@ -200,7 +200,67 @@ HOUSE
 
 ---
 
-## 8. 验证脚本
+## 8. 保障房合同与账单
+
+### GET /guarantee/contracts?projectId=
+
+### POST /guarantee/contracts
+
+```json
+{
+  "projectId": 1,
+  "contractNo": "HT2026001",
+  "houseId": 2,
+  "personId": 3,
+  "startDate": "2026-11-01",
+  "endDate": "2027-10-31",
+  "rentAmount": 1200.00,
+  "depositAmount": 1200.00,
+  "billingCycle": "MONTH",
+  "billDay": 1
+}
+```
+
+### POST /guarantee/contracts/{contractId}/bills
+
+```json
+{
+  "periodStart": "2026-11-01",
+  "periodEnd": "2026-11-30",
+  "amount": 1200.00,
+  "dueDate": "2026-11-30"
+}
+```
+
+### GET /billing/bills?projectId=&status=
+
+### POST /billing/bills/{billId}/pay
+
+```json
+{
+  "amount": 1200.00,
+  "paymentMethod": "CASH"
+}
+```
+
+### GET /billing/payments?projectId=
+
+### GET /billing/payments/{paymentId}/receipt
+
+闭环：
+
+```text
+合同
+→ 租金账单
+→ 收款
+→ 分摊
+→ 收据
+→ 账单 PAID
+```
+
+---
+
+## 9. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -209,9 +269,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-17 个断言通过
+27 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
 人员房屋关系
+保障房合同
+租金账单
+收款
+收据
 ```

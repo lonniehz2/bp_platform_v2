@@ -16,6 +16,9 @@
 房源自动创建/查询
 人员创建/查询
 人员与项目/空间/房屋关系
+保障房合同
+租金账单
+收款/分摊/收据
 租户上下文
 统一返回和异常处理
 ```
@@ -56,7 +59,7 @@ D:\Work\tools\jdk-17.0.20.1+1\bin\java.exe -jar target\multi-scene-platform.jar
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 ```
 
-验证内容：
+验证结果：
 
 ```text
 health
@@ -69,6 +72,10 @@ PUBLIC_RENTAL 模式
 创建房屋/内房/床位房源
 创建人员
 创建人员房屋关系
+创建保障房合同
+生成租金账单
+收款
+收据
 ```
 
 ## 模块规划
