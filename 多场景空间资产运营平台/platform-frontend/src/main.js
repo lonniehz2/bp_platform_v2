@@ -32,6 +32,7 @@ import GovReport from './pages/GovReport.vue'
 import Search from './pages/Search.vue'
 import Help from './pages/Help.vue'
 import HouseCalendar from './pages/HouseCalendar.vue'
+import Energy from './pages/Energy.vue'
 import Users from './pages/Users.vue'
 import Qualification from './pages/Qualification.vue'
 import MigrationExceptions from './pages/MigrationExceptions.vue'
@@ -71,6 +72,7 @@ const router = createRouter({
     { path: '/search', component: Search, meta: { title: '统一查询' } },
     { path: '/help', component: Help, meta: { title: '使用帮助' } },
     { path: '/house-calendar', component: HouseCalendar, meta: { title: '日房态' } },
+    { path: '/energy', component: Energy, meta: { title: '能耗分析' } },
     { path: '/users', component: Users, meta: { title: '用户管理' } },
     { path: '/audit', component: Audit, meta: { title: '审批中心' } },
     { path: '/menus', component: Menus, meta: { title: '菜单与角色' } },

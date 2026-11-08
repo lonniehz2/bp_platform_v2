@@ -583,6 +583,7 @@ def migrate(apply=False):
             "/search": "search",
             "/help": "help",
             "/house-calendar": "calendar",
+            "/energy": "energy",
             "/todos": "message",
             "/workorders": "service",
             "/access": "access",
