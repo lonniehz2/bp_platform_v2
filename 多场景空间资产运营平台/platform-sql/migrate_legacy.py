@@ -73,7 +73,8 @@ def migrate(apply=False):
     stats = {}
     inserted = {k: 0 for k in ("org", "space", "house", "person", "contract", "bill", "grant", "device",
                               "application", "waitlist", "allocation", "payment", "payment_allocation", "receipt",
-                              "deposit", "subsidy", "subsidy_standard", "contract_change", "role", "user", "user_role")}
+                              "deposit", "subsidy", "subsidy_standard", "contract_change", "role", "user", "user_role",
+                              "role_menu")}
     try:
         # 1. 组织/项目
         oc.execute("""
@@ -542,6 +543,64 @@ def migrate(apply=False):
                     values (%s,%s,%s,%s)
                 """, (r["id"], r["tenant_id"], r["user_id"], role_map[r["role_id"]]))
                 inserted["user_role"] += nc.rowcount
+
+        # 17. 旧角色页面权限 -> 新场景菜单
+        path_menu = {
+            "/dashboard": "dashboard",
+            "/applications": "application",
+            "/allocations": "application",
+            "/waitlist": "waitlist",
+            "/persons": "person",
+            "/contracts": "contract",
+            "/contract-changes": "contract",
+            "/exchanges": "contract",
+            "/terminations": "contract",
+            "/annual-reviews": "contract",
+            "/bills": "billing",
+            "/deposits": "billing",
+            "/subsidies": "billing",
+            "/arrears": "billing",
+            "/cashflow": "billing",
+            "/fee-items": "billing",
+            "/devices": "device",
+            "/grants": "device",
+            "/keyring": "device",
+            "/access": "device",
+            "/spaces": "asset",
+            "/houses": "asset",
+            "/orgs": "config",
+            "/rbac": "config",
+            "/sys": "system",
+            "/reports": "system",
+            "/publicities": "application",
+        }
+        oc.execute("""
+            select r.id role_id, p.route_path route_path
+            from bp_iam_role r
+            join bp_iam_role_permission rp on rp.role_id=r.id
+            join bp_iam_permission p on p.id=rp.permission_id
+            where p.perm_code like 'page:%' and p.route_path is not null
+        """)
+        page_perms = oc.fetchall()
+        stats["role_menu"] = len(page_perms)
+        for r in page_perms:
+            menu_code = path_menu.get(r["route_path"])
+            if not menu_code:
+                continue
+            menu_id = scalar(nc, "select id from bp_menu where scene_code='GUARANTEE' and menu_code=%s",
+                             (menu_code,))
+            if not menu_id:
+                continue
+            new_role_id = role_map.get(r["role_id"])
+            if not new_role_id:
+                continue
+            ex_id = int(hashlib.sha256(f"role-menu-{new_role_id}-{menu_id}".encode("utf-8")).hexdigest()[:15], 16)
+            if apply:
+                nc.execute("""
+                    insert ignore into bp_role_menu(id,tenant_id,role_id,menu_id)
+                    values (%s,%s,%s,%s)
+                """, (ex_id, TENANT, new_role_id, menu_id))
+                inserted["role_menu"] += nc.rowcount
 
         if apply:
             new.commit()
