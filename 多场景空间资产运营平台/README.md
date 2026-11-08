@@ -95,6 +95,7 @@ platform-docs/08-部署说明.md
 platform-docs/09-旧系统兼容说明.md
 platform-docs/10-多语言与主题说明.md
 platform-docs/11-浏览器回归报告.md
+platform-docs/12-UI交互回归.md
 platform-sql/001_platform_core.sql
 platform-backend/README.md
 platform-frontend/README.md
