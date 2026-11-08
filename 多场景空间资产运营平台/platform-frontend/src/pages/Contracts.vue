@@ -11,7 +11,7 @@ const error = ref('')
 const busy = ref(false)
 const form = reactive({
   contractNo: '', houseId: '', personId: '', startDate: '2026-11-01', endDate: '2027-10-31',
-  rentAmount: 1200, depositAmount: 1200
+  rentAmount: 1200, depositAmount: 1200, billingCycle: 'MONTH', billDay: 1
 })
 const billForm = reactive({ contractId: '', periodStart: '2026-11-01', periodEnd: '2026-11-30', amount: 1200 })
 const selectedContract = ref(null)
@@ -56,7 +56,7 @@ async function create() {
       houseId: form.houseId, personId: form.personId,
       startDate: form.startDate, endDate: form.endDate,
       rentAmount: Number(form.rentAmount), depositAmount: Number(form.depositAmount),
-      billingCycle: 'MONTH', billDay: 1
+      billingCycle: form.billingCycle, billDay: Number(form.billDay || 1)
     })
     form.contractNo = ''
     await load()
@@ -118,6 +118,8 @@ onMounted(load)
           <div class="field"><label>结束日期</label><input v-model="form.endDate" type="date" /></div>
           <div class="field"><label>月租金</label><input v-model.number="form.rentAmount" type="number" /></div>
           <div class="field"><label>押金</label><input v-model.number="form.depositAmount" type="number" /></div>
+          <div class="field"><label>账单周期</label><select v-model="form.billingCycle"><option value="MONTH">按月</option><option value="QUARTER">按季</option><option value="YEAR">按年</option></select></div>
+          <div class="field"><label>账单日</label><input v-model.number="form.billDay" type="number" min="1" max="28" /></div>
           <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('contract')" class="primary" :disabled="busy" @click="create">创建合同</button></div>
         </div>
       </div>
@@ -127,11 +129,12 @@ onMounted(load)
         <div v-if="!contracts.length" class="empty">暂无合同</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>合同编号</th><th>房屋</th><th>承租人</th><th>租金</th><th>押金</th><th>状态</th><th>操作</th></tr></thead>
+            <thead><tr><th>合同编号</th><th>房屋</th><th>承租人</th><th>租金</th><th>押金</th><th>周期</th><th>账单日</th><th>状态</th><th>操作</th></tr></thead>
             <tbody>
               <tr v-for="c in contracts" :key="c.id">
                 <td class="mono">{{ c.contractNo }}</td><td>{{ c.houseName }}</td><td>{{ c.personName }}</td>
                 <td>¥{{ money(c.rentAmount) }}</td><td>¥{{ money(c.depositAmount) }}</td>
+                <td>{{ c.billingCycle }}</td><td>{{ c.billDay }}</td>
                 <td><span class="badge" :class="c.contractStatus === 'ACTIVE' ? 'green' : 'orange'">{{ c.contractStatus }}</span></td>
                 <td><button class="sm" @click="openFiles(c)">附件</button></td>
               </tr>

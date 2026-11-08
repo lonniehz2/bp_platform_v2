@@ -10,7 +10,7 @@ const houses = ref([])
 const waitlist = ref([])
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ applicationNo: '', applicantPersonId: '', familySize: 1 })
+const form = reactive({ applicationNo: '', applicantPersonId: '', familySize: 1, applicationType: 'PUBLIC_RENTAL' })
 const allocateForm = reactive({ waitlistId: '', houseId: '' })
 
 const statusClass = (s) => ({ APPROVED: 'green', REJECTED: 'red', SUBMITTED: 'orange' }[s] || '')
@@ -50,7 +50,7 @@ async function create() {
       projectId: project.value.id,
       applicationNo: form.applicationNo.trim(),
       applicantPersonId: form.applicantPersonId,
-      applicationType: 'PUBLIC_RENTAL',
+      applicationType: form.applicationType,
       familySize: Number(form.familySize || 1)
     })
     form.applicationNo = ''
@@ -91,6 +91,7 @@ onMounted(load)
               <option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}（{{ p.personCode }}）</option>
             </select>
           </div>
+          <div class="field"><label>申请类型</label><select v-model="form.applicationType"><option value="PUBLIC_RENTAL">公共租赁</option><option value="AFFORDABLE_RENTAL">保障性租赁</option><option value="TALENT_APARTMENT">人才公寓</option><option value="DORMITORY">宿舍</option></select></div>
           <div class="field"><label>家庭人数</label><input v-model.number="form.familySize" type="number" min="1" /></div>
           <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('application')" class="primary" :disabled="busy" @click="create">创建申请</button></div>
         </div>
