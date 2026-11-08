@@ -73,7 +73,7 @@ def migrate(apply=False):
     stats = {}
     inserted = {k: 0 for k in ("org", "space", "house", "person", "contract", "bill", "grant", "device",
                               "application", "waitlist", "allocation", "payment", "payment_allocation", "receipt",
-                              "deposit", "subsidy", "contract_change")}
+                              "deposit", "subsidy", "contract_change", "role", "user", "user_role")}
     try:
         # 1. 组织/项目
         oc.execute("""
@@ -469,6 +469,55 @@ def migrate(apply=False):
                       r["device_name"], r["device_type"], r["device_model"],
                       r["install_time"], r["is_deleted"]))
                 inserted["device"] += nc.rowcount
+
+        # 16. 角色/用户
+        oc.execute("""
+            select id, tenant_id, role_code, role_name, role_type, status
+            from bp_iam_role order by id
+        """)
+        roles = oc.fetchall()
+        stats["role"] = len(roles)
+        role_map = {}
+        for r in roles:
+            existing = scalar(nc, "select id from bp_role where tenant_id=%s and scene_code='GUARANTEE' "
+                                  "and role_code=%s", (r["tenant_id"], r["role_code"]))
+            if existing:
+                role_map[r["id"]] = existing
+                continue
+            role_map[r["id"]] = r["id"]
+            if apply:
+                nc.execute("""
+                    insert ignore into bp_role(id,tenant_id,scene_code,role_code,role_name,role_status)
+                    values (%s,%s,'GUARANTEE',%s,%s,%s)
+                """, (r["id"], r["tenant_id"], r["role_code"], r["role_name"], r["status"] or "ENABLED"))
+                inserted["role"] += nc.rowcount
+
+        oc.execute("""
+            select id, tenant_id, username, password_hash, real_name, status
+            from bp_iam_user order by id
+        """)
+        users = oc.fetchall()
+        stats["user"] = len(users)
+        for r in users:
+            if apply:
+                nc.execute("""
+                    insert ignore into bp_user
+                      (id,tenant_id,username,password_hash,display_name,user_status,is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,0)
+                """, (r["id"], r["tenant_id"], r["username"], r["password_hash"],
+                      r["real_name"] or r["username"], r["status"] or "ENABLED"))
+                inserted["user"] += nc.rowcount
+
+        oc.execute("select id, tenant_id, user_id, role_id from bp_iam_user_role order by id")
+        user_roles = oc.fetchall()
+        stats["user_role"] = len(user_roles)
+        for r in user_roles:
+            if apply and r["role_id"] in role_map:
+                nc.execute("""
+                    insert ignore into bp_user_role(id,tenant_id,user_id,role_id)
+                    values (%s,%s,%s,%s)
+                """, (r["id"], r["tenant_id"], r["user_id"], role_map[r["role_id"]]))
+                inserted["user_role"] += nc.rowcount
 
         if apply:
             new.commit()
