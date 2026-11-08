@@ -15,6 +15,8 @@ const error = ref('')
 const busy = ref(false)
 const payForm = reactive({ billId: '', amount: '', method: 'CASH' })
 const receipt = ref(null)
+const adjusting = ref(null)
+const adjustForm = reactive({ discountAmount: 0, remark: '' })
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 const pagedBills = computed(() => bills.value.slice((page.value - 1) * 10, page.value * 10))
@@ -46,6 +48,18 @@ async function load() {
 function selectBill(b) {
   payForm.billId = b.id
   payForm.amount = Number(b.payableAmount || b.amount) - Number(b.paidAmount || 0)
+}
+
+function openAdjust(b) { adjusting.value = b; adjustForm.discountAmount = 0; adjustForm.remark = '' }
+
+async function adjust() {
+  busy.value = true; error.value = ''
+  try {
+    if (!adjusting.value) return
+    await api.adjustBill(adjusting.value.id, { discountAmount: Number(adjustForm.discountAmount || 0), remark: adjustForm.remark })
+    adjusting.value = null
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
 function openReceipt(p) { receipt.value = p }
@@ -92,7 +106,7 @@ onMounted(load)
         <div v-if="!bills.length" class="empty">暂无账单</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>账单号</th><th>承租人</th><th>周期</th><th>账单金额</th><th>补贴</th><th>应付</th><th>已收</th><th>状态</th></tr></thead>
+            <thead><tr><th>账单号</th><th>承租人</th><th>周期</th><th>账单金额</th><th>补贴</th><th>应付</th><th>已收</th><th>状态</th><th>操作</th></tr></thead>
             <tbody>
               <tr v-for="b in pagedBills" :key="b.id">
                 <td class="mono">{{ b.billNo }}</td><td>{{ b.personName }}</td>
@@ -100,6 +114,7 @@ onMounted(load)
                 <td>¥{{ money(b.amount) }}</td><td>¥{{ money(b.discountAmount) }}</td>
                 <td>¥{{ money(b.payableAmount || b.amount) }}</td><td>¥{{ money(b.paidAmount) }}</td>
                 <td><span class="badge" :class="statusClass(b.billStatus)">{{ b.billStatus }}</span></td>
+                <td><button v-if="can('billing') && b.billStatus !== 'PAID'" class="sm" @click="openAdjust(b)">调整</button></td>
               </tr>
             </tbody>
           </table>
@@ -124,6 +139,16 @@ onMounted(load)
         </div>
       </div>
     </template>
+
+    <div v-if="adjusting" class="modal-mask" @click.self="adjusting = null">
+      <div class="modal">
+        <div class="panel-head"><h2>账单调整</h2><button class="sm" @click="adjusting = null">关闭</button></div>
+        <div class="field"><label>账单</label><div class="mono">{{ adjusting.billNo }}</div></div>
+        <div class="field"><label>新增减免</label><input v-model.number="adjustForm.discountAmount" type="number" /></div>
+        <div class="field"><label>调整原因</label><input v-model="adjustForm.remark" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="adjust">保存</button></div>
+      </div>
+    </div>
 
     <div v-if="receipt" class="modal-mask" @click.self="receipt = null">
       <div class="modal receipt-box">

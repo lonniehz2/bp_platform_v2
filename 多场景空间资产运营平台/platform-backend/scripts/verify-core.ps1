@@ -229,6 +229,19 @@ Assert-True (@($bills).Count -eq 1) "bill listed"
 Assert-True ($bills[0].billStatus -eq "PAID") "bill status persisted"
 Assert-True ([decimal]$bills[0].paidAmount -eq 900.00) "bill paid amount persisted"
 
+
+$adjustBill = Api "POST" "/api/v1/platform/guarantee/contracts/$($contract.id)/bills" @{
+    periodStart = "2026-12-01"
+    periodEnd = "2026-12-31"
+    amount = 1200
+}
+$adjust = Api "POST" "/api/v1/platform/billing/bills/$($adjustBill.id)/adjust" @{
+    discountAmount = 200
+    remark = "验证减免"
+}
+Assert-True ($adjust.billStatus -ne "PAID") "bill adjusted"
+Assert-True ([decimal]$adjust.payableAmount -lt [decimal]$adjustBill.payableAmount) "bill payable reduced"
+
 $payments = Api "GET" "/api/v1/platform/billing/payments?projectId=$projectId" $null
 Assert-True (@($payments).Count -eq 1) "payment listed"
 $receipt = Api "GET" "/api/v1/platform/billing/payments/$($payment.paymentId)/receipt" $null

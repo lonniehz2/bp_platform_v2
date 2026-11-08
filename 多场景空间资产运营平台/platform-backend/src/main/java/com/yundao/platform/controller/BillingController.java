@@ -34,6 +34,12 @@ public class BillingController {
         return R.ok(service.pay(billId, cmd));
     }
 
+    @PostMapping("/bills/{billId}/adjust")
+    public R<Map<String, Object>> adjust(@PathVariable long billId,
+                                         @RequestBody BillingService.AdjustCmd cmd) {
+        return R.ok(service.adjust(billId, cmd));
+    }
+
     @GetMapping("/payments")
     public R<List<Map<String, Object>>> payments(@RequestParam long projectId) {
         return R.ok(service.payments(projectId));
