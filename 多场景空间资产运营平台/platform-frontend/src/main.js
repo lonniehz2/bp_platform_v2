@@ -12,6 +12,9 @@ import Applications from './pages/Applications.vue'
 import Contracts from './pages/Contracts.vue'
 import Billing from './pages/Billing.vue'
 import Deposits from './pages/Deposits.vue'
+import Arrears from './pages/Arrears.vue'
+import Cashflow from './pages/Cashflow.vue'
+import Reports from './pages/Reports.vue'
 import Changes from './pages/Changes.vue'
 import Audit from './pages/Audit.vue'
 import Qualification from './pages/Qualification.vue'
@@ -30,6 +33,9 @@ const router = createRouter({
     { path: '/contracts', component: Contracts, meta: { title: '合同与租赁' } },
     { path: '/billing', component: Billing, meta: { title: '收费与账务' } },
     { path: '/deposits', component: Deposits, meta: { title: '押金与补贴' } },
+    { path: '/arrears', component: Arrears, meta: { title: '欠费清单' } },
+    { path: '/cashflow', component: Cashflow, meta: { title: '资金流水' } },
+    { path: '/reports', component: Reports, meta: { title: '运营报表' } },
     { path: '/changes', component: Changes, meta: { title: '合同变更' } },
     { path: '/qualification', component: Qualification, meta: { title: '资格复核' } },
     { path: '/devices', component: Devices, meta: { title: '设备与授权' } },
