@@ -581,6 +581,24 @@ Assert-True ($creditRevoked.recordStatus -eq "REVOKED") "credit record revoked"
 $credits = Api "GET" "/api/v1/platform/guarantee/credits?projectId=$projectId" $null
 Assert-True (@($credits).Count -ge 1) "credit record listed"
 
+
+$shortRent = Api "POST" "/api/v1/platform/guarantee/short-rent-orders" @{
+    projectId = $projectId
+    houseId = $roomHouse.id
+    guestName = "短租客人A"
+    guestPhone = "13800000000"
+    startDate = "2026-11-10"
+    endDate = "2026-11-13"
+    amount = 900
+}
+Assert-True ($shortRent.nights -eq 3) "short rent order created"
+
+$shortRentConfirmed = Api "POST" "/api/v1/platform/guarantee/short-rent-orders/$($shortRent.id)/status" @{ status = "CONFIRMED" }
+Assert-True ($shortRentConfirmed.orderStatus -eq "CONFIRMED") "short rent order confirmed"
+
+$shortRents = Api "GET" "/api/v1/platform/guarantee/short-rent-orders?projectId=$projectId" $null
+Assert-True (@($shortRents).Count -ge 1) "short rent order listed"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

@@ -576,6 +576,7 @@ def migrate(apply=False):
             "/alerts": "alert",
             "/patrol": "alert",
             "/credits": "credit",
+            "/short-rent": "shortrent",
             "/workorders": "service",
             "/access": "access",
             "/complaints": "complaint",

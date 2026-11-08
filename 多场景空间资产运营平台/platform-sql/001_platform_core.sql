@@ -891,3 +891,25 @@ create table if not exists guarantee_credit_record (
   update_time datetime not null default current_timestamp on update current_timestamp,
   key idx_guarantee_credit_project (tenant_id, project_id, record_status)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房信用记录';
+
+
+create table if not exists guarantee_short_rent_order (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  house_id bigint null,
+  order_no varchar(64) not null,
+  guest_name varchar(128) not null,
+  guest_phone varchar(32) null,
+  start_date date not null,
+  end_date date not null,
+  nights int not null default 1,
+  amount decimal(14,2) not null default 0,
+  order_status varchar(20) not null default 'PENDING',
+  remark varchar(500) null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_guarantee_short_rent_no (tenant_id, order_no),
+  key idx_guarantee_short_rent_project (tenant_id, project_id, order_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房短租订单';
