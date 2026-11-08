@@ -623,6 +623,21 @@ Assert-True (@($messages).Count -ge 1) "message listed"
 $messageRead = Api "POST" "/api/v1/platform/messages/$($message.id)/read" $null
 Assert-True ($messageRead.readStatus -eq "READ") "message read"
 
+
+$verifyUser = Api "POST" "/api/v1/platform/users" @{
+    username = "VERIFY_USER_$suffix"
+    password = "verify123"
+    displayName = "验证用户"
+    roleIds = @()
+}
+Assert-True ($verifyUser.userStatus -eq "ENABLED") "user created"
+
+$verifyUsers = Api "GET" "/api/v1/platform/users" $null
+Assert-True (@($verifyUsers).Count -ge 1) "user listed"
+
+$verifyUserOff = Api "POST" "/api/v1/platform/users/$($verifyUser.id)/update" @{ userStatus = "DISABLED" }
+Assert-True ($verifyUserOff.userStatus -eq "DISABLED") "user disabled"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

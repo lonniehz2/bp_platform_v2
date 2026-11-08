@@ -50,6 +50,7 @@ const nav = [
   { to: '/open-apps', key: 'open', menu: 'open', icon: '⇄' },
   { to: '/messages', key: 'message', menu: 'message', icon: '✉' },
   { to: '/audit', key: 'audit', menu: 'audit', icon: '✓' },
+  { to: '/users', key: 'users', menu: 'config', icon: '♟' },
   { to: '/menus', key: 'config', menu: 'config', icon: '☰' },
   { to: '/migration-exceptions', key: 'migration', menu: 'system', icon: '!' }
 ]
@@ -80,6 +81,7 @@ const titleKey = {
   '/open-apps': 'nav.open',
   '/messages': 'nav.message',
   '/audit': 'nav.audit',
+  '/users': 'nav.users',
   '/menus': 'nav.config',
   '/migration-exceptions': 'nav.migration'
 }

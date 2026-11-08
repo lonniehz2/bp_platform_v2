@@ -27,6 +27,7 @@ const messages = {
       shortrent: '短租订单',
       open: '开放平台',
       message: '消息中心',
+      users: '用户管理',
       audit: '审批中心',
       config: '菜单与角色',
       migration: '迁移异常'
@@ -86,6 +87,7 @@ const messages = {
       shortrent: 'Short Rent',
       open: 'Open Platform',
       message: 'Messages',
+      users: 'Users',
       audit: 'Approvals',
       config: 'Menus & Roles',
       migration: 'Migration Exceptions'
