@@ -135,6 +135,8 @@ platform-frontend/README.md
 串行多级审批
 合同变更审批
 申请/轮候/配租/配租转合同
+押金收取/退还
+退租释放房屋
 ```
 
 自验证：
@@ -143,4 +145,4 @@ platform-frontend/README.md
 powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\verify-core.ps1
 ```
 
-已验证 46 个断言通过。
+已验证 54 个断言通过。

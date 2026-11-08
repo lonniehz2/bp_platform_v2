@@ -148,6 +148,28 @@ $contract = Api "POST" "/api/v1/platform/guarantee/contracts" @{
 }
 Assert-True ($null -ne $contract.id) "guarantee contract created"
 
+
+$deposit = Api "GET" "/api/v1/platform/guarantee/contracts/$($contract.id)/deposit" $null
+Assert-True ([decimal]$deposit.amount -eq 1200.00) "deposit created"
+Assert-True ($deposit.depositStatus -eq "PENDING") "deposit pending"
+
+$depositPay = Api "POST" "/api/v1/platform/guarantee/contracts/$($contract.id)/deposit/pay" @{
+    amount = 1200.00
+    operatorName = "收费员A"
+    remark = "收取押金"
+}
+Assert-True ($depositPay.depositStatus -eq "HELD") "deposit held"
+
+$depositRefund = Api "POST" "/api/v1/platform/guarantee/deposits/$($deposit.id)/refund" @{
+    amount = 1200.00
+    operatorName = "收费员A"
+    reason = "退租退押"
+}
+Assert-True ($depositRefund.depositStatus -eq "REFUNDED") "deposit refunded"
+
+$depositAfter = Api "GET" "/api/v1/platform/guarantee/contracts/$($contract.id)/deposit" $null
+Assert-True (@($depositAfter.transactions).Count -eq 2) "deposit transactions created"
+
 $bill = Api "POST" "/api/v1/platform/guarantee/contracts/$($contract.id)/bills" @{
     periodStart = "2026-11-01"
     periodEnd = "2026-11-30"
@@ -281,6 +303,30 @@ Assert-True ($null -ne $allocContract.contractId) "allocation contract created"
 $allocations = Api "GET" "/api/v1/platform/guarantee/allocations?projectId=$projectId" $null
 $allocationRow = @($allocations | Where-Object { $_.id -eq $allocation.allocationId })[0]
 Assert-True ($allocationRow.allocationStatus -eq "CONTRACTED") "allocation status persisted"
+
+
+$termination = Api "POST" "/api/v1/platform/guarantee/contracts/$($allocContract.contractId)/changes" @{
+    changeType = "TERMINATION"
+    after = @{}
+    effectiveDate = "2027-11-30"
+    reason = "退租验证"
+}
+$termSubmit = Api "POST" "/api/v1/platform/guarantee/contract-changes/$($termination.id)/submit" $null
+Assert-True ($termSubmit.changeStatus -eq "APPROVING") "termination submitted"
+
+$termStep1 = Api "POST" "/api/v1/platform/guarantee/contract-changes/$($termination.id)/approve" @{
+    approverName = "客服A"
+    comment = "同意退租"
+}
+$termStep2 = Api "POST" "/api/v1/platform/guarantee/contract-changes/$($termination.id)/approve" @{
+    approverName = "经理B"
+    comment = "通过"
+}
+Assert-True ($termStep2.changeStatus -eq "APPROVED") "termination approved"
+
+$housesAfterTerm = Api "GET" "/api/v1/platform/projects/$projectId/houses" $null
+$terminatedHouse = @($housesAfterTerm | Where-Object { $_.id -eq $innerHouse.id })[0]
+Assert-True ($terminatedHouse.houseStatus -eq "VACANT") "termination released house"
 
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"

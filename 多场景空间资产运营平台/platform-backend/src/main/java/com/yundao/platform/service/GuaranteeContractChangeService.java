@@ -160,14 +160,30 @@ public class GuaranteeContractChangeService {
                         TenantContext.require(), change.projectId()) == 0) {
                     throw BizException.param("新房屋不属于当前项目");
                 }
+                Long oldHouseId = jdbc.queryForObject(
+                        "select house_id from guarantee_contract where id=?", Long.class, change.contractId());
                 jdbc.update("update guarantee_contract set house_id=?, update_time=now() where id=?",
                         houseId, change.contractId());
+                if (oldHouseId != null) {
+                    jdbc.update("update bp_house set house_status='VACANT', update_time=now() where id=?",
+                            oldHouseId);
+                }
+                jdbc.update("update bp_house set house_status='ALLOCATED', update_time=now() where id=?",
+                        houseId);
             }
             case "TERMINATION" -> {
                 LocalDate endDate = change.effectiveDate() == null
                         ? date(after.get("endDate"), "终止日期") : change.effectiveDate();
+                Long houseId = jdbc.queryForObject(
+                        "select house_id from guarantee_contract where id=?", Long.class, change.contractId());
                 jdbc.update("update guarantee_contract set contract_status='TERMINATED', end_date=?, "
                         + "update_time=now() where id=?", endDate, change.contractId());
+                if (houseId != null) {
+                    jdbc.update("update bp_house set house_status='VACANT', update_time=now() where id=?",
+                            houseId);
+                }
+                jdbc.update("update guarantee_allocation set allocation_status='TERMINATED' "
+                        + "where contract_id=? and allocation_status='CONTRACTED'", change.contractId());
             }
             default -> throw BizException.param("不支持的变更类型");
         }

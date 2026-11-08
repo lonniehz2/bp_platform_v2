@@ -37,6 +37,7 @@ public class GuaranteeContractService {
                 TenantContext.require(), projectId);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public Map<String, Object> create(ContractCmd cmd) {
         String tenant = TenantContext.require();
         requireGuaranteeProject(cmd.projectId());
@@ -80,6 +81,12 @@ public class GuaranteeContractService {
         } catch (DataIntegrityViolationException e) {
             throw BizException.conflict("合同编号已存在");
         }
+        long depositId = idGen.nextId();
+        jdbc.update("insert into guarantee_deposit(id,tenant_id,project_id,contract_id,person_id,amount,"
+                        + "paid_amount,refunded_amount,deposit_status,is_deleted) "
+                        + "values(?,?,?,?,?,?,0,0,?,0)",
+                depositId, tenant, cmd.projectId(), id, cmd.personId(), deposit,
+                deposit.signum() > 0 ? "PENDING" : "HELD");
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", id);
         out.put("contractNo", cmd.contractNo());
@@ -87,6 +94,7 @@ public class GuaranteeContractService {
         out.put("houseId", cmd.houseId());
         out.put("personId", cmd.personId());
         out.put("rentAmount", rent);
+        out.put("depositId", depositId);
         out.put("contractStatus", "ACTIVE");
         return out;
     }

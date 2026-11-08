@@ -502,3 +502,33 @@ create table if not exists guarantee_allocation (
   unique key uk_guarantee_allocation_no (tenant_id, allocation_no),
   key idx_guarantee_allocation_house (tenant_id, house_id, allocation_status)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房配租';
+
+
+create table if not exists guarantee_deposit (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  contract_id bigint not null,
+  person_id bigint not null,
+  amount decimal(14,2) not null default 0,
+  paid_amount decimal(14,2) not null default 0,
+  refunded_amount decimal(14,2) not null default 0,
+  deposit_status varchar(20) not null default 'PENDING',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_guarantee_deposit_contract (tenant_id, contract_id),
+  key idx_guarantee_deposit_project (tenant_id, project_id, deposit_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房押金';
+
+create table if not exists guarantee_deposit_txn (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  deposit_id bigint not null,
+  txn_type varchar(20) not null,
+  amount decimal(14,2) not null,
+  operator_name varchar(64) null,
+  remark varchar(500) null,
+  txn_time datetime not null default current_timestamp,
+  key idx_guarantee_deposit_txn (tenant_id, deposit_id, txn_time)
+) engine=InnoDB default charset=utf8mb4 comment='保障房押金流水';

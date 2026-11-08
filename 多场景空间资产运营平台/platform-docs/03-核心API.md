@@ -271,7 +271,9 @@ HOUSE
   "sceneCode": "GUARANTEE",
   "bizType": "GUARANTEE_CONTRACT_CHANGE",
   "flowName": "保障房合同变更审批
-申请/轮候/配租/配租转合同",
+申请/轮候/配租/配租转合同
+押金收取/退还
+退租释放房屋",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
     {"nodeName": "经理终审", "approverRole": "PROPERTY_MANAGER"}
@@ -310,6 +312,8 @@ HOUSE
 串行多级审批
 合同变更审批
 申请/轮候/配租/配租转合同
+押金收取/退还
+退租释放房屋
 通过/驳回
 审批记录
 ```
@@ -360,6 +364,8 @@ TERMINATION → 合同终止
 ---
 
 ## 11. 保障房申请/轮候/配租/配租转合同
+押金收取/退还
+退租释放房屋
 
 ### GET /guarantee/applications?projectId=
 
@@ -414,6 +420,26 @@ TERMINATION → 合同终止
 生成保障房合同
 ```
 
+### GET /guarantee/contracts/{contractId}/deposit
+
+### POST /guarantee/contracts/{contractId}/deposit/pay
+
+```json
+{"amount": 1200.00, "operatorName": "收费员A", "remark": "收取押金"}
+```
+
+### POST /guarantee/deposits/{depositId}/refund
+
+```json
+{"amount": 1200.00, "operatorName": "收费员A", "reason": "退租退押"}
+```
+
+押金状态：
+
+```text
+PENDING → HELD → REFUNDED
+```
+
 ### GET /guarantee/allocations?projectId=
 
 状态：
@@ -435,7 +461,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-46 个断言通过
+54 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -447,4 +473,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 串行多级审批
 合同变更审批
 申请/轮候/配租/配租转合同
+押金收取/退还
+退租释放房屋
 ```
