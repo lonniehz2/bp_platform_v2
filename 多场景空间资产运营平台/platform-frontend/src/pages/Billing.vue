@@ -18,6 +18,9 @@ const payForm = reactive({ billId: '', amount: '', method: 'CASH' })
 const receipt = ref(null)
 const adjusting = ref(null)
 const adjustForm = reactive({ discountAmount: 0, remark: '' })
+const refunding = ref(null)
+const refundAllocations = ref([])
+const refundForm = reactive({ allocationId: '', amount: 0, reason: '' })
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 const pagedBills = computed(() => bills.value.slice((page.value - 1) * 10, page.value * 10))
@@ -65,6 +68,38 @@ async function adjust() {
     if (!adjusting.value) return
     await api.adjustBill(adjusting.value.id, { discountAmount: Number(adjustForm.discountAmount || 0), remark: adjustForm.remark })
     adjusting.value = null
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+
+async function openRefund(p) {
+  error.value = ''
+  try {
+    refunding.value = p
+    refundAllocations.value = await api.paymentAllocations(p.id)
+    const first = refundAllocations.value[0]
+    refundForm.allocationId = first ? first.allocationId : ''
+    refundForm.amount = first ? Number(first.amount) - Number(first.refunded || 0) : 0
+    refundForm.reason = ''
+  } catch (e) { error.value = e.message }
+}
+
+function pickAllocation() {
+  const a = refundAllocations.value.find(x => String(x.allocationId) === String(refundForm.allocationId))
+  refundForm.amount = a ? Number(a.amount) - Number(a.refunded || 0) : 0
+}
+
+async function submitRefund() {
+  busy.value = true; error.value = ''
+  try {
+    if (!refunding.value || !refundForm.allocationId) throw new Error('请选择原收款分配')
+    await api.refundPayment(refunding.value.id, {
+      billId: refundAllocations.value.find(x => String(x.allocationId) === String(refundForm.allocationId))?.billId,
+      amount: Number(refundForm.amount),
+      reason: refundForm.reason
+    })
+    refunding.value = null
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -139,13 +174,30 @@ onMounted(load)
               <tr v-for="p in payments" :key="p.id">
                 <td class="mono">{{ p.paymentNo }}</td><td>¥{{ money(p.amount) }}</td><td>{{ p.paymentMethod }}</td>
                 <td><span class="badge green">{{ p.paymentStatus }}</span></td><td class="mono">{{ p.receiptNo || '-' }}</td><td class="small">{{ p.paidTime }}</td>
-                <td><button v-if="p.receiptNo" class="sm" @click="openReceipt(p)">打印</button></td>
+                <td><div class="row"><button v-if="p.receiptNo" class="sm" @click="openReceipt(p)">打印</button><button v-if="can('billing')" class="sm" @click="openRefund(p)">退款</button></div></td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
     </template>
+
+    <div v-if="refunding" class="modal-mask" @click.self="refunding = null">
+      <div class="modal">
+        <div class="panel-head"><h2>账单退款</h2><button class="sm" @click="refunding = null">关闭</button></div>
+        <div class="field"><label>原收款</label><div class="mono">{{ refunding.paymentNo }} · ¥{{ money(refunding.amount) }}</div></div>
+        <div class="field"><label>原收款分配</label>
+          <select v-model="refundForm.allocationId" @change="pickAllocation">
+            <option v-for="a in refundAllocations" :key="a.allocationId" :value="a.allocationId">
+              {{ a.billNo }} · {{ a.periodStart }} ~ {{ a.periodEnd }} · 可退 ¥{{ money(Number(a.amount) - Number(a.refunded || 0)) }}
+            </option>
+          </select>
+        </div>
+        <div class="field"><label>退款金额</label><input v-model.number="refundForm.amount" type="number" /></div>
+        <div class="field"><label>退款原因</label><input v-model="refundForm.reason" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="submitRefund">确认退款</button></div>
+      </div>
+    </div>
 
     <div v-if="adjusting" class="modal-mask" @click.self="adjusting = null">
       <div class="modal">

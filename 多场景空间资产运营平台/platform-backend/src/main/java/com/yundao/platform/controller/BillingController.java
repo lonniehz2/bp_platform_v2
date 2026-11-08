@@ -76,6 +76,11 @@ public class BillingController {
         return R.ok(service.adjust(billId, cmd));
     }
 
+    @GetMapping("/payments/{paymentId}/allocations")
+    public R<List<Map<String, Object>>> paymentAllocations(@PathVariable long paymentId) {
+        return R.ok(service.paymentAllocations(paymentId));
+    }
+
     @PostMapping("/payments/{paymentId}/refund")
     public R<Map<String, Object>> refund(@PathVariable long paymentId,
                                          @RequestBody BillingService.RefundCmd cmd) {

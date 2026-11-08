@@ -103,6 +103,8 @@ export const api = {
   payContract: (contractId, body) => request(`/billing/contracts/${contractId}/pay`, { method: 'POST', body: JSON.stringify(body) }),
   pay: (billId, body) => request(`/billing/bills/${billId}/pay`, { method: 'POST', body: JSON.stringify(body) }),
   payments: (projectId) => request(`/billing/payments?projectId=${projectId}`),
+  paymentAllocations: (paymentId) => request(`/billing/payments/${paymentId}/allocations`),
+  refundPayment: (paymentId, body) => request(`/billing/payments/${paymentId}/refund`, { method: 'POST', body: JSON.stringify(body) }),
   cohabitants: (contractId) => request(`/guarantee/contracts/${contractId}/cohabitants`),
   addCohabitant: (contractId, body) => request(`/guarantee/contracts/${contractId}/cohabitants`, { method: 'POST', body: JSON.stringify(body) }),
   removeCohabitant: (id) => request(`/guarantee/contract-cohabitants/${id}/remove`, { method: 'POST' }),

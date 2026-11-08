@@ -365,6 +365,19 @@ public class BillingService {
     }
 
 
+
+    public List<Map<String, Object>> paymentAllocations(long paymentId) {
+        String tenant = TenantContext.require();
+        return jdbc.queryForList(
+                "select al.id allocationId, al.bill_id billId, b.bill_no billNo, b.period_start periodStart, "
+                        + "b.period_end periodEnd, al.amount, b.bill_status billStatus, "
+                        + "coalesce((select sum(r.amount) from bp_refund r where r.tenant_id=al.tenant_id "
+                        + "and r.allocation_id=al.id and r.is_deleted=0),0) refunded "
+                        + "from bp_payment_allocation al join bp_bill b on b.id=al.bill_id "
+                        + "where al.tenant_id=? and al.payment_id=? order by al.id",
+                tenant, paymentId);
+    }
+
     @Transactional
     public Map<String, Object> refund(long paymentId, RefundCmd cmd) {
         String tenant = TenantContext.require();
