@@ -70,6 +70,9 @@ async function create() {
 async function submit(id) { await run(() => api.submitApplication(id)) }
 async function approve(id) { await run(() => api.approveApplication(id, '资格通过')) }
 async function wait(id) { await run(() => api.joinWaitlist(id)) }
+async function reject(id) { const comment = window.prompt('驳回原因') || '资料不齐'; await run(() => api.rejectApplication(id, comment)) }
+async function returnForSupplement(id) { const comment = window.prompt('退回补充原因') || '请补充资料'; await run(() => api.returnApplication(id, comment)) }
+async function resubmit(id) { await run(() => api.resubmitApplication(id)) }
 async function allocate() {
   if (!allocateForm.waitlistId || !allocateForm.houseId) { error.value = '请选择轮候记录和房屋'; return }
   await run(() => api.allocate(allocateForm.waitlistId, allocateForm.houseId))
@@ -131,6 +134,9 @@ onMounted(load)
                 <td class="row">
                   <button class="sm" v-if="a.applicationStatus === 'DRAFT'" @click="submit(a.id)">提交</button>
                   <button class="sm" v-if="a.applicationStatus === 'SUBMITTED'" @click="approve(a.id)">审核通过</button>
+                  <button class="sm danger" v-if="a.applicationStatus === 'SUBMITTED'" @click="reject(a.id)">驳回</button>
+                  <button class="sm" v-if="a.applicationStatus === 'SUBMITTED'" @click="returnForSupplement(a.id)">退回补充</button>
+                  <button class="sm" v-if="a.applicationStatus === 'RETURNED'" @click="resubmit(a.id)">重新提交</button>
                   <button class="sm" v-if="a.applicationStatus === 'APPROVED'" @click="wait(a.id)">进入轮候</button>
                 </td>
               </tr>
