@@ -55,6 +55,12 @@ public class ListingController {
         return R.ok(service.book(listingId, cmd));
     }
 
+    @PostMapping("/listing-orders/{orderId}/contract")
+    public R<Map<String, Object>> contract(@PathVariable long orderId) {
+        permissions.require("listing:manage");
+        return R.ok(service.contractFromOrder(orderId));
+    }
+
     @GetMapping("/listing-orders")
     public R<List<Map<String, Object>>> orders(@RequestParam long projectId) {
         return R.ok(service.orders(projectId));

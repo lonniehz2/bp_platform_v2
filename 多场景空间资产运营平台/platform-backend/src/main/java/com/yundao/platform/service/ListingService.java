@@ -16,10 +16,13 @@ public class ListingService {
 
     private final JdbcTemplate jdbc;
     private final IdGenerator idGen;
+    private final GuaranteeContractService contractService;
 
-    public ListingService(JdbcTemplate jdbc, IdGenerator idGen) {
+    public ListingService(JdbcTemplate jdbc, IdGenerator idGen,
+                          GuaranteeContractService contractService) {
         this.jdbc = jdbc;
         this.idGen = idGen;
+        this.contractService = contractService;
     }
 
     public List<Map<String, Object>> listings(long projectId) {
@@ -142,6 +145,44 @@ public class ListingService {
                 + "where id=? and tenant_id=? and is_deleted=0", status, bookingId, tenant);
         if (updated == 0) throw BizException.notFound("预约记录不存在");
         return Map.of("id", bookingId, "bookingStatus", status);
+    }
+
+
+    @org.springframework.transaction.annotation.Transactional
+    public Map<String, Object> contractFromOrder(long orderId) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select o.id, o.project_id projectId, o.person_id personId, o.listing_id listingId, "
+                        + "o.order_status orderStatus, l.house_id houseId, l.monthly_rent monthlyRent, "
+                        + "l.deposit_amount depositAmount from bp_listing_order o "
+                        + "join bp_listing l on l.id=o.listing_id "
+                        + "where o.id=? and o.tenant_id=? and o.is_deleted=0 for update",
+                orderId, tenant);
+        if (rows.isEmpty()) throw BizException.notFound("订单不存在");
+        Map<String, Object> row = rows.get(0);
+        if (!"CONFIRMED".equals(String.valueOf(row.get("orderStatus")))) {
+            throw BizException.conflict("只有已确认订单可以转合同");
+        }
+        java.time.LocalDate start = java.time.LocalDate.now();
+        long contractId = idGen.nextId();
+        Map<String, Object> contract = contractService.create(
+                new GuaranteeContractService.ContractCmd(
+                        ((Number) row.get("projectId")).longValue(),
+                        "LC" + System.currentTimeMillis() + contractId % 1000,
+                        ((Number) row.get("houseId")).longValue(),
+                        ((Number) row.get("personId")).longValue(),
+                        start, start.plusYears(1),
+                        (BigDecimal) row.get("monthlyRent"), (BigDecimal) row.get("depositAmount"),
+                        "MONTH", 1, false));
+        jdbc.update("update bp_listing_order set order_status='CONTRACTED', contract_id=? "
+                + "where id=? and tenant_id=?", contract.get("id"), orderId, tenant);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("orderId", orderId);
+        out.put("orderStatus", "CONTRACTED");
+        out.put("contractId", contract.get("id"));
+        out.put("contractNo", contract.get("contractNo"));
+        out.put("contractStatus", contract.get("contractStatus"));
+        return out;
     }
 
     public List<Map<String, Object>> orders(long projectId) {

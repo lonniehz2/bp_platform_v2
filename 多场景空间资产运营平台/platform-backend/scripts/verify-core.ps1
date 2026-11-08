@@ -938,7 +938,7 @@ Assert-True ($wfFallback.level -eq "SCENE_DEFAULT") "workflow scene fallback res
 
 $listing = Api "POST" "/api/v1/platform/guarantee/listings" @{
     projectId = $projectId
-    houseId = $roomHouse.id
+    houseId = $innerHouse.id
     title = "验证房源展示_$suffix"
     description = "验收用例房源展示"
     monthlyRent = 1200
@@ -957,6 +957,9 @@ $bookingConfirmed = Api "POST" "/api/v1/platform/guarantee/bookings/$($booking.i
 Assert-True ($bookingConfirmed.bookingStatus -eq "CONFIRMED") "booking confirmed"
 Assert-True ($bookingConfirmed.orderStatus -eq "CONFIRMED") "booking converted to order"
 Assert-True ($bookingConfirmed.orderNo -ne $null) "listing order number generated"
+$orderContract = Api "POST" "/api/v1/platform/guarantee/listing-orders/$($bookingConfirmed.orderId)/contract" $null
+Assert-True ($orderContract.orderStatus -eq "CONTRACTED") "listing order contracted"
+Assert-True ($orderContract.contractStatus -eq "ACTIVE") "listing order contract active"
 
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
