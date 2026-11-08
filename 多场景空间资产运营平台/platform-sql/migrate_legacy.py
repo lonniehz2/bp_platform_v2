@@ -582,6 +582,7 @@ def migrate(apply=False):
             "/gov": "gov",
             "/search": "search",
             "/help": "help",
+            "/house-calendar": "calendar",
             "/todos": "message",
             "/workorders": "service",
             "/access": "access",
