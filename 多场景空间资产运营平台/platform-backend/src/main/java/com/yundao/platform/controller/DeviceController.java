@@ -1,6 +1,7 @@
 package com.yundao.platform.controller;
 
 import com.yundao.platform.common.api.R;
+import com.yundao.platform.service.DeviceImportService;
 import com.yundao.platform.service.DeviceService;
 import java.util.List;
 import java.util.Map;
@@ -16,9 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class DeviceController {
 
     private final DeviceService service;
+    private final DeviceImportService importService;
 
-    public DeviceController(DeviceService service) {
+    public DeviceController(DeviceService service, DeviceImportService importService) {
         this.service = service;
+        this.importService = importService;
     }
 
     @GetMapping
@@ -30,6 +33,13 @@ public class DeviceController {
     public R<Map<String, Object>> bind(@org.springframework.web.bind.annotation.PathVariable long deviceId,
                                        @RequestBody Map<String, Long> body) {
         return R.ok(service.bind(deviceId, body.get("spaceId")));
+    }
+
+    @PostMapping("/import")
+    public R<Map<String, Object>> importCsv(
+            @org.springframework.web.bind.annotation.RequestParam("file")
+            org.springframework.web.multipart.MultipartFile file) {
+        return R.ok(importService.importCsv(file));
     }
 
     @PostMapping

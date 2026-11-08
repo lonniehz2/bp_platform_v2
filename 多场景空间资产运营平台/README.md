@@ -101,6 +101,7 @@ platform-docs/14-菜单结构对照.md
 platform-docs/15-驾驶舱与字段展示.md
 platform-docs/16-字段校验与页面回归.md
 platform-docs/17-方案A验收.md
+platform-docs/18-设备绑定导入设计.md
 platform-sql/001_platform_core.sql
 platform-backend/README.md
 platform-frontend/README.md

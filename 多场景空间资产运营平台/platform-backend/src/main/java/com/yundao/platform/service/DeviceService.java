@@ -26,7 +26,8 @@ public class DeviceService {
         return jdbc.queryForList(
                 "select d.id, d.project_id projectId, d.space_id spaceId, s.space_name spaceName, "
                         + "d.device_code deviceCode, d.device_name deviceName, d.device_type deviceType, "
-                        + "d.device_model deviceModel, d.asset_status assetStatus, d.business_status businessStatus, "
+                        + "d.device_model deviceModel, d.device_mac deviceMac, d.is_virtual isVirtual, "
+                        + "d.install_status installStatus, d.asset_status assetStatus, d.business_status businessStatus, "
                         + "d.install_time installTime, d.warranty_end warrantyEnd "
                         + "from bp_dev_device d left join bp_space s on s.id=d.space_id "
                         + "where d.tenant_id=? and d.project_id=? and d.is_deleted=0 order by d.id desc",

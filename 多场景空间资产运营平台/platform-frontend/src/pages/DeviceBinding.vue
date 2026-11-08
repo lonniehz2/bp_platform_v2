@@ -9,6 +9,11 @@ const spaces = ref([])
 const error = ref('')
 const busy = ref(false)
 const form = reactive({ deviceId: '', spaceId: '' })
+const importOpen = ref(false)
+const importFile = ref(null)
+const importBusy = ref(false)
+const importResult = ref(null)
+const importError = ref('')
 const bySpace = computed(() => {
   const map = new Map()
   for (const d of devices.value) {
@@ -67,6 +72,40 @@ async function bind() {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+function downloadTemplate() {
+  const orgCode = project.value?.orgCode || '350600'
+  const csv = '\ufeff组织编码,楼栋,单元,楼层,房间,床位内房,房源编号,房源名称,房源类型,建筑面积,设备编号,设备类型,设备名称,物理MAC\n'
+    + orgCode + ',A栋,1单元,1层,101室,,,101室,公租房,60,,门锁,101门锁,\n'
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = '设备绑定导入模板.csv'
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
+
+function openImport() {
+  importOpen.value = true
+  importFile.value = null
+  importResult.value = null
+  importError.value = ''
+}
+
+function pickImportFile(e) {
+  importFile.value = e.target.files?.[0] || null
+  importResult.value = null
+  importError.value = ''
+}
+
+async function runImport() {
+  if (!importFile.value) { importError.value = '请选择 CSV 文件'; return }
+  importBusy.value = true; importError.value = ''
+  try {
+    importResult.value = await api.importDevices(importFile.value)
+    await load()
+  } catch (e) { importError.value = e.message } finally { importBusy.value = false }
+}
+
 async function unbind(d) {
   busy.value = true; error.value = ''
   try { await api.bindDevice(d.id, null); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
@@ -79,7 +118,9 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>设备绑定</h2><p>{{ project?.orgName || '未选择项目' }} · 设备绑定到空间，子空间自动继承</p></div><span class="badge blue">{{ unbound.length }} 台未绑定</span></div>
+      <div class="panel-head"><div><h2>设备绑定</h2><p>{{ project?.orgName || '未选择项目' }} · 设备绑定到空间，子空间自动继承</p></div>
+        <div class="row"><span class="badge blue">{{ unbound.length }} 台未绑定</span><button class="sm" @click="openImport">设备导入</button></div>
+      </div>
       <div class="row">
         <div class="field"><label>未绑定设备</label><select v-model="form.deviceId"><option value="">请选择</option><option v-for="d in unbound" :key="d.id" :value="d.id">{{ d.deviceCode }} · {{ d.deviceName }}</option></select></div>
         <div class="field"><label>绑定空间</label><select v-model="form.spaceId"><option value="">请选择</option><option v-for="s in spaces" :key="s.id" :value="s.id">{{ s.spaceName }}（{{ s.spaceType }}）</option></select></div>
@@ -115,6 +156,37 @@ onMounted(load)
         <div v-for="d in unbound" :key="d.id" class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div class="mono">{{ d.deviceCode }}</div><div class="small muted">{{ d.deviceName }} · {{ d.deviceType }}</div></div>
           <span class="badge orange">UNBOUND</span>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="importOpen" class="modal-mask" @click.self="importOpen = false">
+      <div class="modal" style="max-width:760px">
+        <div class="panel-head"><h2>设备绑定批量导入</h2><button class="sm" @click="importOpen = false">关闭</button></div>
+        <div class="alert">
+          CSV 表头：组织编码, 楼栋, 单元, 楼层, 房间, 床位内房, 房源编号, 房源名称, 房源类型, 建筑面积, 设备编号, 设备类型, 设备名称, 物理MAC。
+          一行一台设备；同一空间多行自动归并；房源编号为空自动生成；设备编号为空生成 DV 编号；设备编号重复同空间跳过、跨空间报错；物理 MAC 不允许重复。
+        </div>
+        <div class="row" style="margin:12px 0">
+          <button class="sm" @click="downloadTemplate">下载模板</button>
+          <input type="file" accept=".csv" @change="pickImportFile" />
+          <span class="small muted">{{ importFile?.name || '未选择文件' }}</span>
+        </div>
+        <div v-if="importError" class="error">{{ importError }}</div>
+        <div v-if="importResult">
+          <div class="alert" :class="importResult.failed ? 'warn' : 'ok'">
+            共 {{ importResult.total }} 行，空间新增 {{ importResult.spacesCreated }}，房源新增 {{ importResult.housesCreated }}，
+            设备新增 {{ importResult.devicesCreated }}，设备处理 {{ importResult.devicesBound }}，失败 {{ importResult.failed }}。
+          </div>
+          <div v-if="importResult.errors?.length" class="table-wrap" style="margin-top:10px">
+            <table>
+              <thead><tr><th>行号</th><th>原因</th></tr></thead>
+              <tbody><tr v-for="e in importResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px">
+          <button class="primary" :disabled="importBusy || !importFile" @click="runImport">{{ importBusy ? '导入中…' : '开始导入' }}</button>
         </div>
       </div>
     </div>

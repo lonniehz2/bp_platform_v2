@@ -1225,7 +1225,24 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 
 ---
 
-## 28. 合同同住人
+## 28. 设备绑定导入
+
+### POST /devices/import
+
+```text
+multipart/form-data
+file: CSV
+```
+
+CSV 表头：
+
+```text
+组织编码,楼栋,单元,楼层,房间,床位内房,房源编号,房源名称,房源类型,建筑面积,设备编号,设备类型,设备名称,物理MAC
+```
+
+---
+
+## 29. 合同同住人
 账单调整
 人员关系
 保障申请档案

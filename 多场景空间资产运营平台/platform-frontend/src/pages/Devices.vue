@@ -117,11 +117,12 @@ onMounted(load)
         <div v-if="!devices.length" class="empty">暂无设备</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>型号</th><th>绑定空间</th><th>保修到期</th><th>资产状态</th><th>业务状态</th></tr></thead>
+            <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>型号</th><th>物理MAC</th><th>绑定空间</th><th>安装状态</th><th>保修到期</th><th>资产状态</th><th>业务状态</th></tr></thead>
             <tbody>
               <tr v-for="d in pagedDevices" :key="d.id">
                 <td class="mono">{{ d.deviceCode }}</td><td>{{ d.deviceName }}</td><td>{{ d.deviceType }}</td>
-                <td>{{ d.deviceModel || '-' }}</td><td>{{ d.spaceName || '-' }}</td><td>{{ d.warrantyEnd || '-' }}</td>
+                <td>{{ d.deviceModel || '-' }}</td><td>{{ d.deviceMac || '-' }}</td><td>{{ d.spaceName || '-' }}</td>
+                <td>{{ d.installStatus || '-' }}</td><td>{{ d.warrantyEnd || '-' }}</td>
                 <td><span class="badge green">{{ d.assetStatus }}</span></td><td>{{ d.businessStatus }}</td>
               </tr>
             </tbody>
