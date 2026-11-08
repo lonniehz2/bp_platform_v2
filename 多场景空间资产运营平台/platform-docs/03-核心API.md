@@ -344,6 +344,7 @@ HOUSE
 用户管理
 修改密码
 角色管理
+同住人
 菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
@@ -407,6 +408,7 @@ HOUSE
 用户管理
 修改密码
 角色管理
+同住人
 菜单权限
 通过/驳回
 审批记录
@@ -544,6 +546,7 @@ TERMINATION → 合同终止
 用户管理
 修改密码
 角色管理
+同住人
 菜单权限
 
 ### GET /guarantee/applications?projectId=
@@ -670,6 +673,7 @@ WAITING → ALLOCATED
 用户管理
 修改密码
 角色管理
+同住人
 菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
@@ -749,6 +753,7 @@ platform-sql/002_menu_seed.sql
 用户管理
 修改密码
 角色管理
+同住人
 
 ### GET /guarantee/meters?projectId=
 
@@ -789,6 +794,7 @@ platform-sql/002_menu_seed.sql
 用户管理
 修改密码
 角色管理
+同住人
 
 ### GET /guarantee/work-orders?projectId=
 
@@ -832,6 +838,7 @@ PENDING → PROCESSING → DONE → CLOSED
 用户管理
 修改密码
 角色管理
+同住人
 
 ### GET /guarantee/access-records?projectId=
 
@@ -867,6 +874,7 @@ PENDING → PROCESSING → DONE → CLOSED
 用户管理
 修改密码
 角色管理
+同住人
 
 ### GET /guarantee/complaints?projectId=&type=
 
@@ -909,6 +917,7 @@ VISIT 走访
 用户管理
 修改密码
 角色管理
+同住人
 
 ### GET /guarantee/fee-items?projectId=
 
@@ -940,6 +949,7 @@ VISIT 走访
 用户管理
 修改密码
 角色管理
+同住人
 
 ### GET /guarantee/publicities?projectId=
 
@@ -972,6 +982,7 @@ VISIT 走访
 用户管理
 修改密码
 角色管理
+同住人
 
 ### GET /guarantee/alerts?projectId=
 
@@ -1004,6 +1015,7 @@ VISIT 走访
 用户管理
 修改密码
 角色管理
+同住人
 
 ### GET /guarantee/credits?projectId=
 
@@ -1029,6 +1041,7 @@ VISIT 走访
 用户管理
 修改密码
 角色管理
+同住人
 
 ### GET /guarantee/short-rent-orders?projectId=
 
@@ -1065,6 +1078,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 用户管理
 修改密码
 角色管理
+同住人
 
 ### GET /open-apps
 
@@ -1082,6 +1096,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 用户管理
 修改密码
 角色管理
+同住人
 
 ### GET /messages
 
@@ -1100,6 +1115,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 ## 26. 用户管理
 修改密码
 角色管理
+同住人
 
 ### GET /users
 
@@ -1125,6 +1141,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 ---
 
 ## 27. 角色管理
+同住人
 
 ### POST /roles
 
@@ -1140,8 +1157,23 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 
 ---
 
-## 28. 修改密码
+## 28. 合同同住人
+
+### GET /guarantee/contracts/{contractId}/cohabitants
+
+### POST /guarantee/contracts/{contractId}/cohabitants
+
+```json
+{"personId": 1, "relationType": "SPOUSE", "startDate": "2026-11-01", "remark": "同住人"}
+```
+
+### POST /guarantee/contract-cohabitants/{id}/remove
+
+---
+
+## 29. 修改密码
 角色管理
+同住人
 
 ### POST /auth/password
 
@@ -1151,7 +1183,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 
 ---
 
-## 29. 附件
+## 30. 附件
 
 ### POST /files
 
@@ -1177,7 +1209,7 @@ file=<文件>
 
 ---
 
-## 30. 迁移异常
+## 31. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -1195,7 +1227,7 @@ PENDING → RESOLVED
 
 ---
 
-## 31. 验证脚本
+## 32. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -1204,7 +1236,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-114 个断言通过
+117 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -1240,5 +1272,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 用户管理
 修改密码
 角色管理
+同住人
 菜单权限
 ```

@@ -949,3 +949,21 @@ create table if not exists bp_message (
   create_time datetime not null default current_timestamp,
   key idx_bp_message_user (tenant_id, user_id, read_status, create_time)
 ) engine=InnoDB default charset=utf8mb4 comment='平台消息';
+
+
+create table if not exists guarantee_contract_cohabitant (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  contract_id bigint not null,
+  person_id bigint not null,
+  relation_type varchar(32) not null default 'FAMILY',
+  is_primary tinyint not null default 0,
+  start_date date null,
+  end_date date null,
+  cohabitant_status varchar(20) not null default 'ACTIVE',
+  remark varchar(500) null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  key idx_guarantee_cohabitant_contract (tenant_id, contract_id, cohabitant_status)
+) engine=InnoDB default charset=utf8mb4 comment='合同同住人';

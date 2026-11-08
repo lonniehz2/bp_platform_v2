@@ -670,6 +670,21 @@ Assert-True ($roleSaved.menuCount -eq 2) "role menus saved"
 $roleMenus = Api "GET" "/api/v1/platform/roles/$($role.id)/menus" $null
 Assert-True (@($roleMenus).Count -eq 2) "role menus loaded"
 
+
+$cohab = Api "POST" "/api/v1/platform/guarantee/contracts/$($contract.id)/cohabitants" @{
+    personId = $person.id
+    relationType = "SPOUSE"
+    startDate = "2026-11-01"
+    remark = "验证同住人"
+}
+Assert-True ($cohab.cohabitantStatus -eq "ACTIVE") "cohabitant added"
+
+$cohabList = Api "GET" "/api/v1/platform/guarantee/contracts/$($contract.id)/cohabitants" $null
+Assert-True (@($cohabList).Count -ge 1) "cohabitant listed"
+
+$cohabRemoved = Api "POST" "/api/v1/platform/guarantee/contract-cohabitants/$($cohab.id)/remove" $null
+Assert-True ($cohabRemoved.cohabitantStatus -eq "REMOVED") "cohabitant removed"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"
