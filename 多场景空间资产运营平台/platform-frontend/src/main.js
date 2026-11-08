@@ -55,6 +55,9 @@ import Orgs from './pages/Orgs.vue'
 import PlatformInfo from './pages/PlatformInfo.vue'
 import Sys from './pages/Sys.vue'
 import Translations from './pages/Translations.vue'
+import Patrol from './pages/Patrol.vue'
+import HouseAccess from './pages/HouseAccess.vue'
+import Rbac from './pages/Rbac.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -96,8 +99,8 @@ const router = createRouter({
 
     // 旧系统路径兼容
     { path: '/todos', component: Todos, meta: { title: '我的待办' } },
-    { path: '/patrol', component: Alerts, meta: { title: '自动巡查' } },
-    { path: '/house-access', component: Devices, meta: { title: '房源权限' } },
+    { path: '/patrol', component: Patrol, meta: { title: '自动巡查' } },
+    { path: '/house-access', component: HouseAccess, meta: { title: '房源权限' } },
     { path: '/visits', component: Complaints, meta: { title: '入户走访', complaintType: 'VISIT' } },
     { path: '/waitlist', component: Waitlist, meta: { title: '轮候管理' } },
     { path: '/allocations', component: Allocations, meta: { title: '配租摇号' } },
@@ -118,7 +121,7 @@ const router = createRouter({
     { path: '/appeals', component: Complaints, meta: { title: '申诉管理', complaintType: 'APPEAL' } },
     { path: '/orgs', component: Orgs, meta: { title: '组织机构' } },
     { path: '/gov', component: GovReport, meta: { title: '监管报送' } },
-    { path: '/rbac', component: Users, meta: { title: '用户与权限' } },
+    { path: '/rbac/:tab?', component: Rbac, meta: { title: '用户与权限' } },
     { path: '/sys', component: Sys, meta: { title: '系统支撑' } },
     { path: '/translations', component: Translations, meta: { title: '业务数据翻译' } },
     { path: '/platform-info', component: PlatformInfo, meta: { title: '平台信息' } },
