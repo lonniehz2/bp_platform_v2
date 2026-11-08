@@ -41,6 +41,7 @@
         </div>
 
         <el-form :model="form" :rules="rules" ref="formRef" @keyup.enter="onSubmit">
+          <div v-if="tenantName" class="domain-tenant">{{ t('login.domainTenant') }}：{{ tenantName }}</div>
           <el-form-item prop="tenantId">
             <el-input v-model="form.tenantId" :placeholder="t('login.tenantPlaceholder')" size="large">
               <template #prefix><el-icon><OfficeBuilding /></el-icon></template>
@@ -95,7 +96,7 @@
 </template>
 
 <script setup>
-import { computed, ref, reactive } from 'vue'
+import { computed, onMounted, ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
@@ -110,6 +111,7 @@ const { t } = useI18n()
 const formRef = ref()
 const loading = ref(false)
 const form = reactive({ tenantId: '350600', username: 'admin', password: 'admin123' })
+const tenantName = ref('')
 
 const rules = computed(() => ({
   tenantId: [{ required: true, message: t('login.requiredTenant'), trigger: 'blur' }],
@@ -131,6 +133,23 @@ function fill(a) {
 function toOperator() {
   router.push('/platform-admin/login')
 }
+
+onMounted(async () => {
+  const host = window.location.hostname
+  if (!host || host === 'localhost' || /^\d+(\.\d+){3}$/.test(host) || host.includes(':')) return
+  const label = host.split('.')[0]
+  if (!label) return
+  try {
+    const resp = await fetch(`/api/v1/public/tenant/by-domain?domain=${encodeURIComponent(label)}`)
+    const body = await resp.json()
+    if (body?.code === 'BP00000' && body.data?.tenantCode) {
+      form.tenantId = body.data.tenantCode
+      tenantName.value = body.data.tenantName || ''
+    }
+  } catch (e) {
+    // 域名解析失败时保留手工输入租户号
+  }
+})
 
 async function onSubmit() {
   await formRef.value.validate()
@@ -194,6 +213,12 @@ async function onSubmit() {
 @keyframes float {
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
   50% { transform: translate3d(0, -18px, 0) scale(1.06); }
+}
+
+.domain-tenant {
+  margin: -4px 0 10px;
+  color: rgba(155, 210, 255, 0.78);
+  font-size: 12px;
 }
 
 .login-shell {

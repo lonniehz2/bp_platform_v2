@@ -128,6 +128,7 @@ export default {
     note3: '· Track progress under Profile → Todos',
   },
   login: {
+    domainTenant: 'Domain tenant',
     tenantTip1: 'Platform code is a data isolation key, not an organization code or lessee.',
     tenantTip2: 'A platform contains multiple organizations and lessees; your organization appears at top right after login.',
     tenantTip3: 'A platform-level user without an organization sees “Platform”.',
