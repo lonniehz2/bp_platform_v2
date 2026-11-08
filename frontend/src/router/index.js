@@ -401,6 +401,12 @@ const routes = [
         meta: { title: '电子发票' }
       },
       {
+        path: 'leases',
+        name: 'propertyLease',
+        component: () => import('@/views/property/PropertyLease.vue'),
+        meta: { title: '租赁合同' }
+      },
+      {
         path: 'energy',
         name: 'propertyEnergy',
         component: () => import('@/views/property/PropertyEnergy.vue'),
