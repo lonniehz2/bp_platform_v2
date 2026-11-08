@@ -331,6 +331,7 @@ HOUSE
 迁移异常处理
 附件上传
 计量与能耗
+服务工单
 菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
@@ -381,6 +382,7 @@ HOUSE
 迁移异常处理
 附件上传
 计量与能耗
+服务工单
 菜单权限
 通过/驳回
 审批记录
@@ -505,6 +507,7 @@ TERMINATION → 合同终止
 迁移异常处理
 附件上传
 计量与能耗
+服务工单
 菜单权限
 
 ### GET /guarantee/applications?projectId=
@@ -618,6 +621,7 @@ WAITING → ALLOCATED
 迁移异常处理
 附件上传
 计量与能耗
+服务工单
 菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
@@ -684,6 +688,7 @@ platform-sql/002_menu_seed.sql
 ---
 
 ## 15. 计量与能耗
+服务工单
 
 ### GET /guarantee/meters?projectId=
 
@@ -711,7 +716,39 @@ platform-sql/002_menu_seed.sql
 
 ---
 
-## 16. 附件
+## 16. 服务工单
+
+### GET /guarantee/work-orders?projectId=
+
+### POST /guarantee/work-orders
+
+```json
+{
+  "projectId": 1,
+  "orderType": "REPAIR",
+  "title": "厨房漏水",
+  "houseId": 2,
+  "personId": 3,
+  "priority": "NORMAL",
+  "assigneeName": "维修班组"
+}
+```
+
+### POST /guarantee/work-orders/{orderId}/update
+
+```json
+{"orderStatus": "DONE", "assigneeName": "维修班组"}
+```
+
+状态：
+
+```text
+PENDING → PROCESSING → DONE → CLOSED
+```
+
+---
+
+## 17. 附件
 
 ### POST /files
 
@@ -737,7 +774,7 @@ file=<文件>
 
 ---
 
-## 17. 迁移异常
+## 18. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -755,7 +792,7 @@ PENDING → RESOLVED
 
 ---
 
-## 18. 验证脚本
+## 19. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -764,7 +801,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-75 个断言通过
+78 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -787,5 +824,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 迁移异常处理
 附件上传
 计量与能耗
+服务工单
 菜单权限
 ```

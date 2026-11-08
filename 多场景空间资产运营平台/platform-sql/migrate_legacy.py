@@ -573,6 +573,7 @@ def migrate(apply=False):
             "/sys": "system",
             "/reports": "system",
             "/publicities": "application",
+            "/workorders": "service",
         }
         oc.execute("""
             select r.id role_id, p.route_path route_path

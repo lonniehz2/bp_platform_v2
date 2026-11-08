@@ -17,6 +17,7 @@ import Cashflow from './pages/Cashflow.vue'
 import Reports from './pages/Reports.vue'
 import Changes from './pages/Changes.vue'
 import Audit from './pages/Audit.vue'
+import WorkOrders from './pages/WorkOrders.vue'
 import Qualification from './pages/Qualification.vue'
 import MigrationExceptions from './pages/MigrationExceptions.vue'
 import Devices from './pages/Devices.vue'
@@ -41,6 +42,7 @@ const router = createRouter({
     { path: '/qualification', component: Qualification, meta: { title: '资格复核' } },
     { path: '/meters', component: Meters, meta: { title: '计量与能耗' } },
     { path: '/devices', component: Devices, meta: { title: '设备与授权' } },
+    { path: '/work-orders', component: WorkOrders, meta: { title: '服务与工单' } },
     { path: '/audit', component: Audit, meta: { title: '审批中心' } },
     { path: '/menus', component: Menus, meta: { title: '菜单与角色' } },
     { path: '/migration-exceptions', component: MigrationExceptions, meta: { title: '迁移异常' } }

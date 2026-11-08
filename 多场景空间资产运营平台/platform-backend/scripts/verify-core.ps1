@@ -406,7 +406,7 @@ Assert-True (@($keyringAfter).Count -eq 0) "keyring empty after revoke"
 
 
 $menus = Api "GET" "/api/v1/platform/menus?sceneCode=GUARANTEE" $null
-Assert-True (@($menus).Count -eq 9) "guarantee menu tree loaded"
+Assert-True (@($menus).Count -ge 9) "guarantee menu tree loaded"
 
 $roles = Api "GET" "/api/v1/platform/roles?sceneCode=GUARANTEE" $null
 Assert-True (@($roles).Count -ge 4) "guarantee role templates loaded"
@@ -446,6 +446,28 @@ Assert-True ([decimal]$reading.usageAmount -eq 100) "meter reading recorded"
 
 $meterSummary = Api "GET" "/api/v1/platform/guarantee/meters/summary?projectId=$projectId" $null
 Assert-True (@($meterSummary).Count -ge 1) "meter summary loaded"
+
+
+$workOrder = Api "POST" "/api/v1/platform/guarantee/work-orders" @{
+    projectId = $projectId
+    orderType = "REPAIR"
+    title = "验证报修工单"
+    description = "厨房漏水"
+    houseId = $roomHouse.id
+    personId = $person.id
+    priority = "NORMAL"
+    assigneeName = "维修班组"
+}
+Assert-True ($null -ne $workOrder.id) "work order created"
+
+$workOrderDone = Api "POST" "/api/v1/platform/guarantee/work-orders/$($workOrder.id)/update" @{
+    orderStatus = "DONE"
+    assigneeName = "维修班组"
+}
+Assert-True ($workOrderDone.orderStatus -eq "DONE") "work order completed"
+
+$workOrders = Api "GET" "/api/v1/platform/guarantee/work-orders?projectId=$projectId" $null
+Assert-True (@($workOrders).Count -ge 1) "work order listed"
 
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"

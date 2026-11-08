@@ -757,3 +757,25 @@ create table if not exists guarantee_meter_reading (
   create_time datetime not null default current_timestamp,
   key idx_guarantee_meter_reading (tenant_id, meter_id, reading_date)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房抄表记录';
+
+
+create table if not exists guarantee_work_order (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  order_no varchar(64) not null,
+  order_type varchar(20) not null default 'REPAIR',
+  title varchar(200) not null,
+  description varchar(1000) null,
+  house_id bigint null,
+  person_id bigint null,
+  priority varchar(20) not null default 'NORMAL',
+  order_status varchar(20) not null default 'PENDING',
+  assignee_name varchar(64) null,
+  finish_time datetime null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_guarantee_work_order_no (tenant_id, order_no),
+  key idx_guarantee_work_order_project (tenant_id, project_id, order_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房服务工单';

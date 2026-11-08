@@ -15,7 +15,8 @@ values
 (920000000000000010,'GUARANTEE','audit',null,'审核中心','MENU','/guarantee/audit',60),
 (920000000000000011,'GUARANTEE','device',null,'设备与授权','MENU','/guarantee/devices',70),
 (920000000000000012,'GUARANTEE','config',null,'基础配置','MENU','/guarantee/config',80),
-(920000000000000013,'GUARANTEE','system',null,'系统与数据','MENU','/guarantee/system',90);
+(920000000000000013,'GUARANTEE','system',null,'系统与数据','MENU','/guarantee/system',90),
+(920000000000000014,'GUARANTEE','service',null,'服务与工单','MENU','/guarantee/work-orders',65);
 
 insert ignore into bp_role(id, tenant_id, scene_code, role_code, role_name, role_status)
 values
