@@ -27,6 +27,7 @@ const legacyAdminUrl = computed(() => `${location.protocol}//${location.hostname
 const nav = [
   { to: '/', key: 'dashboard', menu: 'dashboard', icon: '◈' },
   { to: '/projects', key: 'asset', menu: 'asset', icon: '▦' },
+  { to: '/persons', key: 'person', menu: 'person', icon: '♙' },
   { to: '/applications', key: 'application', menu: 'application', icon: '☷' },
   { to: '/contracts', key: 'contract', menu: 'contract', icon: '▤' },
   { to: '/changes', key: 'changes', menu: 'contract', icon: '⇄' },

@@ -184,6 +184,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\ver
 ```text
 工作台
 项目与资产
+客户与人员
 申请与轮候
 合同与租赁
 收费与账务

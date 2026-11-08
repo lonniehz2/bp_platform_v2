@@ -7,6 +7,7 @@ import './styles.css'
 import Login from './pages/Login.vue'
 import Dashboard from './pages/Dashboard.vue'
 import Projects from './pages/Projects.vue'
+import Persons from './pages/Persons.vue'
 import Applications from './pages/Applications.vue'
 import Contracts from './pages/Contracts.vue'
 import Billing from './pages/Billing.vue'
@@ -24,6 +25,7 @@ const router = createRouter({
     { path: '/login', component: Login, meta: { title: '登录', public: true } },
     { path: '/', component: Dashboard, meta: { title: '工作台' } },
     { path: '/projects', component: Projects, meta: { title: '项目与资产' } },
+    { path: '/persons', component: Persons, meta: { title: '客户与人员' } },
     { path: '/applications', component: Applications, meta: { title: '申请与轮候' } },
     { path: '/contracts', component: Contracts, meta: { title: '合同与租赁' } },
     { path: '/billing', component: Billing, meta: { title: '收费与账务' } },
