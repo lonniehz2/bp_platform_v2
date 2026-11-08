@@ -687,3 +687,19 @@ create table if not exists bp_migration_exception (
   create_time datetime not null default current_timestamp,
   unique key uk_bp_migration_exception (source_table, source_id)
 ) engine=InnoDB default charset=utf8mb4 comment='老数据迁移异常';
+
+
+create table if not exists bp_file (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  biz_type varchar(32) not null,
+  biz_id bigint not null,
+  file_name varchar(255) not null,
+  content_type varchar(128) null,
+  file_size bigint not null default 0,
+  storage_path varchar(500) not null,
+  uploader varchar(64) null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  key idx_bp_file_biz (tenant_id, biz_type, biz_id)
+) engine=InnoDB default charset=utf8mb4 comment='平台附件';

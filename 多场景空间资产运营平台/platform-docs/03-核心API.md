@@ -304,7 +304,8 @@ HOUSE
 菜单/角色模板
 登录鉴权
 资格复核
-迁移异常处理",
+迁移异常处理
+附件上传",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
     {"nodeName": "经理终审", "approverRole": "PROPERTY_MANAGER"}
@@ -352,6 +353,7 @@ HOUSE
 登录鉴权
 资格复核
 迁移异常处理
+附件上传
 通过/驳回
 审批记录
 ```
@@ -473,6 +475,7 @@ TERMINATION → 合同终止
 登录鉴权
 资格复核
 迁移异常处理
+附件上传
 
 ### GET /guarantee/applications?projectId=
 
@@ -583,6 +586,7 @@ WAITING → ALLOCATED
 
 ## 13. 资格复核
 迁移异常处理
+附件上传
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
 
@@ -647,7 +651,33 @@ platform-sql/002_menu_seed.sql
 
 ---
 
-## 15. 迁移异常
+## 15. 附件
+
+### POST /files
+
+multipart/form-data：
+
+```text
+bizType=CONTRACT
+bizId=<合同ID>
+file=<文件>
+```
+
+### GET /files?bizType=CONTRACT&bizId=<合同ID>
+
+### GET /files/{id}/download
+
+限制：
+
+```text
+单文件 20MB
+保存到 bp.file.root
+按租户分目录
+```
+
+---
+
+## 16. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -665,7 +695,7 @@ PENDING → RESOLVED
 
 ---
 
-## 16. 验证脚本
+## 17. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -695,4 +725,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 登录鉴权
 资格复核
 迁移异常处理
+附件上传
 ```

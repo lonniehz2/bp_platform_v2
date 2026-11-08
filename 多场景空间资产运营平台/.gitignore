@@ -23,3 +23,6 @@ dist/
 .edge-profile/
 .edge-cdp/
 .chrome-cdp/
+
+# local files
+uploads/

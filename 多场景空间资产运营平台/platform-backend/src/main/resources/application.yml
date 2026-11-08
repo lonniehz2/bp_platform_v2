@@ -12,6 +12,10 @@ spring:
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 25MB
   jackson:
     time-zone: Asia/Shanghai
     date-format: yyyy-MM-dd HH:mm:ss
@@ -28,3 +32,11 @@ management:
 logging:
   level:
     com.yundao.platform: info
+
+
+bp:
+  file:
+    root: ${FILE_ROOT:uploads}
+  auth:
+    secret: ${AUTH_SECRET:dev-only-change-me}
+    ttl-seconds: 28800
