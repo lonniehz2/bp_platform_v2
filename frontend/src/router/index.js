@@ -401,6 +401,12 @@ const routes = [
         meta: { title: '电子发票' }
       },
       {
+        path: 'energy',
+        name: 'propertyEnergy',
+        component: () => import('@/views/property/PropertyEnergy.vue'),
+        meta: { title: '公摊能耗' }
+      },
+      {
         path: 'meters',
         name: 'propertyMeter',
         component: () => import('@/views/property/PropertyMeter.vue'),
