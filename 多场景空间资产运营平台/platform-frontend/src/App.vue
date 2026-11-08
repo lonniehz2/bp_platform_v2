@@ -12,10 +12,15 @@ const router = useRouter()
 const { t, locale } = useI18n()
 
 const isLogin = computed(() => route.path === '/login')
+const collapsed = ref(localStorage.getItem('platformSidebar') === '1')
 const projects = ref([])
 const currentProjectId = ref(localStorage.getItem('platformProjectId') || '')
 const allowedMenus = ref(getMenus())
 const pwdOpen = ref(false)
+function toggleSidebar() {
+  collapsed.value = !collapsed.value
+  localStorage.setItem('platformSidebar', collapsed.value ? '1' : '0')
+}
 const pwdError = ref('')
 const pwd = reactive({ oldPassword: '', newPassword: '', confirm: '' })
 const currentUser = computed(() => {
@@ -143,7 +148,7 @@ function logout() {
 <template>
   <RouterView v-if="isLogin" />
   <div v-else class="shell">
-    <aside class="sidebar">
+    <aside class="sidebar" :class="{ collapsed }">
       <div class="brand">
         <div class="brand-mark">MS</div>
         <div class="brand-text">
@@ -154,7 +159,7 @@ function logout() {
       <nav class="nav">
         <RouterLink v-for="item in visibleNav" :key="item.to" :to="item.to" class="nav-item">
           <span class="nav-icon">{{ item.icon }}</span>
-          <span>{{ t('nav.' + item.key) }}</span>
+          <span class="nav-label">{{ t('nav.' + item.key) }}</span>
         </RouterLink>
       </nav>
       <div class="sidebar-foot">
@@ -165,6 +170,7 @@ function logout() {
 
     <main class="main">
       <header class="topbar">
+        <button class="ghost sm" @click="toggleSidebar" title="折叠菜单">☰</button>
         <div class="page-heading">
           <h1>{{ title }}</h1>
           <p>{{ currentUser.displayName || currentUser.username || 'admin' }} · {{ currentUser.tenantId || '350600' }}</p>

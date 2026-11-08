@@ -230,3 +230,11 @@ html.dark .badge.red { background: #2e1718; border-color: #5c2b2d; color: #ff787
   .receipt-box { position: absolute; inset: 0; margin: 0; box-shadow: none; border: 0; }
   .no-print { display: none !important; }
 }
+
+
+.sidebar.collapsed { width: 64px; flex-basis: 64px; }
+.sidebar.collapsed .brand-text,
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .sidebar-foot { display: none; }
+.sidebar.collapsed .brand { justify-content: center; padding: 0; }
+.sidebar.collapsed .nav-item { justify-content: center; padding: 0; }
