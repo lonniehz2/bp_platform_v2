@@ -142,6 +142,7 @@ export const api = {
   grants: (personId) => request(`/grants?personId=${personId}`),
   keyring: (personId) => request(`/persons/${personId}/keyring`),
   createGrant: (body) => request('/grants', { method: 'POST', body: JSON.stringify(body) }),
+  revokeGrant: (grantId, reason = '') => request(`/grants/${grantId}/revoke`, { method: 'POST', body: JSON.stringify({ reason }) }),
   menus: (sceneCode) => request(`/menus?sceneCode=${sceneCode}`),
   roles: (sceneCode) => request(`/roles?sceneCode=${sceneCode}`),
   roleMenus: (roleId) => request(`/roles/${roleId}/menus`)

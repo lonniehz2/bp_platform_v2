@@ -13,6 +13,7 @@ const error = ref('')
 const busy = ref(false)
 const form = reactive({ deviceCode: '', deviceName: '', deviceType: 'LOCK', spaceId: '' })
 const grantForm = reactive({ personId: '', targetId: '', validStart: '2026-11-08', validEnd: '2027-11-07' })
+const grants = ref([])
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN')
 const pagedDevices = computed(() => devices.value.slice((page.value - 1) * 10, page.value * 10))
@@ -41,6 +42,7 @@ async function load() {
     if (!form.spaceId && s.length) form.spaceId = s[0].id
     if (!grantForm.personId && p.length) grantForm.personId = p[0].id
     if (!grantForm.targetId && s.length) grantForm.targetId = s[0].id
+    await loadGrants()
   } catch (e) { error.value = e.message }
 }
 
@@ -58,6 +60,11 @@ async function createDevice() {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+async function loadGrants() {
+  if (!grantForm.personId) { grants.value = []; return }
+  try { grants.value = await api.grants(grantForm.personId) } catch { grants.value = [] }
+}
+
 async function createGrant() {
   busy.value = true; error.value = ''
   try {
@@ -68,8 +75,14 @@ async function createGrant() {
       sourceType: 'MANUAL'
     })
     error.value = ''
+    await loadGrants()
     alert('授权已创建')
   } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+async function revokeGrant(g) {
+  busy.value = true; error.value = ''
+  try { await api.revokeGrant(g.id, '页面撤销'); await loadGrants() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
 onMounted(load)
@@ -116,7 +129,7 @@ onMounted(load)
         <div class="panel-head"><h2>人员授权</h2><span class="small muted">授权到空间，钥匙包按人员聚合</span></div>
         <div class="row">
           <div class="field"><label>人员</label>
-            <select v-model="grantForm.personId"><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}</option></select>
+            <select v-model="grantForm.personId" @change="loadGrants"><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}</option></select>
           </div>
           <div class="field"><label>授权空间</label>
             <select v-model="grantForm.targetId"><option v-for="s in spaces" :key="s.id" :value="s.id">{{ s.spaceName }}</option></select>
@@ -125,6 +138,20 @@ onMounted(load)
           <div class="field"><label>结束日期</label><input v-model="grantForm.validEnd" type="date" /></div>
           <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="createGrant">新增授权</button></div>
         </div>
+        <div v-if="grants.length" class="table-wrap" style="margin-top:12px">
+          <table>
+            <thead><tr><th>类型</th><th>授权对象</th><th>级别</th><th>有效期</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-for="g in grants" :key="g.id">
+                <td>{{ g.targetType }}</td><td class="mono">{{ g.targetId }}</td><td>{{ g.grantLevel }}</td>
+                <td class="small">{{ g.validStart }} ~ {{ g.validEnd || '长期' }}</td>
+                <td><span class="badge" :class="g.grantStatus === 'ACTIVE' ? 'green' : 'orange'">{{ g.grantStatus }}</span></td>
+                <td><button v-if="g.grantStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="revokeGrant(g)">撤销</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="empty">暂无授权</div>
       </div>
     </template>
   </div>
