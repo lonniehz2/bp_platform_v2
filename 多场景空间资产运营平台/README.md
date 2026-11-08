@@ -106,6 +106,13 @@ platform-docs/19-多场景平台总体设计基线.md
 platform-docs/20-保障房管理系统菜单结构设计.md
 platform-docs/21-标准页面与页面模板阶段设计.md
 platform-docs/22-房源产品化与线上展示设计.md
+platform-docs/23-阶段0-范围与对象冻结.md
+platform-docs/24-阶段1-页面模板与状态权限矩阵.md
+platform-docs/25-阶段2-接口与选择器契约.md
+platform-docs/26-阶段3-端到端业务纵切.md
+platform-docs/27-阶段4-房源产品化详细设计.md
+platform-docs/28-阶段5-五个参考页面详细设计.md
+platform-docs/29-阶段6-原型走查与验收用例.md
 platform-sql/001_platform_core.sql
 platform-backend/README.md
 platform-frontend/README.md
