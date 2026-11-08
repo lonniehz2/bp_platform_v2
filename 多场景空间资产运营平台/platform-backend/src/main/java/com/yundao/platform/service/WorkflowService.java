@@ -61,6 +61,30 @@ public class WorkflowService {
                 TenantContext.require(), sceneCode, sceneCode, bizType, bizType);
     }
 
+    public Long findFlowIdOrNull(String sceneCode, String bizType, Long orgId) {
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select id from bp_wf_flow where tenant_id=? and scene_code=? and biz_type=? "
+                        + "and flow_status='ENABLED' and is_deleted=0 "
+                        + "and (org_id is null or (? is not null and org_id=?)) "
+                        + "order by case when org_id=? then 0 else 1 end, id desc limit 1",
+                TenantContext.require(), sceneCode, bizType, orgId, orgId, orgId);
+        return rows.isEmpty() ? null : ((Number) rows.get(0).get("id")).longValue();
+    }
+
+    public Long findApprovingTaskId(String bizType, long bizId) {
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select id from bp_wf_task where tenant_id=? and biz_type=? and biz_id=? "
+                        + "and task_status='APPROVING' and is_deleted=0 order by id desc limit 1",
+                TenantContext.require(), bizType, bizId);
+        return rows.isEmpty() ? null : ((Number) rows.get(0).get("id")).longValue();
+    }
+
+    public void cancelTask(long taskId) {
+        jdbc.update("update bp_wf_task set task_status='CANCELLED', finish_time=now() "
+                + "where id=? and tenant_id=? and task_status='APPROVING'",
+                taskId, TenantContext.require());
+    }
+
     public long findFlowId(String sceneCode, String bizType) {
         return findFlowId(sceneCode, bizType, null);
     }

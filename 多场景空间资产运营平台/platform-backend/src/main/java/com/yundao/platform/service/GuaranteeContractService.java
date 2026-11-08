@@ -17,10 +17,13 @@ public class GuaranteeContractService {
 
     private final JdbcTemplate jdbc;
     private final IdGenerator idGen;
+    private final WorkflowService workflowService;
 
-    public GuaranteeContractService(JdbcTemplate jdbc, IdGenerator idGen) {
+    public GuaranteeContractService(JdbcTemplate jdbc, IdGenerator idGen,
+                                    WorkflowService workflowService) {
         this.jdbc = jdbc;
         this.idGen = idGen;
+        this.workflowService = workflowService;
     }
 
     public List<Map<String, Object>> list(long projectId) {
@@ -107,6 +110,12 @@ public class GuaranteeContractService {
         }
         jdbc.update("update guarantee_contract set contract_status='APPROVING', update_time=now() "
                 + "where id=? and tenant_id=?", contractId, TenantContext.require());
+        Long flowId = workflowService.findFlowIdOrNull("GUARANTEE", "CONTRACT", contract.projectId());
+        if (flowId != null) {
+            workflowService.submit(flowId, new WorkflowService.SubmitCmd(
+                    contract.projectId(), "CONTRACT", contractId, "合同提交",
+                    contract.rentAmount(), "合同 " + contract.contractNo()));
+        }
         return Map.of("id", contractId, "contractStatus", "APPROVING");
     }
 
@@ -121,6 +130,15 @@ public class GuaranteeContractService {
                 TenantContext.require(), contract.houseId(), contractId, contract.endDate(), contract.startDate());
         if (overlap > 0) {
             throw BizException.conflict("该房屋在合同期间已有生效合同");
+        }
+        Long taskId = workflowService.findApprovingTaskId("CONTRACT", contractId);
+        if (taskId != null) {
+            Map<String, Object> task = workflowService.approve(taskId,
+                    new WorkflowService.ActionCmd("合同审批", "通过"));
+            if (!"APPROVED".equals(String.valueOf(task.get("taskStatus")))) {
+                return Map.of("id", contractId, "contractStatus", "APPROVING",
+                        "taskStatus", task.get("taskStatus"));
+            }
         }
         jdbc.update("update guarantee_contract set contract_status='ACTIVE', update_time=now() "
                 + "where id=? and tenant_id=?", contractId, TenantContext.require());
@@ -150,6 +168,8 @@ public class GuaranteeContractService {
         if (!"APPROVING".equals(contract.contractStatus())) {
             throw BizException.conflict("只有审批中的合同可以撤回");
         }
+        Long taskId = workflowService.findApprovingTaskId("CONTRACT", contractId);
+        if (taskId != null) workflowService.cancelTask(taskId);
         jdbc.update("update guarantee_contract set contract_status='DRAFT', update_time=now() "
                 + "where id=? and tenant_id=?", contractId, TenantContext.require());
         return Map.of("id", contractId, "contractStatus", "DRAFT");

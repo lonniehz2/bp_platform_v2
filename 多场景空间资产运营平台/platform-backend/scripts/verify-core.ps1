@@ -842,6 +842,13 @@ Assert-True ($returned.applicationStatus -eq "RETURNED") "application returned"
 $resubmitted = Api "POST" "/api/v1/platform/guarantee/applications/$($returnApp.id)/resubmit" $null
 Assert-True ($resubmitted.applicationStatus -eq "SUBMITTED") "application resubmitted"
 
+$contractFlow = Api "POST" "/api/v1/platform/workflows" @{
+    sceneCode = "GUARANTEE"
+    bizType = "CONTRACT"
+    orgId = $projectId
+    flowName = "合同审批_$suffix"
+    nodes = @(@{ nodeName = "合同审核"; approverRole = "REVIEWER" })
+}
 $approveContract = Api "POST" "/api/v1/platform/guarantee/contracts" @{
     projectId = $projectId
     contractNo = "APPROVE_CONTRACT_$suffix"
@@ -858,6 +865,8 @@ $approveContract = Api "POST" "/api/v1/platform/guarantee/contracts" @{
 $approveSubmit = Api "POST" "/api/v1/platform/guarantee/contracts/$($approveContract.id)/submit" $null
 $approvedContract = Api "POST" "/api/v1/platform/guarantee/contracts/$($approveContract.id)/approve" $null
 Assert-True ($approvedContract.contractStatus -eq "ACTIVE") "contract approved"
+$contractTasks = Api "GET" "/api/v1/platform/workflow-tasks?status=APPROVED" $null
+Assert-True (@($contractTasks | Where-Object { $_.bizType -eq "CONTRACT" -and $_.bizId -eq $approveContract.id }).Count -ge 1) "contract workflow task approved"
 
 
 $openingBill = Api "POST" "/api/v1/platform/billing/contracts/$($contract.id)/opening-bills" @{
