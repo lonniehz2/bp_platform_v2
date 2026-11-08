@@ -59,6 +59,24 @@ public class GuaranteeApplicationController {
         return R.ok(service.listWaitlist(projectId));
     }
 
+    @PostMapping("/allocations")
+    public R<Map<String, Object>> createAllocation(@RequestBody Map<String, Long> body) {
+        Long waitlistId = body.get("waitlistId");
+        Long houseId = body.get("houseId");
+        if (waitlistId == null || houseId == null) {
+            throw BizException.param("waitlistId 和 houseId 不能为空");
+        }
+        permissions.require("allocation:create");
+        return R.ok(service.allocate(waitlistId, houseId));
+    }
+
+    @PostMapping("/allocations/{allocationId}/cancel")
+    public R<Map<String, Object>> cancelAllocation(@PathVariable long allocationId,
+                                                   @RequestBody(required = false) Map<String, String> body) {
+        permissions.require("allocation:cancel");
+        return R.ok(service.cancelAllocation(allocationId, body == null ? null : body.get("reason")));
+    }
+
     @PostMapping("/waitlist/{waitlistId}/allocate")
     public R<Map<String, Object>> allocate(@PathVariable long waitlistId,
                                            @RequestBody Map<String, Long> body) {

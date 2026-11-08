@@ -147,6 +147,43 @@ public class GuaranteeApplicationService {
                 "houseId", houseId, "allocationStatus", "ALLOCATED");
     }
 
+
+    @Transactional
+    public Map<String, Object> cancelAllocation(long allocationId, String reason) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select id, project_id projectId, application_id applicationId, house_id houseId, "
+                        + "contract_id contractId, allocation_status allocationStatus "
+                        + "from guarantee_allocation where id=? and tenant_id=? and is_deleted=0 for update",
+                allocationId, tenant);
+        if (rows.isEmpty()) {
+            throw BizException.notFound("配租记录不存在");
+        }
+        Map<String, Object> row = rows.get(0);
+        if (!"ALLOCATED".equals(String.valueOf(row.get("allocationStatus")))) {
+            throw BizException.conflict("配租记录不是已配租状态");
+        }
+        if (row.get("contractId") != null) {
+            throw BizException.conflict("已签约的配租不能取消");
+        }
+        long projectId = ((Number) row.get("projectId")).longValue();
+        long applicationId = ((Number) row.get("applicationId")).longValue();
+        long houseId = ((Number) row.get("houseId")).longValue();
+        jdbc.update("update guarantee_allocation set allocation_status='CANCELLED' where id=?", allocationId);
+        jdbc.update("update bp_house set house_status='VACANT', update_time=now() where id=? and tenant_id=?",
+                houseId, tenant);
+        jdbc.update("update guarantee_waitlist set waitlist_status='WAITING' "
+                        + "where tenant_id=? and project_id=? and application_id=? and is_deleted=0",
+                tenant, projectId, applicationId);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("allocationId", allocationId);
+        out.put("allocationStatus", "CANCELLED");
+        out.put("houseId", houseId);
+        out.put("waitlistStatus", "WAITING");
+        out.put("reason", reason);
+        return out;
+    }
+
     public List<Map<String, Object>> listWaitlist(long projectId) {
         return jdbc.queryForList(
                 "select w.id, w.project_id projectId, w.application_id applicationId, "

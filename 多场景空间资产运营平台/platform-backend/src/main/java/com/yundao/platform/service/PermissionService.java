@@ -41,8 +41,8 @@ public class PermissionService {
     private List<String> grants(String role) {
         return switch (role) {
             case "GUARANTEE_ADMIN", "ADMIN" -> List.of("*");
-            case "CONTRACT_CLERK" -> List.of("contract:*", "billing:view", "billing:pay");
-            case "ASSET_CLERK" -> List.of("device:*", "house:*", "space:*");
+            case "CONTRACT_CLERK" -> List.of("contract:*", "billing:view", "billing:pay", "allocation:*");
+            case "ASSET_CLERK" -> List.of("device:*", "house:*", "space:*", "allocation:*");
             case "SERVICE_CLERK" -> List.of("complaint:*", "visit:*");
             case "AUDITOR" -> List.of("*:view");
             case "STAFF" -> List.of("application:*", "contract:view", "billing:view");
