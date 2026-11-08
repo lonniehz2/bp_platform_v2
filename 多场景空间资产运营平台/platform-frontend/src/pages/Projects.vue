@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import { can } from '../permissions'
 
 const projects = ref([])
 const templates = ref([])
@@ -68,7 +69,7 @@ onMounted(load)
             <option v-for="t in templates" :key="t.id" :value="t.id">{{ t.templateName }}（{{ t.baseLevelCount }}级）</option>
           </select>
         </div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="create">创建项目</button></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('asset')" class="primary" :disabled="busy" @click="create">创建项目</button></div>
       </div>
     </div>
 

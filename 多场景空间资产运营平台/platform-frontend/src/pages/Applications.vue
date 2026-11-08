@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import { can } from '../permissions'
 
 const project = ref(null)
 const applications = ref([])
@@ -91,7 +92,7 @@ onMounted(load)
             </select>
           </div>
           <div class="field"><label>家庭人数</label><input v-model.number="form.familySize" type="number" min="1" /></div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="create">创建申请</button></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('application')" class="primary" :disabled="busy" @click="create">创建申请</button></div>
         </div>
       </div>
 

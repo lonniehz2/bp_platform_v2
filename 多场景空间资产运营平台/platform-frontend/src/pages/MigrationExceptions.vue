@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { api } from '../api'
+import { can } from '../permissions'
 
 const rows = ref([])
 const error = ref('')
@@ -39,7 +40,7 @@ onMounted(load)
               <td>{{ r.reason }}</td><td class="small">{{ r.payload }}</td>
               <td><span class="badge" :class="statusClass(r.resolveStatus)">{{ r.resolveStatus }}</span></td>
               <td>{{ r.resolution || '-' }}</td>
-              <td><button class="sm" v-if="r.resolveStatus === 'PENDING'" :disabled="busy" @click="resolve(r)">确认跳过</button></td>
+              <td><button v-if="can('system') && r.resolveStatus === 'PENDING'" class="sm" :disabled="busy" @click="resolve(r)">确认跳过</button></td>
             </tr>
           </tbody>
         </table>

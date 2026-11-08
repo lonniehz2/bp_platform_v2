@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import { can } from '../permissions'
 
 const project = ref(null)
 const bills = ref([])
@@ -72,7 +73,7 @@ onMounted(load)
           <div class="field"><label>方式</label>
             <select v-model="payForm.method"><option value="CASH">现金</option><option value="WECHAT">微信</option><option value="ALIPAY">支付宝</option><option value="BANK">银行</option></select>
           </div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="pay">确认收款</button></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('billing')" class="primary" :disabled="busy" @click="pay">确认收款</button></div>
         </div>
       </div>
 

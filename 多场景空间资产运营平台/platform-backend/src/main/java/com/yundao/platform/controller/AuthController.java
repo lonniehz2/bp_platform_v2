@@ -26,6 +26,12 @@ public class AuthController {
         return R.ok(authService.login(cmd));
     }
 
+    @GetMapping("/menus")
+    public R<java.util.List<String>> menus(@org.springframework.web.bind.annotation.RequestParam(defaultValue = "GUARANTEE") String sceneCode) {
+        UserContext.Principal principal = authService.me();
+        return R.ok(authService.menuCodes(principal.userId(), principal.tenantId(), sceneCode));
+    }
+
     @GetMapping("/me")
     public R<Map<String, Object>> me() {
         UserContext.Principal principal = authService.me();

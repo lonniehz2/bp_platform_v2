@@ -56,6 +56,16 @@ public class AuthService {
                 String.class, tenant, userId);
     }
 
+    public List<String> menuCodes(long userId, String tenant, String sceneCode) {
+        return jdbc.queryForList(
+                "select distinct m.menu_code menuCode from bp_user_role ur "
+                        + "join bp_role_menu rm on rm.role_id=ur.role_id "
+                        + "join bp_menu m on m.id=rm.menu_id "
+                        + "where ur.tenant_id=? and ur.user_id=? and m.scene_code=? "
+                        + "and m.menu_status='ENABLED' order by m.menu_code",
+                String.class, tenant, userId, sceneCode);
+    }
+
     public String encode(String raw) {
         return encoder.encode(raw);
     }

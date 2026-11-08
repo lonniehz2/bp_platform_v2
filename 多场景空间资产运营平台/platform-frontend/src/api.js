@@ -46,6 +46,11 @@ async function me() {
 export const api = {
   login,
   me,
+  myMenus: (sceneCode = 'GUARANTEE') => fetch(`${AUTH}/menus?sceneCode=${sceneCode}`, { headers: { Authorization: `Bearer ${token()}` } }).then(async r => {
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok || j.code !== 'BP00000') throw new Error(j.message || '获取菜单失败')
+    return j.data
+  }),
   scenes: () => request('/scenes'),
   modes: (sceneCode) => request(`/scenes/${sceneCode}/business-modes`),
   templates: (sceneCode) => request(`/space-templates?sceneCode=${sceneCode}`),

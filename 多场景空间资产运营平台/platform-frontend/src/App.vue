@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from './api'
+import { getMenus, setMenus } from './permissions'
 
 const route = useRoute()
 const router = useRouter()
@@ -11,9 +12,17 @@ const currentUser = computed(() => {
 })
 const projects = ref([])
 const currentProjectId = ref(localStorage.getItem('platformProjectId') || '')
+const allowedMenus = ref(getMenus())
 
 onMounted(async () => {
   try {
+    if (localStorage.getItem('platformToken') && allowedMenus.value.length === 0) {
+      try {
+        const menus = await api.myMenus('GUARANTEE')
+        setMenus(menus)
+        allowedMenus.value = menus
+      } catch {}
+    }
     projects.value = await api.projects()
     if (!currentProjectId.value && projects.value.length) {
       const best = projects.value.slice().sort((a, b) =>
@@ -34,23 +43,25 @@ function switchProject() {
 function logout() {
   localStorage.removeItem('platformToken')
   localStorage.removeItem('platformUser')
+  localStorage.removeItem('platformMenus')
   router.replace('/login')
 }
 const title = computed(() => route.meta.title || '工作台')
 const nav = [
-  { to: '/', label: '工作台', icon: '◈' },
-  { to: '/projects', label: '项目与资产', icon: '▦' },
-  { to: '/applications', label: '申请与轮候', icon: '☷' },
-  { to: '/contracts', label: '合同与租赁', icon: '▤' },
-  { to: '/changes', label: '合同变更', icon: '⇄' },
-  { to: '/qualification', label: '资格复核', icon: '◎' },
-  { to: '/billing', label: '收费与账务', icon: '¥' },
-  { to: '/deposits', label: '押金与补贴', icon: '◫' },
-  { to: '/devices', label: '设备与授权', icon: '⌘' },
-  { to: '/audit', label: '审批中心', icon: '✓' },
-  { to: '/menus', label: '菜单与角色', icon: '☰' },
-  { to: '/migration-exceptions', label: '迁移异常', icon: '!' }
+  { to: '/', label: '工作台', icon: '◈', menu: 'dashboard' },
+  { to: '/projects', label: '项目与资产', icon: '▦', menu: 'asset' },
+  { to: '/applications', label: '申请与轮候', icon: '☷', menu: 'application' },
+  { to: '/contracts', label: '合同与租赁', icon: '▤', menu: 'contract' },
+  { to: '/changes', label: '合同变更', icon: '⇄', menu: 'contract' },
+  { to: '/qualification', label: '资格复核', icon: '◎', menu: 'contract' },
+  { to: '/billing', label: '收费与账务', icon: '¥', menu: 'billing' },
+  { to: '/deposits', label: '押金与补贴', icon: '◫', menu: 'billing' },
+  { to: '/devices', label: '设备与授权', icon: '⌘', menu: 'device' },
+  { to: '/audit', label: '审批中心', icon: '✓', menu: 'audit' },
+  { to: '/menus', label: '菜单与角色', icon: '☰', menu: 'config' },
+  { to: '/migration-exceptions', label: '迁移异常', icon: '!', menu: 'system' }
 ]
+const visibleNav = computed(() => nav.filter(item => allowedMenus.value.length === 0 || allowedMenus.value.includes(item.menu)))
 </script>
 
 <template>
@@ -65,7 +76,7 @@ const nav = [
         </div>
       </div>
       <nav class="nav">
-        <RouterLink v-for="item in nav" :key="item.to" :to="item.to" class="nav-item">
+        <RouterLink v-for="item in visibleNav" :key="item.to" :to="item.to" class="nav-item">
           <span class="nav-icon">{{ item.icon }}</span>
           <span>{{ item.label }}</span>
         </RouterLink>

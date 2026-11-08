@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import { can } from '../permissions'
 
 const project = ref(null)
 const contracts = ref([])
@@ -94,7 +95,7 @@ onMounted(load)
           <div class="field"><label>结束日期</label><input v-model="form.endDate" type="date" /></div>
           <div class="field"><label>月租金</label><input v-model.number="form.rentAmount" type="number" /></div>
           <div class="field"><label>押金</label><input v-model.number="form.depositAmount" type="number" /></div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="create">创建合同</button></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('contract')" class="primary" :disabled="busy" @click="create">创建合同</button></div>
         </div>
       </div>
 
