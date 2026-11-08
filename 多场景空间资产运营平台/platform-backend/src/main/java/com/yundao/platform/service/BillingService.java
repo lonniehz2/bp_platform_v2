@@ -364,6 +364,72 @@ public class BillingService {
         return out;
     }
 
+
+    @Transactional
+    public Map<String, Object> refund(long paymentId, RefundCmd cmd) {
+        String tenant = TenantContext.require();
+        if (cmd.billId() == null || cmd.amount() == null || cmd.amount().signum() <= 0) {
+            throw BizException.param("账单和退款金额不能为空");
+        }
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select al.id allocationId, al.amount allocationAmount, al.bill_id billId, "
+                        + "b.project_id projectId, b.payable_amount payableAmount, b.paid_amount paidAmount, "
+                        + "b.bill_status billStatus from bp_payment_allocation al "
+                        + "join bp_bill b on b.id=al.bill_id "
+                        + "where al.tenant_id=? and al.payment_id=? and al.bill_id=? "
+                        + "and b.is_deleted=0 for update",
+                tenant, paymentId, cmd.billId());
+        if (rows.isEmpty()) {
+            throw BizException.notFound("原收款分配不存在");
+        }
+        Map<String, Object> row = rows.get(0);
+        long allocationId = ((Number) row.get("allocationId")).longValue();
+        long billId = ((Number) row.get("billId")).longValue();
+        long projectId = ((Number) row.get("projectId")).longValue();
+        dataScope.requireProject(projectId);
+        if ("CLOSED".equals(String.valueOf(row.get("billStatus")))
+                || "DISCARDED".equals(String.valueOf(row.get("billStatus")))) {
+            throw BizException.conflict("当前账单状态不能退款");
+        }
+        BigDecimal allocationAmount = (BigDecimal) row.get("allocationAmount");
+        BigDecimal refunded = jdbc.queryForObject(
+                "select coalesce(sum(amount),0) from bp_refund "
+                        + "where tenant_id=? and allocation_id=? and is_deleted=0",
+                BigDecimal.class, tenant, allocationId);
+        BigDecimal refundable = allocationAmount.subtract(refunded == null ? BigDecimal.ZERO : refunded);
+        if (cmd.amount().compareTo(refundable) > 0) {
+            throw BizException.param("退款金额超过可退金额");
+        }
+        BigDecimal paid = (BigDecimal) row.get("paidAmount");
+        paid = paid == null ? BigDecimal.ZERO : paid;
+        if (cmd.amount().compareTo(paid) > 0) {
+            throw BizException.param("退款金额超过账单已收金额");
+        }
+        BigDecimal payable = (BigDecimal) row.get("payableAmount");
+        payable = payable == null ? BigDecimal.ZERO : payable;
+        BigDecimal newPaid = paid.subtract(cmd.amount());
+        String newStatus = newPaid.signum() == 0 ? "UNPAID"
+                : newPaid.compareTo(payable) >= 0 ? "PAID" : "PARTIAL";
+        long refundId = idGen.nextId();
+        String refundNo = "RF" + System.currentTimeMillis() + refundId % 1000;
+        jdbc.update("insert into bp_refund(id,tenant_id,project_id,refund_no,payment_id,bill_id,"
+                        + "allocation_id,amount,reason,refund_status,refunded_time,is_deleted) "
+                        + "values(?,?,?,?,?,?,?,?,?, 'SUCCESS', now(),0)",
+                refundId, tenant, projectId, refundNo, paymentId, billId, allocationId,
+                cmd.amount(), cmd.reason());
+        jdbc.update("update bp_bill set paid_amount=?, bill_status=?, update_time=now() where id=?",
+                newPaid, newStatus, billId);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("refundId", refundId);
+        out.put("refundNo", refundNo);
+        out.put("paymentId", paymentId);
+        out.put("billId", billId);
+        out.put("amount", cmd.amount());
+        out.put("billStatus", newStatus);
+        out.put("paidAmount", newPaid);
+        return out;
+    }
+
     public List<Map<String, Object>> payments(long projectId) {
         dataScope.requireProject(projectId);
         return jdbc.queryForList(
@@ -395,6 +461,9 @@ public class BillingService {
     }
 
     public record AdjustCmd(BigDecimal discountAmount, String remark) {
+    }
+
+    public record RefundCmd(Long billId, BigDecimal amount, String reason) {
     }
 
     public record Allocation(Long billId, BigDecimal amount) {

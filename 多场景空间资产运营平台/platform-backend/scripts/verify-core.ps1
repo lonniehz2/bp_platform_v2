@@ -875,6 +875,17 @@ Assert-True ($openingPay.billStatus -eq "PARTIAL") "opening bill partially paid"
 $dashOpening = Api "GET" "/api/v1/platform/dashboard/summary?projectId=$projectId&dateFrom=2025-01-01&dateTo=2025-12-31" $null
 Assert-True ([decimal]$dashOpening.openingOutstanding -ge 7600) "opening outstanding reflected"
 
+
+$openingRefund = Api "POST" "/api/v1/platform/billing/payments/$($openingPay.paymentId)/refund" @{
+    billId = $openingBill.id
+    amount = 500
+    reason = "期初冲正验证"
+}
+Assert-True ($openingRefund.billStatus -eq "PARTIAL") "opening refund partial"
+Assert-True ([decimal]$openingRefund.paidAmount -eq 500) "opening refund paid amount"
+$dashAfterRefund = Api "GET" "/api/v1/platform/dashboard/summary?projectId=$projectId&dateFrom=2025-01-01&dateTo=2025-12-31" $null
+Assert-True ([decimal]$dashAfterRefund.openingOutstanding -ge 8100) "opening outstanding after refund"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

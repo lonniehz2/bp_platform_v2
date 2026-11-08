@@ -76,6 +76,13 @@ public class BillingController {
         return R.ok(service.adjust(billId, cmd));
     }
 
+    @PostMapping("/payments/{paymentId}/refund")
+    public R<Map<String, Object>> refund(@PathVariable long paymentId,
+                                         @RequestBody BillingService.RefundCmd cmd) {
+        permissions.require("billing:refund");
+        return R.ok(service.refund(paymentId, cmd));
+    }
+
     @GetMapping("/payments")
     public R<List<Map<String, Object>>> payments(@RequestParam long projectId) {
         return R.ok(service.payments(projectId));
