@@ -274,7 +274,9 @@ HOUSE
 申请/轮候/配租/配租转合同
 押金收取/退还
 退租释放房屋
-补贴抵扣租金",
+补贴抵扣租金
+设备业务资产
+授权/人员钥匙包",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
     {"nodeName": "经理终审", "approverRole": "PROPERTY_MANAGER"}
@@ -316,13 +318,77 @@ HOUSE
 押金收取/退还
 退租释放房屋
 补贴抵扣租金
+设备业务资产
+授权/人员钥匙包
 通过/驳回
 审批记录
 ```
 
 ---
 
-## 10. 合同变更/退租
+## 10. 设备业务资产
+
+### GET /devices?projectId=
+
+### POST /devices
+
+```json
+{
+  "projectId": 1,
+  "spaceId": 2,
+  "deviceCode": "LOCK-001",
+  "deviceName": "101门锁",
+  "deviceType": "LOCK",
+  "deviceModel": "TEST-LOCK",
+  "assetStatus": "ACTIVE",
+  "businessStatus": "IN_USE"
+}
+```
+
+业务平台只做设备资产，不做 IOT 控制。
+
+---
+
+## 11. 授权/人员钥匙包
+
+### GET /grants?personId=&projectId=
+
+### POST /grants
+
+```json
+{
+  "projectId": 1,
+  "personId": 2,
+  "targetType": "SPACE",
+  "targetId": 3,
+  "grantLevel": "OPEN",
+  "validStart": "2026-11-08",
+  "validEnd": "2027-11-07",
+  "sourceType": "CONTRACT",
+  "sourceId": 4
+}
+```
+
+授权对象：
+
+```text
+SPACE
+DEVICE
+```
+
+### POST /grants/{grantId}/revoke
+
+```json
+{"reason": "退租撤销"}
+```
+
+### GET /persons/{personId}/keyring
+
+返回当前有效授权，业务钥匙包只展示授权，不展示 IOT 凭证。
+
+---
+
+## 12. 合同变更/退租
 
 ### GET /guarantee/contracts/{contractId}/changes
 
@@ -369,6 +435,8 @@ TERMINATION → 合同终止
 押金收取/退还
 退租释放房屋
 补贴抵扣租金
+设备业务资产
+授权/人员钥匙包
 
 ### GET /guarantee/applications?projectId=
 
@@ -477,7 +545,7 @@ WAITING → ALLOCATED
 
 ---
 
-## 12. 验证脚本
+## 13. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -486,7 +554,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-57 个断言通过
+63 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -501,4 +569,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 押金收取/退还
 退租释放房屋
 补贴抵扣租金
+设备业务资产
+授权/人员钥匙包
 ```

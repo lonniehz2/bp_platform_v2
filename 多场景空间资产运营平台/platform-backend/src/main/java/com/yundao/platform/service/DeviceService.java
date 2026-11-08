@@ -1,0 +1,82 @@
+package com.yundao.platform.service;
+
+import com.yundao.platform.common.exception.BizException;
+import com.yundao.platform.common.id.IdGenerator;
+import com.yundao.platform.common.tenant.TenantContext;
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+@Service
+public class DeviceService {
+
+    private final JdbcTemplate jdbc;
+    private final IdGenerator idGen;
+
+    public DeviceService(JdbcTemplate jdbc, IdGenerator idGen) {
+        this.jdbc = jdbc;
+        this.idGen = idGen;
+    }
+
+    public List<Map<String, Object>> list(long projectId) {
+        return jdbc.queryForList(
+                "select d.id, d.project_id projectId, d.space_id spaceId, s.space_name spaceName, "
+                        + "d.device_code deviceCode, d.device_name deviceName, d.device_type deviceType, "
+                        + "d.device_model deviceModel, d.asset_status assetStatus, d.business_status businessStatus, "
+                        + "d.install_time installTime, d.warranty_end warrantyEnd "
+                        + "from bp_dev_device d left join bp_space s on s.id=d.space_id "
+                        + "where d.tenant_id=? and d.project_id=? and d.is_deleted=0 order by d.id desc",
+                TenantContext.require(), projectId);
+    }
+
+    public Map<String, Object> create(DeviceCmd cmd) {
+        String tenant = TenantContext.require();
+        if (cmd.projectId() == null || cmd.deviceCode() == null || cmd.deviceCode().isBlank()
+                || cmd.deviceName() == null || cmd.deviceName().isBlank()
+                || cmd.deviceType() == null || cmd.deviceType().isBlank()) {
+            throw BizException.param("项目、设备编码、名称、类型不能为空");
+        }
+        if (count("select count(*) from bp_org where id=? and tenant_id=? and is_deleted=0",
+                cmd.projectId(), tenant) == 0) {
+            throw BizException.param("项目不存在");
+        }
+        if (cmd.spaceId() != null && count("select count(*) from bp_space where id=? and tenant_id=? "
+                + "and org_id=? and is_deleted=0", cmd.spaceId(), tenant, cmd.projectId()) == 0) {
+            throw BizException.param("设备绑定空间不属于当前项目");
+        }
+        long id = idGen.nextId();
+        try {
+            jdbc.update("insert into bp_dev_device(id,tenant_id,project_id,space_id,device_code,device_name,"
+                            + "device_type,device_model,asset_status,business_status,install_time,warranty_end,"
+                            + "remark,is_deleted) values(?,?,?,?,?,?,?,?,?,?,?,?,?,0)",
+                    id, tenant, cmd.projectId(), cmd.spaceId(), cmd.deviceCode().trim(),
+                    cmd.deviceName().trim(), cmd.deviceType(), cmd.deviceModel(),
+                    cmd.assetStatus() == null ? "ACTIVE" : cmd.assetStatus(),
+                    cmd.businessStatus() == null ? "IN_USE" : cmd.businessStatus(),
+                    cmd.installTime(), cmd.warrantyEnd(), cmd.remark());
+        } catch (DataIntegrityViolationException e) {
+            throw BizException.conflict("设备编码已存在");
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("id", id);
+        out.put("deviceCode", cmd.deviceCode());
+        out.put("deviceName", cmd.deviceName());
+        out.put("assetStatus", cmd.assetStatus() == null ? "ACTIVE" : cmd.assetStatus());
+        return out;
+    }
+
+    private long count(String sql, Object... args) {
+        Long value = jdbc.queryForObject(sql, Long.class, args);
+        return value == null ? 0 : value;
+    }
+
+    public record DeviceCmd(Long projectId, Long spaceId, String deviceCode, String deviceName,
+                            String deviceType, String deviceModel, String assetStatus,
+                            String businessStatus, java.time.LocalDateTime installTime,
+                            LocalDate warrantyEnd, String remark) {
+    }
+}

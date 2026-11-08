@@ -551,3 +551,47 @@ create table if not exists guarantee_subsidy (
   update_time datetime not null default current_timestamp on update current_timestamp,
   key idx_guarantee_subsidy_contract (tenant_id, contract_id, subsidy_status)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房补贴';
+
+
+create table if not exists bp_dev_device (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  space_id bigint null,
+  device_code varchar(64) not null,
+  device_name varchar(128) not null,
+  device_type varchar(64) not null,
+  device_model varchar(128) null,
+  asset_status varchar(20) not null default 'ACTIVE',
+  business_status varchar(20) not null default 'IN_USE',
+  install_time datetime null,
+  warranty_end date null,
+  remark varchar(500) null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_bp_dev_device_code (tenant_id, device_code),
+  key idx_bp_dev_device_project (tenant_id, project_id, asset_status),
+  key idx_bp_dev_device_space (tenant_id, space_id)
+) engine=InnoDB default charset=utf8mb4 comment='设备业务资产';
+
+create table if not exists bp_grant_entitlement (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  person_id bigint not null,
+  target_type varchar(20) not null,
+  target_id bigint not null,
+  grant_level varchar(20) not null default 'OPEN',
+  valid_start date not null,
+  valid_end date null,
+  grant_status varchar(20) not null default 'ACTIVE',
+  source_type varchar(20) null,
+  source_id bigint null,
+  revoke_reason varchar(500) null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  key idx_bp_grant_person (tenant_id, person_id, grant_status),
+  key idx_bp_grant_target (tenant_id, target_type, target_id, grant_status)
+) engine=InnoDB default charset=utf8mb4 comment='人员空间/设备授权';

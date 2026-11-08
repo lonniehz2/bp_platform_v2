@@ -339,6 +339,44 @@ $housesAfterTerm = Api "GET" "/api/v1/platform/projects/$projectId/houses" $null
 $terminatedHouse = @($housesAfterTerm | Where-Object { $_.id -eq $innerHouse.id })[0]
 Assert-True ($terminatedHouse.houseStatus -eq "VACANT") "termination released house"
 
+
+$device = Api "POST" "/api/v1/platform/devices" @{
+    projectId = $projectId
+    spaceId = $roomHouse.spaceId
+    deviceCode = "VERIFY_DEV_$suffix"
+    deviceName = "验证门锁"
+    deviceType = "LOCK"
+    deviceModel = "TEST-LOCK"
+    assetStatus = "ACTIVE"
+    businessStatus = "IN_USE"
+}
+Assert-True ($null -ne $device.id) "device created"
+
+$devices = Api "GET" "/api/v1/platform/devices?projectId=$projectId" $null
+Assert-True (@($devices | Where-Object { $_.id -eq $device.id }).Count -eq 1) "device listed"
+
+$grant = Api "POST" "/api/v1/platform/grants" @{
+    projectId = $projectId
+    personId = $person.id
+    targetType = "SPACE"
+    targetId = $roomHouse.spaceId
+    grantLevel = "OPEN"
+    validStart = "2026-11-08"
+    validEnd = "2027-11-07"
+    sourceType = "CONTRACT"
+    sourceId = $contract.id
+}
+Assert-True ($grant.grantStatus -eq "ACTIVE") "grant created"
+
+$keyring = Api "GET" "/api/v1/platform/persons/$($person.id)/keyring" $null
+Assert-True (@($keyring).Count -eq 1) "keyring has grant"
+
+$revoked = Api "POST" "/api/v1/platform/grants/$($grant.id)/revoke" @{ reason = "测试撤销" }
+Assert-True ($revoked.grantStatus -eq "REVOKED") "grant revoked"
+
+$keyringAfter = Api "GET" "/api/v1/platform/persons/$($person.id)/keyring" $null
+Assert-True (@($keyringAfter).Count -eq 0) "keyring empty after revoke"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"
