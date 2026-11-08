@@ -32,9 +32,9 @@ public class WorkflowService {
         }
         long flowId = idGen.nextId();
         try {
-            jdbc.update("insert into bp_wf_flow(id,tenant_id,scene_code,biz_type,flow_name,flow_status,is_deleted) "
-                            + "values(?,?,?,?,?,'ENABLED',0)",
-                    flowId, tenant, cmd.sceneCode(), cmd.bizType(), cmd.flowName().trim());
+            jdbc.update("insert into bp_wf_flow(id,tenant_id,scene_code,biz_type,org_id,flow_name,flow_status,is_deleted) "
+                            + "values(?,?,?,?,?,?,'ENABLED',0)",
+                    flowId, tenant, cmd.sceneCode(), cmd.bizType(), cmd.orgId(), cmd.flowName().trim());
             int seq = 1;
             for (NodeCmd node : cmd.nodes()) {
                 if (node.nodeName() == null || node.nodeName().isBlank()) {
@@ -52,7 +52,7 @@ public class WorkflowService {
 
     public List<Map<String, Object>> flows(String sceneCode, String bizType) {
         return jdbc.queryForList(
-                "select f.id, f.scene_code sceneCode, f.biz_type bizType, f.flow_name flowName, "
+                "select f.id, f.scene_code sceneCode, f.biz_type bizType, f.org_id orgId, f.flow_name flowName, "
                         + "f.flow_status flowStatus, count(n.id) nodeCount "
                         + "from bp_wf_flow f left join bp_wf_node n on n.flow_id=f.id "
                         + "where f.tenant_id=? and f.is_deleted=0 "
@@ -62,14 +62,35 @@ public class WorkflowService {
     }
 
     public long findFlowId(String sceneCode, String bizType) {
+        return findFlowId(sceneCode, bizType, null);
+    }
+
+    public long findFlowId(String sceneCode, String bizType, Long orgId) {
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "select id from bp_wf_flow where tenant_id=? and scene_code=? and biz_type=? "
-                        + "and flow_status='ENABLED' and is_deleted=0 order by id desc limit 1",
-                TenantContext.require(), sceneCode, bizType);
+                        + "and flow_status='ENABLED' and is_deleted=0 "
+                        + "and (org_id is null or (? is not null and org_id=?)) "
+                        + "order by case when org_id=? then 0 else 1 end, id desc limit 1",
+                TenantContext.require(), sceneCode, bizType, orgId, orgId, orgId);
         if (rows.isEmpty()) {
             throw BizException.param("未配置审批流程");
         }
         return ((Number) rows.get(0).get("id")).longValue();
+    }
+
+    public Map<String, Object> resolve(String sceneCode, String bizType, Long orgId) {
+        long flowId = findFlowId(sceneCode, bizType, orgId);
+        List<Map<String, Object>> flow = jdbc.queryForList(
+                "select id, flow_name flowName, org_id orgId from bp_wf_flow where id=? and tenant_id=?",
+                flowId, TenantContext.require());
+        List<Map<String, Object>> nodes = jdbc.queryForList(
+                "select id, node_seq nodeSeq, node_name nodeName, approver_role approverRole "
+                        + "from bp_wf_node where tenant_id=? and flow_id=? and node_status='ENABLED' order by node_seq",
+                TenantContext.require(), flowId);
+        Map<String, Object> out = new LinkedHashMap<>(flow.get(0));
+        out.put("level", flow.get(0).get("orgId") == null ? "SCENE_DEFAULT" : "ORG");
+        out.put("nodes", nodes);
+        return out;
     }
 
     public Map<String, Object> submit(long flowId, SubmitCmd cmd) {
@@ -165,7 +186,7 @@ public class WorkflowService {
                 TenantContext.require(), taskId);
     }
 
-    public record FlowCmd(String sceneCode, String bizType, String flowName, List<NodeCmd> nodes) {
+    public record FlowCmd(String sceneCode, String bizType, Long orgId, String flowName, List<NodeCmd> nodes) {
     }
 
     public record NodeCmd(String nodeName, String approverRole) {

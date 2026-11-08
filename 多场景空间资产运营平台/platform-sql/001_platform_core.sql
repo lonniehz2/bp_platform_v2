@@ -401,6 +401,7 @@ create table if not exists bp_wf_flow (
   tenant_id varchar(32) not null,
   scene_code varchar(32) not null,
   biz_type varchar(32) not null,
+  org_id bigint null comment '组织ID，空表示场景默认流程',
   flow_name varchar(128) not null,
   flow_status varchar(20) not null default 'ENABLED',
   is_deleted tinyint not null default 0,

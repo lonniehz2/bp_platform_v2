@@ -903,6 +903,26 @@ $directContract = Api "POST" "/api/v1/platform/guarantee/contracts" @{
 $directActive = Api "POST" "/api/v1/platform/guarantee/contracts/$($directContract.id)/activate" @{ reason = "无模板直接生效验证" }
 Assert-True ($directActive.contractStatus -eq "ACTIVE") "contract direct activated"
 
+
+$wfBiz = "CONTRACT_SCOPE_$suffix"
+$wfDefault = Api "POST" "/api/v1/platform/workflows" @{
+    sceneCode = "GUARANTEE"
+    bizType = $wfBiz
+    flowName = "默认审批_$suffix"
+    nodes = @(@{ nodeName = "项目初审"; approverRole = "REVIEWER" })
+}
+$wfOrg = Api "POST" "/api/v1/platform/workflows" @{
+    sceneCode = "GUARANTEE"
+    bizType = $wfBiz
+    orgId = $projectId
+    flowName = "项目审批_$suffix"
+    nodes = @(@{ nodeName = "项目复核"; approverRole = "REVIEWER" })
+}
+$wfResolved = Api "GET" "/api/v1/platform/workflows/resolve?sceneCode=GUARANTEE&bizType=$wfBiz&orgId=$projectId" $null
+Assert-True ($wfResolved.level -eq "ORG") "workflow org override resolved"
+$wfFallback = Api "GET" "/api/v1/platform/workflows/resolve?sceneCode=GUARANTEE&bizType=$wfBiz&orgId=$($projectId + 1)" $null
+Assert-True ($wfFallback.level -eq "SCENE_DEFAULT") "workflow scene fallback resolved"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

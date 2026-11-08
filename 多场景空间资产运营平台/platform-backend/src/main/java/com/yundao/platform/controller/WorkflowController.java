@@ -28,6 +28,13 @@ public class WorkflowController {
         return R.ok(service.flows(sceneCode, bizType));
     }
 
+    @GetMapping("/workflows/resolve")
+    public R<Map<String, Object>> resolve(@RequestParam String sceneCode,
+                                          @RequestParam String bizType,
+                                          @RequestParam(required = false) Long orgId) {
+        return R.ok(service.resolve(sceneCode, bizType, orgId));
+    }
+
     @PostMapping("/workflows")
     public R<Map<String, Object>> createFlow(@RequestBody WorkflowService.FlowCmd cmd) {
         return R.ok(service.createFlow(cmd));
