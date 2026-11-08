@@ -17,6 +17,7 @@ import com.yundao.bp.msg.mapper.MsgSendRecordMapper;
 import com.yundao.bp.msg.mapper.MsgSubscriptionMapper;
 import com.yundao.bp.msg.mapper.MsgTemplateMapper;
 import com.yundao.bp.msg.mapper.MsgTodoMapper;
+import com.yundao.bp.msg.service.MessageChannelSender;
 import com.yundao.bp.msg.service.MessageService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -47,16 +48,18 @@ public class MessageServiceImpl implements MessageService {
     private final MsgSendRecordMapper recordMapper;
     private final MsgTodoMapper todoMapper;
     private final SnowflakeIdGenerator idGen;
+    private final MessageChannelSender channelSender;
 
     public MessageServiceImpl(MsgTemplateMapper templateMapper,
                               MsgSubscriptionMapper subMapper,
                               MsgSendRecordMapper recordMapper, MsgTodoMapper todoMapper,
-                              SnowflakeIdGenerator idGen) {
+                              SnowflakeIdGenerator idGen, MessageChannelSender channelSender) {
         this.templateMapper = templateMapper;
         this.subMapper = subMapper;
         this.recordMapper = recordMapper;
         this.todoMapper = todoMapper;
         this.idGen = idGen;
+        this.channelSender = channelSender;
     }
 
     @Override
@@ -101,9 +104,17 @@ public class MessageServiceImpl implements MessageService {
             r.setSendStatus("FAILED");
             r.setFailReason("渠道 " + channel + " 需要接收地址（手机号/openid）");
         } else {
-            r.setSendStatus("SUCCESS");
-            r.setThirdMsgId("SIM-" + channel + "-" + r.getId());
-            r.setDeliverTime(now);
+            MessageChannelSender.SendResult result = channelSender.send(
+                    channel, cmd.receiverAddr(), title, content);
+            if (result.success()) {
+                r.setSendStatus("SUCCESS");
+                r.setThirdMsgId(result.thirdMsgId() == null || result.thirdMsgId().isBlank()
+                        ? "SIM-" + channel + "-" + r.getId() : result.thirdMsgId());
+                r.setDeliverTime(now);
+            } else {
+                r.setSendStatus("FAILED");
+                r.setFailReason(result.error() == null ? "通道发送失败" : result.error());
+            }
         }
         recordMapper.insert(r);
         if ("FAILED".equals(r.getSendStatus())) {

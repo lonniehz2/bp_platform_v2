@@ -68,7 +68,8 @@ class MessageTemplateTest {
     @BeforeEach
     void setUp() {
         service = new MessageServiceImpl(templateMapper, subMapper, recordMapper, todoMapper,
-                new SnowflakeIdGenerator(1, 1));
+                new SnowflakeIdGenerator(1, 1),
+                (channel, addr, title, content) -> new com.yundao.bp.msg.service.MessageChannelSender.SendResult(true, null, null));
         TenantContext.set(TenantInfo.of("350600", 1001L));
     }
 
