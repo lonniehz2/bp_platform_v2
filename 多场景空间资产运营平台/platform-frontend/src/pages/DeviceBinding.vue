@@ -9,6 +9,7 @@ const spaces = ref([])
 const error = ref('')
 const busy = ref(false)
 const form = reactive({ deviceId: '', spaceId: '' })
+const activeSpaceId = ref('')
 const importOpen = ref(false)
 const importFile = ref(null)
 const importBusy = ref(false)
@@ -36,7 +37,14 @@ const spaceTree = computed(() => {
     const out = []
     for (const node of nodes) {
       node.depth = depth
-      node.inherited = ancestors.flatMap(a => a.direct)
+      node.fullPath = [...ancestors.map(a => a.spaceName), node.spaceName].join(' / ')
+      node.inherited = ancestors.flatMap(a => a.direct.map(d => ({
+        ...d,
+        sourceSpaceId: a.id,
+        sourceSpaceName: a.spaceName,
+        sourcePath: ancestors.slice(0, ancestors.indexOf(a) + 1).map(x => x.spaceName).join(' / '),
+        inheritLevel: depth - a.depth
+      })))
       out.push(node)
       out.push(...walk(node.children, [...ancestors, node], depth + 1))
     }
@@ -106,6 +114,12 @@ async function runImport() {
   } catch (e) { importError.value = e.message } finally { importBusy.value = false }
 }
 
+function jumpSource(d) {
+  if (!d.sourceSpaceId) return
+  activeSpaceId.value = String(d.sourceSpaceId)
+  document.getElementById('space-' + d.sourceSpaceId)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+}
+
 async function unbind(d) {
   busy.value = true; error.value = ''
   try { await api.bindDevice(d.id, null); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
@@ -133,7 +147,7 @@ onMounted(load)
       <div class="panel">
         <div class="panel-head"><h2>空间层级与设备</h2><span class="small muted">{{ spaces.length }} 个空间 · {{ devices.length }} 台设备</span></div>
         <div v-if="!spaceTree.length" class="empty">暂无空间</div>
-        <div v-for="s in spaceTree" :key="s.id" class="space-node" :style="{ paddingLeft: (s.depth * 18 + 6) + 'px' }">
+        <div v-for="s in spaceTree" :id="'space-' + s.id" :key="s.id" class="space-node" :class="{ active: String(s.id) === activeSpaceId }" :style="{ paddingLeft: (s.depth * 18 + 6) + 'px' }">
           <div class="row" style="border-bottom:1px solid var(--line);padding:7px 0">
             <span class="badge" :class="s.spaceType === 'ROOM' || s.spaceType === 'BED' ? 'blue' : ''">{{ s.spaceType }}</span>
             <strong>{{ s.spaceName }}</strong>
@@ -145,6 +159,10 @@ onMounted(load)
             <span class="mono">{{ d.deviceCode }}</span>
             <span>{{ d.deviceName }}</span>
             <span class="badge" :class="s.direct.includes(d) ? 'green' : 'orange'">{{ s.direct.includes(d) ? '直绑' : '继承' }}</span>
+            <template v-if="!s.direct.includes(d)">
+              <span class="small muted">来自 {{ d.sourceSpaceName }} · {{ d.sourcePath }}</span>
+              <button class="sm" @click="jumpSource(d)">跳转来源</button>
+            </template>
             <button v-if="can('device') && s.direct.includes(d)" class="sm danger" :disabled="busy" @click="unbind(d)">解绑</button>
           </div>
         </div>

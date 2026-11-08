@@ -39,7 +39,7 @@ public class BillingService {
                         + "b.person_id personId, p.person_name personName, b.fee_item_code feeItemCode, "
                         + "b.period_start periodStart, b.period_end periodEnd, b.amount, "
                         + "b.discount_amount discountAmount, b.payable_amount payableAmount, b.paid_amount paidAmount, "
-                        + "b.bill_status billStatus, b.due_date dueDate, b.create_time createTime "
+                        + "b.bill_status billStatus, b.due_date dueDate, b.source_type sourceType, b.create_time createTime "
                         + "from bp_bill b left join bp_house h on h.id=b.house_id "
                         + "left join bp_person p on p.id=b.person_id "
                         + "where b.tenant_id=? and b.project_id=? and b.is_deleted=0 "

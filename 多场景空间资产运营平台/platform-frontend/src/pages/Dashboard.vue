@@ -1,5 +1,5 @@
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as echarts from 'echarts'
 import { api } from '../api'
 import { mode } from '../ui'
@@ -16,6 +16,9 @@ const houses = ref([])
 const payments = ref([])
 const alerts = ref([])
 const workOrders = ref([])
+const periodMode = ref('month')
+const customStart = ref('')
+const customEnd = ref('')
 const houseChart = ref(null)
 const trendChart = ref(null)
 const statusChart = ref(null)
@@ -53,10 +56,39 @@ const houseStats = () => {
   const vacant = houses.value.filter(h => h.houseStatus === 'VACANT').length
   return { occupied, vacant, total: houses.value.length }
 }
+const pad = (n) => String(n).padStart(2, '0')
+const dateText = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+const periodRange = computed(() => {
+  const now = new Date()
+  let start = new Date(now.getFullYear(), now.getMonth(), 1)
+  let end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  if (periodMode.value === 'quarter') {
+    const q = Math.floor(now.getMonth() / 3) * 3
+    start = new Date(now.getFullYear(), q, 1)
+    end = new Date(now.getFullYear(), q + 3, 0)
+  } else if (periodMode.value === 'year') {
+    start = new Date(now.getFullYear(), 0, 1)
+    end = new Date(now.getFullYear(), 11, 31)
+  } else if (periodMode.value === 'custom' && customStart.value && customEnd.value) {
+    start = new Date(customStart.value)
+    end = new Date(customEnd.value)
+  }
+  return { start: dateText(start), end: dateText(end) }
+})
+const isOpening = (b) => b.sourceType === 'OPENING'
+const billInRange = (b) => {
+  const d = String(b.periodStart || '').slice(0, 10)
+  return d >= periodRange.value.start && d <= periodRange.value.end
+}
+const currentBills = computed(() => bills.value.filter(b => !isOpening(b) && billInRange(b)))
+const openingBills = computed(() => bills.value.filter(b => isOpening(b)))
 const billStats = () => {
-  const total = bills.value.reduce((s, b) => s + Number(b.payableAmount || b.amount || 0), 0)
-  const paid = bills.value.reduce((s, b) => s + Number(b.paidAmount || 0), 0)
-  return { total, paid, outstanding: Math.max(0, total - paid), rate: rate(paid, total) }
+  const total = currentBills.value.reduce((s, b) => s + Number(b.payableAmount || b.amount || 0), 0)
+  const paid = currentBills.value.reduce((s, b) => s + Number(b.paidAmount || 0), 0)
+  const outstanding = Math.max(0, total - paid)
+  const opening = openingBills.value.reduce((s, b) => s + Math.max(0, Number(b.payableAmount || b.amount || 0) - Number(b.paidAmount || 0)), 0)
+  const openingRecovery = openingBills.value.reduce((s, b) => s + Number(b.paidAmount || 0), 0)
+  return { total, paid, outstanding, opening, openingRecovery, totalOutstanding: opening + outstanding, rate: rate(paid, total) }
 }
 const monthlyBills = () => {
   const map = new Map()
@@ -170,18 +202,34 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
     <div class="panel">
       <div class="panel-head">
         <div><h2>运营驾驶舱</h2><p>{{ project?.orgName || '未选择项目' }} · 房源、合同、收费、设备概览</p></div>
-        <span class="badge blue">{{ projects.length }} 个项目</span>
+        <div class="row">
+          <select id="periodMode" v-model="periodMode" class="sm" style="padding:6px">
+            <option value="month">本月账期</option>
+            <option value="quarter">本季账期</option>
+            <option value="year">本年账期</option>
+            <option value="custom">自定义账期</option>
+          </select>
+          <template v-if="periodMode === 'custom'">
+            <input v-model="customStart" type="date" class="sm" />
+            <input v-model="customEnd" type="date" class="sm" />
+          </template>
+          <span class="badge blue">{{ periodRange.start }} ~ {{ periodRange.end }}</span>
+        </div>
       </div>
       <div class="grid cards" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
         <div class="card"><div class="label">项目数</div><div class="value">{{ projects.length }}</div><div class="hint">当前租户</div></div>
         <div class="card"><div class="label">保障房申请</div><div class="value">{{ applications.length }}</div><div class="hint">待审 {{ count(applications, 'SUBMITTED', 'applicationStatus') }}</div></div>
         <div class="card"><div class="label">生效合同</div><div class="value">{{ contracts.filter(c => c.contractStatus === 'ACTIVE').length }}</div><div class="hint">合同总数 {{ contracts.length }}</div></div>
-        <div class="card"><div class="label">应收账单</div><div class="value">¥{{ money(billStats().total) }}</div><div class="hint">已收 ¥{{ money(billStats().paid) }}</div></div>
-        <div class="card"><div class="label">收缴率</div><div class="value">{{ billStats().rate }}%</div><div class="hint">欠费 ¥{{ money(billStats().outstanding) }}</div></div>
+        <div class="card"><div class="label">本期应收</div><div class="value">¥{{ money(billStats().total) }}</div><div class="hint">账期 {{ currentBills.length }} 笔</div></div>
+        <div class="card"><div class="label">本期实收</div><div class="value">¥{{ money(billStats().paid) }}</div><div class="hint">按账单归属期</div></div>
+        <div class="card"><div class="label">本期收缴率</div><div class="value">{{ billStats().rate }}%</div><div class="hint">当期欠费 ¥{{ money(billStats().outstanding) }}</div></div>
+        <div class="card"><div class="label">期初欠费</div><div class="value">¥{{ money(billStats().opening) }}</div><div class="hint">期初回款 ¥{{ money(billStats().openingRecovery) }}</div></div>
+        <div class="card"><div class="label">总欠费</div><div class="value">¥{{ money(billStats().totalOutstanding) }}</div><div class="hint">期初 + 当期</div></div>
         <div class="card"><div class="label">设备资产</div><div class="value">{{ devices.length }}</div><div class="hint">待处理告警 {{ alerts.filter(a => a.alertStatus === 'PENDING').length }} · 工单 {{ workOrders.filter(w => w.orderStatus === 'PENDING').length }}</div></div>
       </div>
     </div>
 
+    <div class="alert" style="margin-top:10px">口径：本期应收/实收/收缴率按账期只算当期账单；期初欠费单独展示；总欠费 = 期初 + 当期。</div>
     <div class="grid" style="grid-template-columns:1.1fr 1.4fr">
       <div class="panel">
         <div class="panel-head"><h2>房源结构</h2><span class="small muted">共 {{ houses.length }} 套</span></div>
