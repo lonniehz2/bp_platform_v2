@@ -9,6 +9,10 @@ const error = ref('')
 const busy = ref(false)
 const form = reactive({ username: '', displayName: '', password: '', roleIds: [] })
 const edit = reactive({ id: '', password: '', displayName: '' })
+const scopeUser = ref(null)
+const scopeProjectIds = ref([])
+const scopeOrgIds = ref([])
+const scopeOptions = ref([])
 
 async function load() {
   error.value = ''
@@ -54,6 +58,29 @@ async function saveEdit() {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+
+async function openScopes(u) {
+  error.value = ''
+  try {
+    const [sc, projects] = await Promise.all([api.userScopes(u.id), api.projects()])
+    scopeUser.value = u
+    scopeProjectIds.value = (sc.projectIds || []).map(String)
+    scopeOrgIds.value = (sc.orgIds || []).map(String)
+    scopeOptions.value = projects || []
+  } catch (e) { error.value = e.message }
+}
+
+async function saveScopes() {
+  busy.value = true; error.value = ''
+  try {
+    await api.updateUserScopes(scopeUser.value.id, {
+      projectIds: scopeProjectIds.value.map(Number),
+      orgIds: scopeOrgIds.value.map(Number)
+    })
+    scopeUser.value = null
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 onMounted(load)
 </script>
 
@@ -85,6 +112,7 @@ onMounted(load)
               <td><span class="badge" :class="u.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ u.userStatus }}</span></td>
               <td class="small">{{ u.createTime }}</td>
               <td class="row">
+                <button v-if="can('config')" class="sm" @click="openScopes(u)">数据范围</button>
                 <button v-if="can('config')" class="sm" @click="openEdit(u)">改密</button>
                 <button v-if="can('config')" class="sm" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? '停用' : '启用' }}</button>
               </td>
@@ -92,6 +120,24 @@ onMounted(load)
           </tbody>
         </table>
       </div>
+    </div>
+
+    <div v-if="scopeUser" class="panel">
+      <div class="panel-head"><h2>数据范围</h2><span class="small muted">{{ scopeUser.username }}</span><button class="sm" @click="scopeUser = null">关闭</button></div>
+      <div class="alert">项目范围用于人员查询；组织范围用于财务收费数据。管理员不受范围限制。</div>
+      <div class="row">
+        <div class="field" style="flex:1"><label>项目范围</label>
+          <select v-model="scopeProjectIds" multiple size="6">
+            <option v-for="p in scopeOptions" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1"><label>组织范围</label>
+          <select v-model="scopeOrgIds" multiple size="6">
+            <option v-for="p in scopeOptions" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="primary" :disabled="busy" @click="saveScopes">保存范围</button></div>
     </div>
 
     <div v-if="edit.id" class="panel">
