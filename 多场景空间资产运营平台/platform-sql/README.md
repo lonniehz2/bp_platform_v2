@@ -38,3 +38,14 @@
 新库写入
 不做长期双写
 ```
+
+
+## 老数据迁移
+
+```powershell
+$env:DB_PASSWORD='******'
+python migrate_legacy.py          # dry-run
+python migrate_legacy.py --apply  # 实际写入
+```
+
+报告：[05-老数据迁移报告](../platform-docs/05-老数据迁移报告.md)

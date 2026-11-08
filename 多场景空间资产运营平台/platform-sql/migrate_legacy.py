@@ -1,0 +1,277 @@
+#!/usr/bin/env python3
+"""保障房老库 -> 多场景平台新库迁移脚本（dry-run 默认）。
+
+用法：
+  python migrate_legacy.py
+  python migrate_legacy.py --apply
+
+环境变量：
+  OLD_DB_HOST / OLD_DB_PORT / OLD_DB_USER / OLD_DB_PASSWORD / OLD_DB_NAME
+  NEW_DB_HOST / NEW_DB_PORT / NEW_DB_USER / NEW_DB_PASSWORD / NEW_DB_NAME
+"""
+
+import argparse
+import os
+import sys
+
+import pymysql
+
+
+def env(name, default):
+    return os.environ.get(name, default)
+
+
+OLD = {
+    "host": env("OLD_DB_HOST", "192.168.31.153"),
+    "port": int(env("OLD_DB_PORT", "33306")),
+    "user": env("OLD_DB_USER", "root"),
+    "password": env("OLD_DB_PASSWORD", env("DB_PASSWORD", "")),
+    "database": env("OLD_DB_NAME", "bp_platform"),
+}
+NEW = {
+    "host": env("NEW_DB_HOST", "192.168.31.153"),
+    "port": int(env("NEW_DB_PORT", "33306")),
+    "user": env("NEW_DB_USER", "root"),
+    "password": env("NEW_DB_PASSWORD", env("DB_PASSWORD", "")),
+    "database": env("NEW_DB_NAME", "bp_platform_v2"),
+}
+
+TENANT = "350600"
+
+
+def connect(cfg):
+    return pymysql.connect(
+        host=cfg["host"], port=cfg["port"], user=cfg["user"],
+        password=cfg["password"], database=cfg["database"],
+        charset="utf8mb4", cursorclass=pymysql.cursors.DictCursor,
+        autocommit=False,
+    )
+
+
+def scalar(cur, sql, args=()):
+    cur.execute(sql, args)
+    row = cur.fetchone()
+    return list(row.values())[0] if row else None
+
+
+def count_table(cur, table):
+    return scalar(cur, f"select count(*) from {table}")
+
+
+def migrate(apply=False):
+    old = connect(OLD)
+    new = connect(NEW)
+    oc, nc = old.cursor(), new.cursor()
+
+    template_id = scalar(nc,
+        "select id from bp_space_template where tenant_id=%s and template_code='GUARANTEE_BASE' limit 1",
+        (TENANT,))
+    if not template_id:
+        raise RuntimeError("新库缺少 GUARANTEE_BASE 模板")
+
+    stats = {}
+    inserted = {k: 0 for k in ("org", "space", "house", "person", "contract", "bill", "grant", "device")}
+    try:
+        # 1. 组织/项目
+        oc.execute("""
+            select id, tenant_id, parent_id, org_code, org_name, org_type, org_path,
+                   sort_no, status, is_deleted
+            from bp_iam_org
+            order by id
+        """)
+        orgs = oc.fetchall()
+        stats["org"] = len(orgs)
+        for r in orgs:
+            if apply:
+                nc.execute("""
+                    insert ignore into bp_org
+                      (id, tenant_id, parent_id, org_code, org_name, org_type, scene_code,
+                       business_mode, space_template_id, org_path, sort_no, status, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,'GUARANTEE','PUBLIC_RENTAL',%s,%s,%s,%s,%s)
+                """, (r["id"], r["tenant_id"], r["parent_id"], r["org_code"], r["org_name"],
+                      r["org_type"], template_id, r["org_path"], r["sort_no"],
+                      r["status"], r["is_deleted"]))
+                inserted["org"] += nc.rowcount
+
+        # 2. 空间
+        oc.execute("""
+            select id, tenant_id, org_id, parent_id, space_code, space_name, space_type,
+                   space_path, space_level, area, sort_no, status, is_deleted
+            from bp_asset_space order by space_level, id
+        """)
+        spaces = oc.fetchall()
+        stats["space"] = len(spaces)
+        for r in spaces:
+            asset_type = "BED" if r["space_type"] == "BED" else "PUBLIC_RENTAL"
+            if apply:
+                nc.execute("""
+                    insert ignore into bp_space
+                      (id, tenant_id, org_id, parent_id, space_code, space_name, space_type,
+                       space_path, level_no, asset_type_code, space_template_id, business_mode,
+                       sub_unit_mode, area, sort_no, status, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'PUBLIC_RENTAL',null,%s,%s,%s,%s)
+                """, (r["id"], r["tenant_id"], r["org_id"], r["parent_id"], r["space_code"],
+                      r["space_name"], r["space_type"], r["space_path"], r["space_level"],
+                      asset_type, template_id, r["area"], r["sort_no"], r["status"], r["is_deleted"]))
+                inserted["space"] += nc.rowcount
+
+        # 3. 房屋
+        oc.execute("""
+            select id, tenant_id, org_id, space_id, house_code, house_name, area, inner_area,
+                   house_status, is_deleted
+            from bp_asset_house order by id
+        """)
+        houses = oc.fetchall()
+        stats["house"] = len(houses)
+        for r in houses:
+            status = {"PENDING_ALLOC": "VACANT", "VACANT": "VACANT",
+                      "ALLOCATED": "ALLOCATED"}.get(r["house_status"], r["house_status"] or "VACANT")
+            if apply and r["space_id"]:
+                nc.execute("""
+                    insert ignore into bp_house
+                      (id, tenant_id, org_id, space_id, house_code, house_name, asset_type_code,
+                       area, inner_area, house_status, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,'PUBLIC_RENTAL',%s,%s,%s,%s)
+                """, (r["id"], r["tenant_id"], r["org_id"], r["space_id"], r["house_code"],
+                      r["house_name"], r["area"], r["inner_area"], status, r["is_deleted"]))
+                inserted["house"] += nc.rowcount
+
+        # 4. 人员
+        oc.execute("""
+            select id, tenant_id, person_code, person_name, phone, id_card_mask,
+                   person_source, verify_status, person_status, is_deleted
+            from bp_person order by id
+        """)
+        persons = oc.fetchall()
+        stats["person"] = len(persons)
+        for r in persons:
+            if apply:
+                nc.execute("""
+                    insert ignore into bp_person
+                      (id, tenant_id, person_code, person_name, phone, id_card_mask,
+                       person_type, verify_status, status, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """, (r["id"], r["tenant_id"], r["person_code"], r["person_name"], r["phone"],
+                      r["id_card_mask"], r["person_source"], r["verify_status"],
+                      r["person_status"] or "ENABLED", r["is_deleted"]))
+                inserted["person"] += nc.rowcount
+
+        # 5. 合同
+        oc.execute("""
+            select id, tenant_id, org_id, contract_no, lessee_person_id, house_id,
+                   lease_start, lease_end, monthly_rent, deposit_amount, pay_cycle, pay_day,
+                   contract_status, is_deleted
+            from bp_biz_contract order by id
+        """)
+        contracts = oc.fetchall()
+        stats["contract"] = len(contracts)
+        for r in contracts:
+            if apply and r["house_id"] and r["lessee_person_id"]:
+                nc.execute("""
+                    insert ignore into guarantee_contract
+                      (id, tenant_id, project_id, contract_no, house_id, person_id,
+                       start_date, end_date, rent_amount, deposit_amount, billing_cycle,
+                       bill_day, contract_status, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """, (r["id"], r["tenant_id"], r["org_id"], r["contract_no"], r["house_id"],
+                      r["lessee_person_id"], r["lease_start"], r["lease_end"],
+                      r["monthly_rent"], r["deposit_amount"], r["pay_cycle"], r["pay_day"],
+                      r["contract_status"], r["is_deleted"]))
+                inserted["contract"] += nc.rowcount
+
+        # 6. 账单
+        oc.execute("""
+            select id, tenant_id, org_id, bill_no, contract_id, house_id, person_id,
+                   period_start, period_end, bill_amount, discount_amount, paid_amount,
+                   payable_amount, bill_status, due_date, is_deleted
+            from bp_fin_bill order by id
+        """)
+        bills = oc.fetchall()
+        stats["bill"] = len(bills)
+        for r in bills:
+            if apply:
+                nc.execute("""
+                    insert ignore into bp_bill
+                      (id, tenant_id, project_id, bill_no, biz_type, contract_type, contract_id,
+                       house_id, person_id, fee_item_code, period_start, period_end, amount,
+                       discount_amount, payable_amount, paid_amount, bill_status, due_date,
+                       source_type, source_id, is_deleted)
+                    values (%s,%s,%s,%s,'GUARANTEE_RENT','GUARANTEE_CONTRACT',%s,%s,%s,
+                            'GUARANTEE_RENT',%s,%s,%s,%s,%s,%s,%s,%s,'LEGACY',%s,%s)
+                """, (r["id"], r["tenant_id"], r["org_id"], r["bill_no"], r["contract_id"],
+                      r["house_id"], r["person_id"], r["period_start"], r["period_end"],
+                      r["bill_amount"], r["discount_amount"], r["payable_amount"],
+                      r["paid_amount"], r["bill_status"], r["due_date"], r["id"], r["is_deleted"]))
+                inserted["bill"] += nc.rowcount
+
+        # 7. 授权
+        oc.execute("""
+            select id, tenant_id, org_id, person_id, space_id, grant_level,
+                   valid_start, valid_end, source_type, source_id, grant_status, is_deleted
+            from bp_grant_entitlement where space_id is not null order by id
+        """)
+        grants = oc.fetchall()
+        stats["grant"] = len(grants)
+        for r in grants:
+            if apply:
+                nc.execute("""
+                    insert ignore into bp_grant_entitlement
+                      (id, tenant_id, project_id, person_id, target_type, target_id,
+                       grant_level, valid_start, valid_end, grant_status, source_type,
+                       source_id, is_deleted)
+                    values (%s,%s,%s,%s,'SPACE',%s,%s,%s,%s,%s,%s,%s,%s)
+                """, (r["id"], r["tenant_id"], r["org_id"], r["person_id"], r["space_id"],
+                      r["grant_level"], r["valid_start"], r["valid_end"], r["grant_status"],
+                      r["source_type"], r["source_id"], r["is_deleted"]))
+                inserted["grant"] += nc.rowcount
+
+        # 8. 设备
+        oc.execute("""
+            select id, tenant_id, org_id, space_id, device_id, device_name, device_type,
+                   device_model, install_time, is_deleted
+            from bp_dev_device order by id
+        """)
+        devices = oc.fetchall()
+        stats["device"] = len(devices)
+        for r in devices:
+            if apply:
+                nc.execute("""
+                    insert ignore into bp_dev_device
+                      (id, tenant_id, project_id, space_id, device_code, device_name,
+                       device_type, device_model, asset_status, business_status,
+                       install_time, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,%s,%s,'ACTIVE','IN_USE',%s,%s)
+                """, (r["id"], r["tenant_id"], r["org_id"], r["space_id"], r["device_id"],
+                      r["device_name"], r["device_type"], r["device_model"],
+                      r["install_time"], r["is_deleted"]))
+                inserted["device"] += nc.rowcount
+
+        if apply:
+            new.commit()
+        print("\n" + ("MIGRATED" if apply else "DRY-RUN") + " 旧库 -> 新库")
+        for k, v in stats.items():
+            if apply:
+                print(f"  {k}: source={v} inserted={inserted[k]} skipped={v - inserted[k]}")
+            else:
+                print(f"  {k}: {v}")
+        print("\n新库当前行数：")
+        for table in ("bp_org", "bp_space", "bp_house", "bp_person",
+                      "guarantee_contract", "bp_bill", "bp_grant_entitlement", "bp_dev_device"):
+            print(f"  {table}: {count_table(nc, table)}")
+    except Exception:
+        new.rollback()
+        raise
+    finally:
+        old.close()
+        new.close()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--apply", action="store_true", help="实际写入新库；默认只统计")
+    args = parser.parse_args()
+    try:
+        migrate(apply=args.apply)
+    except Exception as e:
+        print("MIGRATION FAILED:", e, file=sys.stderr)
+        sys.exit(1)

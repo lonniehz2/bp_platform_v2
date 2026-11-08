@@ -87,6 +87,8 @@ platform-docs/00-平台框架设计.md
 platform-docs/01-保障房场景映射.md
 platform-docs/02-平台框架评审清单.md
 platform-docs/03-核心API.md
+platform-docs/04-实施进度.md
+platform-docs/05-老数据迁移报告.md
 platform-sql/001_platform_core.sql
 platform-backend/README.md
 platform-frontend/README.md
@@ -149,3 +151,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\ver
 ```
 
 已验证 63 个断言通过。
+
+老数据迁移：
+
+```text
+组织 49
+空间 172
+房屋 151
+人员 41
+合同 27
+账单 29/33
+授权 10
+设备 168
+```
+
