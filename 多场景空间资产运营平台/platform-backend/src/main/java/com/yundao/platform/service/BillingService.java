@@ -47,7 +47,7 @@ public class BillingService {
                         + "from bp_bill b left join bp_house h on h.id=b.house_id "
                         + "left join bp_person p on p.id=b.person_id "
                         + "where b.tenant_id=? and b.project_id=? and b.is_deleted=0 "
-                        + "and (? is null or b.bill_status=?) order by b.id desc",
+                        + "and (? is null or b.bill_status=?) order by b.create_time desc, b.id desc",
                 TenantContext.require(), projectId, status, status);
     }
 
