@@ -18,10 +18,13 @@ public class DeviceController {
 
     private final DeviceService service;
     private final DeviceImportService importService;
+    private final com.yundao.platform.service.PermissionService permissions;
 
-    public DeviceController(DeviceService service, DeviceImportService importService) {
+    public DeviceController(DeviceService service, DeviceImportService importService,
+                            com.yundao.platform.service.PermissionService permissions) {
         this.service = service;
         this.importService = importService;
+        this.permissions = permissions;
     }
 
     @GetMapping
@@ -32,6 +35,7 @@ public class DeviceController {
     @PostMapping("/{deviceId}/bind")
     public R<Map<String, Object>> bind(@org.springframework.web.bind.annotation.PathVariable long deviceId,
                                        @RequestBody Map<String, Long> body) {
+        permissions.require("device:bind");
         return R.ok(service.bind(deviceId, body.get("spaceId")));
     }
 
@@ -39,6 +43,7 @@ public class DeviceController {
     public R<Map<String, Object>> importCsv(
             @org.springframework.web.bind.annotation.RequestParam("file")
             org.springframework.web.multipart.MultipartFile file) {
+        permissions.require("device:import");
         return R.ok(importService.importCsv(file));
     }
 

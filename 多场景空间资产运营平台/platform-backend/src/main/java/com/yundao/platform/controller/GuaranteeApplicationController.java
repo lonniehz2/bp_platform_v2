@@ -18,9 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class GuaranteeApplicationController {
 
     private final GuaranteeApplicationService service;
+    private final com.yundao.platform.service.PermissionService permissions;
 
-    public GuaranteeApplicationController(GuaranteeApplicationService service) {
+    public GuaranteeApplicationController(GuaranteeApplicationService service,
+                                          com.yundao.platform.service.PermissionService permissions) {
         this.service = service;
+        this.permissions = permissions;
     }
 
     @GetMapping("/applications")
@@ -47,6 +50,7 @@ public class GuaranteeApplicationController {
 
     @PostMapping("/applications/{applicationId}/waitlist")
     public R<Map<String, Object>> waitlist(@PathVariable long applicationId) {
+        permissions.require("application:waitlist");
         return R.ok(service.joinWaitlist(applicationId));
     }
 

@@ -17,9 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class BillingController {
 
     private final BillingService service;
+    private final com.yundao.platform.service.PermissionService permissions;
 
-    public BillingController(BillingService service) {
+    public BillingController(BillingService service,
+                             com.yundao.platform.service.PermissionService permissions) {
         this.service = service;
+        this.permissions = permissions;
     }
 
     @GetMapping("/bills")
@@ -36,18 +39,21 @@ public class BillingController {
     @PostMapping("/contracts/{contractId}/pay")
     public R<Map<String, Object>> payContract(@PathVariable long contractId,
                                               @RequestBody BillingService.ContractPayCmd cmd) {
+        permissions.require("billing:pay");
         return R.ok(service.payContract(contractId, cmd));
     }
 
     @PostMapping("/bills/{billId}/pay")
     public R<Map<String, Object>> pay(@PathVariable long billId,
                                       @RequestBody BillingService.PaymentCmd cmd) {
+        permissions.require("billing:pay");
         return R.ok(service.pay(billId, cmd));
     }
 
     @PostMapping("/bills/{billId}/adjust")
     public R<Map<String, Object>> adjust(@PathVariable long billId,
                                          @RequestBody BillingService.AdjustCmd cmd) {
+        permissions.require("billing:adjust");
         return R.ok(service.adjust(billId, cmd));
     }
 
