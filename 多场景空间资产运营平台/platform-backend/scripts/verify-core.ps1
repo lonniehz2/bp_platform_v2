@@ -957,6 +957,11 @@ $bookingConfirmed = Api "POST" "/api/v1/platform/guarantee/bookings/$($booking.i
 Assert-True ($bookingConfirmed.bookingStatus -eq "CONFIRMED") "booking confirmed"
 Assert-True ($bookingConfirmed.orderStatus -eq "CONFIRMED") "booking converted to order"
 Assert-True ($bookingConfirmed.orderNo -ne $null) "listing order number generated"
+$orderPayment = Api "POST" "/api/v1/platform/guarantee/listing-orders/$($bookingConfirmed.orderId)/pay" @{
+    paymentMethod = "ONLINE"
+}
+Assert-True ($orderPayment.paymentStatus -eq "SUCCESS") "listing order paid"
+Assert-True ($orderPayment.orderPaymentStatus -eq "PAID") "listing order payment status"
 $orderContract = Api "POST" "/api/v1/platform/guarantee/listing-orders/$($bookingConfirmed.orderId)/contract" $null
 Assert-True ($orderContract.orderStatus -eq "CONTRACTED") "listing order contracted"
 Assert-True ($orderContract.contractStatus -eq "ACTIVE") "listing order contract active"

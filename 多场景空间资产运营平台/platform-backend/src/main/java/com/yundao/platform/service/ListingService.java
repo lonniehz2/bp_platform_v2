@@ -185,10 +185,49 @@ public class ListingService {
         return out;
     }
 
+
+    @org.springframework.transaction.annotation.Transactional
+    public Map<String, Object> payOrder(long orderId, PayCmd cmd) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select o.id, o.project_id projectId, o.order_status orderStatus, o.payment_status paymentStatus, "
+                        + "o.rent_amount rentAmount, o.deposit_amount depositAmount "
+                        + "from bp_listing_order o where o.id=? and o.tenant_id=? and o.is_deleted=0 for update",
+                orderId, tenant);
+        if (rows.isEmpty()) throw BizException.notFound("订单不存在");
+        Map<String, Object> row = rows.get(0);
+        if (!List.of("CONFIRMED", "CONTRACTED").contains(String.valueOf(row.get("orderStatus")))) {
+            throw BizException.conflict("当前订单状态不能支付");
+        }
+        if ("PAID".equals(String.valueOf(row.get("paymentStatus")))) {
+            throw BizException.conflict("订单已支付");
+        }
+        BigDecimal defaultAmount = ((BigDecimal) row.get("rentAmount"))
+                .add((BigDecimal) row.get("depositAmount"));
+        BigDecimal amount = cmd.amount() == null ? defaultAmount : cmd.amount();
+        if (amount.signum() <= 0) throw BizException.param("支付金额必须大于 0");
+        long id = idGen.nextId();
+        String no = "LP" + System.currentTimeMillis() + id % 1000;
+        jdbc.update("insert into bp_listing_payment(id,tenant_id,project_id,order_id,payment_no,amount,"
+                        + "payment_method,payment_status,paid_time,is_deleted) "
+                        + "values(?,?,?,?,?,?,?, 'SUCCESS', now(),0)",
+                id, tenant, ((Number) row.get("projectId")).longValue(), orderId, no, amount,
+                cmd.paymentMethod() == null ? "ONLINE" : cmd.paymentMethod());
+        jdbc.update("update bp_listing_order set payment_status='PAID' where id=? and tenant_id=?",
+                orderId, tenant);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("orderId", orderId);
+        out.put("paymentNo", no);
+        out.put("amount", amount);
+        out.put("paymentStatus", "SUCCESS");
+        out.put("orderPaymentStatus", "PAID");
+        return out;
+    }
+
     public List<Map<String, Object>> orders(long projectId) {
         return jdbc.queryForList(
                 "select o.id, o.order_no orderNo, o.listing_id listingId, l.title, o.person_id personId, "
-                        + "p.person_name personName, o.order_status orderStatus, o.rent_amount rentAmount, "
+                        + "p.person_name personName, o.order_status orderStatus, o.payment_status paymentStatus, o.rent_amount rentAmount, "
                         + "o.deposit_amount depositAmount, o.create_time createTime "
                         + "from bp_listing_order o join bp_listing l on l.id=o.listing_id "
                         + "left join bp_person p on p.id=o.person_id "
@@ -201,5 +240,8 @@ public class ListingService {
     }
 
     public record BookingCmd(Long personId, String contactPhone, String remark) {
+    }
+
+    public record PayCmd(BigDecimal amount, String paymentMethod) {
     }
 }

@@ -99,6 +99,16 @@ async function convertOrder(o) {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+
+async function payOrder(o) {
+  if (!window.confirm(`确认支付 ¥${money(Number(o.rentAmount) + Number(o.depositAmount))}？`)) return
+  busy.value = true; error.value = ''
+  try {
+    await api.payListingOrder(o.id, { paymentMethod: 'ONLINE' })
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 onMounted(load)
 </script>
 
@@ -162,12 +172,16 @@ onMounted(load)
       <div class="panel-head"><h2>预约订单</h2><span class="small muted">{{ orders.length }} 条</span></div>
       <div v-if="!orders.length" class="empty">暂无订单</div>
       <div class="table-wrap" v-else>
-        <table><thead><tr><th>订单号</th><th>房源</th><th>承租人</th><th>月租金</th><th>押金</th><th>状态</th><th>操作</th></tr></thead>
+        <table><thead><tr><th>订单号</th><th>房源</th><th>承租人</th><th>月租金</th><th>押金</th><th>状态</th><th>支付</th><th>操作</th></tr></thead>
           <tbody><tr v-for="o in orders" :key="o.id">
             <td class="mono">{{ o.orderNo }}</td><td>{{ o.title }}</td><td>{{ o.personName }}</td>
             <td>¥{{ money(o.rentAmount) }}</td><td>¥{{ money(o.depositAmount) }}</td>
             <td><span class="badge" :class="o.orderStatus === 'CONTRACTED' ? 'green' : 'orange'">{{ o.orderStatus }}</span></td>
-            <td><button v-if="canAction('listing:manage', 'asset') && o.orderStatus === 'CONFIRMED'" class="sm primary" :disabled="busy" @click="convertOrder(o)">转合同</button></td>
+            <td><span class="badge" :class="o.paymentStatus === 'PAID' ? 'green' : 'red'">{{ o.paymentStatus }}</span></td>
+            <td class="row">
+              <button v-if="canAction('listing:manage', 'asset') && o.paymentStatus !== 'PAID' && ['CONFIRMED','CONTRACTED'].includes(o.orderStatus)" class="sm primary" :disabled="busy" @click="payOrder(o)">支付</button>
+              <button v-if="canAction('listing:manage', 'asset') && o.orderStatus === 'CONFIRMED'" class="sm" :disabled="busy" @click="convertOrder(o)">转合同</button>
+            </td>
           </tr></tbody>
         </table>
       </div>
