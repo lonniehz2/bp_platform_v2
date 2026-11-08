@@ -143,16 +143,20 @@ th{color:var(--muted);font-weight:600;background:#fbfcfe}
     <section class="page active" id="page-dashboard">
       <div class="page-head">
         <div><h1>运营驾驶舱</h1><p>幸福里保障房项目 · 房源、申请、合同、收费、设备</p></div>
-        <div class="row"><span class="badge blue">本期 2026-11</span><button class="btn" onclick="toast('已刷新驾驶舱')">刷新</button></div>
+        <div class="row"><select id="periodSelect" class="select" onchange="changePeriod()"><option>本月账期</option><option>本季账期</option><option>本年账期</option><option>自定义账期</option></select><button class="btn" onclick="toast('已刷新驾驶舱')">刷新</button></div>
       </div>
       <div class="cards">
         <div class="card"><div class="label">房源总数</div><div class="value">148</div><div class="hint">空置 142 · 已配租 6</div></div>
         <div class="card"><div class="label">保障房申请</div><div class="value">15</div><div class="hint">待审核 9</div></div>
         <div class="card"><div class="label">生效合同</div><div class="value">7</div><div class="hint">合同总数 25</div></div>
-        <div class="card"><div class="label">本期应收</div><div class="value">¥46,462</div><div class="hint">已收 ¥200</div></div>
-        <div class="card"><div class="label">本期收缴率</div><div class="value">0.4%</div><div class="hint">期初欠费另计</div></div>
+        <div class="card"><div class="label">本期应收</div><div class="value" id="kpiReceivable">¥46,462</div><div class="hint">23 笔</div></div>
+        <div class="card"><div class="label">本期实收</div><div class="value" id="kpiReceived">¥200</div><div class="hint">按账单归属期</div></div>
+        <div class="card"><div class="label">本期收缴率</div><div class="value" id="kpiRate">0.4%</div><div class="hint">不含期初</div></div>
+        <div class="card"><div class="label">期初欠费</div><div class="value" id="kpiOpening">¥8,600</div><div class="hint">单独统计</div></div>
+        <div class="card"><div class="label">期初回收率</div><div class="value" id="kpiOpeningRate">12.4%</div><div class="hint">期初回收 / 期初欠费</div></div>
         <div class="card"><div class="label">设备资产</div><div class="value">168</div><div class="hint">待处理告警 0</div></div>
       </div>
+      <div class="notice" style="margin-top:10px">口径：本期应收/实收/收缴率只算当期账单；期初欠费单独展示；总欠费 = 期初 + 当期。</div>
       <div class="charts" style="margin-top:12px">
         <div class="panel">
           <div class="panel-head"><h2>房源结构</h2><span class="small muted">148 套</span></div>
@@ -243,11 +247,11 @@ th{color:var(--muted);font-weight:600;background:#fbfcfe}
           <div class="item"><div class="k">租期</div><div class="v">2026-12-01 至 2027-11-30</div></div>
           <div class="item"><div class="k">月租金</div><div class="v">¥1,200</div></div>
           <div class="item"><div class="k">押金</div><div class="v">¥1,200</div></div>
-          <div class="item"><div class="k">本期欠费</div><div class="v" style="color:var(--red)">¥900</div></div>
+          <div class="item"><div class="k">未结清账单</div><div class="v" style="color:var(--red)">3 笔 · ¥2,200</div></div>
         </div>
         <div class="row" style="margin-top:10px">
           <button class="btn sm" data-roles="财务,项目负责人,场景管理员" onclick="toast('已生成账单：BL202611001')">生成账单</button>
-          <button class="btn sm" data-roles="财务,项目负责人,场景管理员" onclick="openPay('¥900','合同详情直接收款')">直接收款</button>
+          <button class="btn sm" data-roles="财务,项目负责人,场景管理员" onclick="openContractPayment()">直接收款</button>
           <button class="btn sm" data-roles="项目负责人,场景管理员" onclick="toast('已进入合同变更')">合同变更</button>
           <button class="btn sm" data-roles="项目负责人,场景管理员" onclick="toast('已进入退租办理')">退租</button>
         </div>
@@ -284,7 +288,9 @@ th{color:var(--muted);font-weight:600;background:#fbfcfe}
       </div>
       <div class="panel hide" id="ctab-bill">
         <table><thead><tr><th>账单号</th><th>账期</th><th>应付</th><th>已收</th><th>状态</th></tr></thead><tbody>
-          <tr><td class="mono">BL202611001</td><td>2026-12</td><td>¥900</td><td>¥0</td><td><span class="badge orange">未缴</span></td></tr>
+          <tr id="cbill1"><td class="mono">BL202611001</td><td>2026-12</td><td>¥900</td><td>¥0</td><td><span class="badge orange">未缴</span></td></tr>
+          <tr id="cbill2"><td class="mono">BL202612001</td><td>2027-01</td><td>¥900</td><td>¥0</td><td><span class="badge orange">未缴</span></td></tr>
+          <tr id="cbill3"><td class="mono">BL202610001</td><td>2026-11</td><td>¥900</td><td>¥500</td><td><span class="badge orange">部分缴</span></td></tr>
         </tbody></table>
       </div>
       <div class="panel hide" id="ctab-cohabit">
@@ -350,14 +356,14 @@ th{color:var(--muted);font-weight:600;background:#fbfcfe}
         <div class="panel">
           <div class="panel-head"><h2>空间树</h2><span class="small muted">8 个空间</span></div>
           <div class="tree" id="spaceTree">
-            <div class="tree-node active" onclick="selectSpace(this,'A栋')">▾ A栋 <span class="badge gray">楼栋</span></div>
+            <div class="tree-node active" data-space="A栋" onclick="selectSpace(this,'A栋')">▾ A栋 <span class="badge gray">楼栋</span></div>
             <div class="tree-children">
-              <div class="tree-node" onclick="selectSpace(this,'A栋 / 1单元')">▾ 1单元 <span class="badge gray">单元</span></div>
+              <div class="tree-node" data-space="A栋 / 1单元" onclick="selectSpace(this,'A栋 / 1单元')">▾ 1单元 <span class="badge gray">单元</span></div>
               <div class="tree-children">
-                <div class="tree-node" onclick="selectSpace(this,'A栋 / 1单元 / 1层')">▾ 1层 <span class="badge gray">楼层</span></div>
+                <div class="tree-node" data-space="A栋 / 1单元 / 1层" onclick="selectSpace(this,'A栋 / 1单元 / 1层')">▾ 1层 <span class="badge gray">楼层</span></div>
                 <div class="tree-children">
-                  <div class="tree-node" onclick="selectSpace(this,'A栋 / 1单元 / 1层 / 101')">101 <span class="badge blue">直绑 1</span></div>
-                  <div class="tree-node" onclick="selectSpace(this,'A栋 / 1单元 / 1层 / 102')">102 <span class="badge orange">继承 1</span></div>
+                  <div class="tree-node" data-space="A栋 / 1单元 / 1层 / 101" onclick="selectSpace(this,'A栋 / 1单元 / 1层 / 101')">101 <span class="badge blue">直绑 1</span></div>
+                  <div class="tree-node" data-space="A栋 / 1单元 / 1层 / 102" onclick="selectSpace(this,'A栋 / 1单元 / 1层 / 102')">102 <span class="badge orange">继承 1</span></div>
                 </div>
               </div>
             </div>
@@ -366,15 +372,36 @@ th{color:var(--muted);font-weight:600;background:#fbfcfe}
         <div class="panel">
           <div class="panel-head"><h2 id="spaceTitle">A栋</h2><span class="small muted">影响下级空间</span></div>
           <div class="tabs">
-            <button class="tab active">直绑设备 (1)</button><button class="tab">继承设备 (0)</button><button class="tab">未绑定设备 (2)</button>
+            <button class="tab active" data-dtab="direct">直绑设备 (1)</button>
+            <button class="tab" data-dtab="inherit">继承设备 (1)</button>
+            <button class="tab" data-dtab="unbound">未绑定设备 (2)</button>
           </div>
-          <table>
-            <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>MAC</th><th>安装状态</th><th>操作</th></tr></thead>
-            <tbody>
-              <tr><td class="mono">DV202611001</td><td>101门锁</td><td>门锁</td><td>AA:BB:CC:DD:EE:01</td><td><span class="badge green">已安装</span></td><td><button class="btn sm danger" data-roles="设备运维,项目负责人,场景管理员" onclick="toast('已解绑 DV202611001')">解绑</button></td></tr>
-            </tbody>
-          </table>
-          <div class="notice" style="margin-top:10px">设备绑定到楼栋/单元/楼层后，下级空间自动继承；绑定到房屋只作用于该房屋。</div>
+          <div id="dtab-direct">
+            <table>
+              <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>MAC</th><th>安装状态</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">DV202611001</td><td>101门锁</td><td>门锁</td><td>AA:BB:CC:DD:EE:01</td><td><span class="badge green">已安装</span></td><td><button class="btn sm danger" data-roles="设备运维,项目负责人,场景管理员" onclick="toast('已解绑 DV202611001')">解绑</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="dtab-inherit" class="hide">
+            <table>
+              <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>来源空间</th><th>来源路径</th><th>继承层级</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">DV202611010</td><td>1层门禁</td><td>门禁</td><td><button class="btn sm" onclick="jumpSource('A栋 / 1单元 / 1层')">1层</button></td><td>A栋 / 1单元 / 1层</td><td>第 2 层继承</td><td><span class="badge green">在线</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="dtab-unbound" class="hide">
+            <table>
+              <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>MAC</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">DV202611009</td><td>102门锁</td><td>门锁</td><td>-</td><td><button class="btn sm" data-roles="设备运维,项目负责人,场景管理员" onclick="toast('请选择空间后绑定')">绑定</button></td></tr>
+                <tr><td class="mono">DV202611011</td><td>102电表</td><td>电表</td><td>-</td><td><button class="btn sm" data-roles="设备运维,项目负责人,场景管理员" onclick="toast('请选择空间后绑定')">绑定</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="notice" style="margin-top:10px">设备绑定到楼栋/单元/楼层后，下级空间自动继承；绑定到房屋只作用于该房屋。点击来源空间可跳转。</div>
         </div>
       </div>
     </section>
@@ -405,6 +432,22 @@ $$('.nav-btn').forEach(b => b.onclick = () => go(b.dataset.page));
 function toast(msg){
   const el = $('#toast'); el.textContent = msg; el.classList.add('show');
   clearTimeout(window.__toastTimer); window.__toastTimer = setTimeout(()=>el.classList.remove('show'), 2400);
+}
+
+const periodData = {
+  '本月账期': { receivable:'¥46,462', received:'¥200', rate:'0.4%', opening:'¥8,600', openingRate:'12.4%' },
+  '本季账期': { receivable:'¥132,800', received:'¥61,200', rate:'46.1%', opening:'¥8,600', openingRate:'38.2%' },
+  '本年账期': { receivable:'¥512,000', received:'¥438,000', rate:'85.5%', opening:'¥8,600', openingRate:'72.0%' },
+  '自定义账期': { receivable:'¥46,462', received:'¥200', rate:'0.4%', opening:'¥8,600', openingRate:'12.4%' }
+};
+function changePeriod(){
+  const d = periodData[$('#periodSelect').value] || periodData['本月账期'];
+  $('#kpiReceivable').textContent = d.receivable;
+  $('#kpiReceived').textContent = d.received;
+  $('#kpiRate').textContent = d.rate;
+  $('#kpiOpening').textContent = d.opening;
+  $('#kpiOpeningRate').textContent = d.openingRate;
+  toast('已切换：' + $('#periodSelect').value);
 }
 
 function openModal(html){
@@ -490,6 +533,82 @@ function confirmNoApproval(){
   toast('已生效，并写入无审批日志');
 }
 
+const contractBills = [
+  { id:'cbill1', no:'BL202611001', period:'2026-12', payable:900, paid:0 },
+  { id:'cbill2', no:'BL202612001', period:'2027-01', payable:900, paid:0 },
+  { id:'cbill3', no:'BL202610001', period:'2026-11', payable:900, paid:500 }
+];
+function openContractPayment(){
+  const rows = contractBills.map(b => {
+    const out = b.payable - b.paid;
+    return `<tr>
+      <td><input type="checkbox" data-bill="${b.id}" onchange="toggleContractBill(this)"></td>
+      <td class="mono">${b.no}</td><td>${b.period}</td>
+      <td>¥${b.payable.toLocaleString()}</td><td>¥${b.paid.toLocaleString()}</td>
+      <td>¥${out.toLocaleString()}</td>
+      <td><input data-input="${b.id}" type="number" min="0" max="${out}" value="${out}" disabled oninput="updateContractPay()" style="width:110px"></td>
+    </tr>`;
+  }).join('');
+  openModal(`
+    <button class="btn sm close" onclick="closeModal()">关闭</button>
+    <h3>合同直接收款 · 选择账单</h3>
+    <div class="notice">选择一笔或多笔未结清账单；默认金额为未收金额，可部分收款；多账单必须生成分配明细。</div>
+    <table style="margin-top:10px">
+      <thead><tr><th></th><th>账单号</th><th>账期</th><th>应付</th><th>已收</th><th>未收</th><th>本次收款</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="row" style="justify-content:space-between;margin-top:12px">
+      <b>本次合计：<span id="contractPayTotal">¥0</span></b>
+      <span class="small muted">没有未结清账单时不可直接收款</span>
+    </div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn primary" onclick="confirmContractPayment()">确认收款</button>
+    </div>
+  `);
+  setTimeout(updateContractPay, 0);
+}
+function toggleContractBill(cb){
+  const input = document.querySelector(`[data-input="${cb.dataset.bill}"]`);
+  if (input) { input.disabled = !cb.checked; if (cb.checked) input.value = input.max; }
+  updateContractPay();
+}
+function updateContractPay(){
+  let total = 0;
+  document.querySelectorAll('[data-bill]').forEach(cb => {
+    if (!cb.checked) return;
+    const input = document.querySelector(`[data-input="${cb.dataset.bill}"]`);
+    total += Number(input?.value || 0);
+  });
+  const el = document.querySelector('#contractPayTotal');
+  if (el) el.textContent = '¥' + total.toLocaleString();
+}
+function confirmContractPayment(){
+  const selected = [...document.querySelectorAll('[data-bill]')].filter(cb => cb.checked);
+  if (!selected.length) { toast('请选择至少一笔账单'); return; }
+  let total = 0;
+  for (const cb of selected) {
+    const bill = contractBills.find(b => b.id === cb.dataset.bill);
+    const input = document.querySelector(`[data-input="${cb.dataset.bill}"]`);
+    const amount = Number(input?.value || 0);
+    const out = bill.payable - bill.paid;
+    if (amount <= 0 || amount > out) { toast('收款金额必须大于 0 且不超过未收金额'); return; }
+    total += amount;
+    bill.paid += amount;
+    const row = document.querySelector('#' + bill.id);
+    if (row) {
+      row.cells[3].textContent = '¥' + bill.paid.toLocaleString();
+      row.cells[4].innerHTML = bill.paid >= bill.payable
+        ? '<span class="badge green">已缴</span>'
+        : '<span class="badge orange">部分缴</span>';
+    }
+  }
+  $('#contractTimeline').insertAdjacentHTML('afterbegin',
+    `<div class="ev">合同直接收款 ¥${total.toLocaleString()} · ${state.role} · 刚刚</div>`);
+  closeModal();
+  toast('收款成功，已生成收据');
+}
+
 function openPay(amount, title){
   openModal(`
     <button class="btn sm close" onclick="closeModal()">关闭</button>
@@ -538,6 +657,18 @@ function openBatch(){
       <button class="btn primary" onclick="toast('已提交批量生成，任务号 JOB202611001');closeModal()">确认生成</button>
     </div>
   `);
+}
+
+$$('[data-dtab]').forEach(tab => tab.onclick = () => {
+  $$('[data-dtab]').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  ['direct','inherit','unbound'].forEach(k => $('#dtab-' + k)?.classList.add('hide'));
+  $('#dtab-' + tab.dataset.dtab)?.classList.remove('hide');
+});
+function jumpSource(path){
+  const node = document.querySelector(`[data-space="${path}"]`);
+  if (node) { node.click(); toast('已跳转到来源空间：' + path); }
+  else toast('来源空间不可见');
 }
 
 function selectSpace(el, name){
