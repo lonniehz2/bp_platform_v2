@@ -34,6 +34,7 @@ def main():
         ('收据', '/property/receipts?projectId=' + PROJECT),
         ('车位', '/property/parking/spaces?projectId=' + PROJECT),
         ('车位价格', '/property/parking/rates?projectId=' + PROJECT),
+        ('临时停车', '/property/parking/temporary?projectId=' + PROJECT),
         ('物业房屋', '/property/units?projectId=' + PROJECT),
         ('业主', '/property/units/' + '376663347237621760' + '/owners?projectId=' + PROJECT),
         ('支出', '/property/expenses?projectId=' + PROJECT + '&month=2026-11'),
