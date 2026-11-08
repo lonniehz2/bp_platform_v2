@@ -3,6 +3,9 @@ package com.yundao.bp.property.service;
 import com.yundao.bp.common.exception.BizException;
 import com.yundao.bp.common.id.SnowflakeIdGenerator;
 import com.yundao.bp.common.tenant.TenantContext;
+import com.yundao.bp.msg.dto.MessageSendCmd;
+import com.yundao.bp.msg.dto.MessageVO;
+import com.yundao.bp.msg.service.MessageService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -18,10 +21,13 @@ public class PropertyDunningService {
 
     private final JdbcTemplate jdbc;
     private final SnowflakeIdGenerator idGen;
+    private final MessageService messageService;
 
-    public PropertyDunningService(JdbcTemplate jdbc, SnowflakeIdGenerator idGen) {
+    public PropertyDunningService(JdbcTemplate jdbc, SnowflakeIdGenerator idGen,
+                                  MessageService messageService) {
         this.jdbc = jdbc;
         this.idGen = idGen;
+        this.messageService = messageService;
     }
 
     public List<Map<String, Object>> arrears(Long projectId, String keyword) {
@@ -83,13 +89,37 @@ public class PropertyDunningService {
                     .subtract((BigDecimal) b.get("paidAmount"));
             String content = "尊敬的业主，您有 " + due + " 元费用待缴，房号 "
                     + b.get("houseName") + "，请尽快缴纳。";
-            jdbc.update("insert into prop_dunning_record(id,tenant_id,task_id,bill_id,payer_name,"
-                            + "house_name,amount,channel,recipient,content,send_status,send_time,create_time) "
-                            + "values(?,?,?,?,?,?,?,?,?,?, 'SENT',now(),now())",
-                    idGen.nextId(), TenantContext.tenantId(), taskId, billId,
-                    b.get("payerName"), b.get("houseName"), due, channels,
-                    b.get("phone"), content);
-            success++;
+            boolean anySuccess = false;
+            for (String channel : channels.split(",")) {
+                String ch = channel.trim();
+                if (ch.isEmpty()) continue;
+                MessageVO vo = null;
+                try {
+                    vo = messageService.send(new MessageSendCmd(null, "PROPERTY_DUNNING",
+                            billId, ch, "PERSON", String.valueOf(b.get("payerName")),
+                            String.valueOf(b.get("payerName")),
+                            b.get("phone") == null ? "SIM" : String.valueOf(b.get("phone")),
+                            "物业费催缴", content, null));
+                } catch (Exception e) {
+                    jdbc.update("insert into prop_dunning_record(id,tenant_id,task_id,bill_id,payer_name,"
+                                    + "house_name,amount,channel,recipient,content,send_status,error_msg,create_time) "
+                                    + "values(?,?,?,?,?,?,?,?,?,?, 'FAILED',?,now())",
+                            idGen.nextId(), TenantContext.tenantId(), taskId, billId,
+                            b.get("payerName"), b.get("houseName"), due, ch,
+                            b.get("phone"), content, e.getMessage());
+                    continue;
+                }
+                String status = vo == null ? "FAILED" : vo.sendStatus();
+                if ("SUCCESS".equals(status)) anySuccess = true;
+                jdbc.update("insert into prop_dunning_record(id,tenant_id,task_id,bill_id,payer_name,"
+                                + "house_name,amount,channel,recipient,content,send_status,error_msg,"
+                                + "send_time,create_time) values(?,?,?,?,?,?,?,?,?,?,?,?,now(),now())",
+                        idGen.nextId(), TenantContext.tenantId(), taskId, billId,
+                        b.get("payerName"), b.get("houseName"), due, ch,
+                        vo == null ? null : vo.receiverAddr(), content, status,
+                        vo == null ? null : vo.failReason());
+            }
+            if (anySuccess) success++; else fail++;
         }
         jdbc.update("update prop_dunning_task set success_count=?, fail_count=? where id=?",
                 success, fail, taskId);
