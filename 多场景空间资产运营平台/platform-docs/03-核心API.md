@@ -303,7 +303,8 @@ HOUSE
 授权/人员钥匙包
 菜单/角色模板
 登录鉴权
-资格复核",
+资格复核
+迁移异常处理",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
     {"nodeName": "经理终审", "approverRole": "PROPERTY_MANAGER"}
@@ -350,6 +351,7 @@ HOUSE
 菜单/角色模板
 登录鉴权
 资格复核
+迁移异常处理
 通过/驳回
 审批记录
 ```
@@ -470,6 +472,7 @@ TERMINATION → 合同终止
 菜单/角色模板
 登录鉴权
 资格复核
+迁移异常处理
 
 ### GET /guarantee/applications?projectId=
 
@@ -579,6 +582,7 @@ WAITING → ALLOCATED
 ---
 
 ## 13. 资格复核
+迁移异常处理
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
 
@@ -643,7 +647,25 @@ platform-sql/002_menu_seed.sql
 
 ---
 
-## 15. 验证脚本
+## 15. 迁移异常
+
+### GET /migration/exceptions?status=PENDING
+
+### POST /migration/exceptions/{id}/resolve
+
+```json
+{"resolution": "ACCEPT_SKIP"}
+```
+
+状态：
+
+```text
+PENDING → RESOLVED
+```
+
+---
+
+## 16. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -652,7 +674,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-70 个断言通过
+72 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -672,4 +694,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 菜单/角色模板
 登录鉴权
 资格复核
+迁移异常处理
 ```

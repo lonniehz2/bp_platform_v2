@@ -48,7 +48,8 @@ const nav = [
   { to: '/deposits', label: '押金与补贴', icon: '◫' },
   { to: '/devices', label: '设备与授权', icon: '⌘' },
   { to: '/audit', label: '审批中心', icon: '✓' },
-  { to: '/menus', label: '菜单与角色', icon: '☰' }
+  { to: '/menus', label: '菜单与角色', icon: '☰' },
+  { to: '/migration-exceptions', label: '迁移异常', icon: '!' }
 ]
 </script>
 

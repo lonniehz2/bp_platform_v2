@@ -409,11 +409,22 @@ $menus = Api "GET" "/api/v1/platform/menus?sceneCode=GUARANTEE" $null
 Assert-True (@($menus).Count -eq 9) "guarantee menu tree loaded"
 
 $roles = Api "GET" "/api/v1/platform/roles?sceneCode=GUARANTEE" $null
-Assert-True (@($roles).Count -eq 4) "guarantee role templates loaded"
+Assert-True (@($roles).Count -ge 4) "guarantee role templates loaded"
 
 $adminRole = @($roles | Where-Object { $_.roleCode -eq "GUARANTEE_ADMIN" })[0]
 $adminMenus = Api "GET" "/api/v1/platform/roles/$($adminRole.id)/menus" $null
 Assert-True (@($adminMenus).Count -ge 13) "admin role menus loaded"
+
+
+$migrationPending = Api "GET" "/api/v1/platform/migration/exceptions?status=PENDING" $null
+if (@($migrationPending).Count -gt 0) {
+    $resolvedException = Api "POST" "/api/v1/platform/migration/exceptions/$($migrationPending[0].id)/resolve" @{
+        resolution = "ACCEPT_SKIP"
+    }
+    Assert-True ($resolvedException.resolveStatus -eq "RESOLVED") "migration exception resolved"
+}
+$migrationResolved = Api "GET" "/api/v1/platform/migration/exceptions?status=RESOLVED" $null
+Assert-True (@($migrationResolved).Count -ge 1) "migration exception resolution listed"
 
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"

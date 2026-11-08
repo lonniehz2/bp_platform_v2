@@ -680,6 +680,10 @@ create table if not exists bp_migration_exception (
   source_id bigint not null,
   reason varchar(500) not null,
   payload varchar(2000) null,
+  resolve_status varchar(20) not null default 'PENDING',
+  resolution varchar(500) null,
+  resolved_by varchar(64) null,
+  resolved_time datetime null,
   create_time datetime not null default current_timestamp,
   unique key uk_bp_migration_exception (source_table, source_id)
 ) engine=InnoDB default charset=utf8mb4 comment='老数据迁移异常';
