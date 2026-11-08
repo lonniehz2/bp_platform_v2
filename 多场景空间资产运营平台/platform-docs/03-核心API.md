@@ -270,7 +270,8 @@ HOUSE
 {
   "sceneCode": "GUARANTEE",
   "bizType": "GUARANTEE_CONTRACT_CHANGE",
-  "flowName": "保障房合同变更审批",
+  "flowName": "保障房合同变更审批
+申请/轮候/配租",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
     {"nodeName": "经理终审", "approverRole": "PROPERTY_MANAGER"}
@@ -308,6 +309,7 @@ HOUSE
 ```text
 串行多级审批
 合同变更审批
+申请/轮候/配租
 通过/驳回
 审批记录
 ```
@@ -357,7 +359,53 @@ TERMINATION → 合同终止
 
 ---
 
-## 11. 验证脚本
+## 11. 保障房申请/轮候/配租
+
+### GET /guarantee/applications?projectId=
+
+### POST /guarantee/applications
+
+```json
+{
+  "projectId": 1,
+  "applicationNo": "APP2026001",
+  "applicantPersonId": 2,
+  "applicationType": "PUBLIC_RENTAL",
+  "familySize": 2
+}
+```
+
+### POST /guarantee/applications/{id}/submit
+
+### POST /guarantee/applications/{id}/approve
+
+```json
+{"comment": "资格通过"}
+```
+
+### POST /guarantee/applications/{id}/waitlist
+
+### GET /guarantee/waitlist?projectId=
+
+### POST /guarantee/waitlist/{waitlistId}/allocate
+
+```json
+{"houseId": 3}
+```
+
+### GET /guarantee/allocations?projectId=
+
+状态：
+
+```text
+DRAFT → SUBMITTED → APPROVED
+WAITING → ALLOCATED
+房屋 VACANT → ALLOCATED
+```
+
+---
+
+## 12. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -366,7 +414,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-37 个断言通过
+43 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -377,4 +425,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 收据
 串行多级审批
 合同变更审批
+申请/轮候/配租
 ```

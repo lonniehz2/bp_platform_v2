@@ -238,6 +238,33 @@ Assert-True ($changeStep2.changeStatus -eq "APPROVED") "contract change final ap
 $contracts = Api "GET" "/api/v1/platform/guarantee/contracts?projectId=$projectId" $null
 Assert-True ([decimal]$contracts[0].rentAmount -eq 1500.00) "contract rent applied"
 
+
+$application = Api "POST" "/api/v1/platform/guarantee/applications" @{
+    projectId = $projectId
+    applicationNo = "VERIFY_APP_$suffix"
+    applicantPersonId = $person.id
+    applicationType = "PUBLIC_RENTAL"
+    familySize = 2
+}
+Assert-True ($application.applicationStatus -eq "DRAFT") "guarantee application created"
+
+$appSubmitted = Api "POST" "/api/v1/platform/guarantee/applications/$($application.id)/submit" $null
+Assert-True ($appSubmitted.applicationStatus -eq "SUBMITTED") "guarantee application submitted"
+
+$appApproved = Api "POST" "/api/v1/platform/guarantee/applications/$($application.id)/approve" @{ comment = "资格通过" }
+Assert-True ($appApproved.applicationStatus -eq "APPROVED") "guarantee application approved"
+
+$wait = Api "POST" "/api/v1/platform/guarantee/applications/$($application.id)/waitlist" $null
+Assert-True ($wait.waitlistStatus -eq "WAITING") "guarantee waitlist joined"
+
+$innerHouse = @($houses | Where-Object { $_.houseCode -eq "101-1" })[0]
+$allocation = Api "POST" "/api/v1/platform/guarantee/waitlist/$($wait.id)/allocate" @{ houseId = $innerHouse.id }
+Assert-True ($allocation.allocationStatus -eq "ALLOCATED") "guarantee house allocated"
+
+$housesAfter = Api "GET" "/api/v1/platform/projects/$projectId/houses" $null
+$allocatedHouse = @($housesAfter | Where-Object { $_.id -eq $innerHouse.id })[0]
+Assert-True ($allocatedHouse.houseStatus -eq "ALLOCATED") "house status allocated"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

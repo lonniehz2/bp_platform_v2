@@ -453,3 +453,51 @@ create table if not exists guarantee_contract_change (
   update_time datetime not null default current_timestamp on update current_timestamp,
   key idx_guarantee_change_contract (tenant_id, contract_id, change_status)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房合同变更/退租';
+
+
+create table if not exists guarantee_application (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  application_no varchar(64) not null,
+  applicant_person_id bigint not null,
+  application_type varchar(32) not null default 'PUBLIC_RENTAL',
+  family_size int not null default 1,
+  application_status varchar(20) not null default 'DRAFT',
+  submit_time datetime null,
+  review_time datetime null,
+  review_comment varchar(500) null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_guarantee_application_no (tenant_id, application_no),
+  key idx_guarantee_application_project (tenant_id, project_id, application_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房申请';
+
+create table if not exists guarantee_waitlist (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  application_id bigint not null,
+  queue_no varchar(32) not null,
+  waitlist_status varchar(20) not null default 'WAITING',
+  joined_time datetime not null default current_timestamp,
+  is_deleted tinyint not null default 0,
+  unique key uk_guarantee_waitlist_application (tenant_id, application_id),
+  key idx_guarantee_waitlist_project (tenant_id, project_id, waitlist_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房轮候';
+
+create table if not exists guarantee_allocation (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  application_id bigint not null,
+  house_id bigint not null,
+  allocation_no varchar(64) not null,
+  allocation_status varchar(20) not null default 'ALLOCATED',
+  allocated_time datetime not null default current_timestamp,
+  is_deleted tinyint not null default 0,
+  unique key uk_guarantee_allocation_application (tenant_id, application_id),
+  unique key uk_guarantee_allocation_no (tenant_id, allocation_no),
+  key idx_guarantee_allocation_house (tenant_id, house_id, allocation_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房配租';
