@@ -17,15 +17,19 @@ public class ListingService {
     private final JdbcTemplate jdbc;
     private final IdGenerator idGen;
     private final GuaranteeContractService contractService;
+    private final DataScopeService dataScope;
 
     public ListingService(JdbcTemplate jdbc, IdGenerator idGen,
-                          GuaranteeContractService contractService) {
+                          GuaranteeContractService contractService,
+                          DataScopeService dataScope) {
         this.jdbc = jdbc;
         this.idGen = idGen;
         this.contractService = contractService;
+        this.dataScope = dataScope;
     }
 
     public List<Map<String, Object>> listings(long projectId) {
+        dataScope.requireProject(projectId);
         return jdbc.queryForList(
                 "select l.id, l.project_id projectId, l.house_id houseId, h.house_code houseCode, "
                         + "h.house_name houseName, l.title, l.description, l.monthly_rent monthlyRent, "
@@ -38,6 +42,7 @@ public class ListingService {
 
     public Map<String, Object> create(CreateCmd cmd) {
         String tenant = TenantContext.require();
+        if (cmd.projectId() != null) dataScope.requireProject(cmd.projectId());
         if (cmd.projectId() == null || cmd.houseId() == null || cmd.title() == null
                 || cmd.title().isBlank() || cmd.monthlyRent() == null
                 || cmd.monthlyRent().signum() <= 0) {
@@ -87,6 +92,7 @@ public class ListingService {
         if (!"PUBLISHED".equals(String.valueOf(listings.get(0).get("listingStatus")))) {
             throw BizException.conflict("房源未发布，不能预约");
         }
+        dataScope.requireProject(((Number) listings.get(0).get("projectId")).longValue());
         if (cmd.personId() == null) throw BizException.param("预约人不能为空");
         long id = idGen.nextId();
         String no = "BK" + System.currentTimeMillis() + id % 1000;
@@ -98,6 +104,7 @@ public class ListingService {
     }
 
     public List<Map<String, Object>> bookings(long projectId) {
+        dataScope.requireProject(projectId);
         return jdbc.queryForList(
                 "select b.id, b.booking_no bookingNo, b.listing_id listingId, l.title, "
                         + "b.person_id personId, p.person_name personName, b.booking_status bookingStatus, "
@@ -225,6 +232,7 @@ public class ListingService {
     }
 
     public List<Map<String, Object>> orders(long projectId) {
+        dataScope.requireProject(projectId);
         return jdbc.queryForList(
                 "select o.id, o.order_no orderNo, o.listing_id listingId, l.title, o.person_id personId, "
                         + "p.person_name personName, o.order_status orderStatus, o.payment_status paymentStatus, o.rent_amount rentAmount, "
