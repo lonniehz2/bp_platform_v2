@@ -184,6 +184,27 @@ public class GuaranteeApplicationService {
         return out;
     }
 
+
+    public Map<String, Object> discard(long applicationId) {
+        Application app = load(applicationId);
+        if (!"DRAFT".equals(app.status())) {
+            throw BizException.conflict("只有草稿可以作废");
+        }
+        jdbc.update("update guarantee_application set application_status='DISCARDED', update_time=now() "
+                + "where id=? and tenant_id=?", applicationId, TenantContext.require());
+        return Map.of("id", applicationId, "applicationStatus", "DISCARDED");
+    }
+
+    public Map<String, Object> close(long applicationId) {
+        Application app = load(applicationId);
+        if (!"CONTRACTED".equals(app.status()) && !"REJECTED".equals(app.status())) {
+            throw BizException.conflict("当前状态不能关闭");
+        }
+        jdbc.update("update guarantee_application set application_status='CLOSED', update_time=now() "
+                + "where id=? and tenant_id=?", applicationId, TenantContext.require());
+        return Map.of("id", applicationId, "applicationStatus", "CLOSED");
+    }
+
     public List<Map<String, Object>> listWaitlist(long projectId) {
         return jdbc.queryForList(
                 "select w.id, w.project_id projectId, w.application_id applicationId, "

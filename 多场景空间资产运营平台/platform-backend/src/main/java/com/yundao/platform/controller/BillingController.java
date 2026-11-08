@@ -50,6 +50,18 @@ public class BillingController {
         return R.ok(service.pay(billId, cmd));
     }
 
+    @PostMapping("/bills/{billId}/discard")
+    public R<Map<String, Object>> discard(@PathVariable long billId) {
+        permissions.require("billing:discard");
+        return R.ok(service.discardBill(billId));
+    }
+
+    @PostMapping("/bills/{billId}/close")
+    public R<Map<String, Object>> close(@PathVariable long billId) {
+        permissions.require("billing:close");
+        return R.ok(service.closeBill(billId));
+    }
+
     @PostMapping("/bills/{billId}/adjust")
     public R<Map<String, Object>> adjust(@PathVariable long billId,
                                          @RequestBody BillingService.AdjustCmd cmd) {

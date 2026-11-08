@@ -248,6 +248,33 @@ public class BillingService {
         return out;
     }
 
+
+    public Map<String, Object> discardBill(long billId) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select bill_status billStatus from bp_bill where id=? and tenant_id=? and is_deleted=0",
+                billId, tenant);
+        if (rows.isEmpty()) throw BizException.notFound("账单不存在");
+        if (!"DRAFT".equals(String.valueOf(rows.get(0).get("billStatus")))) {
+            throw BizException.conflict("只有草稿账单可以作废");
+        }
+        jdbc.update("update bp_bill set bill_status='DISCARDED', update_time=now() where id=?", billId);
+        return Map.of("billId", billId, "billStatus", "DISCARDED");
+    }
+
+    public Map<String, Object> closeBill(long billId) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select bill_status billStatus from bp_bill where id=? and tenant_id=? and is_deleted=0",
+                billId, tenant);
+        if (rows.isEmpty()) throw BizException.notFound("账单不存在");
+        if (!"WAIVED".equals(String.valueOf(rows.get(0).get("billStatus")))) {
+            throw BizException.conflict("只有已减免账单可以关闭");
+        }
+        jdbc.update("update bp_bill set bill_status='CLOSED', update_time=now() where id=?", billId);
+        return Map.of("billId", billId, "billStatus", "CLOSED");
+    }
+
     @Transactional
     public Map<String, Object> adjust(long billId, AdjustCmd cmd) {
         String tenant = TenantContext.require();

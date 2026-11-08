@@ -777,6 +777,17 @@ Assert-True ([int]$dash.billCount -ge 1) "dashboard bill count"
 $binding = Api "GET" "/api/v1/platform/projects/$projectId/device-bindings?spaceId=$($roomHouse.spaceId)" $null
 Assert-True ((@($binding.direct).Count + @($binding.inherited).Count) -ge 1) "device binding view readable"
 
+
+$discardApp = Api "POST" "/api/v1/platform/guarantee/applications" @{
+    projectId = $projectId
+    applicationNo = "DISCARD_APP_$suffix"
+    applicantPersonId = $person.id
+    applicationType = "PUBLIC_RENTAL"
+    familySize = 1
+}
+$discarded = Api "POST" "/api/v1/platform/guarantee/applications/$($discardApp.id)/discard" $null
+Assert-True ($discarded.applicationStatus -eq "DISCARDED") "application draft discarded"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

@@ -36,6 +36,18 @@ public class GuaranteeApplicationController {
         return R.ok(service.create(cmd));
     }
 
+    @PostMapping("/applications/{applicationId}/discard")
+    public R<Map<String, Object>> discard(@PathVariable long applicationId) {
+        permissions.require("application:discard");
+        return R.ok(service.discard(applicationId));
+    }
+
+    @PostMapping("/applications/{applicationId}/close")
+    public R<Map<String, Object>> close(@PathVariable long applicationId) {
+        permissions.require("application:close");
+        return R.ok(service.close(applicationId));
+    }
+
     @PostMapping("/applications/{applicationId}/submit")
     public R<Map<String, Object>> submit(@PathVariable long applicationId) {
         return R.ok(service.submit(applicationId));
