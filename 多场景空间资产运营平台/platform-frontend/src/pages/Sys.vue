@@ -5,6 +5,7 @@ import { api } from '../api'
 const projects = ref([])
 const users = ref([])
 const roles = ref([])
+const auditLogs = ref([])
 const error = ref('')
 
 onMounted(async () => {
@@ -12,6 +13,7 @@ onMounted(async () => {
     projects.value = await api.projects()
     users.value = await api.users()
     roles.value = await api.roles('GUARANTEE')
+    auditLogs.value = await api.auditLogs(20).catch(() => [])
   } catch (e) { error.value = e.message }
 })
 </script>
@@ -25,6 +27,19 @@ onMounted(async () => {
         <div class="card"><div class="label">项目</div><div class="value">{{ projects.length }}</div><div class="hint">组织/项目</div></div>
         <div class="card"><div class="label">用户</div><div class="value">{{ users.length }}</div><div class="hint">平台账号</div></div>
         <div class="card"><div class="label">角色</div><div class="value">{{ roles.length }}</div><div class="hint">场景角色</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>操作审计</h2><span class="small muted">最近 20 条写操作</span></div>
+      <div v-if="!auditLogs.length" class="empty">暂无审计日志</div>
+      <div class="table-wrap" v-else>
+        <table><thead><tr><th>时间</th><th>用户</th><th>方法</th><th>路径</th><th>状态</th><th>IP</th></tr></thead>
+          <tbody><tr v-for="l in auditLogs" :key="l.id">
+            <td class="small">{{ l.createTime }}</td><td>{{ l.username }}</td><td class="mono">{{ l.method }}</td>
+            <td class="mono small">{{ l.path }}</td><td>{{ l.statusCode }}</td><td class="small">{{ l.ip }}</td>
+          </tr></tbody>
+        </table>
       </div>
     </div>
 

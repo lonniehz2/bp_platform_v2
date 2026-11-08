@@ -103,6 +103,7 @@ export const api = {
   approveTask: (taskId, body) => request(`/workflow-tasks/${taskId}/approve`, { method: 'POST', body: JSON.stringify(body) }),
   rejectTask: (taskId, body) => request(`/workflow-tasks/${taskId}/reject`, { method: 'POST', body: JSON.stringify(body) }),
   workflowRecords: (taskId) => request(`/workflow-tasks/${taskId}/records`),
+  auditLogs: (limit = 100) => request(`/audit-logs?limit=${limit}`),
   migrationExceptions: (status = '') => request(`/migration/exceptions${status ? `?status=${status}` : ''}`),
   resolveMigrationException: (id, body) => request(`/migration/exceptions/${id}/resolve`, { method: 'POST', body: JSON.stringify(body) }),
   feeItems: (projectId) => request(`/guarantee/fee-items?projectId=${projectId}`),
