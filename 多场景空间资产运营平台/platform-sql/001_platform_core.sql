@@ -873,3 +873,21 @@ create table if not exists guarantee_alert (
   update_time datetime not null default current_timestamp on update current_timestamp,
   key idx_guarantee_alert_project (tenant_id, project_id, alert_status, alert_level)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房风险告警';
+
+
+create table if not exists guarantee_credit_record (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  person_id bigint not null,
+  credit_type varchar(20) not null default 'VIOLATION',
+  score_change int not null default 0,
+  reason varchar(500) null,
+  record_status varchar(20) not null default 'ACTIVE',
+  effective_date date null,
+  expire_date date null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  key idx_guarantee_credit_project (tenant_id, project_id, record_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房信用记录';

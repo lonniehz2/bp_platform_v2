@@ -565,6 +565,22 @@ Assert-True ($alertHandled.alertStatus -eq "RESOLVED") "alert resolved"
 $alerts = Api "GET" "/api/v1/platform/guarantee/alerts?projectId=$projectId" $null
 Assert-True (@($alerts).Count -ge 1) "alert listed"
 
+
+$credit = Api "POST" "/api/v1/platform/guarantee/credits" @{
+    projectId = $projectId
+    personId = $person.id
+    creditType = "VIOLATION"
+    scoreChange = -5
+    reason = "验证信用扣分"
+}
+Assert-True ($credit.recordStatus -eq "ACTIVE") "credit record created"
+
+$creditRevoked = Api "POST" "/api/v1/platform/guarantee/credits/$($credit.id)/revoke" $null
+Assert-True ($creditRevoked.recordStatus -eq "REVOKED") "credit record revoked"
+
+$credits = Api "GET" "/api/v1/platform/guarantee/credits?projectId=$projectId" $null
+Assert-True (@($credits).Count -ge 1) "credit record listed"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

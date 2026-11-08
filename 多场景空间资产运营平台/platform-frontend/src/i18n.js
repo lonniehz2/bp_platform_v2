@@ -23,6 +23,7 @@ const messages = {
       complaint: '投诉与申诉',
       publicity: '公示管理',
       alert: '风险告警',
+      credit: '信用惩戒',
       audit: '审批中心',
       config: '菜单与角色',
       migration: '迁移异常'
@@ -78,6 +79,7 @@ const messages = {
       complaint: 'Complaints & Appeals',
       publicity: 'Publicity',
       alert: 'Risk Alerts',
+      credit: 'Credit Discipline',
       audit: 'Approvals',
       config: 'Menus & Roles',
       migration: 'Migration Exceptions'
