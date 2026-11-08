@@ -22,17 +22,21 @@ public class BillingService {
     private final IdGenerator idGen;
     private final GuaranteeContractService contractService;
     private final GuaranteeSubsidyService subsidyService;
+    private final DataScopeService dataScope;
 
     public BillingService(JdbcTemplate jdbc, IdGenerator idGen,
                           GuaranteeContractService contractService,
-                          GuaranteeSubsidyService subsidyService) {
+                          GuaranteeSubsidyService subsidyService,
+                          DataScopeService dataScope) {
         this.jdbc = jdbc;
         this.idGen = idGen;
         this.contractService = contractService;
         this.subsidyService = subsidyService;
+        this.dataScope = dataScope;
     }
 
     public List<Map<String, Object>> bills(long projectId, String status) {
+        dataScope.requireProject(projectId);
         return jdbc.queryForList(
                 "select b.id, b.bill_no billNo, b.project_id projectId, b.biz_type bizType, "
                         + "b.contract_id contractId, b.house_id houseId, h.house_name houseName, "
@@ -49,6 +53,7 @@ public class BillingService {
 
     public Map<String, Object> generate(long contractId, BillCmd cmd) {
         GuaranteeContractService.Contract contract = contractService.load(contractId);
+        dataScope.requireProject(contract.projectId());
         if (!"ACTIVE".equals(contract.contractStatus())) {
             throw BizException.param("合同不是生效状态");
         }
@@ -104,6 +109,7 @@ public class BillingService {
             throw BizException.notFound("账单不存在");
         }
         Map<String, Object> bill = rows.get(0);
+        dataScope.requireProject(((Number) bill.get("projectId")).longValue());
         String status = String.valueOf(bill.get("billStatus"));
         if ("PAID".equals(status)) {
             throw BizException.conflict("账单已结清");
@@ -155,7 +161,8 @@ public class BillingService {
 
 
     public List<Map<String, Object>> contractBills(long contractId) {
-        contractService.load(contractId);
+        GuaranteeContractService.Contract contract = contractService.load(contractId);
+        dataScope.requireProject(contract.projectId());
         return jdbc.queryForList(
                 "select b.id, b.bill_no billNo, b.contract_id contractId, b.house_id houseId, "
                         + "h.house_name houseName, b.period_start periodStart, b.period_end periodEnd, "
@@ -169,6 +176,7 @@ public class BillingService {
     @Transactional
     public Map<String, Object> payContract(long contractId, ContractPayCmd cmd) {
         GuaranteeContractService.Contract contract = contractService.load(contractId);
+        dataScope.requireProject(contract.projectId());
         if (!"ACTIVE".equals(contract.contractStatus())) {
             throw BizException.conflict("合同不是生效状态，不能收款");
         }
@@ -279,13 +287,14 @@ public class BillingService {
     public Map<String, Object> adjust(long billId, AdjustCmd cmd) {
         String tenant = TenantContext.require();
         List<Map<String, Object>> rows = jdbc.queryForList(
-                "select id, amount, discount_amount discountAmount, paid_amount paidAmount, bill_status billStatus "
+                "select id, project_id projectId, amount, discount_amount discountAmount, paid_amount paidAmount, bill_status billStatus "
                         + "from bp_bill where id=? and tenant_id=? and is_deleted=0 for update",
                 billId, tenant);
         if (rows.isEmpty()) {
             throw BizException.notFound("账单不存在");
         }
         Map<String, Object> bill = rows.get(0);
+        dataScope.requireProject(((Number) bill.get("projectId")).longValue());
         if ("PAID".equals(String.valueOf(bill.get("billStatus")))) {
             throw BizException.conflict("已结清账单不能调整");
         }
@@ -317,6 +326,7 @@ public class BillingService {
     }
 
     public List<Map<String, Object>> payments(long projectId) {
+        dataScope.requireProject(projectId);
         return jdbc.queryForList(
                 "select p.id, p.payment_no paymentNo, p.project_id projectId, p.payer_person_id payerPersonId, "
                         + "p.amount, p.payment_method paymentMethod, p.payment_status paymentStatus, "
