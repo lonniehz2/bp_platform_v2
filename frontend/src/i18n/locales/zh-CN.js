@@ -788,6 +788,12 @@ export default {
     noProject: '请先选择项目',
   },
   propertyUnit: {
+    addBuilding: '新增楼栋',
+    addRoom: '新增房屋',
+    building: '楼栋',
+    buildingName: '楼栋名称',
+    roomName: '房屋名称',
+    required: '请填写必填项',
     title: '物业房屋',
     allBuildings: '全部楼栋',
     refresh: '刷新',

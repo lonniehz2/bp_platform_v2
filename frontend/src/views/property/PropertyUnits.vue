@@ -12,6 +12,8 @@
         <el-button @click="loadUnits">{{ t('propertyUnit.refresh') }}</el-button>
         <div class="spacer" />
         <span class="muted">{{ t('propertyUnit.count', { n: units.length }) }}</span>
+        <el-button @click="openBuilding">{{ t('propertyUnit.addBuilding') }}</el-button>
+        <el-button type="primary" @click="openRoom">{{ t('propertyUnit.addRoom') }}</el-button>
       </div>
       <el-table :data="units" border size="small" v-loading="loading">
         <el-table-column prop="houseCode" :label="t('propertyUnit.code')" width="150" />
@@ -33,6 +35,41 @@
         </el-table-column>
       </el-table>
     </el-card>
+
+    <el-dialog v-model="buildingVisible" :title="t('propertyUnit.addBuilding')" width="440px">
+      <el-form :model="buildingForm" label-width="100px">
+        <el-form-item :label="t('propertyUnit.buildingName')" required>
+          <el-input v-model="buildingForm.buildingName" />
+        </el-form-item>
+        <el-form-item :label="t('propertyUnit.area')">
+          <el-input-number v-model="buildingForm.area" :min="0" :precision="2" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="buildingVisible = false">{{ t('propertyUnit.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="saveBuilding">{{ t('propertyUnit.save') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="roomVisible" :title="t('propertyUnit.addRoom')" width="440px">
+      <el-form :model="roomForm" label-width="100px">
+        <el-form-item :label="t('propertyUnit.building')" required>
+          <el-select v-model="roomForm.buildingId" style="width:100%">
+            <el-option v-for="b in buildings" :key="b.id" :label="b.buildingName" :value="b.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="t('propertyUnit.roomName')" required>
+          <el-input v-model="roomForm.roomName" />
+        </el-form-item>
+        <el-form-item :label="t('propertyUnit.area')" required>
+          <el-input-number v-model="roomForm.area" :min="1" :precision="2" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="roomVisible = false">{{ t('propertyUnit.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="saveRoom">{{ t('propertyUnit.save') }}</el-button>
+      </template>
+    </el-dialog>
 
     <el-dialog v-model="ownerVisible" :title="t('propertyUnit.owners')" width="600px">
       <div class="muted" style="margin-bottom:8px">{{ currentUnit?.houseName }}</div>
@@ -98,7 +135,11 @@ const loading = ref(false)
 const saving = ref(false)
 const ownerVisible = ref(false)
 const assignVisible = ref(false)
+const buildingVisible = ref(false)
+const roomVisible = ref(false)
 const assignForm = reactive({ personId: '', relationType: 'OWNER', primary: 1 })
+const buildingForm = reactive({ buildingName: '', area: 0 })
+const roomForm = reactive({ buildingId: null, roomName: '', area: 60 })
 
 onMounted(async () => {
   await store.loadProjects()
@@ -136,6 +177,49 @@ function openAssign(row) {
   currentUnit.value = row
   Object.assign(assignForm, { personId: '', relationType: 'OWNER', primary: 1 })
   assignVisible.value = true
+}
+
+function openBuilding() {
+  Object.assign(buildingForm, { buildingName: '', area: 0 })
+  buildingVisible.value = true
+}
+
+async function saveBuilding() {
+  if (!buildingForm.buildingName.trim()) {
+    ElMessage.warning(t('propertyUnit.required'))
+    return
+  }
+  saving.value = true
+  try {
+    await req.post('/property/units/buildings', buildingForm, { params: { projectId: projectId.value } })
+    ElMessage.success(t('propertyUnit.saved'))
+    buildingVisible.value = false
+    await loadBuildings()
+    await loadUnits()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || t('propertyUnit.saveFailed'))
+  } finally { saving.value = false }
+}
+
+function openRoom() {
+  Object.assign(roomForm, { buildingId: buildingId.value || buildings.value[0]?.id || null, roomName: '', area: 60 })
+  roomVisible.value = true
+}
+
+async function saveRoom() {
+  if (!roomForm.buildingId || !roomForm.roomName.trim() || !roomForm.area) {
+    ElMessage.warning(t('propertyUnit.required'))
+    return
+  }
+  saving.value = true
+  try {
+    await req.post('/property/units', roomForm, { params: { projectId: projectId.value } })
+    ElMessage.success(t('propertyUnit.saved'))
+    roomVisible.value = false
+    await loadUnits()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || t('propertyUnit.saveFailed'))
+  } finally { saving.value = false }
 }
 
 async function assign() {

@@ -1,5 +1,11 @@
 package com.yundao.bp.property.service;
 
+import com.yundao.bp.asset.dto.HouseCreateCmd;
+import com.yundao.bp.asset.dto.HouseVO;
+import com.yundao.bp.asset.dto.SpaceCreateCmd;
+import com.yundao.bp.asset.dto.SpaceVO;
+import com.yundao.bp.asset.service.HouseService;
+import com.yundao.bp.asset.service.SpaceService;
 import com.yundao.bp.common.exception.BizException;
 import com.yundao.bp.common.id.SnowflakeIdGenerator;
 import com.yundao.bp.common.tenant.TenantContext;
@@ -16,10 +22,15 @@ public class PropertyUnitService {
 
     private final JdbcTemplate jdbc;
     private final SnowflakeIdGenerator idGen;
+    private final SpaceService spaceService;
+    private final HouseService houseService;
 
-    public PropertyUnitService(JdbcTemplate jdbc, SnowflakeIdGenerator idGen) {
+    public PropertyUnitService(JdbcTemplate jdbc, SnowflakeIdGenerator idGen,
+                               SpaceService spaceService, HouseService houseService) {
         this.jdbc = jdbc;
         this.idGen = idGen;
+        this.spaceService = spaceService;
+        this.houseService = houseService;
     }
 
     public List<Map<String, Object>> buildings(Long projectId) {
@@ -94,6 +105,67 @@ public class PropertyUnitService {
                 + "where id=? and tenant_id=?", id, TenantContext.tenantId());
         if (n == 0) throw BizException.notFound("业主关系");
         return Map.of("deleted", n);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> createBuilding(Long projectId, BuildingCmd cmd) {
+        requireProject(projectId);
+        if (cmd.buildingName() == null || cmd.buildingName().isBlank()) {
+            throw BizException.paramInvalid("楼栋名称不能为空");
+        }
+        SpaceVO vo = spaceService.create(new SpaceCreateCmd(projectId, null,
+                "PB" + idGen.nextId(), cmd.buildingName().trim(), "BUILDING",
+                cmd.area(), cmd.sortNo(), null));
+        return Map.of("id", vo.id(), "buildingName", vo.spaceName());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> createUnit(Long projectId, UnitCmd cmd) {
+        requireProject(projectId);
+        requireBuilding(projectId, cmd.buildingId());
+        if (cmd.roomName() == null || cmd.roomName().isBlank()) {
+            throw BizException.paramInvalid("房屋名称不能为空");
+        }
+        if (cmd.area() == null || cmd.area().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw BizException.paramInvalid("建筑面积必须大于 0");
+        }
+        Long unitId = ensureChild(projectId, cmd.buildingId(), "UNIT", "1单元", null);
+        Long floorId = ensureChild(projectId, unitId, "FLOOR", "1层", null);
+        SpaceVO room = spaceService.create(new SpaceCreateCmd(projectId, floorId,
+                "PR" + idGen.nextId(), cmd.roomName().trim(), "ROOM", cmd.area(), null, null));
+        HouseVO house = houseService.create(new HouseCreateCmd(room.id(), null,
+                cmd.roomName().trim(), "APARTMENT", null, null, null, null, null,
+                cmd.area(), null, null, null, null, null, null, 1,
+                null, null, null, null, null, null));
+        return Map.of("houseId", house.id(), "spaceId", room.id(),
+                "houseName", house.houseName(), "houseCode", house.houseCode());
+    }
+
+    private Long ensureChild(Long orgId, Long parentId, String type, String name,
+                             java.math.BigDecimal area) {
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select id from bp_asset_space where tenant_id=? and org_id=? and parent_id=? "
+                        + "and space_type=? and space_name=? and is_deleted=0 limit 1",
+                TenantContext.tenantId(), orgId, parentId, type, name);
+        if (!rows.isEmpty()) {
+            return ((Number) rows.get(0).get("id")).longValue();
+        }
+        SpaceVO vo = spaceService.create(new SpaceCreateCmd(orgId, parentId,
+                "PS" + idGen.nextId(), name, type, area, null, null));
+        return vo.id();
+    }
+
+    private void requireBuilding(Long projectId, Long buildingId) {
+        Long n = jdbc.queryForObject("select count(*) from bp_asset_space "
+                        + "where id=? and tenant_id=? and org_id=? and space_type='BUILDING' and is_deleted=0",
+                Long.class, buildingId, TenantContext.tenantId(), projectId);
+        if (n == null || n == 0) throw BizException.notFound("物业楼栋");
+    }
+
+    public record BuildingCmd(String buildingName, java.math.BigDecimal area, Integer sortNo) {
+    }
+
+    public record UnitCmd(Long buildingId, String roomName, java.math.BigDecimal area) {
     }
 
     private void requireProject(Long projectId) {

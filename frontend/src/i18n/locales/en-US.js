@@ -789,6 +789,12 @@ export default {
     noProject: 'Select a project first',
   },
   propertyUnit: {
+    addBuilding: 'Add Building',
+    addRoom: 'Add Unit',
+    building: 'Building',
+    buildingName: 'Building Name',
+    roomName: 'Unit Name',
+    required: 'Required fields are missing',
     title: 'Property Units',
     allBuildings: 'All buildings',
     refresh: 'Refresh',

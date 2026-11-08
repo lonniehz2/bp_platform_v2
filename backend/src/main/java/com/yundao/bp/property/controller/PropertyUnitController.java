@@ -24,6 +24,20 @@ public class PropertyUnitController {
         this.service = service;
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("property:unit:edit")
+    @PostMapping("/buildings")
+    public R<Map<String, Object>> createBuilding(@RequestParam Long projectId,
+            @RequestBody PropertyUnitService.BuildingCmd cmd) {
+        return R.ok(service.createBuilding(projectId, cmd));
+    }
+
+    @com.yundao.bp.iam.security.RequirePerm("property:unit:edit")
+    @PostMapping
+    public R<Map<String, Object>> createUnit(@RequestParam Long projectId,
+            @RequestBody PropertyUnitService.UnitCmd cmd) {
+        return R.ok(service.createUnit(projectId, cmd));
+    }
+
     @com.yundao.bp.iam.security.RequirePerm("property:unit:view")
     @GetMapping("/buildings")
     public R<List<Map<String, Object>>> buildings(@RequestParam Long projectId) {
