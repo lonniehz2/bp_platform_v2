@@ -6,6 +6,7 @@ import { api } from './api'
 import { getMenus, setMenus } from './permissions'
 import { mode, toggleMode } from './ui'
 import { setLocale } from './i18n'
+import { navGroups } from './navConfig'
 
 const route = useRoute()
 const router = useRouter()
@@ -32,42 +33,24 @@ const isAdmin = computed(() => {
 })
 const legacyAdminUrl = computed(() => `${location.protocol}//${location.hostname}:8080/platform-admin`)
 
-const nav = [
-  { to: '/', key: 'dashboard', menu: 'dashboard', icon: '◈' },
-  { to: '/search', key: 'search', menu: 'search', icon: '⌕' },
-  { to: '/projects', key: 'asset', menu: 'asset', icon: '▦' },
-  { to: '/persons', key: 'person', menu: 'person', icon: '♙' },
-  { to: '/applications', key: 'application', menu: 'application', icon: '☷' },
-  { to: '/contracts', key: 'contract', menu: 'contract', icon: '▤' },
-  { to: '/changes', key: 'changes', menu: 'contract', icon: '⇄' },
-  { to: '/qualification', key: 'qualification', menu: 'contract', icon: '◎' },
-  { to: '/billing', key: 'billing', menu: 'billing', icon: '¥' },
-  { to: '/deposits', key: 'deposits', menu: 'billing', icon: '◫' },
-  { to: '/arrears', key: 'arrears', menu: 'billing', icon: '!' },
-  { to: '/cashflow', key: 'cashflow', menu: 'billing', icon: '↕' },
-  { to: '/fee-items', key: 'fee', menu: 'billing', icon: '≡' },
-  { to: '/reports', key: 'reports', menu: 'billing', icon: '▤' },
-  { to: '/meters', key: 'meter', menu: 'asset', icon: '◉' },
-  { to: '/energy', key: 'energy', menu: 'energy', icon: '▤' },
-  { to: '/devices', key: 'device', menu: 'device', icon: '⌘' },
-  { to: '/work-orders', key: 'service', menu: 'service', icon: '⚒' },
-  { to: '/access-records', key: 'access', menu: 'access', icon: '⌂' },
-  { to: '/complaints', key: 'complaint', menu: 'complaint', icon: '☏' },
-  { to: '/publicities', key: 'publicity', menu: 'publicity', icon: '▣' },
-  { to: '/alerts', key: 'alert', menu: 'alert', icon: '⚠' },
-  { to: '/credits', key: 'credit', menu: 'credit', icon: '✖' },
-  { to: '/short-rent-orders', key: 'shortrent', menu: 'shortrent', icon: '⌂' },
-  { to: '/house-calendar', key: 'calendar', menu: 'calendar', icon: '▦' },
-  { to: '/open-apps', key: 'open', menu: 'open', icon: '⇄' },
-  { to: '/messages', key: 'message', menu: 'message', icon: '✉' },
-  { to: '/gov-report', key: 'gov', menu: 'gov', icon: '⇪' },
-  { to: '/audit', key: 'audit', menu: 'audit', icon: '✓' },
-  { to: '/users', key: 'users', menu: 'config', icon: '♟' },
-  { to: '/menus', key: 'config', menu: 'config', icon: '☰' },
-  { to: '/migration-exceptions', key: 'migration', menu: 'system', icon: '!' },
-  { to: '/help', key: 'help', menu: 'help', icon: '?' }
-]
-const visibleNav = computed(() => nav.filter(item => allowedMenus.value.length === 0 || allowedMenus.value.includes(item.menu)))
+const openGroups = ref(new Set(JSON.parse(localStorage.getItem('platformOpenGroups') || '["workbench","risk","guarantee","contract","finance"]')))
+
+const visibleGroups = computed(() => navGroups.map(g => ({
+  ...g,
+  items: g.items.filter(item => allowedMenus.value.length === 0 || allowedMenus.value.includes(item.menu))
+})).filter(g => g.items.length > 0))
+
+function isGroupOpen(key) {
+  return openGroups.value.has(key)
+}
+
+function toggleGroup(key) {
+  const next = new Set(openGroups.value)
+  if (next.has(key)) next.delete(key)
+  else next.add(key)
+  openGroups.value = next
+  localStorage.setItem('platformOpenGroups', JSON.stringify([...next]))
+}
 
 const titleKey = {
   '/': 'nav.dashboard',
@@ -167,10 +150,19 @@ function logout() {
         </div>
       </div>
       <nav class="nav">
-        <RouterLink v-for="item in visibleNav" :key="item.to" :to="item.to" class="nav-item">
-          <span class="nav-icon">{{ item.icon }}</span>
-          <span class="nav-label">{{ t('nav.' + item.key) }}</span>
-        </RouterLink>
+        <div v-for="g in visibleGroups" :key="g.key" class="nav-group">
+          <button class="nav-group-head" @click="toggleGroup(g.key)" :title="t(g.labelKey)">
+            <span class="nav-group-icon">{{ g.icon }}</span>
+            <span class="nav-label">{{ t(g.labelKey) }}</span>
+            <span class="nav-label nav-group-arrow">{{ isGroupOpen(g.key) ? '−' : '+' }}</span>
+          </button>
+          <div v-show="isGroupOpen(g.key)" class="nav-group-items">
+            <RouterLink v-for="item in g.items" :key="item.to" :to="item.to" class="nav-item">
+              <span class="nav-icon">{{ item.icon }}</span>
+              <span class="nav-label">{{ t('nav.' + item.key) }}</span>
+            </RouterLink>
+          </div>
+        </div>
       </nav>
       <div class="sidebar-foot">
         <span class="dot online"></span>
