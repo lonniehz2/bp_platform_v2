@@ -6,6 +6,7 @@ import { canAction } from '../permissions'
 const project = ref(null)
 const listings = ref([])
 const bookings = ref([])
+const orders = ref([])
 const houses = ref([])
 const persons = ref([])
 const error = ref('')
@@ -28,11 +29,12 @@ async function load() {
   try {
     project.value = await currentProject()
     if (!project.value) return
-    const [l, b, h, p] = await Promise.all([
+    const [l, b, h, p, o] = await Promise.all([
       api.listings(project.value.id), api.bookings(project.value.id),
-      api.houses(project.value.id), api.persons().catch(() => [])
+      api.houses(project.value.id), api.persons().catch(() => []),
+      api.listingOrders(project.value.id).catch(() => [])
     ])
-    listings.value = l; bookings.value = b; houses.value = h; persons.value = p
+    listings.value = l; bookings.value = b; houses.value = h; persons.value = p; orders.value = o
     if (!form.houseId && h.length) form.houseId = h[0].id
     if (!booking.personId && p.length) booking.personId = p[0].id
   } catch (e) { error.value = e.message }
@@ -146,6 +148,20 @@ onMounted(load)
         </div>
       </div>
     </template>
+
+    <div class="panel">
+      <div class="panel-head"><h2>预约订单</h2><span class="small muted">{{ orders.length }} 条</span></div>
+      <div v-if="!orders.length" class="empty">暂无订单</div>
+      <div class="table-wrap" v-else>
+        <table><thead><tr><th>订单号</th><th>房源</th><th>承租人</th><th>月租金</th><th>押金</th><th>状态</th></tr></thead>
+          <tbody><tr v-for="o in orders" :key="o.id">
+            <td class="mono">{{ o.orderNo }}</td><td>{{ o.title }}</td><td>{{ o.personName }}</td>
+            <td>¥{{ money(o.rentAmount) }}</td><td>¥{{ money(o.depositAmount) }}</td>
+            <td><span class="badge green">{{ o.orderStatus }}</span></td>
+          </tr></tbody>
+        </table>
+      </div>
+    </div>
 
     <div v-if="detail" class="modal-mask" @click.self="detail = null">
       <div class="modal" style="max-width:680px">

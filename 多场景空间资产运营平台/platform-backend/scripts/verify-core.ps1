@@ -955,6 +955,8 @@ $booking = Api "POST" "/api/v1/platform/guarantee/listings/$($listing.id)/bookin
 Assert-True ($booking.bookingStatus -eq "PENDING") "listing booked"
 $bookingConfirmed = Api "POST" "/api/v1/platform/guarantee/bookings/$($booking.id)/confirm" $null
 Assert-True ($bookingConfirmed.bookingStatus -eq "CONFIRMED") "booking confirmed"
+Assert-True ($bookingConfirmed.orderStatus -eq "CONFIRMED") "booking converted to order"
+Assert-True ($bookingConfirmed.orderNo -ne $null) "listing order number generated"
 
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"

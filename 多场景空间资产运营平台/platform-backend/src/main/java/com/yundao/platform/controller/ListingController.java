@@ -55,6 +55,11 @@ public class ListingController {
         return R.ok(service.book(listingId, cmd));
     }
 
+    @GetMapping("/listing-orders")
+    public R<List<Map<String, Object>>> orders(@RequestParam long projectId) {
+        return R.ok(service.orders(projectId));
+    }
+
     @GetMapping("/bookings")
     public R<List<Map<String, Object>>> bookings(@RequestParam long projectId) {
         return R.ok(service.bookings(projectId));

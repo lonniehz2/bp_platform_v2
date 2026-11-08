@@ -105,14 +105,54 @@ public class ListingService {
                 TenantContext.require(), projectId);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public Map<String, Object> updateBooking(long bookingId, String status) {
         if (!List.of("CONFIRMED", "CANCELLED").contains(status)) {
             throw BizException.param("预约状态不合法");
         }
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select b.id, b.project_id projectId, b.listing_id listingId, b.person_id personId, "
+                        + "b.booking_status bookingStatus, l.monthly_rent monthlyRent, l.deposit_amount depositAmount "
+                        + "from bp_booking b join bp_listing l on l.id=b.listing_id "
+                        + "where b.id=? and b.tenant_id=? and b.is_deleted=0 for update",
+                bookingId, tenant);
+        if (rows.isEmpty()) throw BizException.notFound("预约记录不存在");
+        Map<String, Object> row = rows.get(0);
+        if ("CONFIRMED".equals(status) && !"CONFIRMED".equals(String.valueOf(row.get("bookingStatus")))) {
+            long orderId = idGen.nextId();
+            String orderNo = "LO" + System.currentTimeMillis() + orderId % 1000;
+            try {
+                jdbc.update("insert into bp_listing_order(id,tenant_id,project_id,listing_id,booking_id,person_id,"
+                                + "order_no,order_status,rent_amount,deposit_amount,is_deleted) "
+                                + "values(?,?,?,?,?,?,?, 'CONFIRMED',?,?,0)",
+                        orderId, tenant, ((Number) row.get("projectId")).longValue(),
+                        ((Number) row.get("listingId")).longValue(), bookingId,
+                        ((Number) row.get("personId")).longValue(), orderNo,
+                        row.get("monthlyRent"), row.get("depositAmount"));
+            } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                throw BizException.conflict("该预约已生成订单");
+            }
+            jdbc.update("update bp_booking set booking_status=? where id=? and tenant_id=?",
+                    status, bookingId, tenant);
+            return Map.of("id", bookingId, "bookingStatus", status,
+                    "orderId", orderId, "orderNo", orderNo, "orderStatus", "CONFIRMED");
+        }
         int updated = jdbc.update("update bp_booking set booking_status=? "
-                + "where id=? and tenant_id=? and is_deleted=0", status, bookingId, TenantContext.require());
+                + "where id=? and tenant_id=? and is_deleted=0", status, bookingId, tenant);
         if (updated == 0) throw BizException.notFound("预约记录不存在");
         return Map.of("id", bookingId, "bookingStatus", status);
+    }
+
+    public List<Map<String, Object>> orders(long projectId) {
+        return jdbc.queryForList(
+                "select o.id, o.order_no orderNo, o.listing_id listingId, l.title, o.person_id personId, "
+                        + "p.person_name personName, o.order_status orderStatus, o.rent_amount rentAmount, "
+                        + "o.deposit_amount depositAmount, o.create_time createTime "
+                        + "from bp_listing_order o join bp_listing l on l.id=o.listing_id "
+                        + "left join bp_person p on p.id=o.person_id "
+                        + "where o.tenant_id=? and o.project_id=? and o.is_deleted=0 order by o.id desc",
+                TenantContext.require(), projectId);
     }
 
     public record CreateCmd(Long projectId, Long houseId, String title, String description,

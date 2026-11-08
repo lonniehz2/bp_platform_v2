@@ -165,6 +165,7 @@ export const api = {
   offlineListing: (id) => request(`/guarantee/listings/${id}/offline`, { method: 'POST' }),
   bookListing: (id, body) => request(`/guarantee/listings/${id}/bookings`, { method: 'POST', body: JSON.stringify(body) }),
   bookings: (projectId) => request(`/guarantee/bookings?projectId=${projectId}`),
+  listingOrders: (projectId) => request(`/guarantee/listing-orders?projectId=${projectId}`),
   confirmBooking: (id) => request(`/guarantee/bookings/${id}/confirm`, { method: 'POST' }),
   cancelBooking: (id) => request(`/guarantee/bookings/${id}/cancel`, { method: 'POST' }),
   devices: (projectId) => request(`/devices?projectId=${projectId}`),
