@@ -886,6 +886,23 @@ Assert-True ([decimal]$openingRefund.paidAmount -eq 500) "opening refund paid am
 $dashAfterRefund = Api "GET" "/api/v1/platform/dashboard/summary?projectId=$projectId&dateFrom=2025-01-01&dateTo=2025-12-31" $null
 Assert-True ([decimal]$dashAfterRefund.openingOutstanding -ge 8100) "opening outstanding after refund"
 
+
+$directContract = Api "POST" "/api/v1/platform/guarantee/contracts" @{
+    projectId = $projectId
+    contractNo = "DIRECT_CONTRACT_$suffix"
+    houseId = $innerHouse.id
+    personId = $person.id
+    startDate = "2029-01-01"
+    endDate = "2029-12-31"
+    rentAmount = 900
+    depositAmount = 900
+    billingCycle = "MONTH"
+    billDay = 1
+    draft = $true
+}
+$directActive = Api "POST" "/api/v1/platform/guarantee/contracts/$($directContract.id)/activate" @{ reason = "无模板直接生效验证" }
+Assert-True ($directActive.contractStatus -eq "ACTIVE") "contract direct activated"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

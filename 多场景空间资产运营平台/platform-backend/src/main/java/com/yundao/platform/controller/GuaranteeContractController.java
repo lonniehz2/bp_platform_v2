@@ -51,6 +51,13 @@ public class GuaranteeContractController {
         return R.ok(contractService.approve(contractId));
     }
 
+    @PostMapping("/{contractId}/activate")
+    public R<Map<String, Object>> activate(@PathVariable long contractId,
+                                           @RequestBody(required = false) Map<String, String> body) {
+        permissions.require("contract:activate");
+        return R.ok(contractService.activate(contractId, body == null ? null : body.get("reason")));
+    }
+
     @PostMapping("/{contractId}/withdraw")
     public R<Map<String, Object>> withdraw(@PathVariable long contractId) {
         permissions.require("contract:withdraw");
