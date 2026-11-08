@@ -133,6 +133,7 @@ platform-frontend/README.md
 租金账单
 收款/收据
 串行多级审批
+合同变更审批
 ```
 
 自验证：
@@ -141,4 +142,4 @@ platform-frontend/README.md
 powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\verify-core.ps1
 ```
 
-已验证 32 个断言通过。
+已验证 37 个断言通过。

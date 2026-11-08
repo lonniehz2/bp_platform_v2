@@ -307,13 +307,57 @@ HOUSE
 
 ```text
 串行多级审批
+合同变更审批
 通过/驳回
 审批记录
 ```
 
 ---
 
-## 10. 验证脚本
+## 10. 合同变更/退租
+
+### GET /guarantee/contracts/{contractId}/changes
+
+### POST /guarantee/contracts/{contractId}/changes
+
+```json
+{
+  "changeType": "RENT_CHANGE",
+  "after": {"rentAmount": 1500.00},
+  "effectiveDate": "2026-12-01",
+  "reason": "租金调整"
+}
+```
+
+变更类型：
+
+```text
+RENT_CHANGE
+TERM_CHANGE
+ROOM_CHANGE
+TERMINATION
+```
+
+### POST /guarantee/contract-changes/{changeId}/submit
+
+自动查找 `GUARANTEE_CONTRACT_CHANGE` 审批流程并提交。
+
+### POST /guarantee/contract-changes/{changeId}/approve
+
+### POST /guarantee/contract-changes/{changeId}/reject
+
+审批通过后：
+
+```text
+RENT_CHANGE → 更新租金
+TERM_CHANGE → 更新结束日期
+ROOM_CHANGE → 更新房屋
+TERMINATION → 合同终止
+```
+
+---
+
+## 11. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -322,7 +366,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-32 个断言通过
+37 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -332,4 +376,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 收款
 收据
 串行多级审批
+合同变更审批
 ```

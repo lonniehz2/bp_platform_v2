@@ -61,6 +61,17 @@ public class WorkflowService {
                 TenantContext.require(), sceneCode, sceneCode, bizType, bizType);
     }
 
+    public long findFlowId(String sceneCode, String bizType) {
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select id from bp_wf_flow where tenant_id=? and scene_code=? and biz_type=? "
+                        + "and flow_status='ENABLED' and is_deleted=0 order by id desc limit 1",
+                TenantContext.require(), sceneCode, bizType);
+        if (rows.isEmpty()) {
+            throw BizException.param("未配置审批流程");
+        }
+        return ((Number) rows.get(0).get("id")).longValue();
+    }
+
     public Map<String, Object> submit(long flowId, SubmitCmd cmd) {
         String tenant = TenantContext.require();
         if (cmd.bizId() == null || cmd.bizType() == null) {

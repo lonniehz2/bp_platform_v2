@@ -434,3 +434,22 @@ create table if not exists bp_wf_record (
   action_time datetime not null default current_timestamp,
   key idx_bp_wf_record_task (tenant_id, task_id, action_time)
 ) engine=InnoDB default charset=utf8mb4 comment='审批记录';
+
+
+create table if not exists guarantee_contract_change (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  contract_id bigint not null,
+  change_type varchar(32) not null,
+  before_json json null,
+  after_json json null,
+  effective_date date null,
+  change_status varchar(20) not null default 'DRAFT',
+  reason varchar(500) null,
+  workflow_task_id bigint null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  key idx_guarantee_change_contract (tenant_id, contract_id, change_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房合同变更/退租';

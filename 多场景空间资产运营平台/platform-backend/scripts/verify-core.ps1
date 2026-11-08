@@ -178,7 +178,7 @@ Assert-True ($receipt.receiptNo -eq $payment.receiptNo) "receipt readable"
 $flow = Api "POST" "/api/v1/platform/workflows" @{
     sceneCode = "GUARANTEE"
     bizType = "GUARANTEE_CONTRACT_CHANGE"
-    flowName = "保障房合同变更审批"
+    flowName = "保障房合同变更审批_$suffix"
     nodes = @(
         @{ nodeName = "客服初审"; approverRole = "PROPERTY_STEWARD" },
         @{ nodeName = "经理终审"; approverRole = "PROPERTY_MANAGER" }
@@ -210,6 +210,33 @@ Assert-True ($step2.taskStatus -eq "APPROVED") "workflow final approved"
 
 $wfRecords = Api "GET" "/api/v1/platform/workflow-tasks/$($wfTask.taskId)/records" $null
 Assert-True (@($wfRecords).Count -eq 2) "workflow records created"
+
+
+$change = Api "POST" "/api/v1/platform/guarantee/contracts/$($contract.id)/changes" @{
+    changeType = "RENT_CHANGE"
+    after = @{ rentAmount = 1500.00 }
+    effectiveDate = "2026-12-01"
+    reason = "租金调整验证"
+}
+Assert-True ($null -ne $change.id) "contract change created"
+
+$changeSubmit = Api "POST" "/api/v1/platform/guarantee/contract-changes/$($change.id)/submit" $null
+Assert-True ($changeSubmit.changeStatus -eq "APPROVING") "contract change submitted"
+
+$changeStep1 = Api "POST" "/api/v1/platform/guarantee/contract-changes/$($change.id)/approve" @{
+    approverName = "客服A"
+    comment = "同意变更"
+}
+Assert-True ($changeStep1.changeStatus -eq "APPROVING") "contract change first approved"
+
+$changeStep2 = Api "POST" "/api/v1/platform/guarantee/contract-changes/$($change.id)/approve" @{
+    approverName = "经理B"
+    comment = "通过"
+}
+Assert-True ($changeStep2.changeStatus -eq "APPROVED") "contract change final approved"
+
+$contracts = Api "GET" "/api/v1/platform/guarantee/contracts?projectId=$projectId" $null
+Assert-True ([decimal]$contracts[0].rentAmount -eq 1500.00) "contract rent applied"
 
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
