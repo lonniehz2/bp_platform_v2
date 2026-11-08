@@ -1082,3 +1082,18 @@ create table if not exists bp_listing_order (
   unique key uk_listing_order_no (tenant_id,order_no),
   unique key uk_listing_order_booking (tenant_id,booking_id)
 ) engine=InnoDB default charset=utf8mb4 comment='房源预约转订单';
+
+
+create table if not exists bp_audit_log (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  user_id bigint,
+  username varchar(64),
+  method varchar(10),
+  path varchar(500),
+  status_code int,
+  ip varchar(64),
+  create_time datetime not null default current_timestamp,
+  key idx_audit_time (tenant_id,id),
+  key idx_audit_user (tenant_id,user_id)
+) engine=InnoDB default charset=utf8mb4 comment='操作审计日志';

@@ -2,6 +2,7 @@ package com.yundao.platform.config;
 
 import com.yundao.platform.common.auth.UserContext;
 import com.yundao.platform.common.tenant.TenantContext;
+import com.yundao.platform.common.id.IdGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
@@ -14,9 +15,11 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class PermissionInterceptor implements HandlerInterceptor {
 
     private final JdbcTemplate jdbc;
+    private final IdGenerator idGen;
 
-    public PermissionInterceptor(JdbcTemplate jdbc) {
+    public PermissionInterceptor(JdbcTemplate jdbc, IdGenerator idGen) {
         this.jdbc = jdbc;
+        this.idGen = idGen;
     }
 
     @Override
@@ -58,8 +61,31 @@ public class PermissionInterceptor implements HandlerInterceptor {
         return true;
     }
 
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
+                                Object handler, Exception ex) {
+        String path = request.getRequestURI();
+        String method = request.getMethod();
+        if (!path.startsWith("/api/v1/platform/")
+                || "GET".equalsIgnoreCase(method) || "HEAD".equalsIgnoreCase(method)
+                || "OPTIONS".equalsIgnoreCase(method)) {
+            return;
+        }
+        UserContext.Principal principal = UserContext.get();
+        if (principal == null) return;
+        try {
+            jdbc.update("insert into bp_audit_log(id,tenant_id,user_id,username,method,path,status_code,ip) "
+                            + "values(?,?,?,?,?,?,?,?)",
+                    idGen.nextId(), principal.tenantId(), principal.userId(), principal.username(),
+                    method, path, response.getStatus(), request.getRemoteAddr());
+        } catch (Exception ignored) {
+            // 审计失败不阻断业务
+        }
+    }
+
     private String menuFor(String path) {
-        if (path.startsWith("/api/v1/platform/users")) {
+        if (path.startsWith("/api/v1/platform/users")
+                || path.startsWith("/api/v1/platform/audit-logs")) {
             return "config";
         }
         if (path.startsWith("/api/v1/platform/messages")) {

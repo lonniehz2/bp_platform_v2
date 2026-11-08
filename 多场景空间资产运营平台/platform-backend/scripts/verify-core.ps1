@@ -966,6 +966,9 @@ $orderContract = Api "POST" "/api/v1/platform/guarantee/listing-orders/$($bookin
 Assert-True ($orderContract.orderStatus -eq "CONTRACTED") "listing order contracted"
 Assert-True ($orderContract.contractStatus -eq "ACTIVE") "listing order contract active"
 
+$auditLogs = Api "GET" "/api/v1/platform/audit-logs?limit=5" $null
+Assert-True (@($auditLogs).Count -ge 1) "audit log written"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"
