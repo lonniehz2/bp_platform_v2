@@ -302,7 +302,8 @@ HOUSE
 设备业务资产
 授权/人员钥匙包
 菜单/角色模板
-登录鉴权",
+登录鉴权
+资格复核",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
     {"nodeName": "经理终审", "approverRole": "PROPERTY_MANAGER"}
@@ -348,6 +349,7 @@ HOUSE
 授权/人员钥匙包
 菜单/角色模板
 登录鉴权
+资格复核
 通过/驳回
 审批记录
 ```
@@ -467,6 +469,7 @@ TERMINATION → 合同终止
 授权/人员钥匙包
 菜单/角色模板
 登录鉴权
+资格复核
 
 ### GET /guarantee/applications?projectId=
 
@@ -575,7 +578,36 @@ WAITING → ALLOCATED
 
 ---
 
-## 13. 菜单/角色
+## 13. 资格复核
+
+### GET /guarantee/contracts/{contractId}/qualification-reviews
+
+### POST /guarantee/contracts/{contractId}/qualification-reviews
+
+```json
+{"reviewType": "ANNUAL", "reviewYear": 2026}
+```
+
+### POST /guarantee/qualification-reviews/{reviewId}/complete
+
+```json
+{
+  "result": "PASSED",
+  "reviewerName": "复核员A",
+  "comment": "资格仍符合",
+  "nextReviewDate": "2027-11-01"
+}
+```
+
+状态：
+
+```text
+PENDING → PASSED / FAILED
+```
+
+---
+
+## 14. 菜单/角色
 
 ### GET /menus?sceneCode=GUARANTEE
 
@@ -611,7 +643,7 @@ platform-sql/002_menu_seed.sql
 
 ---
 
-## 14. 验证脚本
+## 15. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -620,7 +652,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-67 个断言通过
+70 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -639,4 +671,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 授权/人员钥匙包
 菜单/角色模板
 登录鉴权
+资格复核
 ```

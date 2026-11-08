@@ -12,6 +12,7 @@ import Billing from './pages/Billing.vue'
 import Deposits from './pages/Deposits.vue'
 import Changes from './pages/Changes.vue'
 import Audit from './pages/Audit.vue'
+import Qualification from './pages/Qualification.vue'
 import Devices from './pages/Devices.vue'
 import Menus from './pages/Menus.vue'
 
@@ -26,6 +27,7 @@ const router = createRouter({
     { path: '/billing', component: Billing, meta: { title: '收费与账务' } },
     { path: '/deposits', component: Deposits, meta: { title: '押金与补贴' } },
     { path: '/changes', component: Changes, meta: { title: '合同变更' } },
+    { path: '/qualification', component: Qualification, meta: { title: '资格复核' } },
     { path: '/devices', component: Devices, meta: { title: '设备与授权' } },
     { path: '/audit', component: Audit, meta: { title: '审批中心' } },
     { path: '/menus', component: Menus, meta: { title: '菜单与角色' } }

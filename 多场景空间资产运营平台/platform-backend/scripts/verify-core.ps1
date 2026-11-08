@@ -188,6 +188,24 @@ Assert-True ($depositRefund.depositStatus -eq "REFUNDED") "deposit refunded"
 $depositAfter = Api "GET" "/api/v1/platform/guarantee/contracts/$($contract.id)/deposit" $null
 Assert-True (@($depositAfter.transactions).Count -eq 2) "deposit transactions created"
 
+
+$review = Api "POST" "/api/v1/platform/guarantee/contracts/$($contract.id)/qualification-reviews" @{
+    reviewType = "ANNUAL"
+    reviewYear = 2026
+}
+Assert-True ($review.reviewStatus -eq "PENDING") "qualification review created"
+
+$reviewDone = Api "POST" "/api/v1/platform/guarantee/qualification-reviews/$($review.id)/complete" @{
+    result = "PASSED"
+    reviewerName = "复核员A"
+    comment = "资格仍符合"
+    nextReviewDate = "2027-11-01"
+}
+Assert-True ($reviewDone.reviewStatus -eq "PASSED") "qualification review passed"
+
+$reviews = Api "GET" "/api/v1/platform/guarantee/contracts/$($contract.id)/qualification-reviews" $null
+Assert-True (@($reviews).Count -eq 1) "qualification review listed"
+
 $bill = Api "POST" "/api/v1/platform/guarantee/contracts/$($contract.id)/bills" @{
     periodStart = "2026-11-01"
     periodEnd = "2026-11-30"

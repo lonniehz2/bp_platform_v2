@@ -43,6 +43,7 @@ const nav = [
   { to: '/applications', label: '申请与轮候', icon: '☷' },
   { to: '/contracts', label: '合同与租赁', icon: '▤' },
   { to: '/changes', label: '合同变更', icon: '⇄' },
+  { to: '/qualification', label: '资格复核', icon: '◎' },
   { to: '/billing', label: '收费与账务', icon: '¥' },
   { to: '/deposits', label: '押金与补贴', icon: '◫' },
   { to: '/devices', label: '设备与授权', icon: '⌘' },

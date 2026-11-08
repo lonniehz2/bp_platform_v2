@@ -651,3 +651,24 @@ create table if not exists bp_user_role (
   role_id bigint not null,
   unique key uk_bp_user_role (tenant_id, user_id, role_id)
 ) engine=InnoDB default charset=utf8mb4 comment='用户角色';
+
+
+create table if not exists guarantee_qualification_review (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  contract_id bigint not null,
+  person_id bigint not null,
+  review_type varchar(20) not null default 'ANNUAL',
+  review_year int not null,
+  review_status varchar(20) not null default 'PENDING',
+  review_date date null,
+  reviewer_name varchar(64) null,
+  review_comment varchar(500) null,
+  next_review_date date null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_guarantee_review (tenant_id, contract_id, review_type, review_year),
+  key idx_guarantee_review_project (tenant_id, project_id, review_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房资格复核';
