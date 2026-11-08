@@ -1,0 +1,115 @@
+# 多场景空间资产运营平台
+
+> 目标：用一个平台承载保障房、物业、公寓、办公、酒店/民宿、网约房、宿舍、校园等场景  
+> 当前阶段：Phase 0 平台框架设计  
+> 第一场景：保障房  
+> 第二场景：物业 V1
+
+---
+
+## 1. 项目定位
+
+```text
+平台基础能力
++ 平台业务能力
++ 场景包
++ 独立系统（IOT、智慧停车）
+```
+
+保障房不是平台，而是平台上的第一个场景包。
+
+物业 V1 是第二个场景包。
+
+---
+
+## 2. 与老系统的关系
+
+```text
+老保障房系统：继续运行，冻结新增功能，仅做必要修复
+新平台：独立目录、独立端口、独立数据库
+迁移：老库只读，新库写入，按模块迁移
+切换：保障房场景完成并验证后，域名/网关切到新平台
+```
+
+不直接修改老系统核心代码，不长期双写。
+
+---
+
+## 3. 运行环境约定
+
+### 开发/UAT
+
+```text
+老系统：8080
+新平台：8090
+新前端：5174
+新数据库：bp_platform_v2
+```
+
+### 生产
+
+```text
+https://guarantee.example.com
+https://platform.example.com
+```
+
+生产不暴露裸端口，通过网关/子域名路由。
+
+---
+
+## 4. 目录结构
+
+```text
+多场景空间资产运营平台/
+├─ platform-docs/           框架与场景设计
+├─ platform-sql/            数据库草案与迁移脚本
+├─ platform-backend/        平台后端
+│  ├─ platform-core       租户/组织/场景/资产/人员
+│  ├─ platform-workflow   审批/工作流
+│  ├─ platform-contract   合同/预订/入住
+│  ├─ platform-billing    账单/收款/发票
+│  ├─ platform-device     设备业务资产
+│  ├─ platform-grant      授权/钥匙包
+│  ├─ platform-document   文档/PDF
+│  └─ platform-scenes
+│     ├─ guarantee        保障房场景
+│     └─ property         物业场景
+├─ platform-frontend/       平台前端
+└─ README.md
+```
+
+---
+
+## 5. 第一批设计文档
+
+```text
+platform-docs/00-平台框架设计.md
+platform-docs/01-保障房场景映射.md
+platform-docs/02-平台框架评审清单.md
+platform-sql/README.md
+platform-backend/README.md
+platform-frontend/README.md
+```
+
+---
+
+## 6. 当前优先级
+
+```text
+1. 平台框架设计
+2. 保障房场景注册与基础适配
+3. 物业 V1 第二个场景
+4. 其他场景
+```
+
+---
+
+## 7. 禁止事项
+
+```text
+不把老代码复制一份改名
+不让平台表依赖 guarantee_*/prop_* 表
+不长期双写
+不在生产暴露裸端口
+不把 IOT 控制、停车运营塞进业务平台
+```
