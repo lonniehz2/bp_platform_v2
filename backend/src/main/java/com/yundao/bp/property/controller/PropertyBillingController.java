@@ -2,6 +2,7 @@ package com.yundao.bp.property.controller;
 
 import com.yundao.bp.common.api.R;
 import com.yundao.bp.property.service.PropertyBillingService;
+import com.yundao.bp.property.service.PropertyReceiptPdfService;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,9 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class PropertyBillingController {
 
     private final PropertyBillingService service;
+    private final PropertyReceiptPdfService receiptPdfService;
 
-    public PropertyBillingController(PropertyBillingService service) {
+    public PropertyBillingController(PropertyBillingService service,
+                                     PropertyReceiptPdfService receiptPdfService) {
         this.service = service;
+        this.receiptPdfService = receiptPdfService;
     }
 
     @com.yundao.bp.iam.security.RequirePerm("property:bill:view")
@@ -55,6 +59,17 @@ public class PropertyBillingController {
     @PostMapping("/payments")
     public R<Map<String, Object>> pay(@RequestBody PropertyBillingService.PayCmd cmd) {
         return R.ok(service.pay(cmd));
+    }
+
+    @com.yundao.bp.iam.security.RequirePerm("property:receipt:view")
+    @GetMapping("/receipts/{id}/pdf")
+    public org.springframework.http.ResponseEntity<byte[]> receiptPdf(
+            @org.springframework.web.bind.annotation.PathVariable Long id) {
+        byte[] pdf = receiptPdfService.render(id);
+        return org.springframework.http.ResponseEntity.ok()
+                .header("Content-Type", "application/pdf")
+                .header("Content-Disposition", "inline; filename=receipt-" + id + ".pdf")
+                .body(pdf);
     }
 
     @com.yundao.bp.iam.security.RequirePerm("property:receipt:view")

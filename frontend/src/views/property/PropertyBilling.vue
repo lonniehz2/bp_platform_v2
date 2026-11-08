@@ -159,6 +159,7 @@
       </div>
       <template #footer>
         <el-button @click="receiptVisible = false">{{ t('propertyBilling.close') }}</el-button>
+        <el-button type="primary" @click="downloadReceipt">{{ t('propertyBilling.downloadPdf') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -295,6 +296,20 @@ function payOne(row) {
   payVisible.value = true
 }
 
+async function downloadReceipt() {
+  if (!receipt.value?.id) return
+  try {
+    const blob = await req.get(`/property/receipts/${receipt.value.id}/pdf`, { responseType: 'blob' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `${receipt.value.receiptNo}.pdf`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  } catch (e) {
+    ElMessage.error(t('propertyBilling.pdfFailed'))
+  }
+}
+
 async function pay() {
   saving.value = true
   try {
@@ -306,7 +321,7 @@ async function pay() {
     })
     ElMessage.success(t('propertyBilling.payDone'))
     payVisible.value = false
-    receipt.value = { receiptNo: r.receiptNo, payerName: payBills.value[0]?.payerName, amount: r.amount }
+    receipt.value = { id: r.receiptId, receiptNo: r.receiptNo, payerName: payBills.value[0]?.payerName, amount: r.amount }
     receiptVisible.value = true
     await loadBills()
   } catch (e) {
