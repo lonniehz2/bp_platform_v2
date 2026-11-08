@@ -19,11 +19,14 @@ public class GuaranteeContractController {
 
     private final GuaranteeContractService contractService;
     private final BillingService billingService;
+    private final com.yundao.platform.service.PermissionService permissions;
 
     public GuaranteeContractController(GuaranteeContractService contractService,
-                                       BillingService billingService) {
+                                       BillingService billingService,
+                                       com.yundao.platform.service.PermissionService permissions) {
         this.contractService = contractService;
         this.billingService = billingService;
+        this.permissions = permissions;
     }
 
     @GetMapping
@@ -34,6 +37,24 @@ public class GuaranteeContractController {
     @PostMapping
     public R<Map<String, Object>> create(@RequestBody GuaranteeContractService.ContractCmd cmd) {
         return R.ok(contractService.create(cmd));
+    }
+
+    @PostMapping("/{contractId}/submit")
+    public R<Map<String, Object>> submit(@PathVariable long contractId) {
+        permissions.require("contract:submit");
+        return R.ok(contractService.submit(contractId));
+    }
+
+    @PostMapping("/{contractId}/withdraw")
+    public R<Map<String, Object>> withdraw(@PathVariable long contractId) {
+        permissions.require("contract:withdraw");
+        return R.ok(contractService.withdraw(contractId));
+    }
+
+    @PostMapping("/{contractId}/discard")
+    public R<Map<String, Object>> discard(@PathVariable long contractId) {
+        permissions.require("contract:discard");
+        return R.ok(contractService.discard(contractId));
     }
 
     @PostMapping("/{contractId}/bills")

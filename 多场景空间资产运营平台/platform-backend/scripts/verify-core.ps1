@@ -795,6 +795,28 @@ $discardApp = Api "POST" "/api/v1/platform/guarantee/applications" @{
 $discarded = Api "POST" "/api/v1/platform/guarantee/applications/$($discardApp.id)/discard" $null
 Assert-True ($discarded.applicationStatus -eq "DISCARDED") "application draft discarded"
 
+
+$draftContract = Api "POST" "/api/v1/platform/guarantee/contracts" @{
+    projectId = $projectId
+    contractNo = "DRAFT_CONTRACT_$suffix"
+    houseId = $roomHouse.id
+    personId = $person.id
+    startDate = "2028-01-01"
+    endDate = "2028-12-31"
+    rentAmount = 900
+    depositAmount = 900
+    billingCycle = "MONTH"
+    billDay = 1
+    draft = $true
+}
+Assert-True ($draftContract.contractStatus -eq "DRAFT") "draft contract created"
+$draftSubmitted = Api "POST" "/api/v1/platform/guarantee/contracts/$($draftContract.id)/submit" $null
+Assert-True ($draftSubmitted.contractStatus -eq "APPROVING") "draft contract submitted"
+$draftWithdrawn = Api "POST" "/api/v1/platform/guarantee/contracts/$($draftContract.id)/withdraw" $null
+Assert-True ($draftWithdrawn.contractStatus -eq "DRAFT") "draft contract withdrawn"
+$draftDiscarded = Api "POST" "/api/v1/platform/guarantee/contracts/$($draftContract.id)/discard" $null
+Assert-True ($draftDiscarded.contractStatus -eq "DISCARDED") "draft contract discarded"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

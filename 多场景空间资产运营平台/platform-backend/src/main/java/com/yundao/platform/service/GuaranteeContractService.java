@@ -65,6 +65,7 @@ public class GuaranteeContractService {
             throw BizException.conflict("该房屋在合同期间已有生效合同");
         }
         long id = idGen.nextId();
+        String initialStatus = Boolean.TRUE.equals(cmd.draft()) ? "DRAFT" : "ACTIVE";
         BigDecimal rent = cmd.rentAmount() == null ? BigDecimal.ZERO : cmd.rentAmount();
         BigDecimal deposit = cmd.depositAmount() == null ? BigDecimal.ZERO : cmd.depositAmount();
         if (rent.signum() < 0 || deposit.signum() < 0) {
@@ -73,11 +74,11 @@ public class GuaranteeContractService {
         try {
             jdbc.update("insert into guarantee_contract(id,tenant_id,project_id,contract_no,house_id,person_id,"
                             + "start_date,end_date,rent_amount,deposit_amount,billing_cycle,bill_day,"
-                            + "contract_status,is_deleted) values(?,?,?,?,?,?,?,?,?,?,?,?,'ACTIVE',0)",
+                            + "contract_status,is_deleted) values(?,?,?,?,?,?,?,?,?,?,?,?,?,0)",
                     id, tenant, cmd.projectId(), cmd.contractNo().trim(), cmd.houseId(), cmd.personId(),
                     cmd.startDate(), cmd.endDate(), rent, deposit,
                     cmd.billingCycle() == null ? "MONTH" : cmd.billingCycle(),
-                    cmd.billDay() == null ? 1 : cmd.billDay());
+                    cmd.billDay() == null ? 1 : cmd.billDay(), initialStatus);
         } catch (DataIntegrityViolationException e) {
             throw BizException.conflict("合同编号已存在");
         }
@@ -95,8 +96,38 @@ public class GuaranteeContractService {
         out.put("personId", cmd.personId());
         out.put("rentAmount", rent);
         out.put("depositId", depositId);
-        out.put("contractStatus", "ACTIVE");
+        out.put("contractStatus", initialStatus);
         return out;
+    }
+
+    public Map<String, Object> submit(long contractId) {
+        Contract contract = load(contractId);
+        if (!"DRAFT".equals(contract.contractStatus())) {
+            throw BizException.conflict("只有草稿合同可以提交");
+        }
+        jdbc.update("update guarantee_contract set contract_status='APPROVING', update_time=now() "
+                + "where id=? and tenant_id=?", contractId, TenantContext.require());
+        return Map.of("id", contractId, "contractStatus", "APPROVING");
+    }
+
+    public Map<String, Object> withdraw(long contractId) {
+        Contract contract = load(contractId);
+        if (!"APPROVING".equals(contract.contractStatus())) {
+            throw BizException.conflict("只有审批中的合同可以撤回");
+        }
+        jdbc.update("update guarantee_contract set contract_status='DRAFT', update_time=now() "
+                + "where id=? and tenant_id=?", contractId, TenantContext.require());
+        return Map.of("id", contractId, "contractStatus", "DRAFT");
+    }
+
+    public Map<String, Object> discard(long contractId) {
+        Contract contract = load(contractId);
+        if (!"DRAFT".equals(contract.contractStatus())) {
+            throw BizException.conflict("只有草稿合同可以作废");
+        }
+        jdbc.update("update guarantee_contract set contract_status='DISCARDED', update_time=now() "
+                + "where id=? and tenant_id=?", contractId, TenantContext.require());
+        return Map.of("id", contractId, "contractStatus", "DISCARDED");
     }
 
     @org.springframework.transaction.annotation.Transactional
@@ -120,7 +151,7 @@ public class GuaranteeContractService {
         long personId = ((Number) row.get("personId")).longValue();
         Map<String, Object> contract = create(new ContractCmd(projectId, cmd.contractNo(), houseId, personId,
                 cmd.startDate(), cmd.endDate(), cmd.rentAmount(), cmd.depositAmount(),
-                cmd.billingCycle(), cmd.billDay()));
+                cmd.billingCycle(), cmd.billDay(), false));
         long contractId = ((Number) contract.get("id")).longValue();
         jdbc.update("update guarantee_allocation set allocation_status='CONTRACTED', contract_id=? "
                 + "where id=?", contractId, allocationId);
@@ -168,7 +199,8 @@ public class GuaranteeContractService {
 
     public record ContractCmd(Long projectId, String contractNo, Long houseId, Long personId,
                               LocalDate startDate, LocalDate endDate, BigDecimal rentAmount,
-                              BigDecimal depositAmount, String billingCycle, Integer billDay) {
+                              BigDecimal depositAmount, String billingCycle, Integer billDay,
+                              Boolean draft) {
     }
 
     public record AllocationContractCmd(String contractNo, LocalDate startDate, LocalDate endDate,
