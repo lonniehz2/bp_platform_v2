@@ -7,9 +7,10 @@ const project = ref(null)
 const contracts = ref([])
 const selectedContractId = ref('')
 const changes = ref([])
+const houses = ref([])
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ changeType: 'RENT_CHANGE', rentAmount: 1500, endDate: '2027-10-31', effectiveDate: '2026-12-01', reason: '页面调整' })
+const form = reactive({ changeType: 'RENT_CHANGE', rentAmount: 1500, endDate: '2027-10-31', houseId: '', effectiveDate: '2026-12-01', reason: '页面调整' })
 
 const statusClass = (s) => ({ APPROVED: 'green', REJECTED: 'red', APPROVING: 'orange' }[s] || '')
 
@@ -28,8 +29,11 @@ async function load() {
   try {
     project.value = await currentProject()
     if (!project.value) return
-    contracts.value = await api.contracts(project.value.id)
+    const [cs, hs] = await Promise.all([api.contracts(project.value.id), api.houses(project.value.id)])
+    contracts.value = cs
+    houses.value = hs.filter(h => h.houseStatus === 'VACANT')
     if (!selectedContractId.value && contracts.value.length) selectedContractId.value = contracts.value[0].id
+    if (!form.houseId && houses.value.length) form.houseId = houses.value[0].id
     await loadChanges()
   } catch (e) { error.value = e.message }
 }
@@ -44,7 +48,11 @@ async function create() {
   try {
     await api.createChange(selectedContractId.value, {
       changeType: form.changeType,
-      after: form.changeType === 'RENT_CHANGE' ? { rentAmount: Number(form.rentAmount) } : { endDate: form.endDate },
+      after: form.changeType === 'RENT_CHANGE'
+        ? { rentAmount: Number(form.rentAmount) }
+        : form.changeType === 'ROOM_CHANGE'
+          ? { houseId: form.houseId }
+          : { endDate: form.endDate },
       effectiveDate: form.effectiveDate,
       reason: form.reason
     })
@@ -83,9 +91,12 @@ onMounted(load)
         <div class="panel-head"><h2>新建变更</h2><span class="small muted">提交后进入平台审批</span></div>
         <div class="row">
           <div class="field"><label>类型</label>
-            <select v-model="form.changeType"><option value="RENT_CHANGE">租金变更</option><option value="TERM_CHANGE">期限变更</option><option value="TERMINATION">退租</option></select>
+            <select v-model="form.changeType"><option value="RENT_CHANGE">租金变更</option><option value="TERM_CHANGE">期限变更</option><option value="ROOM_CHANGE">换房</option><option value="TERMINATION">退租</option></select>
           </div>
           <div class="field" v-if="form.changeType === 'RENT_CHANGE'"><label>新租金</label><input v-model.number="form.rentAmount" type="number" /></div>
+          <div class="field" v-else-if="form.changeType === 'ROOM_CHANGE'"><label>新房屋</label>
+            <select v-model="form.houseId"><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></select>
+          </div>
           <div class="field" v-else><label>新结束日期</label><input v-model="form.endDate" type="date" /></div>
           <div class="field"><label>生效日期</label><input v-model="form.effectiveDate" type="date" /></div>
           <div class="field"><label>原因</label><input v-model="form.reason" /></div>
