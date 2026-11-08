@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
 import { i18n } from './i18n'
+import { installPageI18n } from './auto-i18n'
 import './styles.css'
 
 import Login from './pages/Login.vue'
@@ -60,3 +61,4 @@ router.beforeEach((to) => {
 })
 
 createApp(App).use(i18n).use(router).mount('#app')
+installPageI18n(i18n.global.locale)

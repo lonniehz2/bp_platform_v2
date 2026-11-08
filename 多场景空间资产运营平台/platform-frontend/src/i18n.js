@@ -5,6 +5,7 @@ const messages = {
     nav: {
       dashboard: '工作台',
       asset: '项目与资产',
+      person: '客户与人员',
       application: '申请与轮候',
       contract: '合同与租赁',
       changes: '合同变更',
@@ -56,6 +57,7 @@ const messages = {
     nav: {
       dashboard: 'Dashboard',
       asset: 'Projects & Assets',
+      person: 'Customers & People',
       application: 'Applications',
       contract: 'Contracts',
       changes: 'Contract Changes',
@@ -105,7 +107,8 @@ const messages = {
   }
 }
 
-const saved = localStorage.getItem('platformLocale') || 'zh-CN'
+const queryLocale = new URLSearchParams(location.search).get('lang')
+const saved = queryLocale === 'en' || queryLocale === 'en-US' ? 'en-US' : (localStorage.getItem('platformLocale') || 'zh-CN')
 
 export const i18n = createI18n({
   legacy: false,
