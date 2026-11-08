@@ -128,6 +128,7 @@ platform-docs/41-原型与文档一致性检查.md
 platform-docs/42-设计评审材料包.md
 platform-docs/43-设计评审记录.md
 platform-docs/44-API权限负向测试计划.md
+platform-docs/45-实现准备与第一迭代计划.md
 platform-docs/prototype/standard-pages.html
 platform-sql/001_platform_core.sql
 platform-backend/README.md
