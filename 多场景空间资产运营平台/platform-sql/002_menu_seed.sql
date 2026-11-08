@@ -24,7 +24,8 @@ values
 (920000000000000019,'GUARANTEE','credit',null,'信用惩戒','MENU','/guarantee/credits',89),
 (920000000000000020,'GUARANTEE','shortrent',null,'短租订单','MENU','/guarantee/short-rent-orders',90),
 (920000000000000021,'GUARANTEE','open',null,'开放平台','MENU','/guarantee/open-apps',95),
-(920000000000000022,'GUARANTEE','message',null,'消息中心','MENU','/guarantee/messages',5);
+(920000000000000022,'GUARANTEE','message',null,'消息中心','MENU','/guarantee/messages',5),
+(920000000000000023,'GUARANTEE','gov',null,'监管报送','MENU','/guarantee/gov-report',96);
 
 insert ignore into bp_role(id, tenant_id, scene_code, role_code, role_name, role_status)
 values

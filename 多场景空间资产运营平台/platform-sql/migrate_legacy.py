@@ -579,6 +579,7 @@ def migrate(apply=False):
             "/short-rent": "shortrent",
             "/open": "open",
             "/messages": "message",
+            "/gov": "gov",
             "/todos": "message",
             "/workorders": "service",
             "/access": "access",
