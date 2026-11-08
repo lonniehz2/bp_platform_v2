@@ -40,6 +40,7 @@ def main():
         ('经营报表', '/property/reports/overview?projectId=' + PROJECT + '&month=2026-11'),
         ('欠费', '/property/dunning/arrears?projectId=' + PROJECT),
         ('催缴任务', '/property/dunning/tasks?projectId=' + PROJECT),
+        ('公摊能耗', '/property/energy/allocations?projectId=' + PROJECT + '&period=2026-11'),
         ('水电表', '/property/meters?projectId=' + PROJECT),
         ('抄表记录', '/property/meters/readings?projectId=' + PROJECT),
         ('电子发票', '/property/invoices?projectId=' + PROJECT),
