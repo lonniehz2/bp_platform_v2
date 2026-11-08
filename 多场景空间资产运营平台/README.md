@@ -190,6 +190,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\ver
 人员 41
 合同 27
 账单 29/33
+押金 13
+补贴 4
+合同变更 27
 授权 10
 设备 168
 ```

@@ -72,7 +72,8 @@ def migrate(apply=False):
 
     stats = {}
     inserted = {k: 0 for k in ("org", "space", "house", "person", "contract", "bill", "grant", "device",
-                              "application", "waitlist", "allocation", "payment", "payment_allocation", "receipt")}
+                              "application", "waitlist", "allocation", "payment", "payment_allocation", "receipt",
+                              "deposit", "subsidy", "contract_change")}
     try:
         # 1. 组织/项目
         oc.execute("""
@@ -351,7 +352,83 @@ def migrate(apply=False):
                       r["amount"], r["receipt_status"] or "ISSUED", r["issued_at"]))
                 inserted["receipt"] += nc.rowcount
 
-        # 12. 授权
+        # 12. 押金
+        oc.execute("""
+            select id, tenant_id, org_id, contract_id, person_id, deposit_amount,
+                   paid_amount, deduct_amount, refund_amount, deposit_status
+            from bp_fin_deposit order by id
+        """)
+        deposits = oc.fetchall()
+        stats["deposit"] = len(deposits)
+        for r in deposits:
+            if apply:
+                nc.execute("""
+                    insert ignore into guarantee_deposit
+                      (id, tenant_id, project_id, contract_id, person_id, amount,
+                       paid_amount, refunded_amount, deposit_status, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,%s,%s,%s,0)
+                """, (r["id"], r["tenant_id"], r["org_id"], r["contract_id"], r["person_id"],
+                      r["deposit_amount"], r["paid_amount"], r["refund_amount"],
+                      r["deposit_status"] or "PENDING"))
+                inserted["deposit"] += nc.rowcount
+
+        # 13. 补贴
+        oc.execute("""
+            select id, tenant_id, org_id, contract_id, subsidy_period, subsidy_amount,
+                   record_status, record_no
+            from bp_fin_subsidy_record order by id
+        """)
+        subsidies = oc.fetchall()
+        stats["subsidy"] = len(subsidies)
+        for r in subsidies:
+            if apply:
+                period = str(r["subsidy_period"] or "")
+                start = f"{period[:4]}-{period[4:6]}-01" if len(period) >= 6 else None
+                end = None
+                if start:
+                    import calendar
+                    y, m = int(period[:4]), int(period[4:6])
+                    end = f"{y:04d}-{m:02d}-{calendar.monthrange(y, m)[1]:02d}"
+                if start and end:
+                    nc.execute("""
+                        insert ignore into guarantee_subsidy
+                          (id, tenant_id, project_id, contract_id, subsidy_type, subsidy_amount,
+                           start_date, end_date, subsidy_status, remark, is_deleted)
+                        values (%s,%s,%s,%s,'MIGRATED_SUBSIDY',%s,%s,%s,'ACTIVE',%s,0)
+                    """, (r["id"], r["tenant_id"], r["org_id"], r["contract_id"],
+                          r["subsidy_amount"], start, end, r["record_no"]))
+                    inserted["subsidy"] += nc.rowcount
+
+        # 14. 合同变更
+        oc.execute("""
+            select id, tenant_id, contract_id, change_type, change_reason, before_json,
+                   after_json, approve_status, effective_date
+            from bp_biz_contract_change order by id
+        """)
+        changes = oc.fetchall()
+        stats["contract_change"] = len(changes)
+        for r in changes:
+            if apply:
+                project_id = scalar(nc, "select project_id from guarantee_contract where id=%s",
+                                    (r["contract_id"],))
+                if project_id is None:
+                    continue
+                change_type = {"RENT_ADJUST": "RENT_CHANGE", "TERMINATE": "TERMINATION",
+                               "ROOM_CHANGE": "ROOM_CHANGE", "TERM_CHANGE": "TERM_CHANGE"}.get(
+                                   r["change_type"], r["change_type"])
+                status = {"APPROVED": "APPROVED", "PENDING": "APPROVING",
+                          "REJECTED": "REJECTED"}.get(r["approve_status"], "APPROVED")
+                nc.execute("""
+                    insert ignore into guarantee_contract_change
+                      (id, tenant_id, project_id, contract_id, change_type, before_json,
+                       after_json, effective_date, change_status, reason, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,0)
+                """, (r["id"], r["tenant_id"], project_id, r["contract_id"], change_type,
+                      r["before_json"], r["after_json"], r["effective_date"], status,
+                      r["change_reason"]))
+                inserted["contract_change"] += nc.rowcount
+
+        # 15. 授权
         oc.execute("""
             select id, tenant_id, org_id, person_id, space_id, grant_level,
                    valid_start, valid_end, source_type, source_id, grant_status, is_deleted
