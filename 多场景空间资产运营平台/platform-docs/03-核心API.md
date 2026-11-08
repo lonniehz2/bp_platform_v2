@@ -346,6 +346,7 @@ HOUSE
 角色管理
 同住人
 账单调整
+人员关系
 菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
@@ -411,6 +412,7 @@ HOUSE
 角色管理
 同住人
 账单调整
+人员关系
 菜单权限
 通过/驳回
 审批记录
@@ -550,6 +552,7 @@ TERMINATION → 合同终止
 角色管理
 同住人
 账单调整
+人员关系
 菜单权限
 
 ### GET /guarantee/applications?projectId=
@@ -678,6 +681,7 @@ WAITING → ALLOCATED
 角色管理
 同住人
 账单调整
+人员关系
 菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
@@ -759,6 +763,7 @@ platform-sql/002_menu_seed.sql
 角色管理
 同住人
 账单调整
+人员关系
 
 ### GET /guarantee/meters?projectId=
 
@@ -801,6 +806,7 @@ platform-sql/002_menu_seed.sql
 角色管理
 同住人
 账单调整
+人员关系
 
 ### GET /guarantee/work-orders?projectId=
 
@@ -846,6 +852,7 @@ PENDING → PROCESSING → DONE → CLOSED
 角色管理
 同住人
 账单调整
+人员关系
 
 ### GET /guarantee/access-records?projectId=
 
@@ -883,6 +890,7 @@ PENDING → PROCESSING → DONE → CLOSED
 角色管理
 同住人
 账单调整
+人员关系
 
 ### GET /guarantee/complaints?projectId=&type=
 
@@ -927,6 +935,7 @@ VISIT 走访
 角色管理
 同住人
 账单调整
+人员关系
 
 ### GET /guarantee/fee-items?projectId=
 
@@ -960,6 +969,7 @@ VISIT 走访
 角色管理
 同住人
 账单调整
+人员关系
 
 ### GET /guarantee/publicities?projectId=
 
@@ -994,6 +1004,7 @@ VISIT 走访
 角色管理
 同住人
 账单调整
+人员关系
 
 ### GET /guarantee/alerts?projectId=
 
@@ -1028,6 +1039,7 @@ VISIT 走访
 角色管理
 同住人
 账单调整
+人员关系
 
 ### GET /guarantee/credits?projectId=
 
@@ -1055,6 +1067,7 @@ VISIT 走访
 角色管理
 同住人
 账单调整
+人员关系
 
 ### GET /guarantee/short-rent-orders?projectId=
 
@@ -1093,6 +1106,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 角色管理
 同住人
 账单调整
+人员关系
 
 ### GET /open-apps
 
@@ -1112,6 +1126,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 角色管理
 同住人
 账单调整
+人员关系
 
 ### GET /messages
 
@@ -1132,6 +1147,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 角色管理
 同住人
 账单调整
+人员关系
 
 ### GET /users
 
@@ -1159,6 +1175,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 ## 27. 角色管理
 同住人
 账单调整
+人员关系
 
 ### POST /roles
 
@@ -1176,6 +1193,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 
 ## 28. 合同同住人
 账单调整
+人员关系
 
 ### GET /guarantee/contracts/{contractId}/cohabitants
 
@@ -1183,7 +1201,8 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 
 ```json
 {"personId": 1, "relationType": "SPOUSE", "startDate": "2026-11-01", "remark": "同住人
-账单调整"}
+账单调整
+人员关系"}
 ```
 
 ### POST /guarantee/contract-cohabitants/{id}/remove
@@ -1191,6 +1210,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 ---
 
 ## 29. 账单调整
+人员关系
 
 ### POST /billing/bills/{billId}/adjust
 
@@ -1208,10 +1228,29 @@ billStatus
 
 ---
 
-## 30. 修改密码
+## 30. 人员关系
+
+### GET /persons/{personId}/relations
+
+### POST /persons/{personId}/relations
+
+```json
+{
+  "projectId": 1,
+  "targetType": "HOUSE",
+  "targetId": 2,
+  "relationType": "TENANT",
+  "startDate": "2026-11-01"
+}
+```
+
+---
+
+## 31. 修改密码
 角色管理
 同住人
 账单调整
+人员关系
 
 ### POST /auth/password
 
@@ -1221,7 +1260,7 @@ billStatus
 
 ---
 
-## 31. 附件
+## 32. 附件
 
 ### POST /files
 
@@ -1247,7 +1286,7 @@ file=<文件>
 
 ---
 
-## 32. 迁移异常
+## 33. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -1265,7 +1304,7 @@ PENDING → RESOLVED
 
 ---
 
-## 33. 验证脚本
+## 34. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -1274,7 +1313,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-119 个断言通过
+121 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -1312,5 +1351,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 角色管理
 同住人
 账单调整
+人员关系
 菜单权限
 ```

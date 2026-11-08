@@ -698,6 +698,19 @@ Assert-True (@($cohabList).Count -ge 1) "cohabitant listed"
 $cohabRemoved = Api "POST" "/api/v1/platform/guarantee/contract-cohabitants/$($cohab.id)/remove" $null
 Assert-True ($cohabRemoved.cohabitantStatus -eq "REMOVED") "cohabitant removed"
 
+
+$relation = Api "POST" "/api/v1/platform/persons/$($person.id)/relations" @{
+    projectId = $projectId
+    targetType = "HOUSE"
+    targetId = $roomHouse.id
+    relationType = "TENANT"
+    startDate = "2026-11-01"
+}
+Assert-True ($null -ne $relation.id) "person relation created"
+
+$relations = Api "GET" "/api/v1/platform/persons/$($person.id)/relations" $null
+Assert-True (@($relations).Count -ge 1) "person relation listed"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

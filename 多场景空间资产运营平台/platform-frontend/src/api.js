@@ -62,6 +62,8 @@ export const api = {
   houses: (projectId) => request(`/projects/${projectId}/houses`),
   persons: (keyword = '') => request(`/persons?keyword=${encodeURIComponent(keyword)}`),
   createPerson: (body) => request('/persons', { method: 'POST', body: JSON.stringify(body) }),
+  relations: (personId) => request(`/persons/${personId}/relations`),
+  createRelation: (personId, body) => request(`/persons/${personId}/relations`, { method: 'POST', body: JSON.stringify(body) }),
   applications: (projectId) => request(`/guarantee/applications?projectId=${projectId}`),
   createApplication: (body) => request('/guarantee/applications', { method: 'POST', body: JSON.stringify(body) }),
   submitApplication: (id) => request(`/guarantee/applications/${id}/submit`, { method: 'POST' }),
