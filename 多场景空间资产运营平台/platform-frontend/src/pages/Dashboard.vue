@@ -1,9 +1,11 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import { api } from '../api'
 import { mode } from '../ui'
 
+const router = useRouter()
 const loading = ref(true)
 const error = ref('')
 const projects = ref([])
@@ -126,6 +128,15 @@ const deviceStats = () => {
   return [...map.entries()].map(([key, value]) => ({ name: labels[key] || key, value }))
 }
 
+function drillBilling() {
+  if (!project.value) return
+  localStorage.setItem('platformProjectId', project.value.id)
+  router.push({ path: '/billing', query: {
+    periodStart: periodRange.value.start,
+    periodEnd: periodRange.value.end
+  } })
+}
+
 function colors() {
   const dark = document.documentElement.classList.contains('dark')
   return {
@@ -244,11 +255,11 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
         <div class="card"><div class="label">项目数</div><div class="value">{{ projects.length }}</div><div class="hint">当前租户</div></div>
         <div class="card"><div class="label">保障房申请</div><div class="value">{{ applications.length }}</div><div class="hint">待审 {{ count(applications, 'SUBMITTED', 'applicationStatus') }}</div></div>
         <div class="card"><div class="label">生效合同</div><div class="value">{{ contracts.filter(c => c.contractStatus === 'ACTIVE').length }}</div><div class="hint">合同总数 {{ contracts.length }}</div></div>
-        <div class="card"><div class="label">本期应收</div><div class="value">¥{{ money(billStats().total) }}</div><div class="hint">账期 {{ currentBills.length }} 笔</div></div>
-        <div class="card"><div class="label">本期实收</div><div class="value">¥{{ money(billStats().paid) }}</div><div class="hint">按账单归属期</div></div>
-        <div class="card"><div class="label">本期收缴率</div><div class="value">{{ billStats().rate }}%</div><div class="hint">当期欠费 ¥{{ money(billStats().outstanding) }}</div></div>
+        <div class="card clickable" @click="drillBilling"><div class="label">本期应收</div><div class="value">¥{{ money(billStats().total) }}</div><div class="hint">账期 {{ currentBills.length }} 笔</div></div>
+        <div class="card clickable" @click="drillBilling"><div class="label">本期实收</div><div class="value">¥{{ money(billStats().paid) }}</div><div class="hint">按账单归属期</div></div>
+        <div class="card clickable" @click="drillBilling"><div class="label">本期收缴率</div><div class="value">{{ billStats().rate }}%</div><div class="hint">当期欠费 ¥{{ money(billStats().outstanding) }}</div></div>
         <div class="card"><div class="label">期初欠费</div><div class="value">¥{{ money(billStats().opening) }}</div><div class="hint">期初回款 ¥{{ money(billStats().openingRecovery) }}</div></div>
-        <div class="card"><div class="label">总欠费</div><div class="value">¥{{ money(billStats().totalOutstanding) }}</div><div class="hint">期初 + 当期</div></div>
+        <div class="card clickable" @click="drillBilling"><div class="label">总欠费</div><div class="value">¥{{ money(billStats().totalOutstanding) }}</div><div class="hint">期初 + 当期</div></div>
         <div class="card"><div class="label">设备资产</div><div class="value">{{ devices.length }}</div><div class="hint">待处理告警 {{ alerts.filter(a => a.alertStatus === 'PENDING').length }} · 工单 {{ workOrders.filter(w => w.orderStatus === 'PENDING').length }}</div></div>
       </div>
     </div>

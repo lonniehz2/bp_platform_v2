@@ -10,6 +10,7 @@ const pageTitle = route.path === '/bills' ? '账单与缴费' : '收款'
 const project = ref(null)
 const bills = ref([])
 const payments = ref([])
+const drillRange = ref({ start: '', end: '' })
 const page = ref(1)
 const error = ref('')
 const busy = ref(false)
@@ -40,7 +41,13 @@ async function load() {
     if (!project.value) return
     localStorage.setItem('platformProjectId', project.value.id)
     const [b, p] = await Promise.all([api.bills(project.value.id), api.payments(project.value.id)])
-    bills.value = b; payments.value = p
+    drillRange.value = { start: String(route.query.periodStart || ''), end: String(route.query.periodEnd || '') }
+    bills.value = b.filter(x => {
+      const d = String(x.periodStart || '').slice(0, 10)
+      return (!drillRange.value.start || d >= drillRange.value.start)
+        && (!drillRange.value.end || d <= drillRange.value.end)
+    })
+    payments.value = p
     if (!payForm.billId && b.length) selectBill(b[0])
   } catch (e) { error.value = e.message }
 }
@@ -102,7 +109,7 @@ onMounted(load)
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>账单列表</h2><span class="small muted">应收 {{ bills.length }} 笔</span></div>
+        <div class="panel-head"><h2>账单列表</h2><span class="small muted" v-if="drillRange.start">账期 {{ drillRange.start }} ~ {{ drillRange.end }} · 应收 {{ bills.length }} 笔</span><span class="small muted" v-else>应收 {{ bills.length }} 笔</span></div>
         <div v-if="!bills.length" class="empty">暂无账单</div>
         <div class="table-wrap" v-else>
           <table>
