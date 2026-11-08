@@ -118,6 +118,14 @@ platform-docs/31-五项确认复核记录.md
 platform-docs/32-真人角色可用性走查方案.md
 platform-docs/33-三项重点预检记录.md
 platform-docs/34-设计评审前准备清单.md
+platform-docs/35-设计追踪矩阵.md
+platform-docs/36-权限负向复核.md
+platform-docs/37-财务口径样例确认.md
+platform-docs/38-专家启发式评审记录.md
+platform-docs/39-状态机与接口一致性检查.md
+platform-docs/40-验收用例与测试数据.md
+platform-docs/41-原型与文档一致性检查.md
+platform-docs/42-设计评审材料包.md
 platform-docs/prototype/standard-pages.html
 platform-sql/001_platform_core.sql
 platform-backend/README.md
