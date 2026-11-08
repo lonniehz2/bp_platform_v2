@@ -104,7 +104,7 @@ const router = createRouter({
     { path: '/house-calendar', alias: '/guarantee/house-calendar', component: HouseCalendar, meta: { title: '日房态' } },
     { path: '/energy', component: Energy, meta: { title: '能耗分析' } },
     { path: '/users', alias: '/guarantee/users', component: Users, meta: { title: '用户管理' } },
-    { path: '/audit', component: Audit, meta: { title: '审批中心' } },
+    { path: '/audit', alias: '/guarantee/audit', component: Audit, meta: { title: '审批中心' } },
     { path: '/menus', alias: '/guarantee/menus', component: Menus, meta: { title: '菜单与角色' } },
     { path: '/migration-exceptions', component: MigrationExceptions, meta: { title: '迁移异常' } },
 

@@ -107,6 +107,7 @@ export const navGroups = [
     labelKey: 'group.system',
     icon: '☰',
     items: [
+      { to: '/guarantee/audit', key: 'audit', menu: 'audit', icon: '✓' },
       { to: '/guarantee/reports', key: 'reports', menu: 'billing', icon: '▤' },
       { to: '/guarantee/gov', key: 'gov', menu: 'gov', icon: '⇪' },
       { to: '/guarantee/orgs', key: 'orgs', menu: 'asset', icon: '▦' },

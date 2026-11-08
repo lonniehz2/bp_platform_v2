@@ -97,6 +97,8 @@ export const api = {
   submitChange: (changeId) => request(`/guarantee/contract-changes/${changeId}/submit`, { method: 'POST' }),
   approveChange: (changeId, body) => request(`/guarantee/contract-changes/${changeId}/approve`, { method: 'POST', body: JSON.stringify(body) }),
   rejectChange: (changeId, body) => request(`/guarantee/contract-changes/${changeId}/reject`, { method: 'POST', body: JSON.stringify(body) }),
+  workflows: (sceneCode = 'GUARANTEE', bizType = '') => request(`/workflows?sceneCode=${sceneCode}${bizType ? `&bizType=${bizType}` : ''}`),
+  createWorkflow: (body) => request('/workflows', { method: 'POST', body: JSON.stringify(body) }),
   workflowTasks: (status = '') => request(`/workflow-tasks${status ? `?status=${status}` : ''}`),
   approveTask: (taskId, body) => request(`/workflow-tasks/${taskId}/approve`, { method: 'POST', body: JSON.stringify(body) }),
   rejectTask: (taskId, body) => request(`/workflow-tasks/${taskId}/reject`, { method: 'POST', body: JSON.stringify(body) }),

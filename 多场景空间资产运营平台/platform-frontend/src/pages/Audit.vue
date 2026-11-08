@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 
 const tasks = ref([])
@@ -7,13 +7,16 @@ const records = ref([])
 const selectedTask = ref(null)
 const error = ref('')
 const busy = ref(false)
+const workflows = ref([])
+const flowForm = reactive({ bizType: 'CONTRACT', orgId: '', flowName: '', nodeName: '合同审核', approverRole: 'REVIEWER' })
 
 const statusClass = (s) => ({ APPROVED: 'green', REJECTED: 'red', APPROVING: 'orange' }[s] || '')
 
 async function load() {
   error.value = ''
   try {
-    tasks.value = await api.workflowTasks('')
+    const [t, w] = await Promise.all([api.workflowTasks(''), api.workflows('GUARANTEE')])
+    tasks.value = t; workflows.value = w
     if (tasks.value.length) await selectTask(tasks.value[0])
   } catch (e) { error.value = e.message }
 }
@@ -35,6 +38,23 @@ async function reject(task) {
   busy.value = true; error.value = ''
   try {
     await api.rejectTask(task.id, { approverName: '审批人', comment: '驳回' })
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+
+async function createWorkflow() {
+  busy.value = true; error.value = ''
+  try {
+    if (!flowForm.flowName.trim() || !flowForm.bizType) throw new Error('请填写流程名称和业务类型')
+    await api.createWorkflow({
+      sceneCode: 'GUARANTEE',
+      bizType: flowForm.bizType,
+      orgId: flowForm.orgId ? Number(flowForm.orgId) : null,
+      flowName: flowForm.flowName.trim(),
+      nodes: [{ nodeName: flowForm.nodeName, approverRole: flowForm.approverRole }]
+    })
+    flowForm.flowName = ''
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -64,6 +84,23 @@ onMounted(load)
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><div><h2>审批模板</h2><p>场景默认流程 · 组织级覆盖</p></div><span class="pill">{{ workflows.length }} 个流程</span></div>
+      <div class="row">
+        <div class="field"><label>业务类型</label><select v-model="flowForm.bizType"><option value="CONTRACT">合同</option><option value="CONTRACT_CHANGE">合同变更</option><option value="BILL">账单</option><option value="APPLICATION">申请</option></select></div>
+        <div class="field"><label>组织 ID（空为默认）</label><input v-model="flowForm.orgId" placeholder="可选" /></div>
+        <div class="field" style="flex:2"><label>流程名称</label><input v-model="flowForm.flowName" /></div>
+        <div class="field"><label>首节点</label><input v-model="flowForm.nodeName" /></div>
+        <div class="field"><label>审批角色</label><input v-model="flowForm.approverRole" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="createWorkflow">新增流程</button></div>
+      </div>
+      <div v-if="!workflows.length" class="empty">暂无模板</div>
+      <div v-for="w in workflows" :key="w.id" class="row" style="border-bottom:1px solid var(--line);padding:8px 0">
+        <div style="flex:1"><div>{{ w.flowName }} · {{ w.bizType }}</div><div class="small muted">组织：{{ w.orgId || '默认' }} · 节点 {{ w.nodeCount }}</div></div>
+        <span class="badge" :class="w.flowStatus === 'ENABLED' ? 'green' : 'orange'">{{ w.flowStatus }}</span>
       </div>
     </div>
 
