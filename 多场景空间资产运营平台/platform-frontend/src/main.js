@@ -45,6 +45,10 @@ import Houses from './pages/Houses.vue'
 import Spaces from './pages/Spaces.vue'
 import Subsidies from './pages/Subsidies.vue'
 import MeterReadings from './pages/MeterReadings.vue'
+import Todos from './pages/Todos.vue'
+import Keyring from './pages/Keyring.vue'
+import Grants from './pages/Grants.vue'
+import DeviceEvents from './pages/DeviceEvents.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -85,7 +89,7 @@ const router = createRouter({
     { path: '/migration-exceptions', component: MigrationExceptions, meta: { title: '迁移异常' } },
 
     // 旧系统路径兼容
-    { path: '/todos', component: Audit, meta: { title: '我的待办' } },
+    { path: '/todos', component: Todos, meta: { title: '我的待办' } },
     { path: '/patrol', component: Alerts, meta: { title: '自动巡查' } },
     { path: '/house-access', component: Devices, meta: { title: '房源权限' } },
     { path: '/visits', component: Complaints, meta: { title: '入户走访' } },
@@ -101,10 +105,10 @@ const router = createRouter({
     { path: '/subsidies', component: Subsidies, meta: { title: '补贴管理' } },
     { path: '/meter-readings', component: MeterReadings, meta: { title: '抄表管理' } },
     { path: '/device-bind', component: Devices, meta: { title: '设备绑定' } },
-    { path: '/dev-events', component: Alerts, meta: { title: '设备告警' } },
+    { path: '/dev-events', component: DeviceEvents, meta: { title: '设备告警' } },
     { path: '/access', component: Access, meta: { title: '通行记录' } },
-    { path: '/keyring', component: Persons, meta: { title: '钥匙包' } },
-    { path: '/grants', component: Devices, meta: { title: '通行授权' } },
+    { path: '/keyring', component: Keyring, meta: { title: '钥匙包' } },
+    { path: '/grants', component: Grants, meta: { title: '通行授权' } },
     { path: '/appeals', component: Complaints, meta: { title: '申诉管理' } },
     { path: '/orgs', component: Projects, meta: { title: '组织机构' } },
     { path: '/gov', component: GovReport, meta: { title: '监管报送' } },
