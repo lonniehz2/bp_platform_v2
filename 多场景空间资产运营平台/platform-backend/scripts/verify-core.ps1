@@ -450,6 +450,13 @@ $device = Api "POST" "/api/v1/platform/devices" @{
 }
 Assert-True ($null -ne $device.id) "device created"
 
+
+$deviceRepair = Api "POST" "/api/v1/platform/devices/$($device.id)/repair" @{ reason = "验证报修" }
+Assert-True ($deviceRepair.businessStatus -eq "FAULT") "device repaired"
+
+$deviceEnable = Api "POST" "/api/v1/platform/devices/$($device.id)/enable" $null
+Assert-True ($deviceEnable.businessStatus -eq "IN_USE") "device enabled"
+
 $devices = Api "GET" "/api/v1/platform/devices?projectId=$projectId" $null
 Assert-True (@($devices | Where-Object { $_.id -eq $device.id }).Count -eq 1) "device listed"
 

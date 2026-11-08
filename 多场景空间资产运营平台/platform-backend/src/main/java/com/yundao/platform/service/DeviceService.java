@@ -88,6 +88,32 @@ public class DeviceService {
                 spaceId, deviceId, tenant);
         return Map.of("id", deviceId, "spaceId", spaceId == null ? "" : spaceId);
     }
+
+    public Map<String, Object> repair(long deviceId, String reason) {
+        String tenant = TenantContext.require();
+        int updated = jdbc.update("update bp_dev_device set business_status='FAULT', "
+                + "remark=concat(coalesce(remark,''), ?), update_time=now() "
+                + "where id=? and tenant_id=? and is_deleted=0",
+                "\n报修:" + (reason == null ? "" : reason), deviceId, tenant);
+        if (updated == 0) throw BizException.notFound("设备不存在");
+        return Map.of("id", deviceId, "businessStatus", "FAULT");
+    }
+
+    public Map<String, Object> enable(long deviceId) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select business_status businessStatus from bp_dev_device "
+                        + "where id=? and tenant_id=? and is_deleted=0", deviceId, tenant);
+        if (rows.isEmpty()) throw BizException.notFound("设备不存在");
+        String status = String.valueOf(rows.get(0).get("businessStatus"));
+        if (!"FAULT".equals(status) && !"DISABLED".equals(status)) {
+            throw BizException.conflict("只有故障或停用设备可以启用");
+        }
+        jdbc.update("update bp_dev_device set business_status='IN_USE', update_time=now() "
+                + "where id=? and tenant_id=?", deviceId, tenant);
+        return Map.of("id", deviceId, "businessStatus", "IN_USE");
+    }
+
     private long count(String sql, Object... args) {
         Long value = jdbc.queryForObject(sql, Long.class, args);
         return value == null ? 0 : value;

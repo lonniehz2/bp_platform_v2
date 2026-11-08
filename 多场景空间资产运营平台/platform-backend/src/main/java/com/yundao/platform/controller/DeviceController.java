@@ -47,6 +47,19 @@ public class DeviceController {
         return R.ok(importService.importCsv(file));
     }
 
+    @PostMapping("/{deviceId}/repair")
+    public R<Map<String, Object>> repair(@org.springframework.web.bind.annotation.PathVariable long deviceId,
+                                         @RequestBody(required = false) Map<String, String> body) {
+        permissions.require("device:repair");
+        return R.ok(service.repair(deviceId, body == null ? null : body.get("reason")));
+    }
+
+    @PostMapping("/{deviceId}/enable")
+    public R<Map<String, Object>> enable(@org.springframework.web.bind.annotation.PathVariable long deviceId) {
+        permissions.require("device:enable");
+        return R.ok(service.enable(deviceId));
+    }
+
     @PostMapping
     public R<Map<String, Object>> create(@RequestBody DeviceService.DeviceCmd cmd) {
         return R.ok(service.create(cmd));
