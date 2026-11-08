@@ -334,6 +334,7 @@ HOUSE
 服务工单
 访客通行
 投诉与申诉
+计费项目
 菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
@@ -387,6 +388,7 @@ HOUSE
 服务工单
 访客通行
 投诉与申诉
+计费项目
 菜单权限
 通过/驳回
 审批记录
@@ -514,6 +516,7 @@ TERMINATION → 合同终止
 服务工单
 访客通行
 投诉与申诉
+计费项目
 菜单权限
 
 ### GET /guarantee/applications?projectId=
@@ -630,6 +633,7 @@ WAITING → ALLOCATED
 服务工单
 访客通行
 投诉与申诉
+计费项目
 菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
@@ -699,6 +703,7 @@ platform-sql/002_menu_seed.sql
 服务工单
 访客通行
 投诉与申诉
+计费项目
 
 ### GET /guarantee/meters?projectId=
 
@@ -729,6 +734,7 @@ platform-sql/002_menu_seed.sql
 ## 16. 服务工单
 访客通行
 投诉与申诉
+计费项目
 
 ### GET /guarantee/work-orders?projectId=
 
@@ -762,6 +768,7 @@ PENDING → PROCESSING → DONE → CLOSED
 
 ## 17. 访客通行
 投诉与申诉
+计费项目
 
 ### GET /guarantee/access-records?projectId=
 
@@ -787,6 +794,7 @@ PENDING → PROCESSING → DONE → CLOSED
 ---
 
 ## 18. 投诉与申诉
+计费项目
 
 ### GET /guarantee/complaints?projectId=&type=
 
@@ -819,7 +827,30 @@ VISIT 走访
 
 ---
 
-## 19. 附件
+## 19. 计费项目
+
+### GET /guarantee/fee-items?projectId=
+
+### POST /guarantee/fee-items
+
+```json
+{
+  "projectId": 1,
+  "feeCode": "RENT_STD",
+  "feeName": "标准租金",
+  "feeType": "RENT",
+  "billingCycle": "MONTHLY",
+  "unitPrice": 1800,
+  "unitName": "月",
+  "taxRate": 0
+}
+```
+
+### POST /guarantee/fee-items/{id}/toggle?enabled=
+
+---
+
+## 20. 附件
 
 ### POST /files
 
@@ -845,7 +876,7 @@ file=<文件>
 
 ---
 
-## 20. 迁移异常
+## 21. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -863,7 +894,7 @@ PENDING → RESOLVED
 
 ---
 
-## 21. 验证脚本
+## 22. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -872,7 +903,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-84 个断言通过
+87 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -898,5 +929,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 服务工单
 访客通行
 投诉与申诉
+计费项目
 菜单权限
 ```

@@ -507,6 +507,25 @@ Assert-True ($complaintHandled.complaintStatus -eq "RESOLVED") "complaint resolv
 $complaints = Api "GET" "/api/v1/platform/guarantee/complaints?projectId=$projectId" $null
 Assert-True (@($complaints).Count -ge 1) "complaint listed"
 
+
+$fee = Api "POST" "/api/v1/platform/guarantee/fee-items" @{
+    projectId = $projectId
+    feeCode = "VERIFY_FEE"
+    feeName = "验证租金项目"
+    feeType = "RENT"
+    billingCycle = "MONTHLY"
+    unitPrice = 1800
+    unitName = "月"
+    taxRate = 0
+}
+Assert-True ($null -ne $fee.id) "fee item created"
+
+$feeList = Api "GET" "/api/v1/platform/guarantee/fee-items?projectId=$projectId" $null
+Assert-True (@($feeList).Count -ge 1) "fee item listed"
+
+$feeToggle = Api "POST" "/api/v1/platform/guarantee/fee-items/$($fee.id)/toggle?enabled=false" $null
+Assert-True ($feeToggle.feeStatus -eq "DISABLED") "fee item disabled"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

@@ -16,6 +16,7 @@ import Deposits from './pages/Deposits.vue'
 import Arrears from './pages/Arrears.vue'
 import Cashflow from './pages/Cashflow.vue'
 import Reports from './pages/Reports.vue'
+import FeeItems from './pages/FeeItems.vue'
 import Changes from './pages/Changes.vue'
 import Audit from './pages/Audit.vue'
 import WorkOrders from './pages/WorkOrders.vue'
@@ -40,6 +41,7 @@ const router = createRouter({
     { path: '/deposits', component: Deposits, meta: { title: '押金与补贴' } },
     { path: '/arrears', component: Arrears, meta: { title: '欠费清单' } },
     { path: '/cashflow', component: Cashflow, meta: { title: '资金流水' } },
+    { path: '/fee-items', component: FeeItems, meta: { title: '计费项目' } },
     { path: '/reports', component: Reports, meta: { title: '运营报表' } },
     { path: '/changes', component: Changes, meta: { title: '合同变更' } },
     { path: '/qualification', component: Qualification, meta: { title: '资格复核' } },

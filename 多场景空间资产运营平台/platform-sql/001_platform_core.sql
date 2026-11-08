@@ -817,3 +817,22 @@ create table if not exists guarantee_complaint (
   update_time datetime not null default current_timestamp on update current_timestamp,
   key idx_guarantee_complaint_project (tenant_id, project_id, complaint_status)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房投诉申诉走访';
+
+
+create table if not exists guarantee_fee_item (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  fee_code varchar(64) not null,
+  fee_name varchar(128) not null,
+  fee_type varchar(20) not null default 'OTHER',
+  billing_cycle varchar(20) not null default 'MONTHLY',
+  unit_price decimal(14,2) not null default 0,
+  unit_name varchar(32) null,
+  tax_rate decimal(6,4) not null default 0,
+  fee_status varchar(20) not null default 'ENABLED',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_guarantee_fee_item (tenant_id, project_id, fee_code)
+) engine=InnoDB default charset=utf8mb4 comment='保障房计费项目';
