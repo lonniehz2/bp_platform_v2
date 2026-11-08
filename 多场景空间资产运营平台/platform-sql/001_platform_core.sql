@@ -495,6 +495,7 @@ create table if not exists guarantee_allocation (
   house_id bigint not null,
   allocation_no varchar(64) not null,
   allocation_status varchar(20) not null default 'ALLOCATED',
+  contract_id bigint null,
   allocated_time datetime not null default current_timestamp,
   is_deleted tinyint not null default 0,
   unique key uk_guarantee_allocation_application (tenant_id, application_id),

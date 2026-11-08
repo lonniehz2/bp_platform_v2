@@ -271,7 +271,7 @@ HOUSE
   "sceneCode": "GUARANTEE",
   "bizType": "GUARANTEE_CONTRACT_CHANGE",
   "flowName": "保障房合同变更审批
-申请/轮候/配租",
+申请/轮候/配租/配租转合同",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
     {"nodeName": "经理终审", "approverRole": "PROPERTY_MANAGER"}
@@ -309,7 +309,7 @@ HOUSE
 ```text
 串行多级审批
 合同变更审批
-申请/轮候/配租
+申请/轮候/配租/配租转合同
 通过/驳回
 审批记录
 ```
@@ -359,7 +359,7 @@ TERMINATION → 合同终止
 
 ---
 
-## 11. 保障房申请/轮候/配租
+## 11. 保障房申请/轮候/配租/配租转合同
 
 ### GET /guarantee/applications?projectId=
 
@@ -393,6 +393,27 @@ TERMINATION → 合同终止
 {"houseId": 3}
 ```
 
+### POST /guarantee/allocations/{allocationId}/contract
+
+```json
+{
+  "contractNo": "HT2026002",
+  "startDate": "2026-12-01",
+  "endDate": "2027-11-30",
+  "rentAmount": 1000.00,
+  "depositAmount": 1000.00,
+  "billingCycle": "MONTH",
+  "billDay": 1
+}
+```
+
+配租转合同后：
+
+```text
+配租状态 ALLOCATED → CONTRACTED
+生成保障房合同
+```
+
 ### GET /guarantee/allocations?projectId=
 
 状态：
@@ -414,7 +435,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-43 个断言通过
+46 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -425,5 +446,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 收据
 串行多级审批
 合同变更审批
-申请/轮候/配租
+申请/轮候/配租/配租转合同
 ```

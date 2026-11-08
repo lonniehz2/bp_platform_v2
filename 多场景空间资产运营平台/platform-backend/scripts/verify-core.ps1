@@ -265,6 +265,23 @@ $housesAfter = Api "GET" "/api/v1/platform/projects/$projectId/houses" $null
 $allocatedHouse = @($housesAfter | Where-Object { $_.id -eq $innerHouse.id })[0]
 Assert-True ($allocatedHouse.houseStatus -eq "ALLOCATED") "house status allocated"
 
+
+$allocContract = Api "POST" "/api/v1/platform/guarantee/allocations/$($allocation.allocationId)/contract" @{
+    contractNo = "VERIFY_ALLOC_HT_$suffix"
+    startDate = "2026-12-01"
+    endDate = "2027-11-30"
+    rentAmount = 1000.00
+    depositAmount = 1000.00
+    billingCycle = "MONTH"
+    billDay = 1
+}
+Assert-True ($allocContract.allocationStatus -eq "CONTRACTED") "allocation contracted"
+Assert-True ($null -ne $allocContract.contractId) "allocation contract created"
+
+$allocations = Api "GET" "/api/v1/platform/guarantee/allocations?projectId=$projectId" $null
+$allocationRow = @($allocations | Where-Object { $_.id -eq $allocation.allocationId })[0]
+Assert-True ($allocationRow.allocationStatus -eq "CONTRACTED") "allocation status persisted"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"
