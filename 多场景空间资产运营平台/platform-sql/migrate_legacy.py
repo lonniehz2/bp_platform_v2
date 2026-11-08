@@ -572,7 +572,7 @@ def migrate(apply=False):
             "/rbac": "config",
             "/sys": "system",
             "/reports": "system",
-            "/publicities": "application",
+            "/publicities": "publicity",
             "/workorders": "service",
             "/access": "access",
             "/complaints": "complaint",

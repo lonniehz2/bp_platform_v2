@@ -48,6 +48,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
     }
 
     private String menuFor(String path) {
+        if (path.startsWith("/api/v1/platform/guarantee/publicities")) {
+            return "publicity";
+        }
         if (path.startsWith("/api/v1/platform/guarantee/fee-items")) {
             return "billing";
         }

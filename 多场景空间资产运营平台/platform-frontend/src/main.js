@@ -22,6 +22,7 @@ import Audit from './pages/Audit.vue'
 import WorkOrders from './pages/WorkOrders.vue'
 import Access from './pages/Access.vue'
 import Complaints from './pages/Complaints.vue'
+import Publicity from './pages/Publicity.vue'
 import Qualification from './pages/Qualification.vue'
 import MigrationExceptions from './pages/MigrationExceptions.vue'
 import Devices from './pages/Devices.vue'
@@ -50,6 +51,7 @@ const router = createRouter({
     { path: '/work-orders', component: WorkOrders, meta: { title: '服务与工单' } },
     { path: '/access-records', component: Access, meta: { title: '访客通行' } },
     { path: '/complaints', component: Complaints, meta: { title: '投诉与申诉' } },
+    { path: '/publicities', component: Publicity, meta: { title: '公示管理' } },
     { path: '/audit', component: Audit, meta: { title: '审批中心' } },
     { path: '/menus', component: Menus, meta: { title: '菜单与角色' } },
     { path: '/migration-exceptions', component: MigrationExceptions, meta: { title: '迁移异常' } }

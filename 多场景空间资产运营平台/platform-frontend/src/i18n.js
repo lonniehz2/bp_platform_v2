@@ -21,6 +21,7 @@ const messages = {
       service: '服务与工单',
       access: '访客通行',
       complaint: '投诉与申诉',
+      publicity: '公示管理',
       audit: '审批中心',
       config: '菜单与角色',
       migration: '迁移异常'
@@ -74,6 +75,7 @@ const messages = {
       service: 'Service Orders',
       access: 'Access Records',
       complaint: 'Complaints & Appeals',
+      publicity: 'Publicity',
       audit: 'Approvals',
       config: 'Menus & Roles',
       migration: 'Migration Exceptions'

@@ -335,6 +335,7 @@ HOUSE
 访客通行
 投诉与申诉
 计费项目
+公示管理
 菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
@@ -389,6 +390,7 @@ HOUSE
 访客通行
 投诉与申诉
 计费项目
+公示管理
 菜单权限
 通过/驳回
 审批记录
@@ -517,6 +519,7 @@ TERMINATION → 合同终止
 访客通行
 投诉与申诉
 计费项目
+公示管理
 菜单权限
 
 ### GET /guarantee/applications?projectId=
@@ -634,6 +637,7 @@ WAITING → ALLOCATED
 访客通行
 投诉与申诉
 计费项目
+公示管理
 菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
@@ -704,6 +708,7 @@ platform-sql/002_menu_seed.sql
 访客通行
 投诉与申诉
 计费项目
+公示管理
 
 ### GET /guarantee/meters?projectId=
 
@@ -735,6 +740,7 @@ platform-sql/002_menu_seed.sql
 访客通行
 投诉与申诉
 计费项目
+公示管理
 
 ### GET /guarantee/work-orders?projectId=
 
@@ -769,6 +775,7 @@ PENDING → PROCESSING → DONE → CLOSED
 ## 17. 访客通行
 投诉与申诉
 计费项目
+公示管理
 
 ### GET /guarantee/access-records?projectId=
 
@@ -795,6 +802,7 @@ PENDING → PROCESSING → DONE → CLOSED
 
 ## 18. 投诉与申诉
 计费项目
+公示管理
 
 ### GET /guarantee/complaints?projectId=&type=
 
@@ -828,6 +836,7 @@ VISIT 走访
 ---
 
 ## 19. 计费项目
+公示管理
 
 ### GET /guarantee/fee-items?projectId=
 
@@ -850,7 +859,32 @@ VISIT 走访
 
 ---
 
-## 20. 附件
+## 20. 公示管理
+
+### GET /guarantee/publicities?projectId=
+
+### POST /guarantee/publicities
+
+```json
+{
+  "projectId": 1,
+  "publicityType": "ALLOCATION",
+  "title": "配租公示",
+  "content": "公示内容",
+  "startDate": "2026-11-08",
+  "endDate": "2026-11-15"
+}
+```
+
+### POST /guarantee/publicities/{id}/status
+
+```json
+{"status": "PUBLISHED"}
+```
+
+---
+
+## 21. 附件
 
 ### POST /files
 
@@ -876,7 +910,7 @@ file=<文件>
 
 ---
 
-## 21. 迁移异常
+## 22. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -894,7 +928,7 @@ PENDING → RESOLVED
 
 ---
 
-## 22. 验证脚本
+## 23. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -903,7 +937,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-87 个断言通过
+90 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -930,5 +964,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 访客通行
 投诉与申诉
 计费项目
+公示管理
 菜单权限
 ```

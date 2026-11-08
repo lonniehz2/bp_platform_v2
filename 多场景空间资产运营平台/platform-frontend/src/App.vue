@@ -43,6 +43,7 @@ const nav = [
   { to: '/work-orders', key: 'service', menu: 'service', icon: '⚒' },
   { to: '/access-records', key: 'access', menu: 'access', icon: '⌂' },
   { to: '/complaints', key: 'complaint', menu: 'complaint', icon: '☏' },
+  { to: '/publicities', key: 'publicity', menu: 'publicity', icon: '▣' },
   { to: '/audit', key: 'audit', menu: 'audit', icon: '✓' },
   { to: '/menus', key: 'config', menu: 'config', icon: '☰' },
   { to: '/migration-exceptions', key: 'migration', menu: 'system', icon: '!' }
@@ -67,6 +68,7 @@ const titleKey = {
   '/work-orders': 'nav.service',
   '/access-records': 'nav.access',
   '/complaints': 'nav.complaint',
+  '/publicities': 'nav.publicity',
   '/audit': 'nav.audit',
   '/menus': 'nav.config',
   '/migration-exceptions': 'nav.migration'

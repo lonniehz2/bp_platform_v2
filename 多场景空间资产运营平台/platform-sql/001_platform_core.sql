@@ -836,3 +836,20 @@ create table if not exists guarantee_fee_item (
   update_time datetime not null default current_timestamp on update current_timestamp,
   unique key uk_guarantee_fee_item (tenant_id, project_id, fee_code)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房计费项目';
+
+
+create table if not exists guarantee_publicity (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  publicity_type varchar(20) not null default 'ALLOCATION',
+  title varchar(200) not null,
+  content varchar(2000) null,
+  start_date date null,
+  end_date date null,
+  publicity_status varchar(20) not null default 'DRAFT',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  key idx_guarantee_publicity_project (tenant_id, project_id, publicity_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房公示';

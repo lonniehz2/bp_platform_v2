@@ -526,6 +526,23 @@ Assert-True (@($feeList).Count -ge 1) "fee item listed"
 $feeToggle = Api "POST" "/api/v1/platform/guarantee/fee-items/$($fee.id)/toggle?enabled=false" $null
 Assert-True ($feeToggle.feeStatus -eq "DISABLED") "fee item disabled"
 
+
+$publicity = Api "POST" "/api/v1/platform/guarantee/publicities" @{
+    projectId = $projectId
+    publicityType = "ALLOCATION"
+    title = "验证配租公示"
+    content = "公示内容"
+    startDate = "2026-11-08"
+    endDate = "2026-11-15"
+}
+Assert-True ($publicity.publicityStatus -eq "DRAFT") "publicity created"
+
+$published = Api "POST" "/api/v1/platform/guarantee/publicities/$($publicity.id)/status" @{ status = "PUBLISHED" }
+Assert-True ($published.publicityStatus -eq "PUBLISHED") "publicity published"
+
+$publicities = Api "GET" "/api/v1/platform/guarantee/publicities?projectId=$projectId" $null
+Assert-True (@($publicities).Count -ge 1) "publicity listed"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"
