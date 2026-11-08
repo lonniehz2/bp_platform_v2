@@ -81,6 +81,7 @@ bp_asset_space
 asset_type_code
 space_template_id
 level_no
+sub_unit_mode
 ```
 
 `bp_iam_org` 增加：

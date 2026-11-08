@@ -14,8 +14,10 @@ create table if not exists bp_asset_space_template (
   template_name varchar(128) not null,
   scene_code varchar(32) not null,
   asset_type_code varchar(64) null,
+  base_level_count int not null,
   level_count int not null,
   levels_json json not null,
+  allowed_sub_modes varchar(128) null comment 'NONE/BED/INNER_ROOM/INNER_ROOM_BED',
   is_system tinyint not null default 0,
   version_no int not null default 1,
   status varchar(20) not null default 'ENABLED',
@@ -328,7 +330,9 @@ create table if not exists prop_asset_exception (
 -- =========================================================
 -- alter table bp_iam_org add column space_template_id bigint null comment '空间结构模板，平台资产基础配置';
 -- alter table bp_iam_org add column default_asset_type_code varchar(64) null comment '默认资产类型';
+-- alter table bp_iam_org add column default_sub_unit_mode varchar(20) null comment '默认子单元模式 NONE/BED/INNER_ROOM/INNER_ROOM_BED';
 -- alter table bp_asset_space add column asset_type_code varchar(64) null comment '资产类型';
+-- alter table bp_asset_space add column sub_unit_mode varchar(20) null comment '楼栋/房屋子单元模式';
 -- alter table bp_asset_space add column space_template_id bigint null comment '空间结构模板';
 -- alter table bp_asset_space add column level_no int null comment '所在层级序号';
 -- alter table bp_person add column face_photo_url varchar(500) null comment '人脸照片，非必填';
@@ -367,6 +371,9 @@ create table if not exists prop_asset_exception (
 -- 物业商业：楼/楼层/商铺
 -- 物业办公：楼/楼层/房间
 -- 物业场地：区域/点位
--- 保障房：小区/楼栋/单元/楼层/房屋/床位
+-- 保障房基础模板：小区/楼栋/单元/楼层/房屋
+-- 保障房宿舍/青旅：基础 + 床位
+-- 保障房套内分割：基础 + 内房
+-- 保障房内房+床位：基础 + 内房 + 床位
 -- 园区：园区/楼栋/楼层/房间
 -- 校园：校区/楼栋/楼层/房间
