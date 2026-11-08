@@ -18,6 +18,11 @@ const allowedMenus = ref(getMenus())
 const currentUser = computed(() => {
   try { return JSON.parse(localStorage.getItem('platformUser') || '{}') } catch { return {} }
 })
+const isAdmin = computed(() => {
+  const roles = currentUser.value.roles || []
+  return currentUser.value.username === 'admin' || roles.includes('GUARANTEE_ADMIN')
+})
+const legacyAdminUrl = computed(() => `${location.protocol}//${location.hostname}:8080/platform-admin`)
 
 const nav = [
   { to: '/', key: 'dashboard', menu: 'dashboard', icon: '◈' },
@@ -123,6 +128,7 @@ function logout() {
             <option value="">{{ t('common.project') }}</option>
             <option v-for="p in projects" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option>
           </select>
+          <a v-if="isAdmin" class="admin-link" :href="legacyAdminUrl" target="_blank" rel="noopener">平台管理</a>
           <button class="ghost sm" @click="switchLocale">{{ locale === 'zh-CN' ? 'EN' : '中' }}</button>
           <button class="ghost sm" @click="toggleMode">{{ mode === 'dark' ? '☀' : '☾' }}</button>
           <button class="sm" @click="logout">{{ t('common.logout') }}</button>
