@@ -273,7 +273,8 @@ HOUSE
   "flowName": "保障房合同变更审批
 申请/轮候/配租/配租转合同
 押金收取/退还
-退租释放房屋",
+退租释放房屋
+补贴抵扣租金",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
     {"nodeName": "经理终审", "approverRole": "PROPERTY_MANAGER"}
@@ -314,6 +315,7 @@ HOUSE
 申请/轮候/配租/配租转合同
 押金收取/退还
 退租释放房屋
+补贴抵扣租金
 通过/驳回
 审批记录
 ```
@@ -366,6 +368,7 @@ TERMINATION → 合同终止
 ## 11. 保障房申请/轮候/配租/配租转合同
 押金收取/退还
 退租释放房屋
+补贴抵扣租金
 
 ### GET /guarantee/applications?projectId=
 
@@ -420,6 +423,28 @@ TERMINATION → 合同终止
 生成保障房合同
 ```
 
+### POST /guarantee/contracts/{contractId}/subsidies
+
+```json
+{
+  "subsidyType": "RENT_SUBSIDY",
+  "amount": 300.00,
+  "startDate": "2026-11-01",
+  "endDate": "2026-11-30",
+  "remark": "租金补贴"
+}
+```
+
+### GET /guarantee/contracts/{contractId}/subsidies
+
+账单生成时自动抵扣当期有效补贴：
+
+```text
+账单金额 = 租金
+补贴金额 = 当期有效补贴合计
+应付金额 = 账单金额 - 补贴金额
+```
+
 ### GET /guarantee/contracts/{contractId}/deposit
 
 ### POST /guarantee/contracts/{contractId}/deposit/pay
@@ -461,7 +486,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-54 个断言通过
+57 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -475,4 +500,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 申请/轮候/配租/配租转合同
 押金收取/退还
 退租释放房屋
+补贴抵扣租金
 ```

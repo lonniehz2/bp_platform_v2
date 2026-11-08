@@ -318,6 +318,7 @@ create table if not exists bp_bill (
   period_end date not null,
   amount decimal(14,2) not null,
   discount_amount decimal(14,2) not null default 0,
+  payable_amount decimal(14,2) null,
   paid_amount decimal(14,2) not null default 0,
   bill_status varchar(20) not null default 'UNPAID',
   due_date date null,
@@ -532,3 +533,21 @@ create table if not exists guarantee_deposit_txn (
   txn_time datetime not null default current_timestamp,
   key idx_guarantee_deposit_txn (tenant_id, deposit_id, txn_time)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房押金流水';
+
+
+create table if not exists guarantee_subsidy (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  contract_id bigint not null,
+  subsidy_type varchar(32) not null default 'RENT_SUBSIDY',
+  subsidy_amount decimal(14,2) not null default 0,
+  start_date date not null,
+  end_date date not null,
+  subsidy_status varchar(20) not null default 'ACTIVE',
+  remark varchar(500) null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  key idx_guarantee_subsidy_contract (tenant_id, contract_id, subsidy_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房补贴';

@@ -149,6 +149,15 @@ $contract = Api "POST" "/api/v1/platform/guarantee/contracts" @{
 Assert-True ($null -ne $contract.id) "guarantee contract created"
 
 
+$subsidy = Api "POST" "/api/v1/platform/guarantee/contracts/$($contract.id)/subsidies" @{
+    subsidyType = "RENT_SUBSIDY"
+    amount = 300.00
+    startDate = "2026-11-01"
+    endDate = "2026-11-30"
+    remark = "租金补贴验证"
+}
+Assert-True ($subsidy.subsidyStatus -eq "ACTIVE") "subsidy created"
+
 $deposit = Api "GET" "/api/v1/platform/guarantee/contracts/$($contract.id)/deposit" $null
 Assert-True ([decimal]$deposit.amount -eq 1200.00) "deposit created"
 Assert-True ($deposit.depositStatus -eq "PENDING") "deposit pending"
@@ -178,9 +187,11 @@ $bill = Api "POST" "/api/v1/platform/guarantee/contracts/$($contract.id)/bills" 
 }
 Assert-True ($null -ne $bill.id) "rent bill generated"
 Assert-True ($bill.billStatus -eq "UNPAID") "rent bill unpaid"
+Assert-True ([decimal]$bill.discountAmount -eq 300.00) "subsidy applied to bill"
+Assert-True ([decimal]$bill.payableAmount -eq 900.00) "bill payable after subsidy"
 
 $payment = Api "POST" "/api/v1/platform/billing/bills/$($bill.id)/pay" @{
-    amount = 1200.00
+    amount = 900.00
     paymentMethod = "CASH"
 }
 Assert-True ($payment.billStatus -eq "PAID") "bill paid"
@@ -189,7 +200,7 @@ Assert-True ($null -ne $payment.receiptNo) "receipt generated"
 $bills = Api "GET" "/api/v1/platform/billing/bills?projectId=$projectId" $null
 Assert-True (@($bills).Count -eq 1) "bill listed"
 Assert-True ($bills[0].billStatus -eq "PAID") "bill status persisted"
-Assert-True ([decimal]$bills[0].paidAmount -eq 1200.00) "bill paid amount persisted"
+Assert-True ([decimal]$bills[0].paidAmount -eq 900.00) "bill paid amount persisted"
 
 $payments = Api "GET" "/api/v1/platform/billing/payments?projectId=$projectId" $null
 Assert-True (@($payments).Count -eq 1) "payment listed"

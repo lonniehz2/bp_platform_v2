@@ -20,12 +20,15 @@ public class BillingService {
     private final JdbcTemplate jdbc;
     private final IdGenerator idGen;
     private final GuaranteeContractService contractService;
+    private final GuaranteeSubsidyService subsidyService;
 
     public BillingService(JdbcTemplate jdbc, IdGenerator idGen,
-                          GuaranteeContractService contractService) {
+                          GuaranteeContractService contractService,
+                          GuaranteeSubsidyService subsidyService) {
         this.jdbc = jdbc;
         this.idGen = idGen;
         this.contractService = contractService;
+        this.subsidyService = subsidyService;
     }
 
     public List<Map<String, Object>> bills(long projectId, String status) {
@@ -33,7 +36,8 @@ public class BillingService {
                 "select b.id, b.bill_no billNo, b.project_id projectId, b.biz_type bizType, "
                         + "b.contract_id contractId, b.house_id houseId, h.house_name houseName, "
                         + "b.person_id personId, p.person_name personName, b.fee_item_code feeItemCode, "
-                        + "b.period_start periodStart, b.period_end periodEnd, b.amount, b.paid_amount paidAmount, "
+                        + "b.period_start periodStart, b.period_end periodEnd, b.amount, "
+                        + "b.discount_amount discountAmount, b.payable_amount payableAmount, b.paid_amount paidAmount, "
                         + "b.bill_status billStatus, b.due_date dueDate, b.create_time createTime "
                         + "from bp_bill b left join bp_house h on h.id=b.house_id "
                         + "left join bp_person p on p.id=b.person_id "
@@ -53,21 +57,26 @@ public class BillingService {
         if (cmd.periodEnd().isBefore(cmd.periodStart())) {
             throw BizException.param("账单结束日期不能早于开始日期");
         }
-        BigDecimal amount = cmd.amount() == null ? contract.rentAmount() : cmd.amount();
-        if (amount == null || amount.signum() <= 0) {
+        BigDecimal gross = cmd.amount() == null ? contract.rentAmount() : cmd.amount();
+        if (gross == null || gross.signum() <= 0) {
             throw BizException.param("账单金额必须大于 0");
         }
+        BigDecimal discount = subsidyService.discountFor(contractId, cmd.periodStart(), cmd.periodEnd());
+        if (discount.compareTo(gross) > 0) {
+            discount = gross;
+        }
+        BigDecimal payable = gross.subtract(discount);
         long id = idGen.nextId();
         String billNo = "BL" + System.currentTimeMillis() + id % 1000;
         try {
             jdbc.update("insert into bp_bill(id,tenant_id,project_id,bill_no,biz_type,contract_type,"
                             + "contract_id,house_id,person_id,fee_item_code,period_start,period_end,amount,"
-                            + "discount_amount,paid_amount,bill_status,due_date,source_type,source_id,is_deleted) "
-                            + "values(?,?,?,?, 'GUARANTEE_RENT','GUARANTEE_CONTRACT',?,?,?,?,?,?,?,0,0,"
+                            + "discount_amount,payable_amount,paid_amount,bill_status,due_date,source_type,source_id,is_deleted) "
+                            + "values(?,?,?,?, 'GUARANTEE_RENT','GUARANTEE_CONTRACT',?,?,?,?,?,?,?,?,?,0,"
                             + "'UNPAID',?,'CONTRACT',?,0)",
                     id, contract.tenantId(), contract.projectId(), billNo, contract.id(),
                     contract.houseId(), contract.personId(), "GUARANTEE_RENT",
-                    cmd.periodStart(), cmd.periodEnd(), amount,
+                    cmd.periodStart(), cmd.periodEnd(), gross, discount, payable,
                     cmd.dueDate() == null ? cmd.periodEnd() : cmd.dueDate(), contract.id());
         } catch (DataIntegrityViolationException e) {
             throw BizException.conflict("该合同同一周期已生成账单");
@@ -75,7 +84,9 @@ public class BillingService {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", id);
         out.put("billNo", billNo);
-        out.put("amount", amount);
+        out.put("amount", gross);
+        out.put("discountAmount", discount);
+        out.put("payableAmount", payable);
         out.put("billStatus", "UNPAID");
         return out;
     }
@@ -84,8 +95,8 @@ public class BillingService {
     public Map<String, Object> pay(long billId, PaymentCmd cmd) {
         String tenant = TenantContext.require();
         List<Map<String, Object>> rows = jdbc.queryForList(
-                "select id, project_id projectId, person_id personId, amount, paid_amount paidAmount, "
-                        + "bill_status billStatus from bp_bill "
+                "select id, project_id projectId, person_id personId, amount, payable_amount payableAmount, "
+                        + "paid_amount paidAmount, bill_status billStatus from bp_bill "
                         + "where id=? and tenant_id=? and is_deleted=0 for update",
                 billId, tenant);
         if (rows.isEmpty()) {
@@ -96,9 +107,12 @@ public class BillingService {
         if ("PAID".equals(status)) {
             throw BizException.conflict("账单已结清");
         }
-        BigDecimal amount = (BigDecimal) bill.get("amount");
+        BigDecimal payable = (BigDecimal) bill.get("payableAmount");
+        if (payable == null) {
+            payable = (BigDecimal) bill.get("amount");
+        }
         BigDecimal paid = (BigDecimal) bill.get("paidAmount");
-        BigDecimal outstanding = amount.subtract(paid == null ? BigDecimal.ZERO : paid);
+        BigDecimal outstanding = payable.subtract(paid == null ? BigDecimal.ZERO : paid);
         BigDecimal payAmount = cmd.amount();
         if (payAmount == null || payAmount.signum() <= 0) {
             throw BizException.param("收款金额必须大于 0");
@@ -120,7 +134,7 @@ public class BillingService {
         jdbc.update("insert into bp_payment_allocation(id,tenant_id,payment_id,bill_id,amount) "
                 + "values(?,?,?,?,?)", allocationId, tenant, paymentId, billId, payAmount);
         BigDecimal newPaid = (paid == null ? BigDecimal.ZERO : paid).add(payAmount);
-        String newStatus = newPaid.compareTo(amount) >= 0 ? "PAID" : "PARTIAL";
+        String newStatus = newPaid.compareTo(payable) >= 0 ? "PAID" : "PARTIAL";
         jdbc.update("update bp_bill set paid_amount=?, bill_status=?, update_time=now() where id=?",
                 newPaid, newStatus, billId);
         long receiptId = idGen.nextId();
