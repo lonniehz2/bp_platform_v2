@@ -10,7 +10,7 @@ const houses = ref([])
 const waitlist = ref([])
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ applicationNo: '', applicantPersonId: '', familySize: 1, applicationType: 'PUBLIC_RENTAL', contactPhone: '', incomeLevel: 'LOW', housingStatus: 'NO_HOUSE', urgency: 'NORMAL', remark: '' })
+const form = reactive({ applicationNo: '', applicantPersonId: '', familySize: 1, applicationType: 'PUBLIC_RENTAL', contactPhone: '', incomeLevel: 'LOW', housingStatus: 'NO_HOUSE', urgency: 'NORMAL', remark: '', guaranteeType: 'PUBLIC_RENTAL', familyType: 'SINGLE', subsidyStatus: 'NONE', archiveNo: '' })
 const allocateForm = reactive({ waitlistId: '', houseId: '' })
 
 const statusClass = (s) => ({ APPROVED: 'green', REJECTED: 'red', SUBMITTED: 'orange' }[s] || '')
@@ -58,7 +58,9 @@ async function create() {
       applicationType: form.applicationType,
       familySize: Number(form.familySize || 1), contactPhone: form.contactPhone,
       incomeLevel: form.incomeLevel, housingStatus: form.housingStatus,
-      urgency: form.urgency, remark: form.remark
+      urgency: form.urgency, remark: form.remark,
+      guaranteeType: form.guaranteeType, familyType: form.familyType,
+      subsidyStatus: form.subsidyStatus, archiveNo: form.archiveNo
     })
     form.applicationNo = ''
     await load()
@@ -104,6 +106,10 @@ onMounted(load)
           <div class="field"><label>收入水平</label><select v-model="form.incomeLevel"><option value="LOW">低收入</option><option value="LOWER_MIDDLE">中低收入</option><option value="MIDDLE">中等收入</option></select></div>
           <div class="field"><label>住房情况</label><select v-model="form.housingStatus"><option value="NO_HOUSE">无房</option><option value="RENTING">租房</option><option value="WITH_FAMILY">与家人同住</option></select></div>
           <div class="field"><label>紧急程度</label><select v-model="form.urgency"><option value="NORMAL">普通</option><option value="URGENT">紧急</option></select></div>
+          <div class="field"><label>保障类型</label><select v-model="form.guaranteeType"><option value="PUBLIC_RENTAL">公共租赁</option><option value="LOW_RENT">廉租住房</option><option value="SUBSIDY">租赁补贴</option></select></div>
+          <div class="field"><label>家庭结构</label><select v-model="form.familyType"><option value="SINGLE">单身</option><option value="COUPLE">夫妻</option><option value="WITH_CHILDREN">有子女家庭</option><option value="ELDERLY">老年家庭</option></select></div>
+          <div class="field"><label>补贴状态</label><select v-model="form.subsidyStatus"><option value="NONE">无</option><option value="APPLYING">申请中</option><option value="ACTIVE">已享受</option></select></div>
+          <div class="field"><label>档案编号</label><input v-model="form.archiveNo" /></div>
           <div class="field" style="flex:2"><label>备注</label><input v-model="form.remark" /></div>
           <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('application')" class="primary" :disabled="busy" @click="create">创建申请</button></div>
         </div>
@@ -114,12 +120,13 @@ onMounted(load)
         <div v-if="!applications.length" class="empty">暂无申请</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>申请编号</th><th>申请人</th><th>家庭人数</th><th>收入水平</th><th>住房情况</th><th>紧急程度</th><th>状态</th><th>操作</th></tr></thead>
+            <thead><tr><th>申请编号</th><th>申请人</th><th>保障类型</th><th>家庭结构</th><th>档案编号</th><th>家庭人数</th><th>收入水平</th><th>住房情况</th><th>状态</th><th>操作</th></tr></thead>
             <tbody>
               <tr v-for="a in applications" :key="a.id">
                 <td class="mono">{{ a.applicationNo }}</td>
                 <td>{{ a.applicantName }}</td>
-                <td>{{ a.familySize }}</td><td>{{ incomeLabel(a.incomeLevel) }}</td><td>{{ housingLabel(a.housingStatus) }}</td><td>{{ urgencyLabel(a.urgency) }}</td>
+                <td>{{ a.guaranteeType || '-' }}</td><td>{{ a.familyType || '-' }}</td><td>{{ a.archiveNo || '-' }}</td>
+                <td>{{ a.familySize }}</td><td>{{ incomeLabel(a.incomeLevel) }}</td><td>{{ housingLabel(a.housingStatus) }}</td>
                 <td><span class="badge" :class="statusClass(a.applicationStatus)">{{ a.applicationStatus }}</span></td>
                 <td class="row">
                   <button class="sm" v-if="a.applicationStatus === 'DRAFT'" @click="submit(a.id)">提交</button>
