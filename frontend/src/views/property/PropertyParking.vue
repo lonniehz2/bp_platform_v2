@@ -166,12 +166,13 @@ const loading = ref(false)
 const saving = ref(false)
 const spaceVisible = ref(false)
 const planVisible = ref(false)
+const renewing = ref(false)
 const terminateVisible = ref(false)
 const rateVisible = ref(false)
 const terminateDate = ref(new Date().toISOString().slice(0, 10))
 const terminatePlanId = ref(null)
 const spaceForm = reactive({ garageName: t('propertyParking.defaultGarage'), spaceNo: '', spaceType: 'STANDARD', area: 12 })
-const planForm = reactive({ spaceId: null, spaceNo: '', feeType: 'MANAGEMENT', billingCycle: 'YEAR', startDate: new Date().toISOString().slice(0, 10) })
+const planForm = reactive({ planId: null, spaceId: null, spaceNo: '', feeType: 'MANAGEMENT', billingCycle: 'YEAR', startDate: new Date().toISOString().slice(0, 10) })
 const rateForm = reactive({ billingCycle: 'YEAR', price: 960 })
 
 const planPrice = computed(() => {
@@ -219,21 +220,33 @@ async function saveSpace() {
 }
 
 function openPlan(row) {
+  renewing.value = !!row.planId
+  planForm.planId = row.planId || null
   planForm.spaceId = row.id
   planForm.spaceNo = row.spaceNo
   planForm.feeType = 'MANAGEMENT'
-  planForm.billingCycle = 'YEAR'
-  planForm.startDate = new Date().toISOString().slice(0, 10)
+  planForm.billingCycle = row.billingCycle || 'YEAR'
+  planForm.startDate = row.endDate ? addDay(row.endDate) : new Date().toISOString().slice(0, 10)
   planVisible.value = true
+}
+
+function addDay(date) {
+  const d = new Date(date + 'T00:00:00')
+  d.setDate(d.getDate() + 1)
+  return d.toISOString().slice(0, 10)
 }
 
 async function savePlan() {
   saving.value = true
   try {
-    const r = await req.post('/property/parking/plans', {
-      projectId: projectId.value, parkingSpaceId: planForm.spaceId,
-      feeType: planForm.feeType, billingCycle: planForm.billingCycle, startDate: planForm.startDate
-    })
+    const r = renewing.value
+      ? await req.post(`/property/parking/plans/${planForm.planId}/renew`, {
+        billingCycle: planForm.billingCycle, startDate: planForm.startDate
+      })
+      : await req.post('/property/parking/plans', {
+        projectId: projectId.value, parkingSpaceId: planForm.spaceId,
+        feeType: planForm.feeType, billingCycle: planForm.billingCycle, startDate: planForm.startDate
+      })
     ElMessage.success(t('propertyParking.planDone', { amount: r.amount }))
     planVisible.value = false
     await loadAll()

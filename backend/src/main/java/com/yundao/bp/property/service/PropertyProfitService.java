@@ -90,11 +90,15 @@ public class PropertyProfitService {
                 BigDecimal.class, TenantContext.tenantId(), projectId,
                 Date.valueOf(first), Date.valueOf(last));
         List<Map<String, Object>> incomeRows = jdbc.queryForList(
-                "select b.income_category incomeCategory, coalesce(sum(a.allocate_amount),0) amount "
+                "select b.income_category incomeCategory, c.category_name categoryName, "
+                        + "coalesce(sum(a.allocate_amount),0) amount "
                         + "from prop_payment_allocation a join prop_payment p on p.id=a.payment_id "
-                        + "join prop_bill b on b.id=a.bill_id where p.tenant_id=? and p.project_id=? "
+                        + "join prop_bill b on b.id=a.bill_id "
+                        + "left join prop_category c on c.category_code=b.income_category "
+                        + "and c.category_type='INCOME' and c.tenant_id=p.tenant_id "
+                        + "where p.tenant_id=? and p.project_id=? "
                         + "and p.pay_status='SUCCESS' and p.pay_time >= ? and p.pay_time < ? "
-                        + "group by b.income_category order by amount desc",
+                        + "group by b.income_category, c.category_name order by amount desc",
                 TenantContext.tenantId(), projectId, Date.valueOf(first), Date.valueOf(first.plusMonths(1)));
         List<Map<String, Object>> expenseRows = jdbc.queryForList(
                 "select e.category_code categoryCode, c.category_name categoryName, "

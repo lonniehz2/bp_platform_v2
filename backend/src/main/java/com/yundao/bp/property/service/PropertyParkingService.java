@@ -96,6 +96,12 @@ public class PropertyParkingService {
     public Map<String, Object> createPlan(PlanCmd cmd) {
         requireProject(cmd.projectId());
         Map<String, Object> space = getSpace(cmd.projectId(), cmd.parkingSpaceId());
+        Long active = jdbc.queryForObject("select count(*) from prop_parking_plan "
+                        + "where tenant_id=? and parking_space_id=? and plan_status='ACTIVE'",
+                Long.class, TenantContext.tenantId(), cmd.parkingSpaceId());
+        if (active != null && active > 0) {
+            throw BizException.stateConflict("该车位已有生效方案，请使用续费或先退租");
+        }
         String feeType = cmd.feeType() == null ? "MANAGEMENT" : cmd.feeType();
         String cycle = cmd.billingCycle();
         if (!List.of("MONTH", "QUARTER", "HALF_YEAR", "YEAR").contains(cycle)) {
@@ -143,6 +149,58 @@ public class PropertyParkingService {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> renew(Long planId, String cycle, LocalDate startDate) {
+        List<Map<String, Object>> plans = jdbc.queryForList(
+                "select * from prop_parking_plan where id=? and tenant_id=? and plan_status='ACTIVE'",
+                planId, TenantContext.tenantId());
+        if (plans.isEmpty()) throw BizException.notFound("车位方案");
+        Map<String, Object> p = plans.get(0);
+        String nextCycle = cycle == null || cycle.isBlank()
+                ? String.valueOf(p.get("billing_cycle")) : cycle;
+        if (!List.of("MONTH", "QUARTER", "HALF_YEAR", "YEAR").contains(nextCycle)) {
+            throw BizException.paramInvalid("车位计费周期不合法");
+        }
+        Map<String, Object> space = getSpace(((Number) p.get("project_id")).longValue(),
+                ((Number) p.get("parking_space_id")).longValue());
+        BigDecimal price = findRate(((Number) p.get("project_id")).longValue(),
+                space.get("garage_name"), space.get("space_type"),
+                String.valueOf(p.get("fee_type")), nextCycle);
+        LocalDate start = startDate == null
+                ? ((Date) p.get("end_date")).toLocalDate().plusDays(1) : startDate;
+        LocalDate end = endOf(start, nextCycle);
+        long newPlanId = idGen.nextId();
+        long billId = idGen.nextId();
+        String billNo = "PB" + billId;
+        Map<String, Object> fee = jdbc.queryForMap(
+                "select id, income_category, income_subcategory from prop_fee_item "
+                        + "where tenant_id=? and project_id=? and fee_item_code=? and is_deleted=0",
+                TenantContext.tenantId(), p.get("project_id"),
+                "RENT".equals(p.get("fee_type")) ? "PARKING_RENT" : "PARKING_MGMT");
+        jdbc.update("update prop_parking_plan set plan_status='RENEWED', update_time=now() where id=?", planId);
+        jdbc.update("insert into prop_parking_plan(id,tenant_id,project_id,parking_space_id,owner_person_id,"
+                        + "fee_type,billing_cycle,unit_price,start_date,end_date,next_due_date,bill_id,"
+                        + "plan_status,create_time,update_time) values(?,?,?,?,?,?,?,?,?,?,?,?, 'ACTIVE',now(),now())",
+                newPlanId, TenantContext.tenantId(), p.get("project_id"), p.get("parking_space_id"),
+                p.get("owner_person_id"), p.get("fee_type"), nextCycle, price,
+                Date.valueOf(start), Date.valueOf(end), Date.valueOf(end), billId);
+        jdbc.update("insert into prop_bill(id,tenant_id,project_id,bill_no,income_category,"
+                        + "income_subcategory,fee_item_id,payer_type,payer_person_id,payer_name,"
+                        + "parking_space_id,period_start,period_end,billing_cycle,cycle_count,quantity,"
+                        + "unit_price,bill_amount,payable_amount,bill_status,due_date,source_type,source_id,"
+                        + "service_start_date,service_end_date,is_deleted,create_by,create_time,update_by,update_time) "
+                        + "values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,1,1,?,?,?, 'PENDING',?, 'PARKING_PLAN',?,?,?,0,?,now(),?,now())",
+                billId, TenantContext.tenantId(), p.get("project_id"), billNo,
+                fee.get("income_category"), fee.get("income_subcategory"), fee.get("id"),
+                "PARKING", p.get("owner_person_id"), space.get("space_no") + " 车位续费",
+                p.get("parking_space_id"), Date.valueOf(start), Date.valueOf(end), nextCycle,
+                price, price, price, Date.valueOf(end), newPlanId,
+                Date.valueOf(start), Date.valueOf(end),
+                String.valueOf(TenantContext.userId()), String.valueOf(TenantContext.userId()));
+        return Map.of("planId", newPlanId, "billId", billId, "amount", price,
+                "startDate", start, "endDate", end);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> terminate(Long planId, LocalDate terminationDate) {
         List<Map<String, Object>> plans = jdbc.queryForList(
                 "select * from prop_parking_plan where id=? and tenant_id=? and plan_status='ACTIVE'",
@@ -180,6 +238,25 @@ public class PropertyParkingService {
                 }
             }
         }
+        Long refundId = null;
+        String refundNo = null;
+        if (refund.compareTo(BigDecimal.ZERO) > 0) {
+            refundId = idGen.nextId();
+            refundNo = "RF" + refundId;
+            Long paymentId = null;
+            if (billId != null) {
+                List<Map<String, Object>> payments = jdbc.queryForList(
+                        "select payment_id from prop_payment_allocation where bill_id=? limit 1", billId);
+                if (!payments.isEmpty()) {
+                    paymentId = ((Number) payments.get(0).get("payment_id")).longValue();
+                }
+            }
+            jdbc.update("insert into prop_refund(id,tenant_id,project_id,refund_no,biz_type,biz_id,"
+                            + "payment_id,plan_id,amount,reason,refund_status,create_by,create_time,update_time) "
+                            + "values(?,?,?,?, 'PARKING',?,?,?,?,?, 'PENDING',?,now(),now())",
+                    refundId, TenantContext.tenantId(), p.get("project_id"), refundNo, planId,
+                    paymentId, planId, refund, "车位退租退款", String.valueOf(TenantContext.userId()));
+        }
         jdbc.update("update prop_parking_plan set plan_status='TERMINATED', termination_date=?, "
                         + "refund_amount=?, update_time=now() where id=?",
                 Date.valueOf(stop), refund, planId);
@@ -189,6 +266,8 @@ public class PropertyParkingService {
         out.put("monthlyPrice", monthly);
         out.put("paidAmount", paid);
         out.put("refundAmount", refund);
+        out.put("refundId", refundId);
+        out.put("refundNo", refundNo);
         out.put("terminationDate", stop);
         return out;
     }

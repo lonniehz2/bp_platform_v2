@@ -24,7 +24,9 @@
         <el-card shadow="never">
           <template #header>{{ t('propertyProfit.incomeBreakdown') }}</template>
           <el-table :data="overview.incomeRows || []" border size="small">
-            <el-table-column prop="incomeCategory" :label="t('propertyProfit.category')" />
+            <el-table-column :label="t('propertyProfit.category')">
+              <template #default="{ row }">{{ row.categoryName || row.incomeCategory }}</template>
+            </el-table-column>
             <el-table-column prop="amount" :label="t('propertyProfit.amount')" width="140" />
           </el-table>
         </el-card>

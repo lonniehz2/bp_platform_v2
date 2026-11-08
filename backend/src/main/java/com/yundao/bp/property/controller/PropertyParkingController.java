@@ -57,6 +57,17 @@ public class PropertyParkingController {
     }
 
     @com.yundao.bp.iam.security.RequirePerm("property:parking:manage")
+    @PostMapping("/plans/{id}/renew")
+    public R<Map<String, Object>> renew(@PathVariable Long id,
+            @RequestBody(required = false) RenewCmd cmd) {
+        return R.ok(service.renew(id, cmd == null ? null : cmd.billingCycle(),
+                cmd == null ? null : cmd.startDate()));
+    }
+
+    public record RenewCmd(String billingCycle, LocalDate startDate) {
+    }
+
+    @com.yundao.bp.iam.security.RequirePerm("property:parking:manage")
     @PostMapping("/plans/{id}/terminate")
     public R<Map<String, Object>> terminate(@PathVariable Long id,
             @RequestBody(required = false) TerminateCmd cmd) {
