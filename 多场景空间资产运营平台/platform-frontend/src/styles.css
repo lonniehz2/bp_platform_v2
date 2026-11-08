@@ -219,3 +219,14 @@ html.dark .badge.red { background: #2e1718; border-color: #5c2b2d; color: #ff787
   border-radius: 4px; padding: 18px; box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
 }
 .modal .field { margin-bottom: 10px; }
+
+
+.receipt { padding: 16px; border: 1px dashed var(--line-strong); }
+.receipt h3 { text-align: center; margin: 4px 0 18px; }
+.receipt p { margin: 8px 0; }
+@media print {
+  body * { visibility: hidden; }
+  .receipt-box, .receipt-box * { visibility: visible; }
+  .receipt-box { position: absolute; inset: 0; margin: 0; box-shadow: none; border: 0; }
+  .no-print { display: none !important; }
+}
