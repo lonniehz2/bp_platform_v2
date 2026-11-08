@@ -105,7 +105,7 @@ onMounted(load)
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>变更记录</h2><span class="small muted">{{ changes.length }} 条</span></div>
+        <div class="panel-head"><h2>变更记录</h2><span class="small muted">{{ changes.length }} 条 · 多级审批需逐级通过</span></div>
         <div v-if="!changes.length" class="empty">暂无变更</div>
         <div class="table-wrap" v-else>
           <table>
@@ -117,7 +117,7 @@ onMounted(load)
                 <td>{{ c.reason }}</td>
                 <td class="row">
                   <button class="sm" v-if="c.changeStatus === 'DRAFT'" @click="submit(c.id)">提交</button>
-                  <button class="sm" v-if="c.changeStatus === 'APPROVING'" @click="approve(c.id)">通过</button>
+                  <button class="sm" v-if="c.changeStatus === 'APPROVING'" @click="approve(c.id)">通过当前节点</button>
                   <button class="sm danger" v-if="c.changeStatus === 'APPROVING'" @click="reject(c.id)">驳回</button>
                 </td>
               </tr>
