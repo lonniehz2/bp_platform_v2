@@ -543,6 +543,28 @@ Assert-True ($published.publicityStatus -eq "PUBLISHED") "publicity published"
 $publicities = Api "GET" "/api/v1/platform/guarantee/publicities?projectId=$projectId" $null
 Assert-True (@($publicities).Count -ge 1) "publicity listed"
 
+
+$alert = Api "POST" "/api/v1/platform/guarantee/alerts" @{
+    projectId = $projectId
+    alertType = "RISK"
+    alertLevel = "HIGH"
+    title = "验证风险告警"
+    content = "连续欠费"
+    houseId = $roomHouse.id
+    personId = $person.id
+}
+Assert-True ($alert.alertStatus -eq "PENDING") "alert created"
+
+$alertHandled = Api "POST" "/api/v1/platform/guarantee/alerts/$($alert.id)/handle" @{
+    alertStatus = "RESOLVED"
+    handlerName = "运营中心"
+    handleResult = "已处理"
+}
+Assert-True ($alertHandled.alertStatus -eq "RESOLVED") "alert resolved"
+
+$alerts = Api "GET" "/api/v1/platform/guarantee/alerts?projectId=$projectId" $null
+Assert-True (@($alerts).Count -ge 1) "alert listed"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

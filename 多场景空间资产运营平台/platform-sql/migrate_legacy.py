@@ -573,6 +573,8 @@ def migrate(apply=False):
             "/sys": "system",
             "/reports": "system",
             "/publicities": "publicity",
+            "/alerts": "alert",
+            "/patrol": "alert",
             "/workorders": "service",
             "/access": "access",
             "/complaints": "complaint",

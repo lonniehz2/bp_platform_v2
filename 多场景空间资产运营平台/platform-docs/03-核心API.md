@@ -336,6 +336,7 @@ HOUSE
 投诉与申诉
 计费项目
 公示管理
+风险告警
 菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
@@ -391,6 +392,7 @@ HOUSE
 投诉与申诉
 计费项目
 公示管理
+风险告警
 菜单权限
 通过/驳回
 审批记录
@@ -520,6 +522,7 @@ TERMINATION → 合同终止
 投诉与申诉
 计费项目
 公示管理
+风险告警
 菜单权限
 
 ### GET /guarantee/applications?projectId=
@@ -638,6 +641,7 @@ WAITING → ALLOCATED
 投诉与申诉
 计费项目
 公示管理
+风险告警
 菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
@@ -709,6 +713,7 @@ platform-sql/002_menu_seed.sql
 投诉与申诉
 计费项目
 公示管理
+风险告警
 
 ### GET /guarantee/meters?projectId=
 
@@ -741,6 +746,7 @@ platform-sql/002_menu_seed.sql
 投诉与申诉
 计费项目
 公示管理
+风险告警
 
 ### GET /guarantee/work-orders?projectId=
 
@@ -776,6 +782,7 @@ PENDING → PROCESSING → DONE → CLOSED
 投诉与申诉
 计费项目
 公示管理
+风险告警
 
 ### GET /guarantee/access-records?projectId=
 
@@ -803,6 +810,7 @@ PENDING → PROCESSING → DONE → CLOSED
 ## 18. 投诉与申诉
 计费项目
 公示管理
+风险告警
 
 ### GET /guarantee/complaints?projectId=&type=
 
@@ -837,6 +845,7 @@ VISIT 走访
 
 ## 19. 计费项目
 公示管理
+风险告警
 
 ### GET /guarantee/fee-items?projectId=
 
@@ -860,6 +869,7 @@ VISIT 走访
 ---
 
 ## 20. 公示管理
+风险告警
 
 ### GET /guarantee/publicities?projectId=
 
@@ -884,7 +894,33 @@ VISIT 走访
 
 ---
 
-## 21. 附件
+## 21. 风险告警
+
+### GET /guarantee/alerts?projectId=
+
+### POST /guarantee/alerts
+
+```json
+{
+  "projectId": 1,
+  "alertType": "RISK",
+  "alertLevel": "HIGH",
+  "title": "连续欠费",
+  "content": "风险提示",
+  "houseId": 2,
+  "personId": 3
+}
+```
+
+### POST /guarantee/alerts/{id}/handle
+
+```json
+{"alertStatus": "RESOLVED", "handlerName": "运营中心", "handleResult": "已处理"}
+```
+
+---
+
+## 22. 附件
 
 ### POST /files
 
@@ -910,7 +946,7 @@ file=<文件>
 
 ---
 
-## 22. 迁移异常
+## 23. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -928,7 +964,7 @@ PENDING → RESOLVED
 
 ---
 
-## 23. 验证脚本
+## 24. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -937,7 +973,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-90 个断言通过
+93 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -965,5 +1001,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 投诉与申诉
 计费项目
 公示管理
+风险告警
 菜单权限
 ```

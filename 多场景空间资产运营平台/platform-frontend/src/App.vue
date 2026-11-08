@@ -44,6 +44,7 @@ const nav = [
   { to: '/access-records', key: 'access', menu: 'access', icon: '⌂' },
   { to: '/complaints', key: 'complaint', menu: 'complaint', icon: '☏' },
   { to: '/publicities', key: 'publicity', menu: 'publicity', icon: '▣' },
+  { to: '/alerts', key: 'alert', menu: 'alert', icon: '⚠' },
   { to: '/audit', key: 'audit', menu: 'audit', icon: '✓' },
   { to: '/menus', key: 'config', menu: 'config', icon: '☰' },
   { to: '/migration-exceptions', key: 'migration', menu: 'system', icon: '!' }
@@ -69,6 +70,7 @@ const titleKey = {
   '/access-records': 'nav.access',
   '/complaints': 'nav.complaint',
   '/publicities': 'nav.publicity',
+  '/alerts': 'nav.alert',
   '/audit': 'nav.audit',
   '/menus': 'nav.config',
   '/migration-exceptions': 'nav.migration'

@@ -853,3 +853,23 @@ create table if not exists guarantee_publicity (
   update_time datetime not null default current_timestamp on update current_timestamp,
   key idx_guarantee_publicity_project (tenant_id, project_id, publicity_status)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房公示';
+
+
+create table if not exists guarantee_alert (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  alert_type varchar(20) not null default 'RISK',
+  alert_level varchar(20) not null default 'NORMAL',
+  title varchar(200) not null,
+  content varchar(2000) null,
+  house_id bigint null,
+  person_id bigint null,
+  alert_status varchar(20) not null default 'PENDING',
+  handler_name varchar(64) null,
+  handle_result varchar(1000) null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  key idx_guarantee_alert_project (tenant_id, project_id, alert_status, alert_level)
+) engine=InnoDB default charset=utf8mb4 comment='保障房风险告警';
