@@ -14,6 +14,9 @@ const form = reactive({
   rentAmount: 1200, depositAmount: 1200
 })
 const billForm = reactive({ contractId: '', periodStart: '2026-11-01', periodEnd: '2026-11-30', amount: 1200 })
+const selectedContract = ref(null)
+const files = ref([])
+const fileBusy = ref(false)
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 
@@ -60,6 +63,26 @@ async function create() {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+async function openFiles(c) {
+  selectedContract.value = c
+  files.value = await api.files('CONTRACT', c.id)
+}
+
+async function uploadFile(e) {
+  const file = e.target.files?.[0]
+  if (!file || !selectedContract.value) return
+  fileBusy.value = true; error.value = ''
+  try {
+    await api.uploadFile('CONTRACT', selectedContract.value.id, file)
+    files.value = await api.files('CONTRACT', selectedContract.value.id)
+    e.target.value = ''
+  } catch (err) { error.value = err.message } finally { fileBusy.value = false }
+}
+
+async function downloadFile(f) {
+  try { await api.downloadFile(f.id, f.fileName) } catch (e) { error.value = e.message }
+}
+
 async function generateBill() {
   busy.value = true; error.value = ''
   try {
@@ -104,15 +127,28 @@ onMounted(load)
         <div v-if="!contracts.length" class="empty">暂无合同</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>合同编号</th><th>房屋</th><th>承租人</th><th>租金</th><th>押金</th><th>状态</th></tr></thead>
+            <thead><tr><th>合同编号</th><th>房屋</th><th>承租人</th><th>租金</th><th>押金</th><th>状态</th><th>操作</th></tr></thead>
             <tbody>
               <tr v-for="c in contracts" :key="c.id">
                 <td class="mono">{{ c.contractNo }}</td><td>{{ c.houseName }}</td><td>{{ c.personName }}</td>
                 <td>¥{{ money(c.rentAmount) }}</td><td>¥{{ money(c.depositAmount) }}</td>
                 <td><span class="badge" :class="c.contractStatus === 'ACTIVE' ? 'green' : 'orange'">{{ c.contractStatus }}</span></td>
+                <td><button class="sm" @click="openFiles(c)">附件</button></td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div v-if="selectedContract" class="panel">
+        <div class="panel-head"><h2>合同附件</h2><span class="small muted">{{ selectedContract.contractNo }}</span></div>
+        <div class="row" style="margin-bottom:10px">
+          <input type="file" @change="uploadFile" :disabled="fileBusy" style="max-width:320px" />
+        </div>
+        <div v-if="!files.length" class="empty">暂无附件</div>
+        <div v-for="f in files" :key="f.id" class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
+          <div style="flex:1"><div>{{ f.fileName }}</div><div class="small muted">{{ f.fileSize }} bytes · {{ f.createTime }}</div></div>
+          <button class="sm" @click="downloadFile(f)">下载</button>
         </div>
       </div>
 

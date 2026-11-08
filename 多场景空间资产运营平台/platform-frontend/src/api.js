@@ -9,7 +9,7 @@ function token() {
 async function request(path, options = {}) {
   const headers = { 'X-Tenant-Id': TENANT, ...(options.headers || {}) }
   if (token()) headers.Authorization = `Bearer ${token()}`
-  if (options.body && !headers['Content-Type']) {
+  if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json; charset=utf-8'
   }
   const res = await fetch(BASE + path, { ...options, headers })
@@ -97,6 +97,9 @@ export const api = {
   bills: (projectId) => request(`/billing/bills?projectId=${projectId}`),
   pay: (billId, body) => request(`/billing/bills/${billId}/pay`, { method: 'POST', body: JSON.stringify(body) }),
   payments: (projectId) => request(`/billing/payments?projectId=${projectId}`),
+  files: (bizType, bizId) => request(`/files?bizType=${bizType}&bizId=${bizId}`),
+  uploadFile: (bizType, bizId, file) => { const fd = new FormData(); fd.append('file', file); return request(`/files?bizType=${bizType}&bizId=${bizId}`, { method: 'POST', body: fd }) },
+  downloadFile: async (id, name) => { const res = await fetch(`${BASE}/files/${id}/download`, { headers: { Authorization: `Bearer ${token()}` } }); if (!res.ok) throw new Error('下载失败'); const blob = await res.blob(); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name || 'download'; a.click(); URL.revokeObjectURL(a.href) },
   users: () => request('/users'),
   userRoles: () => request('/users/roles'),
   createUser: (body) => request('/users', { method: 'POST', body: JSON.stringify(body) }),
