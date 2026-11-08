@@ -70,7 +70,8 @@ def migrate(apply=False):
         raise RuntimeError("新库缺少 GUARANTEE_BASE 模板")
 
     stats = {}
-    inserted = {k: 0 for k in ("org", "space", "house", "person", "contract", "bill", "grant", "device")}
+    inserted = {k: 0 for k in ("org", "space", "house", "person", "contract", "bill", "grant", "device",
+                              "application", "waitlist", "payment", "payment_allocation", "receipt")}
     try:
         # 1. 组织/项目
         oc.execute("""
@@ -204,7 +205,104 @@ def migrate(apply=False):
                       r["paid_amount"], r["bill_status"], r["due_date"], r["id"], r["is_deleted"]))
                 inserted["bill"] += nc.rowcount
 
-        # 7. 授权
+        # 7. 申请
+        oc.execute("""
+            select id, tenant_id, org_id, application_no, person_id, security_type,
+                   family_size, application_status, apply_time, accept_time, reject_reason, is_deleted
+            from bp_biz_application order by id
+        """)
+        applications = oc.fetchall()
+        stats["application"] = len(applications)
+        for r in applications:
+            if apply:
+                nc.execute("""
+                    insert ignore into guarantee_application
+                      (id, tenant_id, project_id, application_no, applicant_person_id,
+                       application_type, family_size, application_status, submit_time,
+                       review_time, review_comment, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """, (r["id"], r["tenant_id"], r["org_id"], r["application_no"], r["person_id"],
+                      r["security_type"] or "PUBLIC_RENTAL", r["family_size"] or 1,
+                      r["application_status"], r["apply_time"], r["accept_time"],
+                      r["reject_reason"], r["is_deleted"]))
+                inserted["application"] += nc.rowcount
+
+        # 8. 轮候
+        oc.execute("""
+            select id, tenant_id, org_id, application_id, waiting_no, queue_status,
+                   enter_time
+            from bp_biz_waiting_queue order by id
+        """)
+        waitlist = oc.fetchall()
+        stats["waitlist"] = len(waitlist)
+        for r in waitlist:
+            if apply:
+                nc.execute("""
+                    insert ignore into guarantee_waitlist
+                      (id, tenant_id, project_id, application_id, queue_no, waitlist_status,
+                       joined_time, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,%s,0)
+                """, (r["id"], r["tenant_id"], r["org_id"], r["application_id"],
+                      r["waiting_no"], r["queue_status"] or "WAITING",
+                      r["enter_time"]))
+                inserted["waitlist"] += nc.rowcount
+
+        # 9. 支付
+        oc.execute("""
+            select id, tenant_id, org_id, payment_no, person_id, pay_amount, pay_channel,
+                   pay_status, pay_time, remark
+            from bp_fin_payment order by id
+        """)
+        payments = oc.fetchall()
+        stats["payment"] = len(payments)
+        for r in payments:
+            if apply:
+                nc.execute("""
+                    insert ignore into bp_payment
+                      (id, tenant_id, project_id, payment_no, payer_person_id, amount,
+                       payment_method, payment_status, paid_time, remark, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,0)
+                """, (r["id"], r["tenant_id"], r["org_id"], r["payment_no"], r["person_id"],
+                      r["pay_amount"], r["pay_channel"] or "CASH", r["pay_status"] or "SUCCESS",
+                      r["pay_time"], r["remark"]))
+                inserted["payment"] += nc.rowcount
+
+        # 10. 支付分摊
+        oc.execute("""
+            select id, tenant_id, payment_id, bill_id, allocate_amount
+            from bp_fin_payment_allocate order by id
+        """)
+        payment_allocations = oc.fetchall()
+        stats["payment_allocation"] = len(payment_allocations)
+        for r in payment_allocations:
+            if apply:
+                nc.execute("""
+                    insert ignore into bp_payment_allocation
+                      (id, tenant_id, payment_id, bill_id, amount)
+                    values (%s,%s,%s,%s,%s)
+                """, (r["id"], r["tenant_id"], r["payment_id"], r["bill_id"], r["allocate_amount"]))
+                inserted["payment_allocation"] += nc.rowcount
+
+        # 11. 收据
+        oc.execute("""
+            select id, tenant_id, project_id, receipt_no, payment_id, amount,
+                   receipt_status, issued_at
+            from prop_receipt order by id
+        """)
+        receipts = oc.fetchall()
+        stats["receipt"] = len(receipts)
+        for r in receipts:
+            if apply:
+                nc.execute("""
+                    insert ignore into bp_receipt
+                      (id, tenant_id, project_id, receipt_no, payment_id, amount,
+                       receipt_status, issued_time, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,%s,%s,0)
+                """, (r["id"], r["tenant_id"], r["project_id"], r["receipt_no"], r["payment_id"],
+                      r["amount"], r["receipt_status"] or "ISSUED", r["issued_at"]))
+                inserted["receipt"] += nc.rowcount
+
+        # 12. 授权
         oc.execute("""
             select id, tenant_id, org_id, person_id, space_id, grant_level,
                    valid_start, valid_end, source_type, source_id, grant_status, is_deleted
