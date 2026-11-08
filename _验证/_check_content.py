@@ -58,6 +58,7 @@ def view_props(files):
 ALLOW_EMPTY = {
     'remark', 'remarkText', 'handleRemark', 'handleResult', 'images', 'attachment',
     'rawResponse', 'idCardMask', 'phoneMask', 'lastError', 'errorMsg', 'deleteReason',
+    'handleUserId', 'handleTime', 'workorderId',
     'actualExitDate', 'inspectResult', 'inspectImages', 'settleAmount', 'damageAmount',
     'transitionStartDate', 'transitionEndDate', 'relocationStartDate', 'relocationEndDate',
     'banReapplyEndDate', 'notaryNo', 'courtCaseNo', 'iouNo', 'contractFileUrl',
@@ -66,6 +67,8 @@ ALLOW_EMPTY = {
     'deviceId',
     # 访客次数仅「访客级」授权才有，普通授权为空属正常
     'visitLimitTimes',
+    # 告警可挂在空间/设备上，不一定关联房屋或人员
+    'houseId', 'personId',
 }
 
 # 筛选参数 → (接口, 参数名, 取值来源字段)

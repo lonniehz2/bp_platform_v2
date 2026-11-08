@@ -6,7 +6,7 @@
       <div class="toolbar">
         <div class="title">{{ t('propertyUnit.title') }}</div>
         <el-select v-model="buildingId" clearable :placeholder="t('propertyUnit.allBuildings')"
-                   style="width:180px" @change="loadUnits">
+                   style="width:220px" @change="loadUnits">
           <el-option v-for="b in buildings" :key="b.id" :label="b.buildingName" :value="b.id" />
         </el-select>
         <el-button @click="loadUnits">{{ t('propertyUnit.refresh') }}</el-button>
