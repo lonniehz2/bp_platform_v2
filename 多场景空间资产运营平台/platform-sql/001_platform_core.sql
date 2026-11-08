@@ -164,6 +164,25 @@ create table if not exists bp_person (
   unique key uk_bp_person_code (tenant_id, person_code)
 ) engine=InnoDB default charset=utf8mb4 comment='人员主档';
 
+create table if not exists bp_person_relation (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  person_id bigint not null,
+  project_id bigint not null,
+  target_type varchar(20) not null,
+  target_id bigint not null,
+  relation_type varchar(32) not null,
+  is_primary tinyint not null default 0,
+  start_date date null,
+  end_date date null,
+  status varchar(20) not null default 'ACTIVE',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  key idx_bp_person_relation_person (tenant_id, person_id, status),
+  key idx_bp_person_relation_target (tenant_id, target_type, target_id, status)
+) engine=InnoDB default charset=utf8mb4 comment='人员与项目/空间/房屋关系';
+
 -- 场景
 insert ignore into bp_scene_profile(id, scene_code, scene_name, sort_no)
 values

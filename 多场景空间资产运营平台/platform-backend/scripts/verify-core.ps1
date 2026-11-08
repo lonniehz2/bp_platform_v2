@@ -111,6 +111,28 @@ Assert-True (@($houses | Where-Object { $_.houseCode -eq "101" }).Count -eq 1) "
 Assert-True (@($houses | Where-Object { $_.houseCode -eq "101-1" }).Count -eq 1) "inner room house exists"
 Assert-True (@($houses | Where-Object { $_.houseCode -eq "101-1-B1" }).Count -eq 1) "bed house exists"
 
+$person = Api "POST" "/api/v1/platform/persons" @{
+    personCode = "VERIFY_PERSON_$suffix"
+    personName = "验证保障对象"
+    phone = "13800000000"
+    personType = "GUARANTEE_TENANT"
+}
+Assert-True ($null -ne $person.id) "person created"
+
+$roomHouse = @($houses | Where-Object { $_.houseCode -eq "101" })[0]
+$relation = Api "POST" "/api/v1/platform/persons/$($person.id)/relations" @{
+    projectId = $projectId
+    targetType = "HOUSE"
+    targetId = $roomHouse.id
+    relationType = "TENANT"
+    isPrimary = $true
+    startDate = "2026-11-08"
+}
+Assert-True ($null -ne $relation.id) "person house relation created"
+
+$relations = Api "GET" "/api/v1/platform/persons/$($person.id)/relations" $null
+Assert-True (@($relations).Count -eq 1) "person relation listed"
+Assert-True ($relations[0].targetId -eq $roomHouse.id) "person relation target id"
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

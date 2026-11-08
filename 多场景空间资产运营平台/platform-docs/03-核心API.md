@@ -158,7 +158,49 @@ rentable = true
 
 ---
 
-## 7. 验证脚本
+## 7. 人员与关系
+
+### GET /persons?keyword=&personType=
+
+### POST /persons
+
+```json
+{
+  "personCode": "P0001",
+  "personName": "张三",
+  "phone": "13800000000",
+  "idCardMask": "330***********1234",
+  "personType": "GUARANTEE_TENANT"
+}
+```
+
+### GET /persons/{personId}/relations
+
+### POST /persons/{personId}/relations
+
+```json
+{
+  "projectId": 1,
+  "targetType": "HOUSE",
+  "targetId": 2,
+  "relationType": "TENANT",
+  "isPrimary": true,
+  "startDate": "2026-11-08",
+  "endDate": null
+}
+```
+
+关联对象：
+
+```text
+PROJECT
+SPACE
+HOUSE
+```
+
+---
+
+## 8. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -167,7 +209,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-13 个断言通过
+17 个断言通过
 保障房 7 级空间树
 3 个房源
+人员
+人员房屋关系
 ```
