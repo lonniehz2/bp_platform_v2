@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>保障房标准页面 · 低保真原型</title>
+<style>
+:root{
+  --bg:#f4f6f8; --card:#fff; --line:#e5e9ef; --text:#1f2937; --muted:#7b8794;
+  --blue:#2563eb; --blue-soft:#eaf1ff; --green:#16a34a; --orange:#d97706; --red:#dc2626;
+  --purple:#7c3aed;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+button{font:inherit;cursor:pointer}
+.topbar{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 18px;position:sticky;top:0;z-index:20}
+.brand{font-weight:700;color:#0f172a;white-space:nowrap}
+.brand small{display:block;font-weight:400;color:var(--muted);font-size:11px}
+.spacer{flex:1}
+.select{border:1px solid var(--line);background:#fff;border-radius:6px;padding:7px 9px;color:var(--text)}
+.meta{color:var(--muted);font-size:12px}
+.layout{display:flex;min-height:calc(100vh - 56px)}
+.sidebar{width:210px;background:#fff;border-right:1px solid var(--line);padding:12px 10px;flex:0 0 210px}
+.nav-title{font-size:11px;color:var(--muted);padding:8px 10px 6px}
+.nav-btn{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;padding:9px 10px;border-radius:6px;color:#334155;text-align:left;margin-bottom:2px}
+.nav-btn:hover{background:#f1f5f9}
+.nav-btn.active{background:var(--blue-soft);color:var(--blue);font-weight:600}
+.nav-ico{width:16px;text-align:center}
+.main{padding:16px 20px 40px;max-width:1400px;width:100%}
+.page{display:none}
+.page.active{display:block}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.page-head h1{font-size:20px;margin:0 0 4px}
+.page-head p{margin:0;color:var(--muted);font-size:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.panel-head h2{font-size:14px;margin:0}
+.btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:7px 10px;color:#334155}
+.btn:hover{background:#f8fafc}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover{background:#1d4ed8}
+.btn.danger{color:var(--red);border-color:#fecaca}
+.btn.sm{padding:4px 8px;font-size:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px}
+.card .label{font-size:12px;color:var(--muted)}
+.card .value{font-size:22px;font-weight:700;margin-top:4px}
+.card .hint{font-size:11px;color:var(--muted);margin-top:4px}
+.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.chart{height:190px;display:flex;align-items:flex-end;gap:8px;padding:10px 4px 22px;border-bottom:1px solid var(--line);position:relative}
+.bar{flex:1;background:linear-gradient(180deg,#60a5fa,#2563eb);border-radius:4px 4px 0 0;min-height:4px}
+.chart .x{position:absolute;bottom:2px;font-size:10px;color:var(--muted);transform:translateX(-50%)}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);font-size:12px;vertical-align:middle}
+th{color:var(--muted);font-weight:600;background:#fbfcfe}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;white-space:nowrap}
+.badge.green{background:#e9f9ef;color:var(--green)}
+.badge.orange{background:#fff7e6;color:var(--orange)}
+.badge.red{background:#fef2f2;color:var(--red)}
+.badge.blue{background:var(--blue-soft);color:var(--blue)}
+.badge.gray{background:#f1f5f9;color:#64748b}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:10px;overflow:auto}
+.tab{border:0;background:transparent;padding:9px 12px;border-bottom:2px solid transparent;color:var(--muted);white-space:nowrap}
+.tab.active{border-bottom-color:var(--blue);color:var(--blue);font-weight:600}
+.filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.filter input,.filter select{border:1px solid var(--line);border-radius:6px;padding:7px 9px;background:#fff}
+.muted{color:var(--muted)}
+.small{font-size:11px}
+.mono{font-family:Consolas,monospace}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.summary .item{border:1px solid var(--line);border-radius:6px;padding:9px}
+.summary .k{font-size:11px;color:var(--muted)}
+.summary .v{font-weight:700;margin-top:2px}
+.split{display:grid;grid-template-columns:1.4fr .8fr;gap:12px}
+.tree{border:1px solid var(--line);border-radius:6px;padding:6px;min-height:280px}
+.tree-node{padding:7px 8px;border-radius:5px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.tree-node:hover{background:#f8fafc}
+.tree-node.active{background:var(--blue-soft);color:var(--blue);font-weight:600}
+.tree-children{margin-left:16px}
+.modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.35);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:10px;max-width:680px;width:100%;max-height:86vh;overflow:auto;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.2)}
+.modal h3{margin:0 0 10px;font-size:16px}
+.modal .close{float:right}
+.field{margin:9px 0}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit}
+.toast{position:fixed;right:20px;bottom:20px;background:#0f172a;color:#fff;padding:10px 14px;border-radius:8px;opacity:0;transform:translateY(8px);transition:.2s;z-index:80;max-width:360px}
+.toast.show{opacity:1;transform:none}
+.timeline{border-left:2px solid var(--line);margin-left:6px;padding-left:14px}
+.timeline .ev{margin-bottom:10px;position:relative}
+.timeline .ev:before{content:"";position:absolute;left:-20px;top:4px;width:8px;height:8px;border-radius:50%;background:var(--blue)}
+.notice{border:1px solid #fde68a;background:#fffbeb;color:#92400e;border-radius:6px;padding:9px 10px;font-size:12px}
+.stepper{display:flex;gap:6px;margin-bottom:12px}
+.step{flex:1;border:1px solid var(--line);border-radius:6px;padding:7px;text-align:center;font-size:11px;color:var(--muted)}
+.step.active{border-color:var(--blue);color:var(--blue);background:var(--blue-soft);font-weight:600}
+.hide{display:none!important}
+@media(max-width:900px){
+  .sidebar{display:none}
+  .charts,.split{grid-template-columns:1fr}
+  .main{padding:12px}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">多场景平台 · 保障房<small>低保真走查原型 · 非生产代码</small></div>
+  <select id="projectSelect" class="select">
+    <option>幸福里保障房项目</option>
+    <option>海棠家园保障房项目</option>
+  </select>
+  <select id="roleSelect" class="select">
+    <option>项目负责人</option>
+    <option>窗口受理</option>
+    <option>审核员</option>
+    <option>财务</option>
+    <option>设备运维</option>
+    <option>场景管理员</option>
+  </select>
+  <div class="spacer"></div>
+  <span class="meta">消息 3 · 待办 5</span>
+  <button class="btn sm" onclick="toast('个人中心：原型占位')">管理员</button>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="nav-title">保障房业务</div>
+    <button class="nav-btn active" data-page="dashboard"><span class="nav-ico">▦</span>运营驾驶舱</button>
+    <button class="nav-btn" data-page="applications"><span class="nav-ico">▤</span>申请与资格</button>
+    <button class="nav-btn" data-page="contract"><span class="nav-ico">▣</span>合同详情</button>
+    <button class="nav-btn" data-page="billing"><span class="nav-ico">¥</span>账单收费</button>
+    <button class="nav-btn" data-page="devices"><span class="nav-ico">⌂</span>设备绑定</button>
+    <div class="nav-title" style="margin-top:10px">说明</div>
+    <div class="small muted" style="padding:0 10px">
+      该原型用于验证布局、状态、动作和权限展示，不连接真实接口。
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- 驾驶舱 -->
+    <section class="page active" id="page-dashboard">
+      <div class="page-head">
+        <div><h1>运营驾驶舱</h1><p>幸福里保障房项目 · 房源、申请、合同、收费、设备</p></div>
+        <div class="row"><span class="badge blue">本期 2026-11</span><button class="btn" onclick="toast('已刷新驾驶舱')">刷新</button></div>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="label">房源总数</div><div class="value">148</div><div class="hint">空置 142 · 已配租 6</div></div>
+        <div class="card"><div class="label">保障房申请</div><div class="value">15</div><div class="hint">待审核 9</div></div>
+        <div class="card"><div class="label">生效合同</div><div class="value">7</div><div class="hint">合同总数 25</div></div>
+        <div class="card"><div class="label">本期应收</div><div class="value">¥46,462</div><div class="hint">已收 ¥200</div></div>
+        <div class="card"><div class="label">本期收缴率</div><div class="value">0.4%</div><div class="hint">期初欠费另计</div></div>
+        <div class="card"><div class="label">设备资产</div><div class="value">168</div><div class="hint">待处理告警 0</div></div>
+      </div>
+      <div class="charts" style="margin-top:12px">
+        <div class="panel">
+          <div class="panel-head"><h2>房源结构</h2><span class="small muted">148 套</span></div>
+          <div class="chart">
+            <div class="bar" style="height:92%"></div><div class="bar" style="height:8%;background:#f59e0b"></div><div class="bar" style="height:2%;background:#22c55e"></div>
+            <span class="x" style="left:18%">空置</span><span class="x" style="left:50%">已配租</span><span class="x" style="left:82%">其他</span>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>账单趋势</h2><span class="small muted">按账期</span></div>
+          <div class="chart">
+            <div class="bar" style="height:80%"></div><div class="bar" style="height:55%;background:#93c5fd"></div><div class="bar" style="height:35%;background:#93c5fd"></div><div class="bar" style="height:62%;background:#93c5fd"></div>
+            <span class="x" style="left:12%">09</span><span class="x" style="left:37%">10</span><span class="x" style="left:62%">11</span><span class="x" style="left:87%">12</span>
+          </div>
+        </div>
+      </div>
+      <div class="split">
+        <div class="panel">
+          <div class="panel-head"><h2>待办与异常</h2><button class="btn sm" onclick="go('applications')">去处理</button></div>
+          <table>
+            <thead><tr><th>事项</th><th>数量</th><th>处理入口</th></tr></thead>
+            <tbody>
+              <tr><td>待审核申请</td><td>9</td><td><button class="btn sm" onclick="go('applications')">进入审核</button></td></tr>
+              <tr><td>逾期账单</td><td>3</td><td><button class="btn sm" onclick="go('billing')">进入账单</button></td></tr>
+              <tr><td>未处理设备告警</td><td>0</td><td><button class="btn sm" onclick="go('devices')">查看设备</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>最近合同</h2><button class="btn sm" onclick="go('contract')">查看详情</button></div>
+          <div class="small muted">BC202611001 · 张三 · A栋1单元101</div>
+          <div style="margin-top:6px"><span class="badge green">生效</span> <span class="mono">¥1,200/月</span></div>
+          <div class="small muted" style="margin-top:8px">下一账单日：2026-12-01</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 申请 -->
+    <section class="page" id="page-applications">
+      <div class="page-head">
+        <div><h1>申请与资格</h1><p>草稿、提交、审核、退回、转轮候</p></div>
+        <div class="row"><button class="btn primary" onclick="openApply()">新增申请</button></div>
+      </div>
+      <div class="panel">
+        <div class="filter">
+          <input placeholder="申请编号/姓名/手机号" />
+          <select><option>全部状态</option><option>草稿</option><option>待审核</option><option>已通过</option></select>
+          <select><option>全部类型</option><option>公共租赁</option><option>保障性租赁</option></select>
+          <button class="btn" onclick="toast('已筛选')">查询</button>
+          <button class="btn" onclick="toast('已重置')">重置</button>
+        </div>
+        <div class="tabs">
+          <button class="tab active">全部</button><button class="tab">草稿</button><button class="tab">待审核</button><button class="tab">已通过</button>
+        </div>
+        <table>
+          <thead><tr><th>申请编号</th><th>申请人</th><th>申请类型</th><th>家庭人数</th><th>状态</th><th>提交时间</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">APP202611001</td><td>张三</td><td>公共租赁</td><td>3</td><td><span class="badge orange">待审核</span></td><td>2026-11-08</td><td><button class="btn sm" onclick="openApplyDetail('APP202611001','张三','待审核')">查看</button></td></tr>
+            <tr><td class="mono">APP202611002</td><td>李四</td><td>保障性租赁</td><td>2</td><td><span class="badge gray">草稿</span></td><td>-</td><td><button class="btn sm" onclick="openApplyDetail('APP202611002','李四','草稿')">查看</button></td></tr>
+            <tr><td class="mono">APP202611003</td><td>王五</td><td>公共租赁</td><td>4</td><td><span class="badge green">已通过</span></td><td>2026-11-07</td><td><button class="btn sm" onclick="openApplyDetail('APP202611003','王五','已通过')">查看</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>资格审核</h2><span class="small muted">待我审核 9 · 我已审核 12</span></div>
+        <div class="row">
+          <span class="badge blue">当前节点：项目审核</span>
+          <button class="btn sm" data-roles="审核员,场景管理员" onclick="toast('批量通过：已选择 0 条')">批量通过</button>
+          <button class="btn sm" data-roles="审核员,场景管理员" onclick="toast('批量退回：需选择记录')">批量退回</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 合同 -->
+    <section class="page" id="page-contract">
+      <div class="page-head">
+        <div><h1>合同详情</h1><p>合同编号 BC202611001 · 幸福里保障房项目</p></div>
+        <div class="row">
+          <span class="badge green">生效</span>
+          <button class="btn sm" data-roles="项目负责人,场景管理员" onclick="noApproval()">无模板直接生效</button>
+          <button class="btn sm" onclick="toast('合同已打印')">打印</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="summary">
+          <div class="item"><div class="k">承租人</div><div class="v">张三</div></div>
+          <div class="item"><div class="k">房屋</div><div class="v">A栋1单元101</div></div>
+          <div class="item"><div class="k">租期</div><div class="v">2026-12-01 至 2027-11-30</div></div>
+          <div class="item"><div class="k">月租金</div><div class="v">¥1,200</div></div>
+          <div class="item"><div class="k">押金</div><div class="v">¥1,200</div></div>
+          <div class="item"><div class="k">本期欠费</div><div class="v" style="color:var(--red)">¥900</div></div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn sm" onclick="toast('已生成账单：BL202611001')">生成账单</button>
+          <button class="btn sm" data-roles="财务,项目负责人,场景管理员" onclick="openPay('¥900','合同详情直接收款')">直接收款</button>
+          <button class="btn sm" onclick="toast('已进入合同变更')">合同变更</button>
+          <button class="btn sm" data-roles="项目负责人,场景管理员" onclick="toast('已进入退租办理')">退租</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-ctab="overview">概览</button>
+        <button class="tab" data-ctab="bill">账单与收款</button>
+        <button class="tab" data-ctab="cohabit">同住人</button>
+        <button class="tab" data-ctab="device">设备与授权</button>
+        <button class="tab" data-ctab="log">操作日志</button>
+      </div>
+      <div class="panel" id="ctab-overview">
+        <div class="split">
+          <div>
+            <div class="panel-head"><h2>合同信息</h2></div>
+            <table>
+              <tbody>
+                <tr><th>合同编号</th><td class="mono">BC202611001</td><th>状态</th><td><span class="badge green">生效</span></td></tr>
+                <tr><th>承租人</th><td>张三</td><th>身份证</th><td>330***1234</td></tr>
+                <tr><th>房屋</th><td>A栋1单元101</td><th>建筑面积</th><td>60 ㎡</td></tr>
+                <tr><th>账单周期</th><td>按月</td><th>账单日</th><td>每月 1 日</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <div class="panel-head"><h2>业务时间线</h2></div>
+            <div class="timeline" id="contractTimeline">
+              <div class="ev">合同创建 · 窗口受理 · 2026-11-08</div>
+              <div class="ev">审批通过 · 项目负责人 · 2026-11-08</div>
+              <div class="ev">合同生效 · 系统 · 2026-11-08</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel hide" id="ctab-bill">
+        <table><thead><tr><th>账单号</th><th>账期</th><th>应付</th><th>已收</th><th>状态</th></tr></thead><tbody>
+          <tr><td class="mono">BL202611001</td><td>2026-12</td><td>¥900</td><td>¥0</td><td><span class="badge orange">未缴</span></td></tr>
+        </tbody></table>
+      </div>
+      <div class="panel hide" id="ctab-cohabit">
+        <div class="row" style="margin-bottom:8px"><button class="btn sm" onclick="toast('新增同住人弹窗')">新增同住人</button></div>
+        <table><thead><tr><th>姓名</th><th>关系</th><th>证件</th><th>状态</th></tr></thead><tbody>
+          <tr><td>李梅</td><td>配偶</td><td>330***5678</td><td><span class="badge green">有效</span></td></tr>
+        </tbody></table>
+      </div>
+      <div class="panel hide" id="ctab-device">
+        <table><thead><tr><th>设备</th><th>类型</th><th>绑定空间</th><th>状态</th></tr></thead><tbody>
+          <tr><td class="mono">DV202611001</td><td>门锁</td><td>A栋1单元101</td><td><span class="badge green">在线</span></td></tr>
+        </tbody></table>
+      </div>
+      <div class="panel hide" id="ctab-log">
+        <table><thead><tr><th>时间</th><th>操作</th><th>操作人</th><th>说明</th></tr></thead><tbody>
+          <tr><td>2026-11-08 10:12</td><td>合同生效</td><td>项目负责人</td><td>审批通过</td></tr>
+        </tbody></table>
+      </div>
+    </section>
+
+    <!-- 账单 -->
+    <section class="page" id="page-billing">
+      <div class="page-head">
+        <div><h1>账单收费</h1><p>当期与期初分开 · 收款、收据、减免、退款</p></div>
+        <div class="row"><button class="btn primary" data-roles="财务,场景管理员" onclick="openBatch()">批量生成</button></div>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="label">本期应收</div><div class="value">¥46,462</div><div class="hint">23 笔</div></div>
+        <div class="card"><div class="label">本期已收</div><div class="value">¥200</div><div class="hint">收缴率 0.4%</div></div>
+        <div class="card"><div class="label">期初欠费</div><div class="value">¥8,600</div><div class="hint">单独统计</div></div>
+        <div class="card"><div class="label">总欠费</div><div class="value">¥54,862</div><div class="hint">期初 + 当期</div></div>
+      </div>
+      <div class="panel" style="margin-top:12px">
+        <div class="filter">
+          <input placeholder="账单号/承租人/房屋" /><select><option>全部状态</option><option>未缴</option><option>已缴</option></select>
+          <select><option>全部账期</option><option>2026-11</option><option>2026-12</option></select>
+          <button class="btn" onclick="toast('已筛选账单')">查询</button>
+        </div>
+        <div class="tabs">
+          <button class="tab active">账单</button><button class="tab">收款</button><button class="tab">收据</button><button class="tab">欠费</button><button class="tab">期初</button>
+        </div>
+        <table>
+          <thead><tr><th>账单号</th><th>承租人</th><th>房屋</th><th>账期</th><th>应付</th><th>已收</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr id="billRow1"><td class="mono">BL202611001</td><td>张三</td><td>A栋101</td><td>2026-12</td><td>¥900</td><td>¥0</td><td><span class="badge orange">未缴</span></td><td><button class="btn sm" data-roles="财务,场景管理员" onclick="openPay('¥900','账单收款')">收款</button> <button class="btn sm" onclick="openAdjust()">减免</button></td></tr>
+            <tr><td class="mono">BL202611002</td><td>李四</td><td>A栋102</td><td>2026-12</td><td>¥1,200</td><td>¥1,200</td><td><span class="badge green">已缴</span></td><td><button class="btn sm" onclick="toast('收据已打开')">收据</button></td></tr>
+            <tr><td class="mono">OP202610001</td><td>王五</td><td>B栋201</td><td>2026-10</td><td>¥8,600</td><td>¥0</td><td><span class="badge red">期初欠费</span></td><td><button class="btn sm" data-roles="财务,场景管理员" onclick="openPay('¥8,600','期初回款')">回款</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 设备绑定 -->
+    <section class="page" id="page-devices">
+      <div class="page-head">
+        <div><h1>设备绑定</h1><p>空间层级 · 直绑与继承 · 一个设备同一时间只绑定一个空间</p></div>
+        <div class="row">
+          <button class="btn" onclick="openImport()">设备导入</button>
+          <button class="btn primary" data-roles="设备运维,项目负责人,场景管理员" onclick="openBind()">绑定设备</button>
+        </div>
+      </div>
+      <div class="split" style="grid-template-columns:280px 1fr">
+        <div class="panel">
+          <div class="panel-head"><h2>空间树</h2><span class="small muted">8 个空间</span></div>
+          <div class="tree" id="spaceTree">
+            <div class="tree-node active" onclick="selectSpace(this,'A栋')">▾ A栋 <span class="badge gray">楼栋</span></div>
+            <div class="tree-children">
+              <div class="tree-node" onclick="selectSpace(this,'A栋 / 1单元')">▾ 1单元 <span class="badge gray">单元</span></div>
+              <div class="tree-children">
+                <div class="tree-node" onclick="selectSpace(this,'A栋 / 1单元 / 1层')">▾ 1层 <span class="badge gray">楼层</span></div>
+                <div class="tree-children">
+                  <div class="tree-node" onclick="selectSpace(this,'A栋 / 1单元 / 1层 / 101')">101 <span class="badge blue">直绑 1</span></div>
+                  <div class="tree-node" onclick="selectSpace(this,'A栋 / 1单元 / 1层 / 102')">102 <span class="badge orange">继承 1</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2 id="spaceTitle">A栋</h2><span class="small muted">影响下级空间</span></div>
+          <div class="tabs">
+            <button class="tab active">直绑设备 (1)</button><button class="tab">继承设备 (0)</button><button class="tab">未绑定设备 (2)</button>
+          </div>
+          <table>
+            <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>MAC</th><th>安装状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">DV202611001</td><td>101门锁</td><td>门锁</td><td>AA:BB:CC:DD:EE:01</td><td><span class="badge green">已安装</span></td><td><button class="btn sm danger" data-roles="设备运维,项目负责人,场景管理员" onclick="toast('已解绑 DV202611001')">解绑</button></td></tr>
+            </tbody>
+          </table>
+          <div class="notice" style="margin-top:10px">设备绑定到楼栋/单元/楼层后，下级空间自动继承；绑定到房屋只作用于该房屋。</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="modal-mask" id="modalMask" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalBox"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const state = { role: '项目负责人', page: 'dashboard' };
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+
+function go(page){
+  closeModal();
+  state.page = page;
+  $$('.page').forEach(p => p.classList.remove('active'));
+  $('#page-' + page)?.classList.add('active');
+  $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+$$('.nav-btn').forEach(b => b.onclick = () => go(b.dataset.page));
+
+function toast(msg){
+  const el = $('#toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(window.__toastTimer); window.__toastTimer = setTimeout(()=>el.classList.remove('show'), 2400);
+}
+
+function openModal(html){
+  $('#modalBox').innerHTML = html;
+  $('#modalMask').classList.add('show');
+}
+function closeModal(){ $('#modalMask').classList.remove('show'); }
+
+function applyRole(){
+  state.role = $('#roleSelect').value;
+  $$('[data-roles]').forEach(el => {
+    const roles = el.dataset.roles.split(',');
+    el.classList.toggle('hide', !roles.includes(state.role));
+  });
+}
+$('#roleSelect').onchange = () => { applyRole(); toast('当前角色：' + state.role); };
+$('#projectSelect').onchange = () => toast('已切换项目：' + $('#projectSelect').value);
+applyRole();
+
+function openApply(){
+  openModal(`
+    <button class="btn sm close" onclick="closeModal()">关闭</button>
+    <h3>新增申请</h3>
+    <div class="stepper"><div class="step active">1 申请人</div><div class="step">2 家庭与保障</div><div class="step">3 材料</div><div class="step">4 确认</div></div>
+    <div class="field"><label>申请人</label><input value="张三" /></div>
+    <div class="field"><label>联系电话</label><input value="13800001111" /></div>
+    <div class="field"><label>申请类型</label><select><option>公共租赁</option><option>保障性租赁</option></select></div>
+    <div class="field"><label>家庭人数</label><input value="3" /></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn" onclick="toast('草稿已保存')">暂存草稿</button>
+      <button class="btn primary" onclick="toast('已提交，进入审核');closeModal()">提交</button>
+    </div>
+  `);
+}
+
+function openApplyDetail(no, name, status){
+  openModal(`
+    <button class="btn sm close" onclick="closeModal()">关闭</button>
+    <h3>申请详情 · ${no}</h3>
+    <div class="summary">
+      <div class="item"><div class="k">申请人</div><div class="v">${name}</div></div>
+      <div class="item"><div class="k">状态</div><div class="v">${status}</div></div>
+      <div class="item"><div class="k">家庭人数</div><div class="v">3</div></div>
+      <div class="item"><div class="k">收入水平</div><div class="v">低收入</div></div>
+    </div>
+    <div class="notice" style="margin-top:10px">当前节点：项目审核。审核动作必须填写意见。</div>
+    <div class="field"><label>审核意见</label><textarea rows="3" placeholder="请输入审核意见"></textarea></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn" data-roles="审核员,场景管理员" onclick="toast('已退回补充');closeModal()">退回补充</button>
+      <button class="btn danger" data-roles="审核员,场景管理员" onclick="toast('已驳回');closeModal()">驳回</button>
+      <button class="btn primary" data-roles="审核员,场景管理员" onclick="approveApp()">通过</button>
+      <button class="btn" onclick="toast('已转轮候');closeModal()">转轮候</button>
+    </div>
+  `);
+  window.__currentAppNo = no;
+  applyRole();
+}
+
+function approveApp(){
+  const no = window.__currentAppNo;
+  const rows = [...document.querySelectorAll('#page-applications tbody tr')];
+  const row = rows.find(r => r.innerText.includes(no));
+  if (row) row.cells[4].innerHTML = '<span class="badge green">已通过</span>';
+  closeModal();
+  toast('审核通过，可转轮候');
+}
+
+function noApproval(){
+  openModal(`
+    <button class="btn sm close" onclick="closeModal()">关闭</button>
+    <h3>无模板直接生效</h3>
+    <div class="notice">当前未匹配合同审批模板。该操作将直接生效，并记录“无审批直接生效”日志。</div>
+    <div class="field"><label>说明</label><textarea rows="3">未配置合同审批模板，按授权直接生效</textarea></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn primary" onclick="confirmNoApproval()">确认生效</button>
+    </div>
+  `);
+}
+function confirmNoApproval(){
+  closeModal();
+  $('#contractTimeline').insertAdjacentHTML('afterbegin', '<div class="ev">无审批直接生效 · 项目负责人 · 刚刚</div>');
+  toast('已生效，并写入无审批日志');
+}
+
+function openPay(amount, title){
+  openModal(`
+    <button class="btn sm close" onclick="closeModal()">关闭</button>
+    <h3>${title}</h3>
+    <div class="field"><label>收款金额</label><input value="${amount}" /></div>
+    <div class="field"><label>收款方式</label><select><option>现金</option><option>微信</option><option>银行转账</option></select></div>
+    <div class="field"><label>流水号</label><input placeholder="选填" /></div>
+    <div class="notice">正常收款不审批；退款、冲正按金额审批。</div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn primary" onclick="confirmPay()">确认收款</button>
+    </div>
+  `);
+}
+function confirmPay(){
+  closeModal();
+  const row = $('#billRow1');
+  if (row) row.innerHTML = '<td class="mono">BL202611001</td><td>张三</td><td>A栋101</td><td>2026-12</td><td>¥900</td><td>¥900</td><td><span class="badge green">已缴</span></td><td><button class="btn sm" onclick="toast(\'收据已打开\')">收据</button></td>';
+  toast('收款成功，已生成收据');
+}
+
+function openAdjust(){
+  openModal(`
+    <button class="btn sm close" onclick="closeModal()">关闭</button>
+    <h3>账单减免</h3>
+    <div class="field"><label>减免金额</label><input value="100" /></div>
+    <div class="field"><label>减免原因</label><textarea rows="3"></textarea></div>
+    <div class="notice">金额达到阈值时进入审批；审批通过后应付减少。</div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn primary" onclick="toast('已提交减免审批');closeModal()">提交审批</button>
+    </div>
+  `);
+}
+
+function openBatch(){
+  openModal(`
+    <button class="btn sm close" onclick="closeModal()">关闭</button>
+    <h3>批量生成账单</h3>
+    <div class="field"><label>项目</label><select><option>幸福里保障房项目</option></select></div>
+    <div class="field"><label>账期</label><input value="2026-12" /></div>
+    <div class="field"><label>合同范围</label><select><option>全部生效合同</option><option>指定合同</option></select></div>
+    <div class="notice">生成前会校验重复账单、合同状态、账期重叠。超过 500 条走异步任务。</div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn primary" onclick="toast('已提交批量生成，任务号 JOB202611001');closeModal()">确认生成</button>
+    </div>
+  `);
+}
+
+function selectSpace(el, name){
+  $$('#spaceTree .tree-node').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  $('#spaceTitle').textContent = name;
+  toast('当前空间：' + name);
+}
+function openBind(){
+  openModal(`
+    <button class="btn sm close" onclick="closeModal()">关闭</button>
+    <h3>绑定设备</h3>
+    <div class="field"><label>设备</label><select><option>DV202611009 · 102门锁（未绑定）</option><option>DV202611010 · 102电表（未绑定）</option></select></div>
+    <div class="field"><label>绑定空间</label><input value="A栋 / 1单元 / 1层 / 102" disabled /></div>
+    <div class="notice">一个设备同一时间只绑定一个空间；绑定到父级后子级继承。</div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn primary" onclick="toast('绑定成功');closeModal()">确认绑定</button>
+    </div>
+  `);
+}
+function openImport(){
+  openModal(`
+    <button class="btn sm close" onclick="closeModal()">关闭</button>
+    <h3>设备绑定导入</h3>
+    <div class="notice">CSV 表头：组织编码,楼栋,单元,楼层,房间,床位内房,房源编号,房源名称,房源类型,建筑面积,设备编号,设备类型,设备名称,物理MAC</div>
+    <div class="field"><label>选择 CSV</label><input type="file" /></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn" onclick="toast('模板已下载')">下载模板</button>
+      <button class="btn primary" onclick="toast('导入完成：空间 4，房源 1，设备 2，失败 1');closeModal()">开始导入</button>
+    </div>
+  `);
+}
+
+$$('[data-ctab]').forEach(tab => tab.onclick = () => {
+  $$('[data-ctab]').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  ['overview','bill','cohabit','device','log'].forEach(k => $('#ctab-' + k).classList.add('hide'));
+  $('#ctab-' + tab.dataset.ctab)?.classList.remove('hide');
+});
+</script>
+</body>
+</html>
