@@ -672,3 +672,14 @@ create table if not exists guarantee_qualification_review (
   unique key uk_guarantee_review (tenant_id, contract_id, review_type, review_year),
   key idx_guarantee_review_project (tenant_id, project_id, review_status)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房资格复核';
+
+
+create table if not exists bp_migration_exception (
+  id bigint not null primary key,
+  source_table varchar(64) not null,
+  source_id bigint not null,
+  reason varchar(500) not null,
+  payload varchar(2000) null,
+  create_time datetime not null default current_timestamp,
+  unique key uk_bp_migration_exception (source_table, source_id)
+) engine=InnoDB default charset=utf8mb4 comment='老数据迁移异常';

@@ -11,6 +11,7 @@
 """
 
 import argparse
+import hashlib
 import os
 import sys
 
@@ -71,7 +72,7 @@ def migrate(apply=False):
 
     stats = {}
     inserted = {k: 0 for k in ("org", "space", "house", "person", "contract", "bill", "grant", "device",
-                              "application", "waitlist", "payment", "payment_allocation", "receipt")}
+                              "application", "waitlist", "allocation", "payment", "payment_allocation", "receipt")}
     try:
         # 1. 组织/项目
         oc.execute("""
@@ -207,6 +208,17 @@ def migrate(apply=False):
                       r["bill_amount"], r["discount_amount"], r["payable_amount"],
                       r["paid_amount"], r["bill_status"], r["due_date"], r["id"], r["is_deleted"]))
                 inserted["bill"] += nc.rowcount
+                if nc.rowcount == 0:
+                    nc.execute("select count(*) from bp_bill where id=%s", (r["id"],))
+                    if nc.fetchone()["count(*)"] == 0:
+                        payload = (f"bill_no={r['bill_no']};contract_id={r['contract_id']};"
+                                   f"period={r['period_start']}~{r['period_end']}")
+                        ex_id = int(hashlib.sha256(payload.encode("utf-8")).hexdigest()[:15], 16)
+                        nc.execute("""
+                            insert ignore into bp_migration_exception
+                              (id, source_table, source_id, reason, payload)
+                            values (%s,'bp_fin_bill',%s,'账单合同周期重复或主键冲突',%s)
+                        """, (ex_id, r["id"], payload))
 
         # 7. 申请
         oc.execute("""
@@ -253,7 +265,38 @@ def migrate(apply=False):
                       r["enter_time"]))
                 inserted["waitlist"] += nc.rowcount
 
-        # 9. 支付
+        # 9. 配租
+        oc.execute("""
+            select id, tenant_id, allocation_no, person_id, house_id, allocation_date,
+                   allocation_status
+            from bp_biz_allocation order by id
+        """)
+        allocations = oc.fetchall()
+        stats["allocation"] = len(allocations)
+        for r in allocations:
+            if apply:
+                nc.execute("""
+                    insert ignore into guarantee_application
+                      (id, tenant_id, project_id, application_no, applicant_person_id,
+                       application_type, family_size, application_status, submit_time,
+                       review_time, review_comment, is_deleted)
+                    values (%s,%s,%s,%s,%s,'LEGACY',1,'APPROVED',%s,%s,'历史配租导入',0)
+                """, (r["id"], r["tenant_id"], r["tenant_id"], "LEGACY-ALLOC-" + str(r["allocation_no"]),
+                      r["person_id"], r["allocation_date"], r["allocation_date"]))
+                status = "ALLOCATED" if r["allocation_status"] in ("LOCKED", "CONFIRMED") else "CANCELLED"
+                nc.execute("""
+                    insert ignore into guarantee_allocation
+                      (id, tenant_id, project_id, application_id, house_id, allocation_no,
+                       allocation_status, allocated_time, is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,%s,%s,0)
+                """, (r["id"], r["tenant_id"], r["tenant_id"], r["id"], r["house_id"],
+                      r["allocation_no"], status, r["allocation_date"]))
+                if nc.rowcount > 0:
+                    inserted["allocation"] += 1
+                    if status == "ALLOCATED":
+                        nc.execute("update bp_house set house_status='ALLOCATED' where id=%s", (r["house_id"],))
+
+        # 10. 支付
         oc.execute("""
             select id, tenant_id, org_id, payment_no, person_id, pay_amount, pay_channel,
                    pay_status, pay_time, remark
