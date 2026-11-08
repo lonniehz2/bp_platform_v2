@@ -19,6 +19,13 @@ public class HouseController {
         this.service = service;
     }
 
+    @org.springframework.web.bind.annotation.PostMapping("/{houseId}/update")
+    public R<Map<String, Object>> update(@org.springframework.web.bind.annotation.PathVariable long projectId,
+                                         @org.springframework.web.bind.annotation.PathVariable long houseId,
+                                         @org.springframework.web.bind.annotation.RequestBody HouseService.HouseUpdate cmd) {
+        return R.ok(service.update(houseId, cmd));
+    }
+
     @GetMapping
     public R<List<Map<String, Object>>> list(@PathVariable long projectId) {
         return R.ok(service.list(projectId));

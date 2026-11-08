@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import Pager from '../components/Pager.vue'
 
@@ -8,6 +8,8 @@ const houses = ref([])
 const status = ref('')
 const page = ref(1)
 const error = ref('')
+const editing = ref(null)
+const editForm = reactive({ area: 0, innerArea: 0, houseStatus: 'VACANT', assetTypeCode: '' })
 const filtered = computed(() => status.value ? houses.value.filter(h => h.houseStatus === status.value) : houses.value)
 const paged = computed(() => filtered.value.slice((page.value - 1) * 10, page.value * 10))
 
@@ -22,6 +24,20 @@ async function load() {
   try {
     project.value = await currentProject()
     if (project.value) houses.value = await api.houses(project.value.id)
+  } catch (e) { error.value = e.message }
+}
+
+function openEdit(h) {
+  editing.value = h
+  editForm.area = h.area || 0; editForm.innerArea = h.innerArea || 0
+  editForm.houseStatus = h.houseStatus || 'VACANT'; editForm.assetTypeCode = h.assetTypeCode || ''
+}
+
+async function saveEdit() {
+  try {
+    await api.updateHouse(project.value.id, editing.value.id, { ...editForm })
+    editing.value = null
+    await load()
   } catch (e) { error.value = e.message }
 }
 
@@ -49,13 +65,28 @@ onMounted(load)
           <tbody>
             <tr v-for="h in paged" :key="h.id">
               <td class="mono">{{ h.houseCode }}</td><td>{{ h.houseName }}</td>
-              <td>{{ h.assetTypeCode || '-' }}</td><td>{{ h.area || '-' }}</td>
+              <td>{{ h.assetTypeCode || '-' }}</td><td>{{ h.area || '-' }}</td><td>{{ h.innerArea || '-' }}</td>
               <td><span class="badge" :class="h.houseStatus === 'VACANT' ? 'green' : 'orange'">{{ h.houseStatus }}</span></td>
+              <td><button class="sm" @click="openEdit(h)">编辑</button></td>
             </tr>
           </tbody>
         </table>
       </div>
       <Pager :total="filtered.length" :page="page" @update:page="page = $event" />
+    </div>
+
+    <div v-if="editing" class="modal-mask" @click.self="editing = null">
+      <div class="modal">
+        <div class="panel-head"><h2>编辑房源</h2><button class="sm" @click="editing = null">关闭</button></div>
+        <div class="field"><label>房源</label><div class="mono">{{ editing.houseCode }} · {{ editing.houseName }}</div></div>
+        <div class="row">
+          <div class="field"><label>建筑面积</label><input v-model.number="editForm.area" type="number" /></div>
+          <div class="field"><label>套内面积</label><input v-model.number="editForm.innerArea" type="number" /></div>
+          <div class="field"><label>房态</label><select v-model="editForm.houseStatus"><option value="VACANT">空置</option><option value="ALLOCATED">已配租</option><option value="OCCUPIED">已入住</option><option value="FROZEN">冻结</option></select></div>
+          <div class="field"><label>资产类型</label><input v-model="editForm.assetTypeCode" /></div>
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" @click="saveEdit">保存</button></div>
+      </div>
     </div>
   </div>
 </template>

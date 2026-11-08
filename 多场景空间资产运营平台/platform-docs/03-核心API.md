@@ -1246,7 +1246,17 @@ billStatus
 
 ---
 
-## 31. 修改密码
+## 31. 房源属性更新
+
+### POST /projects/{projectId}/houses/{houseId}/update
+
+```json
+{"area": 88.5, "innerArea": 70.2, "houseStatus": "VACANT", "assetTypeCode": "PUBLIC_RENTAL"}
+```
+
+---
+
+## 32. 修改密码
 角色管理
 同住人
 账单调整
@@ -1260,7 +1270,7 @@ billStatus
 
 ---
 
-## 32. 附件
+## 33. 附件
 
 ### POST /files
 
@@ -1286,7 +1296,7 @@ file=<文件>
 
 ---
 
-## 33. 迁移异常
+## 34. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -1304,7 +1314,7 @@ PENDING → RESOLVED
 
 ---
 
-## 34. 验证脚本
+## 35. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1

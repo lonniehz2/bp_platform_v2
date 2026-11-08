@@ -15,7 +15,7 @@ const page = ref(1)
 const error = ref('')
 const busy = ref(false)
 const pagedProjects = computed(() => projects.value.slice((page.value - 1) * 10, page.value * 10))
-const form = reactive({ orgCode: '', orgName: '保障房项目', businessMode: 'PUBLIC_RENTAL', spaceTemplateId: '', defaultAssetTypeCode: 'PUBLIC_RENTAL' })
+const form = reactive({ orgCode: '', orgName: '保障房项目', businessMode: 'PUBLIC_RENTAL', spaceTemplateId: '', defaultAssetTypeCode: 'PUBLIC_RENTAL', address: '', contactName: '', contactPhone: '', remark: '' })
 const spaceForm = reactive({ parentId: '', spaceCode: '', spaceName: '', spaceType: 'BUILDING', assetTypeCode: 'PUBLIC_RENTAL', rentable: false, area: 0 })
 const spaceTypes = ['AREA', 'BUILDING', 'UNIT', 'FLOOR', 'ROOM', 'INNER_ROOM', 'BED']
 
@@ -43,7 +43,9 @@ async function create() {
       orgCode: form.orgCode.trim(), orgName: form.orgName.trim(),
       sceneCode: 'GUARANTEE', businessMode: form.businessMode,
       spaceTemplateId: form.spaceTemplateId,
-      defaultAssetTypeCode: form.defaultAssetTypeCode
+      defaultAssetTypeCode: form.defaultAssetTypeCode,
+      address: form.address, contactName: form.contactName,
+      contactPhone: form.contactPhone, remark: form.remark
     })
     form.orgCode = ''
     await load()
@@ -107,6 +109,9 @@ onMounted(load)
         <div class="field"><label>空间模板</label>
           <select v-model="form.spaceTemplateId"><option v-for="t in templates" :key="t.id" :value="t.id">{{ t.templateName }}</option></select>
         </div>
+        <div class="field" style="flex:2"><label>项目地址</label><input v-model="form.address" /></div>
+        <div class="field"><label>联系人</label><input v-model="form.contactName" /></div>
+        <div class="field"><label>联系电话</label><input v-model="form.contactPhone" /></div>
         <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('asset')" class="primary" :disabled="busy" @click="create">创建项目</button></div>
       </div>
     </div>
@@ -119,7 +124,8 @@ onMounted(load)
           <thead><tr><th>项目编码</th><th>项目名称</th><th>经营模式</th><th>模板</th><th>状态</th><th>操作</th></tr></thead>
           <tbody>
             <tr v-for="p in pagedProjects" :key="p.id" :class="{ active: currentProject && String(currentProject.id) === String(p.id) }">
-              <td class="mono">{{ p.orgCode }}</td><td>{{ p.orgName }}</td><td>{{ p.businessMode }}</td>
+              <td class="mono">{{ p.orgCode }}</td><td>{{ p.orgName }}</td><td>{{ p.address || '-' }}</td>
+              <td>{{ p.contactName || '-' }} {{ p.contactPhone || '' }}</td><td>{{ p.businessMode }}</td>
               <td>{{ p.templateName || p.spaceTemplateId }}</td>
               <td><span class="badge green">{{ p.status }}</span></td>
               <td><button class="sm" @click="selectProject(p)">设为当前</button></td>
