@@ -134,6 +134,32 @@ public class PropertyBillingService {
         return out;
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public Map<String, Object> createManualBill(ManualCmd cmd) {
+        requireProject(cmd.projectId());
+        if (cmd.amount() == null || cmd.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw BizException.paramInvalid("金额必须大于 0");
+        }
+        Map<String, Object> fee = jdbc.queryForMap(
+                "select id, income_category, income_subcategory from prop_fee_item "
+                        + "where id=? and tenant_id=? and project_id=? and is_deleted=0",
+                cmd.feeItemId(), TenantContext.tenantId(), cmd.projectId());
+        long id = idGen.nextId();
+        LocalDate start = cmd.periodStart() == null ? LocalDate.now() : cmd.periodStart();
+        LocalDate end = cmd.periodEnd() == null ? start : cmd.periodEnd();
+        jdbc.update("insert into prop_bill(id,tenant_id,project_id,bill_no,income_category,income_subcategory,"
+                        + "fee_item_id,payer_type,payer_name,bill_amount,payable_amount,bill_status,due_date,"
+                        + "source_type,source_id,service_start_date,service_end_date,is_deleted,create_by,"
+                        + "create_time,update_by,update_time) "
+                        + "values(?,?,?,?,?,?,?, 'OTHER',?,?,?, 'PENDING',?, 'MANUAL',?,?,?,0,?,now(),?,now())",
+                id, TenantContext.tenantId(), cmd.projectId(), "PB" + id,
+                fee.get("income_category"), fee.get("income_subcategory"), cmd.feeItemId(),
+                cmd.payerName(), cmd.amount(), cmd.amount(), Date.valueOf(end), id,
+                Date.valueOf(start), Date.valueOf(end),
+                String.valueOf(TenantContext.userId()), String.valueOf(TenantContext.userId()));
+        return Map.of("billId", id, "billNo", "PB" + id, "amount", cmd.amount());
+    }
+
     public Map<String, Object> pageBills(Long projectId, int pageNum, int pageSize,
                                          String status, String keyword) {
         requireProject(projectId);
@@ -296,5 +322,9 @@ public class PropertyBillingService {
 
     public record PayCmd(Long projectId, List<Long> billIds, BigDecimal payAmount,
                          String payChannel, String remark) {
+    }
+
+    public record ManualCmd(Long projectId, Long feeItemId, String payerName,
+                            BigDecimal amount, LocalDate periodStart, LocalDate periodEnd) {
     }
 }

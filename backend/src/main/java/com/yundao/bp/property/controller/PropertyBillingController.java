@@ -45,6 +45,12 @@ public class PropertyBillingController {
         return R.ok(service.generateBills(cmd));
     }
 
+    @com.yundao.bp.iam.security.RequirePerm("property:bill:manage")
+    @PostMapping("/bills/manual")
+    public R<Map<String, Object>> manual(@RequestBody PropertyBillingService.ManualCmd cmd) {
+        return R.ok(service.createManualBill(cmd));
+    }
+
     @com.yundao.bp.iam.security.RequirePerm("property:bill:view")
     @GetMapping("/bills")
     public R<Map<String, Object>> bills(@RequestParam Long projectId,

@@ -37,6 +37,7 @@
           <el-option label="OVERDUE" value="OVERDUE" />
         </el-select>
         <el-button @click="loadBills">{{ t('propertyBilling.refresh') }}</el-button>
+        <el-button @click="openManual">{{ t('propertyBilling.manual') }}</el-button>
         <el-button type="primary" @click="openGenerate">{{ t('propertyBilling.generate') }}</el-button>
         <el-button type="success" :disabled="!selected.length" @click="openPay">
           {{ t('propertyBilling.paySelected', { n: selected.length }) }}
@@ -129,6 +130,29 @@
       </template>
     </el-dialog>
 
+    <el-dialog v-model="manualVisible" :title="t('propertyBilling.manual')" width="500px">
+      <el-form :model="manualForm" label-width="110px">
+        <el-form-item :label="t('propertyBilling.feeItem')" required>
+          <el-select v-model="manualForm.feeItemId" style="width:100%">
+            <el-option v-for="f in feeItems" :key="f.id" :label="f.feeItemName" :value="f.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="t('propertyBilling.payer')" required>
+          <el-input v-model="manualForm.payerName" />
+        </el-form-item>
+        <el-form-item :label="t('propertyBilling.amount')" required>
+          <el-input-number v-model="manualForm.amount" :min="0" :precision="2" />
+        </el-form-item>
+        <el-form-item :label="t('propertyBilling.period')">
+          <el-date-picker v-model="manualForm.period" type="monthrange" value-format="YYYY-MM-DD" style="width:100%" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="manualVisible = false">{{ t('propertyBilling.cancel') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="saveManual">{{ t('propertyBilling.confirm') }}</el-button>
+      </template>
+    </el-dialog>
+
     <el-dialog v-model="payVisible" :title="t('propertyBilling.pay')" width="480px">
       <div class="pay-summary">
         <div>{{ t('propertyBilling.selectedBills') }}：{{ payBills.length }}</div>
@@ -185,6 +209,7 @@ const feeVisible = ref(false)
 const generateVisible = ref(false)
 const payVisible = ref(false)
 const receiptVisible = ref(false)
+const manualVisible = ref(false)
 const receipt = ref(null)
 const payBills = ref([])
 const payChannel = ref('WECHAT')
@@ -193,6 +218,7 @@ const feeForm = reactive({
   chargeBasis: 'AREA', billingCycle: 'MONTH', defaultPrice: 0, unit: t('propertyBilling.unitAreaMonth')
 })
 const genForm = reactive({ feeItemId: null, period: [] })
+const manualForm = reactive({ feeItemId: null, payerName: '', amount: 0, period: [] })
 const payTotal = computed(() => payBills.value.reduce(
   (s, b) => s + Number(b.payableAmount || 0) - Number(b.paidAmount || 0), 0).toFixed(2))
 
@@ -261,6 +287,32 @@ function openGenerate() {
   const f = (d) => d.toISOString().slice(0, 10)
   genForm.period = [f(start), f(end)]
   generateVisible.value = true
+}
+
+function openManual() {
+  const multi = feeItems.value.find((f) => f.feeItemCode === 'MULTI_INCOME') || feeItems.value[0]
+  Object.assign(manualForm, { feeItemId: multi?.id || null, payerName: '', amount: 0, period: [] })
+  manualVisible.value = true
+}
+
+async function saveManual() {
+  if (!manualForm.feeItemId || !manualForm.payerName.trim() || !manualForm.amount) {
+    ElMessage.warning(t('propertyBilling.required'))
+    return
+  }
+  saving.value = true
+  try {
+    await req.post('/property/bills/manual', {
+      projectId: projectId.value, feeItemId: manualForm.feeItemId,
+      payerName: manualForm.payerName, amount: manualForm.amount,
+      periodStart: manualForm.period?.[0], periodEnd: manualForm.period?.[1]
+    })
+    ElMessage.success(t('propertyBilling.saved'))
+    manualVisible.value = false
+    await loadBills()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || t('propertyBilling.saveFailed'))
+  } finally { saving.value = false }
 }
 
 async function generate() {

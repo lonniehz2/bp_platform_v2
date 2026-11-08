@@ -395,6 +395,12 @@ const routes = [
         meta: { title: '物业项目' }
       },
       {
+        path: 'meters',
+        name: 'propertyMeter',
+        component: () => import('@/views/property/PropertyMeter.vue'),
+        meta: { title: '水电抄表' }
+      },
+      {
         path: 'dunning',
         name: 'propertyDunning',
         component: () => import('@/views/property/PropertyDunning.vue'),
