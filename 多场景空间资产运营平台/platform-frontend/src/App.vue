@@ -6,7 +6,7 @@ import { api } from './api'
 import { getMenus, setMenus } from './permissions'
 import { mode, toggleMode } from './ui'
 import { setLocale } from './i18n'
-import { navGroups } from './navConfig'
+import { navGroups, navItems } from './navConfig'
 
 const route = useRoute()
 const router = useRouter()
@@ -85,6 +85,9 @@ const titleKey = {
   '/menus': 'nav.config',
   '/migration-exceptions': 'nav.migration',
   '/help': 'nav.help'
+}
+for (const item of navItems) {
+  if (!titleKey[item.to]) titleKey[item.to] = 'nav.' + item.key
 }
 const title = computed(() => t(titleKey[route.path] || 'nav.dashboard'))
 

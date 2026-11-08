@@ -1,8 +1,13 @@
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { api } from '../api'
 import { can } from '../permissions'
 
+const route = useRoute()
+const forcedType = computed(() => route.meta?.changeType || '')
+const visibleChanges = computed(() => forcedType.value ? changes.value.filter(c => c.changeType === forcedType.value) : changes.value)
+const pageTitle = computed(() => ({ TERMINATION: '退租管理', ROOM_CHANGE: '换房管理' }[forcedType.value] || '合同变更'))
 const project = ref(null)
 const contracts = ref([])
 const selectedContractId = ref('')
@@ -10,7 +15,7 @@ const changes = ref([])
 const houses = ref([])
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ changeType: 'RENT_CHANGE', rentAmount: 1500, endDate: '2027-10-31', houseId: '', effectiveDate: '2026-12-01', reason: '页面调整' })
+const form = reactive({ changeType: forcedType.value || 'RENT_CHANGE', rentAmount: 1500, endDate: '2027-10-31', houseId: '', effectiveDate: '2026-12-01', reason: '页面调整' })
 
 const statusClass = (s) => ({ APPROVED: 'green', REJECTED: 'red', APPROVING: 'orange' }[s] || '')
 
@@ -70,6 +75,7 @@ async function run(fn) {
 }
 
 watch(selectedContractId, loadChanges)
+watch(forcedType, (v) => { if (v) form.changeType = v }, { immediate: true })
 onMounted(load)
 </script>
 
@@ -79,7 +85,7 @@ onMounted(load)
     <div v-if="!project" class="empty">请先创建项目</div>
     <template v-else>
       <div class="panel">
-        <div class="panel-head"><div><h2>合同变更</h2><p>{{ project.orgName }} · 租金/期限/换房/退租</p></div>
+        <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project.orgName }} · 租金/期限/换房/退租</p></div>
           <select v-model="selectedContractId" style="max-width:320px">
             <option value="">选择合同</option>
             <option v-for="c in contracts" :key="c.id" :value="c.id">{{ c.contractNo }} · {{ c.personName }}</option>
@@ -90,7 +96,7 @@ onMounted(load)
       <div class="panel">
         <div class="panel-head"><h2>新建变更</h2><span class="small muted">提交后进入平台审批</span></div>
         <div class="row">
-          <div class="field"><label>类型</label>
+          <div class="field" v-if="!forcedType"><label>类型</label>
             <select v-model="form.changeType"><option value="RENT_CHANGE">租金变更</option><option value="TERM_CHANGE">期限变更</option><option value="ROOM_CHANGE">换房</option><option value="TERMINATION">退租</option></select>
           </div>
           <div class="field" v-if="form.changeType === 'RENT_CHANGE'"><label>新租金</label><input v-model.number="form.rentAmount" type="number" /></div>
@@ -111,7 +117,7 @@ onMounted(load)
           <table>
             <thead><tr><th>类型</th><th>生效日期</th><th>状态</th><th>原因</th><th>操作</th></tr></thead>
             <tbody>
-              <tr v-for="c in changes" :key="c.id">
+              <tr v-for="c in visibleChanges" :key="c.id">
                 <td>{{ c.changeType }}</td><td>{{ c.effectiveDate }}</td>
                 <td>
                   <span class="badge" :class="statusClass(c.changeStatus)">{{ c.changeStatus }}</span>

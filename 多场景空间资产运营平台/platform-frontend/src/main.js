@@ -39,6 +39,8 @@ import MigrationExceptions from './pages/MigrationExceptions.vue'
 import Devices from './pages/Devices.vue'
 import Meters from './pages/Meters.vue'
 import Menus from './pages/Menus.vue'
+import Waitlist from './pages/Waitlist.vue'
+import Allocations from './pages/Allocations.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -76,7 +78,37 @@ const router = createRouter({
     { path: '/users', component: Users, meta: { title: '用户管理' } },
     { path: '/audit', component: Audit, meta: { title: '审批中心' } },
     { path: '/menus', component: Menus, meta: { title: '菜单与角色' } },
-    { path: '/migration-exceptions', component: MigrationExceptions, meta: { title: '迁移异常' } }
+    { path: '/migration-exceptions', component: MigrationExceptions, meta: { title: '迁移异常' } },
+
+    // 旧系统路径兼容
+    { path: '/todos', component: Audit, meta: { title: '我的待办' } },
+    { path: '/patrol', component: Alerts, meta: { title: '自动巡查' } },
+    { path: '/house-access', component: Devices, meta: { title: '房源权限' } },
+    { path: '/visits', component: Complaints, meta: { title: '入户走访' } },
+    { path: '/waitlist', component: Waitlist, meta: { title: '轮候管理' } },
+    { path: '/allocations', component: Allocations, meta: { title: '配租摇号' } },
+    { path: '/annual-reviews', component: Qualification, meta: { title: '年审复核' } },
+    { path: '/contract-changes', component: Changes, meta: { title: '合同变更' } },
+    { path: '/exchanges', component: Changes, meta: { title: '换房管理', changeType: 'ROOM_CHANGE' } },
+    { path: '/terminations', component: Changes, meta: { title: '退租管理', changeType: 'TERMINATION' } },
+    { path: '/houses', component: Projects, meta: { title: '房源台账' } },
+    { path: '/spaces', component: Projects, meta: { title: '空间层级' } },
+    { path: '/bills', component: Billing, meta: { title: '账单与缴费' } },
+    { path: '/subsidies', component: Deposits, meta: { title: '补贴管理' } },
+    { path: '/meter-readings', component: Meters, meta: { title: '抄表管理' } },
+    { path: '/device-bind', component: Devices, meta: { title: '设备绑定' } },
+    { path: '/dev-events', component: Alerts, meta: { title: '设备告警' } },
+    { path: '/access', component: Access, meta: { title: '通行记录' } },
+    { path: '/keyring', component: Persons, meta: { title: '钥匙包' } },
+    { path: '/grants', component: Devices, meta: { title: '通行授权' } },
+    { path: '/appeals', component: Complaints, meta: { title: '申诉管理' } },
+    { path: '/orgs', component: Projects, meta: { title: '组织机构' } },
+    { path: '/gov', component: GovReport, meta: { title: '监管报送' } },
+    { path: '/rbac', component: Users, meta: { title: '用户与权限' } },
+    { path: '/sys', component: Menus, meta: { title: '系统支撑' } },
+    { path: '/translations', component: Help, meta: { title: '业务数据翻译' } },
+    { path: '/platform-info', component: Help, meta: { title: '平台信息' } },
+    { path: '/short-rent', component: ShortRent, meta: { title: '短租订单' } }
   ]
 })
 

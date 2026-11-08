@@ -6,6 +6,7 @@ export const navGroups = [
     items: [
       { to: '/', key: 'dashboard', menu: 'dashboard', icon: '◈' },
       { to: '/search', key: 'search', menu: 'search', icon: '⌕' },
+      { to: '/todos', key: 'todos', menu: 'audit', icon: '✓' },
       { to: '/messages', key: 'message', menu: 'message', icon: '✉' }
     ]
   },
@@ -14,9 +15,12 @@ export const navGroups = [
     labelKey: 'group.risk',
     icon: '⚠',
     items: [
-      { to: '/alerts', key: 'alert', menu: 'alert', icon: '⚠' },
+      { to: '/alerts', key: 'alertCenter', menu: 'alert', icon: '⚠' },
+      { to: '/patrol', key: 'patrol', menu: 'alert', icon: '◎' },
       { to: '/arrears', key: 'arrears', menu: 'billing', icon: '!' },
-      { to: '/credits', key: 'credit', menu: 'credit', icon: '✖' }
+      { to: '/house-access', key: 'houseAccess', menu: 'device', icon: '⌂' },
+      { to: '/credits', key: 'credit', menu: 'credit', icon: '✖' },
+      { to: '/visits', key: 'visits', menu: 'complaint', icon: '☏' }
     ]
   },
   {
@@ -24,10 +28,12 @@ export const navGroups = [
     labelKey: 'group.guarantee',
     icon: '♙',
     items: [
+      { to: '/applications', key: 'applications', menu: 'application', icon: '☷' },
+      { to: '/waitlist', key: 'waitlist', menu: 'application', icon: '↕' },
+      { to: '/allocations', key: 'allocations', menu: 'application', icon: '◎' },
+      { to: '/publicities', key: 'publicity', menu: 'publicity', icon: '▣' },
       { to: '/persons', key: 'person', menu: 'person', icon: '♙' },
-      { to: '/applications', key: 'application', menu: 'application', icon: '☷' },
-      { to: '/qualification', key: 'qualification', menu: 'contract', icon: '◎' },
-      { to: '/publicities', key: 'publicity', menu: 'publicity', icon: '▣' }
+      { to: '/annual-reviews', key: 'annualReviews', menu: 'contract', icon: '✓' }
     ]
   },
   {
@@ -35,11 +41,14 @@ export const navGroups = [
     labelKey: 'group.contract',
     icon: '▤',
     items: [
-      { to: '/projects', key: 'asset', menu: 'asset', icon: '▦' },
-      { to: '/contracts', key: 'contract', menu: 'contract', icon: '▤' },
-      { to: '/changes', key: 'changes', menu: 'contract', icon: '⇄' },
+      { to: '/contracts', key: 'contracts', menu: 'contract', icon: '▤' },
+      { to: '/contract-changes', key: 'contractChanges', menu: 'contract', icon: '⇄' },
+      { to: '/exchanges', key: 'exchanges', menu: 'contract', icon: '⇄' },
+      { to: '/terminations', key: 'terminations', menu: 'contract', icon: '✖' },
+      { to: '/houses', key: 'houses', menu: 'asset', icon: '▦' },
+      { to: '/spaces', key: 'spaces', menu: 'asset', icon: '▤' },
       { to: '/house-calendar', key: 'calendar', menu: 'calendar', icon: '▦' },
-      { to: '/short-rent-orders', key: 'shortrent', menu: 'shortrent', icon: '⌂' }
+      { to: '/short-rent', key: 'shortrent', menu: 'shortrent', icon: '⌂' }
     ]
   },
   {
@@ -47,13 +56,13 @@ export const navGroups = [
     labelKey: 'group.finance',
     icon: '¥',
     items: [
-      { to: '/billing', key: 'billing', menu: 'billing', icon: '¥' },
-      { to: '/fee-items', key: 'fee', menu: 'billing', icon: '≡' },
+      { to: '/bills', key: 'bills', menu: 'billing', icon: '¥' },
       { to: '/deposits', key: 'deposits', menu: 'billing', icon: '◫' },
+      { to: '/subsidies', key: 'subsidies', menu: 'billing', icon: '◫' },
       { to: '/cashflow', key: 'cashflow', menu: 'billing', icon: '↕' },
-      { to: '/meters', key: 'meter', menu: 'asset', icon: '◉' },
-      { to: '/energy', key: 'energy', menu: 'energy', icon: '▤' },
-      { to: '/reports', key: 'reports', menu: 'billing', icon: '▤' }
+      { to: '/fee-items', key: 'fee', menu: 'billing', icon: '≡' },
+      { to: '/meter-readings', key: 'meterReadings', menu: 'asset', icon: '◉' },
+      { to: '/energy', key: 'energy', menu: 'energy', icon: '▤' }
     ]
   },
   {
@@ -61,8 +70,12 @@ export const navGroups = [
     labelKey: 'group.access',
     icon: '⌘',
     items: [
-      { to: '/devices', key: 'device', menu: 'device', icon: '⌘' },
-      { to: '/access-records', key: 'access', menu: 'access', icon: '⌂' }
+      { to: '/devices', key: 'devices', menu: 'device', icon: '⌘' },
+      { to: '/device-bind', key: 'deviceBind', menu: 'device', icon: '⌁' },
+      { to: '/dev-events', key: 'devEvents', menu: 'alert', icon: '⚠' },
+      { to: '/access', key: 'accessRecords', menu: 'access', icon: '⌂' },
+      { to: '/keyring', key: 'keyring', menu: 'person', icon: '⚿' },
+      { to: '/grants', key: 'grants', menu: 'device', icon: '⇄' }
     ]
   },
   {
@@ -70,8 +83,9 @@ export const navGroups = [
     labelKey: 'group.service',
     icon: '⚒',
     items: [
-      { to: '/work-orders', key: 'service', menu: 'service', icon: '⚒' },
-      { to: '/complaints', key: 'complaint', menu: 'complaint', icon: '☏' }
+      { to: '/work-orders', key: 'workOrders', menu: 'service', icon: '⚒' },
+      { to: '/complaints', key: 'complaints', menu: 'complaint', icon: '☏' },
+      { to: '/appeals', key: 'appeals', menu: 'complaint', icon: '☏' }
     ]
   },
   {
@@ -79,13 +93,15 @@ export const navGroups = [
     labelKey: 'group.system',
     icon: '☰',
     items: [
-      { to: '/users', key: 'users', menu: 'config', icon: '♟' },
-      { to: '/menus', key: 'config', menu: 'config', icon: '☰' },
+      { to: '/reports', key: 'reports', menu: 'billing', icon: '▤' },
+      { to: '/gov', key: 'gov', menu: 'gov', icon: '⇪' },
+      { to: '/orgs', key: 'orgs', menu: 'asset', icon: '▦' },
+      { to: '/rbac', key: 'rbac', menu: 'config', icon: '♟' },
+      { to: '/sys', key: 'sys', menu: 'config', icon: '☰' },
       { to: '/open-apps', key: 'open', menu: 'open', icon: '⇄' },
-      { to: '/gov-report', key: 'gov', menu: 'gov', icon: '⇪' },
-      { to: '/audit', key: 'audit', menu: 'audit', icon: '✓' },
-      { to: '/migration-exceptions', key: 'migration', menu: 'system', icon: '!' },
-      { to: '/help', key: 'help', menu: 'help', icon: '?' }
+      { to: '/help', key: 'help', menu: 'help', icon: '?' },
+      { to: '/translations', key: 'translations', menu: 'help', icon: '文' },
+      { to: '/platform-info', key: 'platformInfo', menu: 'help', icon: 'ⓘ' }
     ]
   }
 ]
