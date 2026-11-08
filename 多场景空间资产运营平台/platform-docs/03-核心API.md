@@ -1345,7 +1345,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-125 个断言通过
+127 个断言通过
 保障房 7 级空间树
 3 个房源
 人员

@@ -85,9 +85,21 @@ $project = Api "POST" "/api/v1/platform/projects" @{
     businessMode = "PUBLIC_RENTAL"
     spaceTemplateId = $template.id
     defaultAssetTypeCode = $typeCode
+    address = "验证路1号"
+    contactName = "验证联系人"
+    contactPhone = "13600001111"
+    totalArea = 12000.50
+    landArea = 3000.25
+    propertyType = "STATE"
+    buildYear = 2020
 }
 Assert-True ($null -ne $project.id) "project created"
 $projectId = $project.id
+
+$projectList = Api "GET" "/api/v1/platform/projects" $null
+$projectFound = @($projectList) | Where-Object { $_.orgCode -eq $projectCode } | Select-Object -First 1
+Assert-True ($projectFound.contactPhone -eq "13600001111") "project contact persisted"
+Assert-True ([decimal]$projectFound.totalArea -eq 12000.50) "project area persisted"
 
 function NewSpace($parentId, $code, $name, $type, $rentable) {
     return Api "POST" "/api/v1/platform/projects/$projectId/spaces" @{

@@ -27,6 +27,7 @@ public class ProjectService {
                         + "o.business_mode businessMode, o.space_template_id spaceTemplateId, "
                         + "t.template_name templateName, o.default_asset_type_code defaultAssetTypeCode, "
                         + "o.status, o.address, o.contact_name contactName, o.contact_phone contactPhone, o.remark, "
+                        + "o.total_area totalArea, o.land_area landArea, o.property_type propertyType, o.build_year buildYear, "
                         + "o.create_time createTime, "
                         + "(select count(*) from guarantee_contract c where c.project_id=o.id and c.is_deleted=0) contractCount, "
                         + "(select count(*) from guarantee_application a where a.project_id=o.id and a.is_deleted=0) applicationCount, "
@@ -66,12 +67,14 @@ public class ProjectService {
             jdbc.update("insert into bp_org(id,tenant_id,parent_id,org_code,org_name,org_type,"
                             + "scene_code,business_mode,space_template_id,default_asset_type_code,"
                             + "address,contact_name,contact_phone,remark,"
+                            + "total_area,land_area,property_type,build_year,"
                             + "org_path,sort_no,status,is_deleted) "
-                            + "values(?,?,?,?,?,'PROJECT',?,?,?,?,?,?,?,?,?,0,'ENABLED',0)",
+                            + "values(?,?,?,?,?,'PROJECT',?,?,?,?,?,?,?,?,?,?,?,?,?,0,'ENABLED',0)",
                     id, tenant, cmd.parentId(), cmd.orgCode().trim(), cmd.orgName().trim(),
                     cmd.sceneCode(), cmd.businessMode(), cmd.spaceTemplateId(),
                     cmd.defaultAssetTypeCode(), cmd.address(), cmd.contactName(), cmd.contactPhone(),
-                    cmd.remark(), "/" + id + "/");
+                    cmd.remark(), cmd.totalArea(), cmd.landArea(), cmd.propertyType(), cmd.buildYear(),
+                    "/" + id + "/");
         } catch (DataIntegrityViolationException e) {
             throw BizException.conflict("项目编码已存在");
         }
@@ -86,6 +89,8 @@ public class ProjectService {
     public record ProjectCmd(String orgCode, String orgName, Long parentId, String sceneCode,
                              String businessMode, Long spaceTemplateId,
                              String defaultAssetTypeCode, String address,
-                             String contactName, String contactPhone, String remark) {
+                             String contactName, String contactPhone, String remark,
+                             java.math.BigDecimal totalArea, java.math.BigDecimal landArea,
+                             String propertyType, Integer buildYear) {
     }
 }

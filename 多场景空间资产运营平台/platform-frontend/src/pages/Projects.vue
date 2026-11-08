@@ -15,7 +15,7 @@ const page = ref(1)
 const error = ref('')
 const busy = ref(false)
 const pagedProjects = computed(() => projects.value.slice((page.value - 1) * 10, page.value * 10))
-const form = reactive({ orgCode: '', orgName: '保障房项目', businessMode: 'PUBLIC_RENTAL', spaceTemplateId: '', defaultAssetTypeCode: 'PUBLIC_RENTAL', address: '', contactName: '', contactPhone: '', remark: '' })
+const form = reactive({ orgCode: '', orgName: '保障房项目', businessMode: 'PUBLIC_RENTAL', spaceTemplateId: '', defaultAssetTypeCode: 'PUBLIC_RENTAL', address: '', contactName: '', contactPhone: '', remark: '', totalArea: 0, landArea: 0, propertyType: '', buildYear: 2020 })
 const spaceForm = reactive({ parentId: '', spaceCode: '', spaceName: '', spaceType: 'BUILDING', assetTypeCode: 'PUBLIC_RENTAL', rentable: false, area: 0 })
 const spaceTypes = ['AREA', 'BUILDING', 'UNIT', 'FLOOR', 'ROOM', 'INNER_ROOM', 'BED']
 
@@ -45,7 +45,9 @@ async function create() {
       spaceTemplateId: form.spaceTemplateId,
       defaultAssetTypeCode: form.defaultAssetTypeCode,
       address: form.address, contactName: form.contactName,
-      contactPhone: form.contactPhone, remark: form.remark
+      contactPhone: form.contactPhone, remark: form.remark,
+      totalArea: Number(form.totalArea || 0), landArea: Number(form.landArea || 0),
+      propertyType: form.propertyType, buildYear: Number(form.buildYear || 0)
     })
     form.orgCode = ''
     await load()
@@ -112,6 +114,10 @@ onMounted(load)
         <div class="field" style="flex:2"><label>项目地址</label><input v-model="form.address" /></div>
         <div class="field"><label>联系人</label><input v-model="form.contactName" /></div>
         <div class="field"><label>联系电话</label><input v-model="form.contactPhone" /></div>
+        <div class="field"><label>总建筑面积</label><input v-model.number="form.totalArea" type="number" /></div>
+        <div class="field"><label>占地面积</label><input v-model.number="form.landArea" type="number" /></div>
+        <div class="field"><label>产权类型</label><select v-model="form.propertyType"><option value="">未填写</option><option value="STATE">国有</option><option value="COLLECTIVE">集体</option><option value="PRIVATE">私有</option></select></div>
+        <div class="field"><label>建成年份</label><input v-model.number="form.buildYear" type="number" /></div>
         <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('asset')" class="primary" :disabled="busy" @click="create">创建项目</button></div>
       </div>
     </div>
