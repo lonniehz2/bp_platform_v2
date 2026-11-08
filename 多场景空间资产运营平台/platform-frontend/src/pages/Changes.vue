@@ -113,7 +113,10 @@ onMounted(load)
             <tbody>
               <tr v-for="c in changes" :key="c.id">
                 <td>{{ c.changeType }}</td><td>{{ c.effectiveDate }}</td>
-                <td><span class="badge" :class="statusClass(c.changeStatus)">{{ c.changeStatus }}</span></td>
+                <td>
+                  <span class="badge" :class="statusClass(c.changeStatus)">{{ c.changeStatus }}</span>
+                  <div v-if="c.changeStatus === 'APPROVING' && c.currentNode" class="small muted">当前节点：{{ c.currentNode }}</div>
+                </td>
                 <td>{{ c.reason }}</td>
                 <td class="row">
                   <button class="sm" v-if="c.changeStatus === 'DRAFT'" @click="submit(c.id)">提交</button>
