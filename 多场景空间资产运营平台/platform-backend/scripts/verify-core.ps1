@@ -655,6 +655,21 @@ Assert-True (@($verifyUsers).Count -ge 1) "user listed"
 $verifyUserOff = Api "POST" "/api/v1/platform/users/$($verifyUser.id)/update" @{ userStatus = "DISABLED" }
 Assert-True ($verifyUserOff.userStatus -eq "DISABLED") "user disabled"
 
+
+$role = Api "POST" "/api/v1/platform/roles" @{
+    sceneCode = "GUARANTEE"
+    roleCode = "VERIFY_ROLE_$suffix"
+    roleName = "验证角色"
+    menuCodes = @()
+}
+Assert-True ($null -ne $role.id) "role created"
+
+$roleSaved = Api "POST" "/api/v1/platform/roles/$($role.id)/menus" @{ menuCodes = @("dashboard", "asset") }
+Assert-True ($roleSaved.menuCount -eq 2) "role menus saved"
+
+$roleMenus = Api "GET" "/api/v1/platform/roles/$($role.id)/menus" $null
+Assert-True (@($roleMenus).Count -eq 2) "role menus loaded"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

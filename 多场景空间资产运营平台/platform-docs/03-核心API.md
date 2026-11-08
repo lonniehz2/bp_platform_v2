@@ -343,6 +343,7 @@ HOUSE
 消息中心
 用户管理
 修改密码
+角色管理
 菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
@@ -405,6 +406,7 @@ HOUSE
 消息中心
 用户管理
 修改密码
+角色管理
 菜单权限
 通过/驳回
 审批记录
@@ -541,6 +543,7 @@ TERMINATION → 合同终止
 消息中心
 用户管理
 修改密码
+角色管理
 菜单权限
 
 ### GET /guarantee/applications?projectId=
@@ -666,6 +669,7 @@ WAITING → ALLOCATED
 消息中心
 用户管理
 修改密码
+角色管理
 菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
@@ -744,6 +748,7 @@ platform-sql/002_menu_seed.sql
 消息中心
 用户管理
 修改密码
+角色管理
 
 ### GET /guarantee/meters?projectId=
 
@@ -783,6 +788,7 @@ platform-sql/002_menu_seed.sql
 消息中心
 用户管理
 修改密码
+角色管理
 
 ### GET /guarantee/work-orders?projectId=
 
@@ -825,6 +831,7 @@ PENDING → PROCESSING → DONE → CLOSED
 消息中心
 用户管理
 修改密码
+角色管理
 
 ### GET /guarantee/access-records?projectId=
 
@@ -859,6 +866,7 @@ PENDING → PROCESSING → DONE → CLOSED
 消息中心
 用户管理
 修改密码
+角色管理
 
 ### GET /guarantee/complaints?projectId=&type=
 
@@ -900,6 +908,7 @@ VISIT 走访
 消息中心
 用户管理
 修改密码
+角色管理
 
 ### GET /guarantee/fee-items?projectId=
 
@@ -930,6 +939,7 @@ VISIT 走访
 消息中心
 用户管理
 修改密码
+角色管理
 
 ### GET /guarantee/publicities?projectId=
 
@@ -961,6 +971,7 @@ VISIT 走访
 消息中心
 用户管理
 修改密码
+角色管理
 
 ### GET /guarantee/alerts?projectId=
 
@@ -992,6 +1003,7 @@ VISIT 走访
 消息中心
 用户管理
 修改密码
+角色管理
 
 ### GET /guarantee/credits?projectId=
 
@@ -1016,6 +1028,7 @@ VISIT 走访
 消息中心
 用户管理
 修改密码
+角色管理
 
 ### GET /guarantee/short-rent-orders?projectId=
 
@@ -1051,6 +1064,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 消息中心
 用户管理
 修改密码
+角色管理
 
 ### GET /open-apps
 
@@ -1067,6 +1081,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 ## 25. 消息中心
 用户管理
 修改密码
+角色管理
 
 ### GET /messages
 
@@ -1084,6 +1099,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 
 ## 26. 用户管理
 修改密码
+角色管理
 
 ### GET /users
 
@@ -1108,7 +1124,24 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 
 ---
 
-## 27. 修改密码
+## 27. 角色管理
+
+### POST /roles
+
+```json
+{"sceneCode": "GUARANTEE", "roleCode": "AUDITOR", "roleName": "稽核员", "menuCodes": []}
+```
+
+### POST /roles/{id}/menus
+
+```json
+{"menuCodes": ["dashboard", "asset"]}
+```
+
+---
+
+## 28. 修改密码
+角色管理
 
 ### POST /auth/password
 
@@ -1118,7 +1151,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 
 ---
 
-## 28. 附件
+## 29. 附件
 
 ### POST /files
 
@@ -1144,7 +1177,7 @@ file=<文件>
 
 ---
 
-## 29. 迁移异常
+## 30. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -1162,7 +1195,7 @@ PENDING → RESOLVED
 
 ---
 
-## 30. 验证脚本
+## 31. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -1171,7 +1204,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-111 个断言通过
+114 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -1206,5 +1239,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 消息中心
 用户管理
 修改密码
+角色管理
 菜单权限
 ```

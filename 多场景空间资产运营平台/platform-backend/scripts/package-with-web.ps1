@@ -25,6 +25,7 @@ Push-Location $backend
 try {
     $env:JAVA_HOME = $JdkHome
     & $Maven -B -q -DskipTests package -s $Settings
+    if ($LASTEXITCODE -ne 0) { throw "Maven build failed: $LASTEXITCODE" }
 } finally {
     Pop-Location
 }
