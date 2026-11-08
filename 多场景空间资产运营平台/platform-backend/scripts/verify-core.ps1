@@ -174,6 +174,43 @@ Assert-True (@($payments).Count -eq 1) "payment listed"
 $receipt = Api "GET" "/api/v1/platform/billing/payments/$($payment.paymentId)/receipt" $null
 Assert-True ($receipt.receiptNo -eq $payment.receiptNo) "receipt readable"
 
+
+$flow = Api "POST" "/api/v1/platform/workflows" @{
+    sceneCode = "GUARANTEE"
+    bizType = "GUARANTEE_CONTRACT_CHANGE"
+    flowName = "保障房合同变更审批"
+    nodes = @(
+        @{ nodeName = "客服初审"; approverRole = "PROPERTY_STEWARD" },
+        @{ nodeName = "经理终审"; approverRole = "PROPERTY_MANAGER" }
+    )
+}
+Assert-True ($null -ne $flow.id) "workflow created"
+
+$wfTask = Api "POST" "/api/v1/platform/workflows/$($flow.id)/submit" @{
+    projectId = $projectId
+    bizType = "GUARANTEE_CONTRACT_CHANGE"
+    bizId = $contract.id
+    submitterName = "客服A"
+    amount = 0
+    summary = "合同变更验证"
+}
+Assert-True ($wfTask.taskStatus -eq "APPROVING") "workflow submitted"
+
+$step1 = Api "POST" "/api/v1/platform/workflow-tasks/$($wfTask.taskId)/approve" @{
+    approverName = "客服A"
+    comment = "同意"
+}
+Assert-True ($step1.taskStatus -eq "APPROVING") "workflow first node approved"
+
+$step2 = Api "POST" "/api/v1/platform/workflow-tasks/$($wfTask.taskId)/approve" @{
+    approverName = "经理B"
+    comment = "通过"
+}
+Assert-True ($step2.taskStatus -eq "APPROVED") "workflow final approved"
+
+$wfRecords = Api "GET" "/api/v1/platform/workflow-tasks/$($wfTask.taskId)/records" $null
+Assert-True (@($wfRecords).Count -eq 2) "workflow records created"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

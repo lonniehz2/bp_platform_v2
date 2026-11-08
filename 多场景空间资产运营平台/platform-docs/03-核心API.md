@@ -260,7 +260,60 @@ HOUSE
 
 ---
 
-## 9. 验证脚本
+## 9. 审批/工作流
+
+### GET /workflows?sceneCode=&bizType=
+
+### POST /workflows
+
+```json
+{
+  "sceneCode": "GUARANTEE",
+  "bizType": "GUARANTEE_CONTRACT_CHANGE",
+  "flowName": "保障房合同变更审批",
+  "nodes": [
+    {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
+    {"nodeName": "经理终审", "approverRole": "PROPERTY_MANAGER"}
+  ]
+}
+```
+
+### POST /workflows/{flowId}/submit
+
+```json
+{
+  "projectId": 1,
+  "bizType": "GUARANTEE_CONTRACT_CHANGE",
+  "bizId": 2,
+  "submitterName": "客服A",
+  "amount": 0,
+  "summary": "合同变更"
+}
+```
+
+### GET /workflow-tasks?status=APPROVING
+
+### POST /workflow-tasks/{taskId}/approve
+
+```json
+{"approverName": "客服A", "comment": "同意"}
+```
+
+### POST /workflow-tasks/{taskId}/reject
+
+### GET /workflow-tasks/{taskId}/records
+
+当前支持：
+
+```text
+串行多级审批
+通过/驳回
+审批记录
+```
+
+---
+
+## 10. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -269,7 +322,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-27 个断言通过
+32 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -278,4 +331,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 租金账单
 收款
 收据
+串行多级审批
 ```

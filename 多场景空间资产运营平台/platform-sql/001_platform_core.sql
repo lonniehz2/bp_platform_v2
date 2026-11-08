@@ -375,3 +375,62 @@ create table if not exists bp_receipt (
   unique key uk_bp_receipt_no (tenant_id, receipt_no),
   unique key uk_bp_receipt_payment (tenant_id, payment_id)
 ) engine=InnoDB default charset=utf8mb4 comment='收据';
+
+
+-- =========================================================
+-- 平台审批/工作流
+-- =========================================================
+
+create table if not exists bp_wf_flow (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  scene_code varchar(32) not null,
+  biz_type varchar(32) not null,
+  flow_name varchar(128) not null,
+  flow_status varchar(20) not null default 'ENABLED',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  unique key uk_bp_wf_flow (tenant_id, scene_code, biz_type, flow_name)
+) engine=InnoDB default charset=utf8mb4 comment='审批流程';
+
+create table if not exists bp_wf_node (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  flow_id bigint not null,
+  node_seq int not null,
+  node_name varchar(128) not null,
+  approver_role varchar(64) null,
+  node_status varchar(20) not null default 'ENABLED',
+  unique key uk_bp_wf_node (tenant_id, flow_id, node_seq)
+) engine=InnoDB default charset=utf8mb4 comment='审批节点';
+
+create table if not exists bp_wf_task (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint null,
+  biz_type varchar(32) not null,
+  biz_id bigint not null,
+  flow_id bigint not null,
+  current_node_id bigint null,
+  task_status varchar(20) not null default 'APPROVING',
+  submitter_name varchar(64) null,
+  amount decimal(14,2) null,
+  summary varchar(500) null,
+  submit_time datetime not null default current_timestamp,
+  finish_time datetime null,
+  is_deleted tinyint not null default 0,
+  unique key uk_bp_wf_task_biz (tenant_id, biz_type, biz_id),
+  key idx_bp_wf_task_status (tenant_id, project_id, task_status)
+) engine=InnoDB default charset=utf8mb4 comment='审批任务';
+
+create table if not exists bp_wf_record (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  task_id bigint not null,
+  node_id bigint not null,
+  approver_name varchar(64) null,
+  action varchar(20) not null,
+  comment_text varchar(500) null,
+  action_time datetime not null default current_timestamp,
+  key idx_bp_wf_record_task (tenant_id, task_id, action_time)
+) engine=InnoDB default charset=utf8mb4 comment='审批记录';
