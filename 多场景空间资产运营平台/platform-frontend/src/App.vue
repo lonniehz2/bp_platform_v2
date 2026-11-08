@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { api } from './api'
@@ -33,24 +33,37 @@ const isAdmin = computed(() => {
 })
 const legacyAdminUrl = computed(() => `${location.protocol}//${location.hostname}:8080/platform-admin`)
 
-const openGroups = ref(new Set(JSON.parse(localStorage.getItem('platformOpenGroups') || '["workbench","risk","guarantee","contract","finance"]')))
+const openGroups = ref(new Set())
 
 const visibleGroups = computed(() => navGroups.map(g => ({
   ...g,
   items: g.items.filter(item => allowedMenus.value.length === 0 || allowedMenus.value.includes(item.menu))
 })).filter(g => g.items.length > 0))
 
+const currentGroupKey = computed(() => {
+  const path = route.path
+  const group = navGroups.find(g => g.items.some(item =>
+    path === item.to || path.startsWith(item.to + '/')))
+  return group ? group.key : ''
+})
+
 function isGroupOpen(key) {
   return openGroups.value.has(key)
 }
 
-function toggleGroup(key) {
-  const next = new Set(openGroups.value)
-  if (next.has(key)) next.delete(key)
-  else next.add(key)
-  openGroups.value = next
-  localStorage.setItem('platformOpenGroups', JSON.stringify([...next]))
+function isCurrentGroup(group) {
+  return currentGroupKey.value === group.key
 }
+
+function toggleGroup(key) {
+  const next = new Set()
+  if (!openGroups.value.has(key)) next.add(key)
+  openGroups.value = next
+}
+
+watch(currentGroupKey, (key) => {
+  if (key) openGroups.value = new Set([key])
+}, { immediate: true })
 
 const titleKey = {
   '/': 'nav.dashboard',
@@ -153,11 +166,11 @@ function logout() {
         </div>
       </div>
       <nav class="nav">
-        <div v-for="g in visibleGroups" :key="g.key" class="nav-group">
-          <button class="nav-group-head" @click="toggleGroup(g.key)" :title="t(g.labelKey)">
+        <div v-for="g in visibleGroups" :key="g.key" class="nav-group" :class="{ active: isCurrentGroup(g) }">
+          <button class="nav-group-head" :class="{ active: isCurrentGroup(g) }" @click="toggleGroup(g.key)" :title="t(g.labelKey)">
             <span class="nav-group-icon">{{ g.icon }}</span>
             <span class="nav-label">{{ t(g.labelKey) }}</span>
-            <span class="nav-label nav-group-arrow">{{ isGroupOpen(g.key) ? '−' : '+' }}</span>
+            <span class="nav-label nav-group-arrow">{{ isGroupOpen(g.key) ? '⌄' : '›' }}</span>
           </button>
           <div v-show="isGroupOpen(g.key)" class="nav-group-items">
             <RouterLink v-for="item in g.items" :key="item.to" :to="item.to" class="nav-item">
