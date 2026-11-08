@@ -30,6 +30,30 @@ Authorization: Bearer <token>
 
 ---
 
+## 0.1 菜单权限
+
+平台接口按菜单授权：
+
+```text
+项目/空间/模板 -> asset
+人员 -> person
+申请/轮候/配租 -> application
+合同/变更/资格复核 -> contract
+账单/收款/押金/补贴 -> billing
+设备/授权 -> device
+审批 -> audit
+菜单/角色 -> config
+迁移异常 -> system
+```
+
+无权限返回：
+
+```text
+403 BP40300
+```
+
+---
+
 ## 1. 场景
 
 ### GET /scenes
@@ -305,7 +329,8 @@ HOUSE
 登录鉴权
 资格复核
 迁移异常处理
-附件上传",
+附件上传
+菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
     {"nodeName": "经理终审", "approverRole": "PROPERTY_MANAGER"}
@@ -354,6 +379,7 @@ HOUSE
 资格复核
 迁移异常处理
 附件上传
+菜单权限
 通过/驳回
 审批记录
 ```
@@ -476,6 +502,7 @@ TERMINATION → 合同终止
 资格复核
 迁移异常处理
 附件上传
+菜单权限
 
 ### GET /guarantee/applications?projectId=
 
@@ -587,6 +614,7 @@ WAITING → ALLOCATED
 ## 13. 资格复核
 迁移异常处理
 附件上传
+菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
 
@@ -726,4 +754,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 资格复核
 迁移异常处理
 附件上传
+菜单权限
 ```
