@@ -703,3 +703,25 @@ create table if not exists bp_file (
   create_time datetime not null default current_timestamp,
   key idx_bp_file_biz (tenant_id, biz_type, biz_id)
 ) engine=InnoDB default charset=utf8mb4 comment='平台附件';
+
+
+create table if not exists guarantee_subsidy_standard (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint null,
+  standard_code varchar(64) not null,
+  standard_name varchar(128) not null,
+  security_type varchar(32) null,
+  income_level varchar(32) null,
+  family_type varchar(32) null,
+  talent_level varchar(32) null,
+  subsidy_mode varchar(32) null,
+  subsidy_value decimal(14,2) null,
+  max_amount decimal(14,2) null,
+  effective_start date null,
+  effective_end date null,
+  standard_status varchar(20) not null default 'ENABLED',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  unique key uk_guarantee_subsidy_standard (tenant_id, standard_code)
+) engine=InnoDB default charset=utf8mb4 comment='保障房补贴标准';

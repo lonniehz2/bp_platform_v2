@@ -417,6 +417,7 @@ Assert-True (@($adminMenus).Count -ge 13) "admin role menus loaded"
 
 
 $migrationPending = Api "GET" "/api/v1/platform/migration/exceptions?status=PENDING" $null
+Assert-True ($null -eq $migrationPending -or @($migrationPending).Count -ge 0) "migration exception queue readable"
 if (@($migrationPending).Count -gt 0) {
     $resolvedException = Api "POST" "/api/v1/platform/migration/exceptions/$($migrationPending[0].id)/resolve" @{
         resolution = "ACCEPT_SKIP"

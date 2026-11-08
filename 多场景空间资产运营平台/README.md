@@ -90,6 +90,7 @@ platform-docs/03-核心API.md
 platform-docs/04-实施进度.md
 platform-docs/05-老数据迁移报告.md
 platform-docs/06-前端操作台.md
+platform-docs/07-保障房平台验收报告.md
 platform-sql/001_platform_core.sql
 platform-backend/README.md
 platform-frontend/README.md
@@ -192,6 +193,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\ver
 账单 29/33
 押金 13
 补贴 4
+补贴标准 3
 合同变更 27
 授权 10
 设备 168

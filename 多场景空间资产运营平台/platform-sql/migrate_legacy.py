@@ -73,7 +73,7 @@ def migrate(apply=False):
     stats = {}
     inserted = {k: 0 for k in ("org", "space", "house", "person", "contract", "bill", "grant", "device",
                               "application", "waitlist", "allocation", "payment", "payment_allocation", "receipt",
-                              "deposit", "subsidy", "contract_change", "role", "user", "user_role")}
+                              "deposit", "subsidy", "subsidy_standard", "contract_change", "role", "user", "user_role")}
     try:
         # 1. 组织/项目
         oc.execute("""
@@ -399,7 +399,31 @@ def migrate(apply=False):
                           r["subsidy_amount"], start, end, r["record_no"]))
                     inserted["subsidy"] += nc.rowcount
 
-        # 14. 合同变更
+        # 14. 补贴标准
+        oc.execute("""
+            select id, tenant_id, org_id, standard_code, standard_name, security_type,
+                   income_level, family_type, talent_level, subsidy_mode, subsidy_value,
+                   max_amount, effective_start, effective_end, status, is_deleted
+            from bp_fin_subsidy_standard order by id
+        """)
+        standards = oc.fetchall()
+        stats["subsidy_standard"] = len(standards)
+        for r in standards:
+            if apply:
+                nc.execute("""
+                    insert ignore into guarantee_subsidy_standard
+                      (id,tenant_id,project_id,standard_code,standard_name,security_type,
+                       income_level,family_type,talent_level,subsidy_mode,subsidy_value,
+                       max_amount,effective_start,effective_end,standard_status,is_deleted)
+                    values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """, (r["id"], r["tenant_id"], r["org_id"], r["standard_code"], r["standard_name"],
+                      r["security_type"], r["income_level"], r["family_type"], r["talent_level"],
+                      r["subsidy_mode"], r["subsidy_value"], r["max_amount"],
+                      r["effective_start"], r["effective_end"], r["status"] or "ENABLED",
+                      r["is_deleted"]))
+                inserted["subsidy_standard"] += nc.rowcount
+
+        # 15. 合同变更
         oc.execute("""
             select id, tenant_id, contract_id, change_type, change_reason, before_json,
                    after_json, approve_status, effective_date
