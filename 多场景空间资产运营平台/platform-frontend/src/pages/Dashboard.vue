@@ -19,6 +19,7 @@ const workOrders = ref([])
 const periodMode = ref('month')
 const customStart = ref('')
 const customEnd = ref('')
+const summary = ref(null)
 const houseChart = ref(null)
 const trendChart = ref(null)
 const statusChart = ref(null)
@@ -45,6 +46,8 @@ async function load() {
       ])
       applications.value = a; contracts.value = c; bills.value = b; devices.value = d
       houses.value = h; payments.value = p; alerts.value = al; workOrders.value = w
+      summary.value = null
+      await loadSummary()
     }
     await nextTick()
     renderCharts()
@@ -83,6 +86,17 @@ const billInRange = (b) => {
 const currentBills = computed(() => bills.value.filter(b => !isOpening(b) && billInRange(b)))
 const openingBills = computed(() => bills.value.filter(b => isOpening(b)))
 const billStats = () => {
+  if (summary.value) {
+    return {
+      total: Number(summary.value.currentReceivable || 0),
+      paid: Number(summary.value.currentPaid || 0),
+      outstanding: Number(summary.value.currentOutstanding || 0),
+      opening: Number(summary.value.openingOutstanding || 0),
+      openingRecovery: Number(summary.value.openingRecovery || 0),
+      totalOutstanding: Number(summary.value.totalOutstanding || 0),
+      rate: Number(summary.value.currentRate || 0)
+    }
+  }
   const total = currentBills.value.reduce((s, b) => s + Number(b.payableAmount || b.amount || 0), 0)
   const paid = currentBills.value.reduce((s, b) => s + Number(b.paidAmount || 0), 0)
   const outstanding = Math.max(0, total - paid)
@@ -190,8 +204,18 @@ function renderCharts() {
   }
 }
 
+async function loadSummary() {
+  if (!project.value) return
+  try {
+    summary.value = await api.dashboardSummary(project.value.id, periodRange.value.start, periodRange.value.end)
+  } catch (e) {
+    summary.value = null
+  }
+}
+
 function resize() { charts.forEach(c => c.resize()) }
 watch(mode, () => nextTick(renderCharts))
+watch([periodMode, customStart, customEnd], () => { loadSummary() })
 onMounted(() => { load(); window.addEventListener('resize', resize) })
 onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.forEach(c => c.dispose()) })
 </script>

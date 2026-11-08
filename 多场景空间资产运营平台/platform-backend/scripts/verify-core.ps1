@@ -769,6 +769,14 @@ Assert-True ($null -ne $relation.id) "person relation created"
 $relations = Api "GET" "/api/v1/platform/persons/$($person.id)/relations" $null
 Assert-True (@($relations).Count -ge 1) "person relation listed"
 
+
+$dash = Api "GET" "/api/v1/platform/dashboard/summary?projectId=$projectId&dateFrom=2026-01-01&dateTo=2026-12-31" $null
+Assert-True ([decimal]$dash.currentReceivable -ge 0) "dashboard summary readable"
+Assert-True ([int]$dash.billCount -ge 1) "dashboard bill count"
+
+$binding = Api "GET" "/api/v1/platform/projects/$projectId/device-bindings?spaceId=$($roomHouse.spaceId)" $null
+Assert-True ((@($binding.direct).Count + @($binding.inherited).Count) -ge 1) "device binding view readable"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"
