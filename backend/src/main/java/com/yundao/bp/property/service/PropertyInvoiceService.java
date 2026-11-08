@@ -17,10 +17,13 @@ public class PropertyInvoiceService {
 
     private final JdbcTemplate jdbc;
     private final SnowflakeIdGenerator idGen;
+    private final InvoiceGateway invoiceGateway;
 
-    public PropertyInvoiceService(JdbcTemplate jdbc, SnowflakeIdGenerator idGen) {
+    public PropertyInvoiceService(JdbcTemplate jdbc, SnowflakeIdGenerator idGen,
+                                  InvoiceGateway invoiceGateway) {
         this.jdbc = jdbc;
         this.idGen = idGen;
+        this.invoiceGateway = invoiceGateway;
     }
 
     public List<Map<String, Object>> list(Long projectId) {
@@ -58,15 +61,29 @@ public class PropertyInvoiceService {
     @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> issue(Long id) {
         List<Map<String, Object>> rows = jdbc.queryForList(
-                "select id from prop_invoice where id=? and tenant_id=? and invoice_status='PENDING'",
+                "select i.id, i.invoice_title, i.tax_no, i.email, i.amount, r.receipt_no "
+                        + "from prop_invoice i left join prop_receipt r on r.id=i.receipt_id "
+                        + "where i.id=? and i.tenant_id=? and i.invoice_status='PENDING'",
                 id, TenantContext.tenantId());
         if (rows.isEmpty()) throw BizException.notFound("待开票申请");
-        String invoiceNo = "FP" + id;
-        jdbc.update("update prop_invoice set invoice_no=?, invoice_status='ISSUED', issued_at=now(), "
-                + "update_time=now() where id=?", invoiceNo, id);
+        Map<String, Object> row = rows.get(0);
+        InvoiceGateway.IssueResult result = invoiceGateway.issue(new InvoiceGateway.IssueRequest(
+                id, String.valueOf(row.get("receipt_no")), String.valueOf(row.get("invoice_title")),
+                row.get("tax_no") == null ? null : String.valueOf(row.get("tax_no")),
+                row.get("email") == null ? null : String.valueOf(row.get("email")),
+                (BigDecimal) row.get("amount")));
+        if (!result.success()) {
+            throw new BizException(com.yundao.bp.common.api.ErrorCode.SYSTEM_ERROR,
+                    "开票失败：" + result.error());
+        }
+        String invoiceNo = result.invoiceNo() == null ? "FP" + id : result.invoiceNo();
+        jdbc.update("update prop_invoice set invoice_no=?, invoice_url=?, invoice_status='ISSUED', "
+                        + "issued_at=now(), update_time=now() where id=?",
+                invoiceNo, result.invoiceUrl(), id);
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", id);
         out.put("invoiceNo", invoiceNo);
+        out.put("invoiceUrl", result.invoiceUrl());
         out.put("status", "ISSUED");
         return out;
     }
