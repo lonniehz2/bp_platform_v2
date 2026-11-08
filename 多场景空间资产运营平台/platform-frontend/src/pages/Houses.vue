@@ -37,6 +37,8 @@ function openEdit(h) {
 
 async function saveEdit() {
   try {
+    if (Number(editForm.area) < 0 || Number(editForm.innerArea) < 0) throw new Error('面积不能为负数')
+    if (Number(editForm.floorNo) < 1 || Number(editForm.totalFloors) < 1 || Number(editForm.floorNo) > Number(editForm.totalFloors)) throw new Error('楼层需满足 1 ≤ 所在楼层 ≤ 总楼层')
     await api.updateHouse(project.value.id, editing.value.id, { ...editForm })
     editing.value = null
     await load()
@@ -63,7 +65,7 @@ onMounted(load)
       <div v-if="!filtered.length" class="empty">暂无房源</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>房源编码</th><th>名称</th><th>资产类型</th><th>面积</th><th>房态</th></tr></thead>
+          <thead><tr><th>房源编码</th><th>名称</th><th>户型</th><th>朝向</th><th>楼层</th><th>建筑面积</th><th>套内面积</th><th>房态</th><th>操作</th></tr></thead>
           <tbody>
             <tr v-for="h in paged" :key="h.id">
               <td class="mono">{{ h.houseCode }}</td><td>{{ h.houseName }}</td>

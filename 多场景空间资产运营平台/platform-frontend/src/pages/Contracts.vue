@@ -53,6 +53,11 @@ async function create() {
   busy.value = true; error.value = ''
   try {
     if (!form.contractNo.trim()) throw new Error('请填写合同编号')
+    if (!form.houseId || !form.personId) throw new Error('请选择房屋和承租人')
+    if (!form.startDate || !form.endDate) throw new Error('请选择合同起止日期')
+    if (new Date(form.endDate) <= new Date(form.startDate)) throw new Error('合同结束日期必须晚于开始日期')
+    if (Number(form.rentAmount) < 0 || Number(form.depositAmount) < 0) throw new Error('租金和押金不能为负数')
+    if (Number(form.billDay) < 1 || Number(form.billDay) > 28) throw new Error('账单日需在 1-28 之间')
     await api.createContract({
       projectId: project.value.id, contractNo: form.contractNo.trim(),
       houseId: form.houseId, personId: form.personId,

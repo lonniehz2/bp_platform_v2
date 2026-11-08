@@ -39,6 +39,10 @@ async function create() {
   busy.value = true; error.value = ''
   try {
     if (!form.orgCode.trim()) throw new Error('请填写项目编码')
+    if (!form.orgName.trim()) throw new Error('请填写项目名称')
+    if (form.contactPhone && !/^1\d{10}$/.test(form.contactPhone)) throw new Error('联系电话需为 11 位手机号')
+    if (Number(form.totalArea) < 0 || Number(form.landArea) < 0) throw new Error('面积不能为负数')
+    if (form.buildYear && (form.buildYear < 1900 || form.buildYear > 2100)) throw new Error('建成年份需在 1900-2100 之间')
     await api.createProject({
       orgCode: form.orgCode.trim(), orgName: form.orgName.trim(),
       sceneCode: 'GUARANTEE', businessMode: form.businessMode,
@@ -127,11 +131,12 @@ onMounted(load)
       <div v-if="!projects.length" class="empty">暂无项目</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>项目编码</th><th>项目名称</th><th>经营模式</th><th>模板</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th>项目编码</th><th>项目名称</th><th>地址</th><th>联系人</th><th>总建筑面积</th><th>产权类型</th><th>经营模式</th><th>模板</th><th>状态</th><th>操作</th></tr></thead>
           <tbody>
             <tr v-for="p in pagedProjects" :key="p.id" :class="{ active: currentProject && String(currentProject.id) === String(p.id) }">
               <td class="mono">{{ p.orgCode }}</td><td>{{ p.orgName }}</td><td>{{ p.address || '-' }}</td>
-              <td>{{ p.contactName || '-' }} {{ p.contactPhone || '' }}</td><td>{{ p.businessMode }}</td>
+              <td>{{ p.contactName || '-' }} {{ p.contactPhone || '' }}</td><td>{{ p.totalArea || '-' }}</td>
+              <td>{{ p.propertyType || '-' }}</td><td>{{ p.businessMode }}</td>
               <td>{{ p.templateName || p.spaceTemplateId }}</td>
               <td><span class="badge green">{{ p.status }}</span></td>
               <td><button class="sm" @click="selectProject(p)">设为当前</button></td>

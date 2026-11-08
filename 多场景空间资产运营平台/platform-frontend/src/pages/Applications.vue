@@ -49,6 +49,8 @@ async function create() {
   try {
     if (!form.applicationNo.trim()) throw new Error('请填写申请编号')
     if (!form.applicantPersonId) throw new Error('请选择申请人')
+    if (form.contactPhone && !/^1\d{10}$/.test(form.contactPhone)) throw new Error('联系电话需为 11 位手机号')
+    if (Number(form.familySize) < 1 || Number(form.familySize) > 20) throw new Error('家庭人数需在 1-20 之间')
     await api.createApplication({
       projectId: project.value.id,
       applicationNo: form.applicationNo.trim(),

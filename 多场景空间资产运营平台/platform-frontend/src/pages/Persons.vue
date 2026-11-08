@@ -26,6 +26,8 @@ async function create() {
   busy.value = true; error.value = ''
   try {
     if (!form.personCode.trim() || !form.personName.trim()) throw new Error('请填写人员编码和姓名')
+    if (form.phone && !/^1\d{10}$/.test(form.phone)) throw new Error('手机号需为 11 位号码')
+    if (form.birthDate && new Date(form.birthDate) > new Date()) throw new Error('出生日期不能晚于今天')
     await api.createPerson({
       personCode: form.personCode.trim(), personName: form.personName.trim(),
       phone: form.phone, idCardMask: form.idCardMask, personType: form.personType,
