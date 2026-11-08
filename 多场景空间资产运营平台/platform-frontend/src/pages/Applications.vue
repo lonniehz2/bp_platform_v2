@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
-import { can } from '../permissions'
+import { can, canAction } from '../permissions'
 
 const project = ref(null)
 const applications = ref([])
@@ -37,7 +37,8 @@ async function load() {
     if (!project.value) return
     localStorage.setItem('platformProjectId', project.value.id)
     const [a, p, h, w] = await Promise.all([
-      api.applications(project.value.id), api.persons(), api.houses(project.value.id), api.waitlist(project.value.id)
+      api.applications(project.value.id), api.persons().catch(() => []),
+      api.houses(project.value.id).catch(() => []), api.waitlist(project.value.id).catch(() => [])
     ])
     applications.value = a; persons.value = p; houses.value = h; waitlist.value = w
     if (!form.applicantPersonId && p.length) form.applicantPersonId = p[0].id
@@ -114,7 +115,7 @@ onMounted(load)
           <div class="field"><label>补贴状态</label><select v-model="form.subsidyStatus"><option value="NONE">无</option><option value="APPLYING">申请中</option><option value="ACTIVE">已享受</option></select></div>
           <div class="field"><label>档案编号</label><input v-model="form.archiveNo" /></div>
           <div class="field" style="flex:2"><label>备注</label><input v-model="form.remark" /></div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('application')" class="primary" :disabled="busy" @click="create">创建申请</button></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('application:create', 'application')" class="primary" :disabled="busy" @click="create">创建申请</button></div>
         </div>
       </div>
 
@@ -132,12 +133,12 @@ onMounted(load)
                 <td>{{ a.familySize }}</td><td>{{ incomeLabel(a.incomeLevel) }}</td><td>{{ housingLabel(a.housingStatus) }}</td>
                 <td><span class="badge" :class="statusClass(a.applicationStatus)">{{ a.applicationStatus }}</span></td>
                 <td class="row">
-                  <button class="sm" v-if="a.applicationStatus === 'DRAFT'" @click="submit(a.id)">提交</button>
-                  <button class="sm" v-if="a.applicationStatus === 'SUBMITTED'" @click="approve(a.id)">审核通过</button>
-                  <button class="sm danger" v-if="a.applicationStatus === 'SUBMITTED'" @click="reject(a.id)">驳回</button>
-                  <button class="sm" v-if="a.applicationStatus === 'SUBMITTED'" @click="returnForSupplement(a.id)">退回补充</button>
-                  <button class="sm" v-if="a.applicationStatus === 'RETURNED'" @click="resubmit(a.id)">重新提交</button>
-                  <button class="sm" v-if="a.applicationStatus === 'APPROVED'" @click="wait(a.id)">进入轮候</button>
+                  <button class="sm" v-if="canAction('application:submit', 'application') && a.applicationStatus === 'DRAFT'" @click="submit(a.id)">提交</button>
+                  <button class="sm" v-if="canAction('application:approve', 'application') && a.applicationStatus === 'SUBMITTED'" @click="approve(a.id)">审核通过</button>
+                  <button class="sm danger" v-if="canAction('application:reject', 'application') && a.applicationStatus === 'SUBMITTED'" @click="reject(a.id)">驳回</button>
+                  <button class="sm" v-if="canAction('application:return', 'application') && a.applicationStatus === 'SUBMITTED'" @click="returnForSupplement(a.id)">退回补充</button>
+                  <button class="sm" v-if="canAction('application:resubmit', 'application') && a.applicationStatus === 'RETURNED'" @click="resubmit(a.id)">重新提交</button>
+                  <button class="sm" v-if="canAction('application:waitlist', 'application') && a.applicationStatus === 'APPROVED'" @click="wait(a.id)">进入轮候</button>
                 </td>
               </tr>
             </tbody>
@@ -160,7 +161,7 @@ onMounted(load)
               <option v-for="h in houses.filter(x => x.houseStatus === 'VACANT')" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option>
             </select>
           </div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="allocate">配租</button></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('allocation:create', 'application')" class="primary" :disabled="busy" @click="allocate">配租</button></div>
         </div>
         <div v-if="!waitlist.length" class="empty">暂无轮候</div>
         <div class="table-wrap" v-else>

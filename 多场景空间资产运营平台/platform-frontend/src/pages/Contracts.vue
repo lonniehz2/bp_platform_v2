@@ -208,7 +208,7 @@ onMounted(load)
           <div class="field"><label>账单周期</label><select v-model="form.billingCycle"><option value="MONTH">按月</option><option value="QUARTER">按季</option><option value="YEAR">按年</option></select></div>
           <div class="field"><label>账单日</label><input v-model.number="form.billDay" type="number" min="1" max="28" /></div>
           <div class="field" style="flex:0 0 auto"><label><input type="checkbox" v-model="form.draft" /> 保存草稿</label></div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('contract')" class="primary" :disabled="busy" @click="create">创建合同</button></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('contract:create', 'contract')" class="primary" :disabled="busy" @click="create">创建合同</button></div>
         </div>
       </div>
 

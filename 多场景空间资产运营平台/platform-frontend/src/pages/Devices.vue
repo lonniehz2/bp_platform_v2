@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
-import { can } from '../permissions'
+import { can, canAction } from '../permissions'
 import Pager from '../components/Pager.vue'
 
 const project = ref(null)
@@ -108,7 +108,7 @@ onMounted(load)
           <div class="field"><label>绑定空间</label>
             <select v-model="form.spaceId"><option v-for="s in spaces" :key="s.id" :value="s.id">{{ s.spaceName }}（{{ s.spaceType }}）</option></select>
           </div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('device')" class="primary" :disabled="busy" @click="createDevice">新增设备</button></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('device:create', 'device')" class="primary" :disabled="busy" @click="createDevice">新增设备</button></div>
         </div>
       </div>
 
@@ -142,7 +142,7 @@ onMounted(load)
           </div>
           <div class="field"><label>开始日期</label><input v-model="grantForm.validStart" type="date" /></div>
           <div class="field"><label>结束日期</label><input v-model="grantForm.validEnd" type="date" /></div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="createGrant">新增授权</button></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('device:grant', 'device')" class="primary" :disabled="busy" @click="createGrant">新增授权</button></div>
         </div>
         <div v-if="grants.length" class="table-wrap" style="margin-top:12px">
           <table>
@@ -152,7 +152,7 @@ onMounted(load)
                 <td>{{ g.targetType }}</td><td class="mono">{{ g.targetId }}</td><td>{{ g.grantLevel }}</td>
                 <td class="small">{{ g.validStart }} ~ {{ g.validEnd || '长期' }}</td>
                 <td><span class="badge" :class="g.grantStatus === 'ACTIVE' ? 'green' : 'orange'">{{ g.grantStatus }}</span></td>
-                <td><button v-if="g.grantStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="revokeGrant(g)">撤销</button></td>
+                <td><button v-if="canAction('device:grant', 'device') && g.grantStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="revokeGrant(g)">撤销</button></td>
               </tr>
             </tbody>
           </table>
