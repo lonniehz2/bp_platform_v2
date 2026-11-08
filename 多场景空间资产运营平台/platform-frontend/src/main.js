@@ -41,6 +41,10 @@ import Meters from './pages/Meters.vue'
 import Menus from './pages/Menus.vue'
 import Waitlist from './pages/Waitlist.vue'
 import Allocations from './pages/Allocations.vue'
+import Houses from './pages/Houses.vue'
+import Spaces from './pages/Spaces.vue'
+import Subsidies from './pages/Subsidies.vue'
+import MeterReadings from './pages/MeterReadings.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -91,11 +95,11 @@ const router = createRouter({
     { path: '/contract-changes', component: Changes, meta: { title: '合同变更' } },
     { path: '/exchanges', component: Changes, meta: { title: '换房管理', changeType: 'ROOM_CHANGE' } },
     { path: '/terminations', component: Changes, meta: { title: '退租管理', changeType: 'TERMINATION' } },
-    { path: '/houses', component: Projects, meta: { title: '房源台账' } },
-    { path: '/spaces', component: Projects, meta: { title: '空间层级' } },
+    { path: '/houses', component: Houses, meta: { title: '房源台账' } },
+    { path: '/spaces', component: Spaces, meta: { title: '空间层级' } },
     { path: '/bills', component: Billing, meta: { title: '账单与缴费' } },
-    { path: '/subsidies', component: Deposits, meta: { title: '补贴管理' } },
-    { path: '/meter-readings', component: Meters, meta: { title: '抄表管理' } },
+    { path: '/subsidies', component: Subsidies, meta: { title: '补贴管理' } },
+    { path: '/meter-readings', component: MeterReadings, meta: { title: '抄表管理' } },
     { path: '/device-bind', component: Devices, meta: { title: '设备绑定' } },
     { path: '/dev-events', component: Alerts, meta: { title: '设备告警' } },
     { path: '/access', component: Access, meta: { title: '通行记录' } },
