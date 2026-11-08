@@ -125,6 +125,7 @@ public class GuaranteeApplicationService {
         return Map.of("id", applicationId, "applicationStatus", "SUBMITTED");
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public Map<String, Object> joinWaitlist(long applicationId) {
         Application app = load(applicationId);
         if (!"APPROVED".equals(app.status())) {
@@ -141,6 +142,8 @@ public class GuaranteeApplicationService {
         } catch (DataIntegrityViolationException e) {
             throw BizException.conflict("该申请已在轮候队列");
         }
+        jdbc.update("update guarantee_application set application_status='WAITLISTED', update_time=now() "
+                + "where id=? and tenant_id=?", applicationId, TenantContext.require());
         return Map.of("id", id, "applicationId", applicationId, "queueNo", queueNo,
                 "waitlistStatus", "WAITING");
     }

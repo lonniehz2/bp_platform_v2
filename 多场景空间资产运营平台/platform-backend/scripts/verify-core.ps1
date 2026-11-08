@@ -387,6 +387,9 @@ Assert-True ($appApproved.applicationStatus -eq "APPROVED") "guarantee applicati
 
 $wait = Api "POST" "/api/v1/platform/guarantee/applications/$($application.id)/waitlist" $null
 Assert-True ($wait.waitlistStatus -eq "WAITING") "guarantee waitlist joined"
+$appAfterWait = Api "GET" "/api/v1/platform/guarantee/applications?projectId=$projectId" $null
+$waitApp = @($appAfterWait | Where-Object { $_.id -eq $application.id })[0]
+Assert-True ($waitApp.applicationStatus -eq "WAITLISTED") "application waitlisted"
 
 $innerHouse = @($houses | Where-Object { $_.houseCode -eq "101-1" })[0]
 $allocation = Api "POST" "/api/v1/platform/guarantee/waitlist/$($wait.id)/allocate" @{ houseId = $innerHouse.id }
