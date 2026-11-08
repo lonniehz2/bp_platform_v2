@@ -115,6 +115,61 @@ public class UserService {
                 cmd.userStatus() == null ? "UNCHANGED" : cmd.userStatus());
     }
 
+
+    public Map<String, Object> scopes(long userId) {
+        String tenant = UserContext.require().tenantId();
+        Long exists = jdbc.queryForObject(
+                "select count(*) from bp_user where id=? and tenant_id=? and is_deleted=0",
+                Long.class, userId, tenant);
+        if (exists == null || exists == 0) {
+            throw BizException.notFound("用户不存在");
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("userId", userId);
+        out.put("projectIds", jdbc.queryForList(
+                "select project_id from bp_user_project where tenant_id=? and user_id=? and is_deleted=0",
+                Long.class, tenant, userId));
+        out.put("orgIds", jdbc.queryForList(
+                "select org_id from bp_user_org where tenant_id=? and user_id=? and is_deleted=0",
+                Long.class, tenant, userId));
+        return out;
+    }
+
+    @Transactional
+    public Map<String, Object> updateScopes(long userId, ScopeCmd cmd) {
+        String tenant = UserContext.require().tenantId();
+        Long exists = jdbc.queryForObject(
+                "select count(*) from bp_user where id=? and tenant_id=? and is_deleted=0",
+                Long.class, userId, tenant);
+        if (exists == null || exists == 0) {
+            throw BizException.notFound("用户不存在");
+        }
+        jdbc.update("delete from bp_user_project where tenant_id=? and user_id=?", tenant, userId);
+        jdbc.update("delete from bp_user_org where tenant_id=? and user_id=?", tenant, userId);
+        if (cmd.projectIds() != null) {
+            for (Long projectId : cmd.projectIds()) {
+                Long count = jdbc.queryForObject(
+                        "select count(*) from bp_org where id=? and tenant_id=? and is_deleted=0",
+                        Long.class, projectId, tenant);
+                if (count == null || count == 0) throw BizException.param("项目不合法");
+                jdbc.update("insert into bp_user_project(id,tenant_id,user_id,project_id,is_default,is_deleted) "
+                                + "values(?,?,?,?,0,0)",
+                        idGen.nextId(), tenant, userId, projectId);
+            }
+        }
+        if (cmd.orgIds() != null) {
+            for (Long orgId : cmd.orgIds()) {
+                Long count = jdbc.queryForObject(
+                        "select count(*) from bp_org where id=? and tenant_id=? and is_deleted=0",
+                        Long.class, orgId, tenant);
+                if (count == null || count == 0) throw BizException.param("组织不合法");
+                jdbc.update("insert into bp_user_org(id,tenant_id,user_id,org_id,is_deleted) values(?,?,?,?,0)",
+                        idGen.nextId(), tenant, userId, orgId);
+            }
+        }
+        return scopes(userId);
+    }
+
     private void bindRoles(long userId, String tenant, List<Long> roleIds) {
         if (roleIds == null || roleIds.isEmpty()) {
             return;
@@ -135,5 +190,8 @@ public class UserService {
     }
 
     public record UpdateCmd(String userStatus, String displayName, String password, List<Long> roleIds) {
+    }
+
+    public record ScopeCmd(List<Long> projectIds, List<Long> orgIds) {
     }
 }

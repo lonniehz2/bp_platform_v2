@@ -36,6 +36,17 @@ public class UserController {
         return R.ok(service.create(cmd));
     }
 
+    @GetMapping("/{id}/scopes")
+    public R<Map<String, Object>> scopes(@PathVariable long id) {
+        return R.ok(service.scopes(id));
+    }
+
+    @PostMapping("/{id}/scopes")
+    public R<Map<String, Object>> updateScopes(@PathVariable long id,
+                                               @RequestBody UserService.ScopeCmd cmd) {
+        return R.ok(service.updateScopes(id, cmd));
+    }
+
     @PostMapping("/{id}/update")
     public R<Map<String, Object>> update(@PathVariable long id,
                                          @RequestBody UserService.UpdateCmd cmd) {
