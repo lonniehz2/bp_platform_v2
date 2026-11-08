@@ -194,7 +194,7 @@ th{color:var(--muted);font-weight:600;background:#fbfcfe}
     <section class="page" id="page-applications">
       <div class="page-head">
         <div><h1>申请与资格</h1><p>草稿、提交、审核、退回、转轮候</p></div>
-        <div class="row"><button class="btn primary" onclick="openApply()">新增申请</button></div>
+        <div class="row"><button class="btn primary" data-roles="窗口受理,项目负责人,场景管理员" onclick="openApply()">新增申请</button></div>
       </div>
       <div class="panel">
         <div class="filter">
@@ -246,9 +246,9 @@ th{color:var(--muted);font-weight:600;background:#fbfcfe}
           <div class="item"><div class="k">本期欠费</div><div class="v" style="color:var(--red)">¥900</div></div>
         </div>
         <div class="row" style="margin-top:10px">
-          <button class="btn sm" onclick="toast('已生成账单：BL202611001')">生成账单</button>
+          <button class="btn sm" data-roles="财务,项目负责人,场景管理员" onclick="toast('已生成账单：BL202611001')">生成账单</button>
           <button class="btn sm" data-roles="财务,项目负责人,场景管理员" onclick="openPay('¥900','合同详情直接收款')">直接收款</button>
-          <button class="btn sm" onclick="toast('已进入合同变更')">合同变更</button>
+          <button class="btn sm" data-roles="项目负责人,场景管理员" onclick="toast('已进入合同变更')">合同变更</button>
           <button class="btn sm" data-roles="项目负责人,场景管理员" onclick="toast('已进入退租办理')">退租</button>
         </div>
       </div>
@@ -329,7 +329,7 @@ th{color:var(--muted);font-weight:600;background:#fbfcfe}
         <table>
           <thead><tr><th>账单号</th><th>承租人</th><th>房屋</th><th>账期</th><th>应付</th><th>已收</th><th>状态</th><th>操作</th></tr></thead>
           <tbody>
-            <tr id="billRow1"><td class="mono">BL202611001</td><td>张三</td><td>A栋101</td><td>2026-12</td><td>¥900</td><td>¥0</td><td><span class="badge orange">未缴</span></td><td><button class="btn sm" data-roles="财务,场景管理员" onclick="openPay('¥900','账单收款')">收款</button> <button class="btn sm" onclick="openAdjust()">减免</button></td></tr>
+            <tr id="billRow1"><td class="mono">BL202611001</td><td>张三</td><td>A栋101</td><td>2026-12</td><td>¥900</td><td>¥0</td><td><span class="badge orange">未缴</span></td><td><button class="btn sm" data-roles="财务,场景管理员" onclick="openPay('¥900','账单收款')">收款</button> <button class="btn sm" data-roles="财务,项目负责人,场景管理员" onclick="openAdjust()">减免</button></td></tr>
             <tr><td class="mono">BL202611002</td><td>李四</td><td>A栋102</td><td>2026-12</td><td>¥1,200</td><td>¥1,200</td><td><span class="badge green">已缴</span></td><td><button class="btn sm" onclick="toast('收据已打开')">收据</button></td></tr>
             <tr><td class="mono">OP202610001</td><td>王五</td><td>B栋201</td><td>2026-10</td><td>¥8,600</td><td>¥0</td><td><span class="badge red">期初欠费</span></td><td><button class="btn sm" data-roles="财务,场景管理员" onclick="openPay('¥8,600','期初回款')">回款</button></td></tr>
           </tbody>
@@ -342,7 +342,7 @@ th{color:var(--muted);font-weight:600;background:#fbfcfe}
       <div class="page-head">
         <div><h1>设备绑定</h1><p>空间层级 · 直绑与继承 · 一个设备同一时间只绑定一个空间</p></div>
         <div class="row">
-          <button class="btn" onclick="openImport()">设备导入</button>
+          <button class="btn" data-roles="设备运维,项目负责人,场景管理员" onclick="openImport()">设备导入</button>
           <button class="btn primary" data-roles="设备运维,项目负责人,场景管理员" onclick="openBind()">绑定设备</button>
         </div>
       </div>
@@ -456,7 +456,7 @@ function openApplyDetail(no, name, status){
       <button class="btn" data-roles="审核员,场景管理员" onclick="toast('已退回补充');closeModal()">退回补充</button>
       <button class="btn danger" data-roles="审核员,场景管理员" onclick="toast('已驳回');closeModal()">驳回</button>
       <button class="btn primary" data-roles="审核员,场景管理员" onclick="approveApp()">通过</button>
-      <button class="btn" onclick="toast('已转轮候');closeModal()">转轮候</button>
+      <button class="btn" data-roles="窗口受理,项目负责人,场景管理员" onclick="toast('已转轮候');closeModal()">转轮候</button>
     </div>
   `);
   window.__currentAppNo = no;
