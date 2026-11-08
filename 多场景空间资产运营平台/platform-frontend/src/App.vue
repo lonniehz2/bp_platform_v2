@@ -34,6 +34,7 @@ const legacyAdminUrl = computed(() => `${location.protocol}//${location.hostname
 
 const nav = [
   { to: '/', key: 'dashboard', menu: 'dashboard', icon: '◈' },
+  { to: '/search', key: 'search', menu: 'search', icon: '⌕' },
   { to: '/projects', key: 'asset', menu: 'asset', icon: '▦' },
   { to: '/persons', key: 'person', menu: 'person', icon: '♙' },
   { to: '/applications', key: 'application', menu: 'application', icon: '☷' },
@@ -67,6 +68,7 @@ const visibleNav = computed(() => nav.filter(item => allowedMenus.value.length =
 
 const titleKey = {
   '/': 'nav.dashboard',
+  '/search': 'nav.search',
   '/projects': 'nav.asset',
   '/applications': 'nav.application',
   '/contracts': 'nav.contract',

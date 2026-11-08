@@ -5,6 +5,7 @@ const messages = {
     nav: {
       dashboard: '工作台',
       asset: '项目与资产',
+      search: '统一查询',
       person: '客户与人员',
       application: '申请与轮候',
       contract: '合同与租赁',
@@ -66,6 +67,7 @@ const messages = {
     nav: {
       dashboard: 'Dashboard',
       asset: 'Projects & Assets',
+      search: 'Search',
       person: 'Customers & People',
       application: 'Applications',
       contract: 'Contracts',

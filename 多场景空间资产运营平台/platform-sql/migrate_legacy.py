@@ -580,6 +580,7 @@ def migrate(apply=False):
             "/open": "open",
             "/messages": "message",
             "/gov": "gov",
+            "/search": "search",
             "/todos": "message",
             "/workorders": "service",
             "/access": "access",

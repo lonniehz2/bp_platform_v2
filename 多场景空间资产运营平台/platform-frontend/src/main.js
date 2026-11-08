@@ -29,6 +29,7 @@ import ShortRent from './pages/ShortRent.vue'
 import OpenApps from './pages/OpenApps.vue'
 import Messages from './pages/Messages.vue'
 import GovReport from './pages/GovReport.vue'
+import Search from './pages/Search.vue'
 import Users from './pages/Users.vue'
 import Qualification from './pages/Qualification.vue'
 import MigrationExceptions from './pages/MigrationExceptions.vue'
@@ -65,6 +66,7 @@ const router = createRouter({
     { path: '/open-apps', component: OpenApps, meta: { title: '开放平台' } },
     { path: '/messages', component: Messages, meta: { title: '消息中心' } },
     { path: '/gov-report', component: GovReport, meta: { title: '监管报送' } },
+    { path: '/search', component: Search, meta: { title: '统一查询' } },
     { path: '/users', component: Users, meta: { title: '用户管理' } },
     { path: '/audit', component: Audit, meta: { title: '审批中心' } },
     { path: '/menus', component: Menus, meta: { title: '菜单与角色' } },

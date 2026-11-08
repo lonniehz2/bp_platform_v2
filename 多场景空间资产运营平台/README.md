@@ -186,6 +186,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\ver
 
 ```text
 工作台
+统一查询
 项目与资产
 客户与人员
 申请与轮候
