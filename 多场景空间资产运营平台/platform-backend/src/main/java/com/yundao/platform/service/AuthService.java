@@ -1,5 +1,6 @@
 package com.yundao.platform.service;
 
+import com.yundao.platform.common.auth.LegacyPasswordHasher;
 import com.yundao.platform.common.auth.TokenService;
 import com.yundao.platform.common.auth.UserContext;
 import com.yundao.platform.common.exception.BizException;
@@ -35,11 +36,17 @@ public class AuthService {
             throw new BizException("BP40101", "用户名或密码错误", 401);
         }
         Map<String, Object> user = rows.get(0);
-        if (!"ENABLED".equals(String.valueOf(user.get("status")))
-                || !encoder.matches(cmd.password(), String.valueOf(user.get("passwordHash")))) {
+        String passwordHash = String.valueOf(user.get("passwordHash"));
+        boolean matched = passwordHash.startsWith("pbkdf2$")
+                ? LegacyPasswordHasher.verify(cmd.password(), passwordHash)
+                : encoder.matches(cmd.password(), passwordHash);
+        if (!"ENABLED".equals(String.valueOf(user.get("status"))) || !matched) {
             throw new BizException("BP40101", "用户名或密码错误", 401);
         }
         long userId = ((Number) user.get("id")).longValue();
+        if (passwordHash.startsWith("pbkdf2$")) {
+            jdbc.update("update bp_user set password_hash=? where id=?", encoder.encode(cmd.password()), userId);
+        }
         String displayName = String.valueOf(user.get("displayName"));
         String token = tokenService.create(userId, tenant, cmd.username(), displayName);
         return new LoginResult(token, userId, tenant, cmd.username(), displayName, roles(userId, tenant));

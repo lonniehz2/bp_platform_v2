@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$root = Split-Path -Parent $PSScriptRoot
+$root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $frontend = Join-Path $root "platform-frontend"
 $backend = Join-Path $root "platform-backend"
 $static = Join-Path $backend "src\main\resources\static"
