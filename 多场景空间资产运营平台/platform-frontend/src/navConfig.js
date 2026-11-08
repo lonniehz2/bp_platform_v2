@@ -4,7 +4,7 @@ export const navGroups = [
     labelKey: 'group.workbench',
     icon: '◈',
     items: [
-      { to: '/', key: 'dashboard', menu: 'dashboard', icon: '◈' },
+      { to: '/guarantee/dashboard', key: 'dashboard', menu: 'dashboard', icon: '◈' },
       { to: '/search', key: 'search', menu: 'search', icon: '⌕' },
       { to: '/todos', key: 'todos', menu: 'audit', icon: '✓' },
       { to: '/messages', key: 'message', menu: 'message', icon: '✉' }
@@ -28,11 +28,11 @@ export const navGroups = [
     labelKey: 'group.guarantee',
     icon: '♙',
     items: [
-      { to: '/applications', key: 'applications', menu: 'application', icon: '☷' },
-      { to: '/waitlist', key: 'waitlist', menu: 'application', icon: '↕' },
-      { to: '/allocations', key: 'allocations', menu: 'application', icon: '◎' },
+      { to: '/guarantee/applications', key: 'applications', menu: 'application', icon: '☷' },
+      { to: '/guarantee/waitlist', key: 'waitlist', menu: 'application', icon: '↕' },
+      { to: '/guarantee/allocations', key: 'allocations', menu: 'application', icon: '◎' },
       { to: '/publicities', key: 'publicity', menu: 'publicity', icon: '▣' },
-      { to: '/persons', key: 'person', menu: 'person', icon: '♙' },
+      { to: '/guarantee/persons', key: 'person', menu: 'person', icon: '♙' },
       { to: '/annual-reviews', key: 'annualReviews', menu: 'contract', icon: '✓' }
     ]
   },
@@ -41,7 +41,7 @@ export const navGroups = [
     labelKey: 'group.contract',
     icon: '▤',
     items: [
-      { to: '/contracts', key: 'contracts', menu: 'contract', icon: '▤' },
+      { to: '/guarantee/contracts', key: 'contracts', menu: 'contract', icon: '▤' },
       { to: '/contract-changes', key: 'contractChanges', menu: 'contract', icon: '⇄' },
       { to: '/exchanges', key: 'exchanges', menu: 'contract', icon: '⇄' },
       { to: '/terminations', key: 'terminations', menu: 'contract', icon: '✖' },
@@ -56,7 +56,7 @@ export const navGroups = [
     labelKey: 'group.finance',
     icon: '¥',
     items: [
-      { to: '/bills', key: 'bills', menu: 'billing', icon: '¥' },
+      { to: '/guarantee/billing', key: 'bills', menu: 'billing', icon: '¥' },
       { to: '/deposits', key: 'deposits', menu: 'billing', icon: '◫' },
       { to: '/subsidies', key: 'subsidies', menu: 'billing', icon: '◫' },
       { to: '/cashflow', key: 'cashflow', menu: 'billing', icon: '↕' },
@@ -70,7 +70,7 @@ export const navGroups = [
     labelKey: 'group.access',
     icon: '⌘',
     items: [
-      { to: '/devices', key: 'devices', menu: 'device', icon: '⌘' },
+      { to: '/guarantee/devices', key: 'devices', menu: 'device', icon: '⌘' },
       { to: '/device-bind', key: 'deviceBind', menu: 'device', icon: '⌁' },
       { to: '/dev-events', key: 'devEvents', menu: 'alert', icon: '⚠' },
       { to: '/access', key: 'accessRecords', menu: 'access', icon: '⌂' },
