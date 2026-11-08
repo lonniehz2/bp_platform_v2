@@ -53,7 +53,7 @@ public class PermissionService {
         return switch (role) {
             case "GUARANTEE_ADMIN", "ADMIN" -> List.of("*");
             case "CONTRACT_CLERK" -> List.of("contract:*", "billing:view", "billing:pay");
-            case "ASSET_CLERK" -> List.of("device:*", "house:*", "space:*", "allocation:*");
+            case "ASSET_CLERK" -> List.of("device:*", "house:*", "space:*", "allocation:*", "listing:*");
             case "SERVICE_CLERK" -> List.of("complaint:*", "visit:*");
             case "AUDITOR" -> List.of("*:view");
             case "GUARANTEE_FINANCE", "FINANCE" -> List.of("billing:*", "deposit:*", "subsidy:*", "contract:view");

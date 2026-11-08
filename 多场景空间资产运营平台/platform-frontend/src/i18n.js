@@ -18,6 +18,7 @@ const messages = {
     nav: {
       dashboard: '运营驾驶舱',
       asset: '房源与空间',
+      listings: '房源展示',
       search: '统一查询',
       person: '人员档案',
       application: '申请受理',
@@ -128,6 +129,7 @@ const messages = {
     nav: {
       dashboard: 'Operations Dashboard',
       asset: 'Housing & Spaces',
+      listings: 'Listings',
       search: 'Search',
       person: 'Person Records',
       application: 'Applications',

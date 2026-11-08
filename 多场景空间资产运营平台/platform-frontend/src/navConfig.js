@@ -60,6 +60,7 @@ export const navGroups = [
     icon: '▦',
     items: [
       { to: '/guarantee/assets', key: 'asset', menu: 'asset', icon: '▦' },
+      { to: '/guarantee/listings', key: 'listings', menu: 'asset', icon: '⌂' },
       { to: '/houses', key: 'houses', menu: 'asset', icon: '▦' },
       { to: '/spaces', key: 'spaces', menu: 'asset', icon: '▤' },
       { to: '/house-calendar', key: 'calendar', menu: 'calendar', icon: '▦' },

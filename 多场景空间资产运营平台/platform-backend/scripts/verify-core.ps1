@@ -935,6 +935,27 @@ Assert-True ($wfResolved.level -eq "ORG") "workflow org override resolved"
 $wfFallback = Api "GET" "/api/v1/platform/workflows/resolve?sceneCode=GUARANTEE&bizType=$wfBiz&orgId=$($projectId + 1)" $null
 Assert-True ($wfFallback.level -eq "SCENE_DEFAULT") "workflow scene fallback resolved"
 
+
+$listing = Api "POST" "/api/v1/platform/guarantee/listings" @{
+    projectId = $projectId
+    houseId = $roomHouse.id
+    title = "验证房源展示_$suffix"
+    description = "验收用例房源展示"
+    monthlyRent = 1200
+    depositAmount = 1200
+}
+Assert-True ($listing.listingStatus -eq "DRAFT") "listing created"
+$listingPublished = Api "POST" "/api/v1/platform/guarantee/listings/$($listing.id)/publish" $null
+Assert-True ($listingPublished.listingStatus -eq "PUBLISHED") "listing published"
+$booking = Api "POST" "/api/v1/platform/guarantee/listings/$($listing.id)/bookings" @{
+    personId = $person.id
+    contactPhone = "13800000000"
+    remark = "验收预约"
+}
+Assert-True ($booking.bookingStatus -eq "PENDING") "listing booked"
+$bookingConfirmed = Api "POST" "/api/v1/platform/guarantee/bookings/$($booking.id)/confirm" $null
+Assert-True ($bookingConfirmed.bookingStatus -eq "CONFIRMED") "booking confirmed"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

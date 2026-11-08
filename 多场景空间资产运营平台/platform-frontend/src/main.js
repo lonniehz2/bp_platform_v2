@@ -37,6 +37,7 @@ import Users from './pages/Users.vue'
 import Qualification from './pages/Qualification.vue'
 import MigrationExceptions from './pages/MigrationExceptions.vue'
 import Devices from './pages/Devices.vue'
+import Listings from './pages/Listings.vue'
 import Meters from './pages/Meters.vue'
 import Menus from './pages/Menus.vue'
 import Waitlist from './pages/Waitlist.vue'
@@ -77,6 +78,7 @@ const router = createRouter({
     { path: '/guarantee/contracts', component: Contracts, meta: { title: '合同与租赁' } },
     { path: '/guarantee/billing', component: Billing, meta: { title: '收费与账务' } },
     { path: '/guarantee/devices', component: Devices, meta: { title: '设备与授权' } },
+    { path: '/guarantee/listings', component: Listings, meta: { title: '房源展示' } },
     { path: '/billing', component: Billing, meta: { title: '收费与账务' } },
     { path: '/deposits', component: Deposits, meta: { title: '押金与补贴' } },
     { path: '/arrears', component: Arrears, meta: { title: '欠费清单' } },
