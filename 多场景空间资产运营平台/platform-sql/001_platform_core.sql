@@ -928,3 +928,18 @@ create table if not exists guarantee_open_app (
   update_time datetime not null default current_timestamp on update current_timestamp,
   unique key uk_guarantee_open_app (tenant_id, app_code)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房开放平台应用';
+
+
+create table if not exists bp_message (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  user_id bigint null,
+  title varchar(200) not null,
+  content varchar(2000) null,
+  biz_type varchar(32) null,
+  biz_id varchar(64) null,
+  read_status varchar(20) not null default 'UNREAD',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  key idx_bp_message_user (tenant_id, user_id, read_status, create_time)
+) engine=InnoDB default charset=utf8mb4 comment='平台消息';

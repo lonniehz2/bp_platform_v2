@@ -578,6 +578,8 @@ def migrate(apply=False):
             "/credits": "credit",
             "/short-rent": "shortrent",
             "/open": "open",
+            "/messages": "message",
+            "/todos": "message",
             "/workorders": "service",
             "/access": "access",
             "/complaints": "complaint",

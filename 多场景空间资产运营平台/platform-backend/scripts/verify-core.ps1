@@ -601,7 +601,7 @@ Assert-True (@($shortRents).Count -ge 1) "short rent order listed"
 
 
 $openApp = Api "POST" "/api/v1/platform/open-apps" @{
-    appCode = "VERIFY_APP"
+    appCode = "VERIFY_APP_$suffix"
     appName = "验证开放应用"
     scopes = "project:read,bill:read"
 }
@@ -612,6 +612,16 @@ Assert-True (@($openApps).Count -ge 1) "open app listed"
 
 $openToggle = Api "POST" "/api/v1/platform/open-apps/$($openApp.id)/toggle?enabled=false" $null
 Assert-True ($openToggle.appStatus -eq "DISABLED") "open app disabled"
+
+
+$message = Api "POST" "/api/v1/platform/messages" @{ title = "验证消息"; content = "消息内容"; bizType = "VERIFY" }
+Assert-True ($message.readStatus -eq "UNREAD") "message created"
+
+$messages = Api "GET" "/api/v1/platform/messages" $null
+Assert-True (@($messages).Count -ge 1) "message listed"
+
+$messageRead = Api "POST" "/api/v1/platform/messages/$($message.id)/read" $null
+Assert-True ($messageRead.readStatus -eq "READ") "message read"
 
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"

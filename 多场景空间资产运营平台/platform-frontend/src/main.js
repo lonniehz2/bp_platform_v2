@@ -27,6 +27,7 @@ import Alerts from './pages/Alerts.vue'
 import Credit from './pages/Credit.vue'
 import ShortRent from './pages/ShortRent.vue'
 import OpenApps from './pages/OpenApps.vue'
+import Messages from './pages/Messages.vue'
 import Qualification from './pages/Qualification.vue'
 import MigrationExceptions from './pages/MigrationExceptions.vue'
 import Devices from './pages/Devices.vue'
@@ -60,6 +61,7 @@ const router = createRouter({
     { path: '/credits', component: Credit, meta: { title: '信用惩戒' } },
     { path: '/short-rent-orders', component: ShortRent, meta: { title: '短租订单' } },
     { path: '/open-apps', component: OpenApps, meta: { title: '开放平台' } },
+    { path: '/messages', component: Messages, meta: { title: '消息中心' } },
     { path: '/audit', component: Audit, meta: { title: '审批中心' } },
     { path: '/menus', component: Menus, meta: { title: '菜单与角色' } },
     { path: '/migration-exceptions', component: MigrationExceptions, meta: { title: '迁移异常' } }

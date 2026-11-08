@@ -48,6 +48,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
     }
 
     private String menuFor(String path) {
+        if (path.startsWith("/api/v1/platform/messages")) {
+            return "message";
+        }
         if (path.startsWith("/api/v1/platform/open-apps")) {
             return "open";
         }

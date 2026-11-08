@@ -340,6 +340,7 @@ HOUSE
 信用惩戒
 短租订单
 开放平台
+消息中心
 菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
@@ -399,6 +400,7 @@ HOUSE
 信用惩戒
 短租订单
 开放平台
+消息中心
 菜单权限
 通过/驳回
 审批记录
@@ -532,6 +534,7 @@ TERMINATION → 合同终止
 信用惩戒
 短租订单
 开放平台
+消息中心
 菜单权限
 
 ### GET /guarantee/applications?projectId=
@@ -654,6 +657,7 @@ WAITING → ALLOCATED
 信用惩戒
 短租订单
 开放平台
+消息中心
 菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
@@ -729,6 +733,7 @@ platform-sql/002_menu_seed.sql
 信用惩戒
 短租订单
 开放平台
+消息中心
 
 ### GET /guarantee/meters?projectId=
 
@@ -765,6 +770,7 @@ platform-sql/002_menu_seed.sql
 信用惩戒
 短租订单
 开放平台
+消息中心
 
 ### GET /guarantee/work-orders?projectId=
 
@@ -804,6 +810,7 @@ PENDING → PROCESSING → DONE → CLOSED
 信用惩戒
 短租订单
 开放平台
+消息中心
 
 ### GET /guarantee/access-records?projectId=
 
@@ -835,6 +842,7 @@ PENDING → PROCESSING → DONE → CLOSED
 信用惩戒
 短租订单
 开放平台
+消息中心
 
 ### GET /guarantee/complaints?projectId=&type=
 
@@ -873,6 +881,7 @@ VISIT 走访
 信用惩戒
 短租订单
 开放平台
+消息中心
 
 ### GET /guarantee/fee-items?projectId=
 
@@ -900,6 +909,7 @@ VISIT 走访
 信用惩戒
 短租订单
 开放平台
+消息中心
 
 ### GET /guarantee/publicities?projectId=
 
@@ -928,6 +938,7 @@ VISIT 走访
 信用惩戒
 短租订单
 开放平台
+消息中心
 
 ### GET /guarantee/alerts?projectId=
 
@@ -956,6 +967,7 @@ VISIT 走访
 ## 22. 信用惩戒
 短租订单
 开放平台
+消息中心
 
 ### GET /guarantee/credits?projectId=
 
@@ -977,6 +989,7 @@ VISIT 走访
 
 ## 23. 短租订单
 开放平台
+消息中心
 
 ### GET /guarantee/short-rent-orders?projectId=
 
@@ -1009,6 +1022,7 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 ---
 
 ## 24. 开放平台
+消息中心
 
 ### GET /open-apps
 
@@ -1022,7 +1036,23 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 
 ---
 
-## 25. 附件
+## 25. 消息中心
+
+### GET /messages
+
+### POST /messages
+
+```json
+{"title": "租金逾期提醒", "content": "请及时缴费", "bizType": "BILL", "bizId": "1"}
+```
+
+### POST /messages/{id}/read
+
+### POST /messages/read-all
+
+---
+
+## 26. 附件
 
 ### POST /files
 
@@ -1048,7 +1078,7 @@ file=<文件>
 
 ---
 
-## 26. 迁移异常
+## 27. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -1066,7 +1096,7 @@ PENDING → RESOLVED
 
 ---
 
-## 27. 验证脚本
+## 28. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -1075,7 +1105,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-102 个断言通过
+105 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -1107,5 +1137,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 信用惩戒
 短租订单
 开放平台
+消息中心
 菜单权限
 ```
