@@ -171,6 +171,7 @@ export const api = {
   listingOrders: (projectId) => request(`/guarantee/listing-orders?projectId=${projectId}`),
   contractFromOrder: (id) => request(`/guarantee/listing-orders/${id}/contract`, { method: 'POST' }),
   payListingOrder: (id, body) => request(`/guarantee/listing-orders/${id}/pay`, { method: 'POST', body: JSON.stringify(body) }),
+  cancelListingOrder: (id) => request(`/guarantee/listing-orders/${id}/cancel`, { method: 'POST' }),
   confirmBooking: (id) => request(`/guarantee/bookings/${id}/confirm`, { method: 'POST' }),
   cancelBooking: (id) => request(`/guarantee/bookings/${id}/cancel`, { method: 'POST' }),
   devices: (projectId) => request(`/devices?projectId=${projectId}`),

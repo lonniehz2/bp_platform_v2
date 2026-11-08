@@ -55,6 +55,12 @@ public class ListingController {
         return R.ok(service.book(listingId, cmd));
     }
 
+    @PostMapping("/listing-orders/{orderId}/cancel")
+    public R<Map<String, Object>> cancelOrder(@PathVariable long orderId) {
+        permissions.require("listing:manage");
+        return R.ok(service.cancelOrder(orderId));
+    }
+
     @PostMapping("/listing-orders/{orderId}/pay")
     public R<Map<String, Object>> pay(@PathVariable long orderId,
                                       @RequestBody ListingService.PayCmd cmd) {

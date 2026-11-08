@@ -231,6 +231,16 @@ public class ListingService {
         return out;
     }
 
+
+    public Map<String, Object> cancelOrder(long orderId) {
+        String tenant = TenantContext.require();
+        int updated = jdbc.update("update bp_listing_order set order_status='CANCELLED' "
+                + "where id=? and tenant_id=? and order_status='CONFIRMED' and payment_status='UNPAID' "
+                + "and is_deleted=0", orderId, tenant);
+        if (updated == 0) throw BizException.conflict("只有未支付的已确认订单可以取消");
+        return Map.of("id", orderId, "orderStatus", "CANCELLED");
+    }
+
     public List<Map<String, Object>> orders(long projectId) {
         dataScope.requireProject(projectId);
         return jdbc.queryForList(

@@ -109,6 +109,16 @@ async function payOrder(o) {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+
+async function cancelOrder(o) {
+  if (!window.confirm('确认取消该订单？')) return
+  busy.value = true; error.value = ''
+  try {
+    await api.cancelListingOrder(o.id)
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 onMounted(load)
 </script>
 
@@ -181,6 +191,7 @@ onMounted(load)
             <td class="row">
               <button v-if="canAction('listing:manage', 'asset') && o.paymentStatus !== 'PAID' && ['CONFIRMED','CONTRACTED'].includes(o.orderStatus)" class="sm primary" :disabled="busy" @click="payOrder(o)">支付</button>
               <button v-if="canAction('listing:manage', 'asset') && o.orderStatus === 'CONFIRMED'" class="sm" :disabled="busy" @click="convertOrder(o)">转合同</button>
+              <button v-if="canAction('listing:manage', 'asset') && o.orderStatus === 'CONFIRMED' && o.paymentStatus !== 'PAID'" class="sm danger" :disabled="busy" @click="cancelOrder(o)">取消</button>
             </td>
           </tr></tbody>
         </table>
