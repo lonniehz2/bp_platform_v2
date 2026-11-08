@@ -258,3 +258,6 @@ html.dark .badge.red { background: #2e1718; border-color: #5c2b2d; color: #ff787
 .nav-group-items .nav-item { margin: 1px 8px; height: 36px; }
 .sidebar.collapsed .nav-group-head { justify-content: center; padding: 7px 0; }
 .sidebar.collapsed .nav-group-arrow { display: none; }
+
+
+.chart { width: 100%; height: 240px; }
