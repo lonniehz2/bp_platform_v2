@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
-import { can } from '../permissions'
+import { can, canAction } from '../permissions'
 
 const project = ref(null)
 const contracts = ref([])
@@ -226,12 +226,12 @@ onMounted(load)
                 <td><span class="badge" :class="c.contractStatus === 'ACTIVE' ? 'green' : 'orange'">{{ c.contractStatus }}</span></td>
                 <td><div class="row">
                   <button class="sm" @click="openFiles(c)">附件</button>
-                  <button v-if="can('contract') && c.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(c, 'submit')">提交</button>
-                  <button v-if="can('contract') && c.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(c, 'activate')">直接生效</button>
-                  <button v-if="can('contract') && c.contractStatus === 'DRAFT'" class="sm danger" :disabled="busy" @click="contractAction(c, 'discard')">作废</button>
-                  <button v-if="can('contract') && c.contractStatus === 'APPROVING'" class="sm primary" :disabled="busy" @click="contractAction(c, 'approve')">审批通过</button>
-                  <button v-if="can('contract') && c.contractStatus === 'APPROVING'" class="sm" :disabled="busy" @click="contractAction(c, 'withdraw')">撤回</button>
-                  <button v-if="can('billing') && c.contractStatus === 'ACTIVE'" class="sm primary" @click="openPayment(c)">收款</button>
+                  <button v-if="canAction('contract:submit', 'contract') && c.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(c, 'submit')">提交</button>
+                  <button v-if="canAction('contract:activate', 'contract') && c.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(c, 'activate')">直接生效</button>
+                  <button v-if="canAction('contract:discard', 'contract') && c.contractStatus === 'DRAFT'" class="sm danger" :disabled="busy" @click="contractAction(c, 'discard')">作废</button>
+                  <button v-if="canAction('contract:approve', 'contract') && c.contractStatus === 'APPROVING'" class="sm primary" :disabled="busy" @click="contractAction(c, 'approve')">审批通过</button>
+                  <button v-if="canAction('contract:withdraw', 'contract') && c.contractStatus === 'APPROVING'" class="sm" :disabled="busy" @click="contractAction(c, 'withdraw')">撤回</button>
+                  <button v-if="canAction('billing:pay', 'billing') && c.contractStatus === 'ACTIVE'" class="sm primary" @click="openPayment(c)">收款</button>
                 </div></td>
               </tr>
             </tbody>

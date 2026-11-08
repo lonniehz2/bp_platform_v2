@@ -27,6 +27,10 @@ async function submit() {
       const menus = await api.myMenus('GUARANTEE')
       localStorage.setItem('platformMenus', JSON.stringify(menus))
     } catch {}
+    try {
+      const actions = await api.myPermissions()
+      localStorage.setItem('platformPermissions', JSON.stringify(actions))
+    } catch {}
     await router.replace('/')
   } catch (e) {
     error.value = e.message

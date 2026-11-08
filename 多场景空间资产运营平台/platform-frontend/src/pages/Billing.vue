@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
-import { can } from '../permissions'
+import { can, canAction } from '../permissions'
 import Pager from '../components/Pager.vue'
 
 const route = useRoute()
@@ -139,7 +139,7 @@ onMounted(load)
           <div class="field"><label>方式</label>
             <select v-model="payForm.method"><option value="CASH">现金</option><option value="WECHAT">微信</option><option value="ALIPAY">支付宝</option><option value="BANK">银行</option></select>
           </div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('billing')" class="primary" :disabled="busy" @click="pay">确认收款</button></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('billing:pay', 'billing')" class="primary" :disabled="busy" @click="pay">确认收款</button></div>
         </div>
       </div>
 
@@ -156,7 +156,7 @@ onMounted(load)
                 <td>¥{{ money(b.amount) }}</td><td>¥{{ money(b.discountAmount) }}</td>
                 <td>¥{{ money(b.payableAmount || b.amount) }}</td><td>¥{{ money(b.paidAmount) }}</td>
                 <td><span class="badge" :class="statusClass(b.billStatus)">{{ b.billStatus }}</span></td>
-                <td><button v-if="can('billing') && b.billStatus !== 'PAID'" class="sm" @click="openAdjust(b)">调整</button></td>
+                <td><button v-if="canAction('billing:adjust', 'billing') && b.billStatus !== 'PAID'" class="sm" @click="openAdjust(b)">调整</button></td>
               </tr>
             </tbody>
           </table>
@@ -174,7 +174,7 @@ onMounted(load)
               <tr v-for="p in payments" :key="p.id">
                 <td class="mono">{{ p.paymentNo }}</td><td>¥{{ money(p.amount) }}</td><td>{{ p.paymentMethod }}</td>
                 <td><span class="badge green">{{ p.paymentStatus }}</span></td><td class="mono">{{ p.receiptNo || '-' }}</td><td class="small">{{ p.paidTime }}</td>
-                <td><div class="row"><button v-if="p.receiptNo" class="sm" @click="openReceipt(p)">打印</button><button v-if="can('billing')" class="sm" @click="openRefund(p)">退款</button></div></td>
+                <td><div class="row"><button v-if="p.receiptNo" class="sm" @click="openReceipt(p)">打印</button><button v-if="canAction('billing:refund', 'billing')" class="sm" @click="openRefund(p)">退款</button></div></td>
               </tr>
             </tbody>
           </table>

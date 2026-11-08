@@ -16,3 +16,22 @@ export function can(menu) {
 export function setMenus(menus) {
   localStorage.setItem('platformMenus', JSON.stringify(menus || []))
 }
+
+
+const ACTION_KEY = 'platformPermissions'
+
+export function getActions() {
+  try {
+    const value = JSON.parse(localStorage.getItem(ACTION_KEY) || '[]')
+    return Array.isArray(value) ? value : []
+  } catch {
+    return []
+  }
+}
+
+export function canAction(action, fallbackMenu) {
+  const actions = getActions()
+  if (!actions.length) return fallbackMenu ? can(fallbackMenu) : true
+  if (actions.includes('*') || actions.includes(action)) return true
+  return actions.some(p => p.endsWith(':*') && action.startsWith(p.slice(0, -1)))
+}

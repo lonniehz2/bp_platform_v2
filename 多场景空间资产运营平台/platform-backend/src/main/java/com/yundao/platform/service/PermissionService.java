@@ -22,6 +22,17 @@ public class PermissionService {
         this.jdbc = jdbc;
     }
 
+    public java.util.Set<String> permissions() {
+        UserContext.Principal principal = UserContext.require();
+        List<String> roles = jdbc.queryForList(
+                "select r.role_code roleCode from bp_user_role ur join bp_role r on r.id=ur.role_id "
+                        + "where ur.tenant_id=? and ur.user_id=? and r.role_status='ENABLED'",
+                String.class, principal.tenantId(), principal.userId());
+        java.util.Set<String> out = new java.util.LinkedHashSet<>();
+        for (String role : roles) out.addAll(grants(role));
+        return out;
+    }
+
     public void require(String permission) {
         UserContext.Principal principal = UserContext.require();
         List<String> roles = jdbc.queryForList(
@@ -45,6 +56,7 @@ public class PermissionService {
             case "ASSET_CLERK" -> List.of("device:*", "house:*", "space:*", "allocation:*");
             case "SERVICE_CLERK" -> List.of("complaint:*", "visit:*");
             case "AUDITOR" -> List.of("*:view");
+            case "GUARANTEE_FINANCE", "FINANCE" -> List.of("billing:*", "deposit:*", "subsidy:*", "contract:view");
             case "STAFF" -> List.of("application:*", "contract:view", "billing:view");
             case "TENANT" -> List.of("self");
             default -> List.of();

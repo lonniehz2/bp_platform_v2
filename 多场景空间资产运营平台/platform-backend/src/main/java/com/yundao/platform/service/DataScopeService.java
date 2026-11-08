@@ -29,7 +29,7 @@ public class DataScopeService {
                 "select r.role_code roleCode from bp_user_role ur join bp_role r on r.id=ur.role_id "
                         + "where ur.tenant_id=? and ur.user_id=? and r.role_status='ENABLED'",
                 String.class, principal.tenantId(), principal.userId());
-        if (roles.contains("GUARANTEE_ADMIN") || roles.contains("ADMIN")) {
+        if (roles.contains("GUARANTEE_ADMIN") || roles.contains("ADMIN") || roles.contains("AUDITOR")) {
             return null;
         }
         Set<Long> ids = new LinkedHashSet<>(jdbc.queryForList(
@@ -48,7 +48,7 @@ public class DataScopeService {
                 "select r.role_code roleCode from bp_user_role ur join bp_role r on r.id=ur.role_id "
                         + "where ur.tenant_id=? and ur.user_id=? and r.role_status='ENABLED'",
                 String.class, principal.tenantId(), principal.userId());
-        if (roles.contains("GUARANTEE_ADMIN") || roles.contains("ADMIN")) {
+        if (roles.contains("GUARANTEE_ADMIN") || roles.contains("ADMIN") || roles.contains("AUDITOR")) {
             return null;
         }
         String tenant = TenantContext.require();

@@ -16,14 +16,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final com.yundao.platform.service.PermissionService permissionService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService,
+                          com.yundao.platform.service.PermissionService permissionService) {
         this.authService = authService;
+        this.permissionService = permissionService;
     }
 
     @PostMapping("/login")
     public R<AuthService.LoginResult> login(@RequestBody AuthService.LoginCmd cmd) {
         return R.ok(authService.login(cmd));
+    }
+
+    @GetMapping("/permissions")
+    public R<java.util.List<String>> permissions() {
+        return R.ok(java.util.List.copyOf(permissionService.permissions()));
     }
 
     @GetMapping("/menus")
