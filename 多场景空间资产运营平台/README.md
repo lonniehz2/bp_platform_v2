@@ -113,6 +113,8 @@ platform-docs/26-阶段3-端到端业务纵切.md
 platform-docs/27-阶段4-房源产品化详细设计.md
 platform-docs/28-阶段5-五个参考页面详细设计.md
 platform-docs/29-阶段6-原型走查与验收用例.md
+platform-docs/30-阶段6-原型走查记录.md
+platform-docs/prototype/standard-pages.html
 platform-sql/001_platform_core.sql
 platform-backend/README.md
 platform-frontend/README.md
