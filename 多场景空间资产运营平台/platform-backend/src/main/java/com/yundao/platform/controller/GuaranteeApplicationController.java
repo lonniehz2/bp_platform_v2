@@ -60,6 +60,26 @@ public class GuaranteeApplicationController {
         return R.ok(service.approve(applicationId, comment));
     }
 
+    @PostMapping("/applications/{applicationId}/reject")
+    public R<Map<String, Object>> reject(@PathVariable long applicationId,
+                                         @RequestBody(required = false) Map<String, String> body) {
+        permissions.require("application:reject");
+        return R.ok(service.reject(applicationId, body == null ? null : body.get("comment")));
+    }
+
+    @PostMapping("/applications/{applicationId}/return")
+    public R<Map<String, Object>> returnForSupplement(@PathVariable long applicationId,
+                                                      @RequestBody(required = false) Map<String, String> body) {
+        permissions.require("application:return");
+        return R.ok(service.returnForSupplement(applicationId, body == null ? null : body.get("comment")));
+    }
+
+    @PostMapping("/applications/{applicationId}/resubmit")
+    public R<Map<String, Object>> resubmit(@PathVariable long applicationId) {
+        permissions.require("application:resubmit");
+        return R.ok(service.resubmit(applicationId));
+    }
+
     @PostMapping("/applications/{applicationId}/waitlist")
     public R<Map<String, Object>> waitlist(@PathVariable long applicationId) {
         permissions.require("application:waitlist");

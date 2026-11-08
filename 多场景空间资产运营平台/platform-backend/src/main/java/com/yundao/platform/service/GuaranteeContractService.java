@@ -110,6 +110,23 @@ public class GuaranteeContractService {
         return Map.of("id", contractId, "contractStatus", "APPROVING");
     }
 
+    public Map<String, Object> approve(long contractId) {
+        Contract contract = load(contractId);
+        if (!"APPROVING".equals(contract.contractStatus())) {
+            throw BizException.conflict("只有审批中的合同可以通过");
+        }
+        long overlap = count("select count(*) from guarantee_contract where tenant_id=? and house_id=? "
+                        + "and contract_status='ACTIVE' and is_deleted=0 and id<>? "
+                        + "and start_date<=? and end_date>=?",
+                TenantContext.require(), contract.houseId(), contractId, contract.endDate(), contract.startDate());
+        if (overlap > 0) {
+            throw BizException.conflict("该房屋在合同期间已有生效合同");
+        }
+        jdbc.update("update guarantee_contract set contract_status='ACTIVE', update_time=now() "
+                + "where id=? and tenant_id=?", contractId, TenantContext.require());
+        return Map.of("id", contractId, "contractStatus", "ACTIVE");
+    }
+
     public Map<String, Object> withdraw(long contractId) {
         Contract contract = load(contractId);
         if (!"APPROVING".equals(contract.contractStatus())) {

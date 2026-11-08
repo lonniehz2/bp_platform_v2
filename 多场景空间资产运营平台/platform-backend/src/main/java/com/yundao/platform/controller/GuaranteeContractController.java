@@ -45,6 +45,12 @@ public class GuaranteeContractController {
         return R.ok(contractService.submit(contractId));
     }
 
+    @PostMapping("/{contractId}/approve")
+    public R<Map<String, Object>> approve(@PathVariable long contractId) {
+        permissions.require("contract:approve");
+        return R.ok(contractService.approve(contractId));
+    }
+
     @PostMapping("/{contractId}/withdraw")
     public R<Map<String, Object>> withdraw(@PathVariable long contractId) {
         permissions.require("contract:withdraw");

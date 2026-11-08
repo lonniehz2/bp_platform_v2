@@ -817,6 +817,48 @@ Assert-True ($draftWithdrawn.contractStatus -eq "DRAFT") "draft contract withdra
 $draftDiscarded = Api "POST" "/api/v1/platform/guarantee/contracts/$($draftContract.id)/discard" $null
 Assert-True ($draftDiscarded.contractStatus -eq "DISCARDED") "draft contract discarded"
 
+
+$rejectApp = Api "POST" "/api/v1/platform/guarantee/applications" @{
+    projectId = $projectId
+    applicationNo = "REJECT_APP_$suffix"
+    applicantPersonId = $person.id
+    applicationType = "PUBLIC_RENTAL"
+    familySize = 1
+}
+$rejectSubmit = Api "POST" "/api/v1/platform/guarantee/applications/$($rejectApp.id)/submit" $null
+$rejected = Api "POST" "/api/v1/platform/guarantee/applications/$($rejectApp.id)/reject" @{ comment = "资料不齐" }
+Assert-True ($rejected.applicationStatus -eq "REJECTED") "application rejected"
+
+$returnApp = Api "POST" "/api/v1/platform/guarantee/applications" @{
+    projectId = $projectId
+    applicationNo = "RETURN_APP_$suffix"
+    applicantPersonId = $person.id
+    applicationType = "PUBLIC_RENTAL"
+    familySize = 1
+}
+$returnSubmit = Api "POST" "/api/v1/platform/guarantee/applications/$($returnApp.id)/submit" $null
+$returned = Api "POST" "/api/v1/platform/guarantee/applications/$($returnApp.id)/return" @{ comment = "补充资料" }
+Assert-True ($returned.applicationStatus -eq "RETURNED") "application returned"
+$resubmitted = Api "POST" "/api/v1/platform/guarantee/applications/$($returnApp.id)/resubmit" $null
+Assert-True ($resubmitted.applicationStatus -eq "SUBMITTED") "application resubmitted"
+
+$approveContract = Api "POST" "/api/v1/platform/guarantee/contracts" @{
+    projectId = $projectId
+    contractNo = "APPROVE_CONTRACT_$suffix"
+    houseId = $innerHouse.id
+    personId = $person.id
+    startDate = "2028-01-01"
+    endDate = "2028-12-31"
+    rentAmount = 900
+    depositAmount = 900
+    billingCycle = "MONTH"
+    billDay = 1
+    draft = $true
+}
+$approveSubmit = Api "POST" "/api/v1/platform/guarantee/contracts/$($approveContract.id)/submit" $null
+$approvedContract = Api "POST" "/api/v1/platform/guarantee/contracts/$($approveContract.id)/approve" $null
+Assert-True ($approvedContract.contractStatus -eq "ACTIVE") "contract approved"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

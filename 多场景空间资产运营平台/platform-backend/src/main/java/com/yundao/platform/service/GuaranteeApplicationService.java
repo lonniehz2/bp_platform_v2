@@ -94,6 +94,37 @@ public class GuaranteeApplicationService {
         return Map.of("id", applicationId, "applicationStatus", "APPROVED");
     }
 
+
+    public Map<String, Object> reject(long applicationId, String comment) {
+        Application app = load(applicationId);
+        if (!"SUBMITTED".equals(app.status())) {
+            throw BizException.conflict("申请不是待审核状态");
+        }
+        jdbc.update("update guarantee_application set application_status='REJECTED', review_time=now(), "
+                + "review_comment=? where id=?", comment, applicationId);
+        return Map.of("id", applicationId, "applicationStatus", "REJECTED");
+    }
+
+    public Map<String, Object> returnForSupplement(long applicationId, String comment) {
+        Application app = load(applicationId);
+        if (!"SUBMITTED".equals(app.status())) {
+            throw BizException.conflict("申请不是待审核状态");
+        }
+        jdbc.update("update guarantee_application set application_status='RETURNED', review_time=now(), "
+                + "review_comment=? where id=?", comment, applicationId);
+        return Map.of("id", applicationId, "applicationStatus", "RETURNED");
+    }
+
+    public Map<String, Object> resubmit(long applicationId) {
+        Application app = load(applicationId);
+        if (!"RETURNED".equals(app.status())) {
+            throw BizException.conflict("只有退回补充的申请可以重新提交");
+        }
+        jdbc.update("update guarantee_application set application_status='SUBMITTED', submit_time=now() "
+                + "where id=?", applicationId);
+        return Map.of("id", applicationId, "applicationStatus", "SUBMITTED");
+    }
+
     public Map<String, Object> joinWaitlist(long applicationId) {
         Application app = load(applicationId);
         if (!"APPROVED".equals(app.status())) {
