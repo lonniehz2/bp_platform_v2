@@ -177,7 +177,7 @@ http://127.0.0.1:5174
 powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\verify-core.ps1
 ```
 
-已验证 78 个断言通过。
+已验证 81 个断言通过。
 
 前端页面：
 

@@ -40,6 +40,7 @@ const nav = [
   { to: '/meters', key: 'meter', menu: 'asset', icon: '◉' },
   { to: '/devices', key: 'device', menu: 'device', icon: '⌘' },
   { to: '/work-orders', key: 'service', menu: 'service', icon: '⚒' },
+  { to: '/access-records', key: 'access', menu: 'access', icon: '⌂' },
   { to: '/audit', key: 'audit', menu: 'audit', icon: '✓' },
   { to: '/menus', key: 'config', menu: 'config', icon: '☰' },
   { to: '/migration-exceptions', key: 'migration', menu: 'system', icon: '!' }
@@ -61,6 +62,7 @@ const titleKey = {
   '/meters': 'nav.meter',
   '/devices': 'nav.device',
   '/work-orders': 'nav.service',
+  '/access-records': 'nav.access',
   '/audit': 'nav.audit',
   '/menus': 'nav.config',
   '/migration-exceptions': 'nav.migration'

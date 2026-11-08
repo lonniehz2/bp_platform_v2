@@ -574,6 +574,7 @@ def migrate(apply=False):
             "/reports": "system",
             "/publicities": "application",
             "/workorders": "service",
+            "/access": "access",
         }
         oc.execute("""
             select r.id role_id, p.route_path route_path

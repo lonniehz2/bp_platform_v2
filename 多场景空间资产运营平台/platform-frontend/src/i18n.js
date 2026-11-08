@@ -17,6 +17,7 @@ const messages = {
       meter: '计量与能耗',
       device: '设备与授权',
       service: '服务与工单',
+      access: '访客通行',
       audit: '审批中心',
       config: '菜单与角色',
       migration: '迁移异常'
@@ -66,6 +67,7 @@ const messages = {
       meter: 'Meters & Energy',
       device: 'Devices & Access',
       service: 'Service Orders',
+      access: 'Access Records',
       audit: 'Approvals',
       config: 'Menus & Roles',
       migration: 'Migration Exceptions'

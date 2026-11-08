@@ -779,3 +779,22 @@ create table if not exists guarantee_work_order (
   unique key uk_guarantee_work_order_no (tenant_id, order_no),
   key idx_guarantee_work_order_project (tenant_id, project_id, order_status)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房服务工单';
+
+
+create table if not exists guarantee_access_record (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  house_id bigint null,
+  person_id bigint null,
+  visitor_name varchar(128) not null,
+  visitor_phone varchar(32) null,
+  purpose varchar(200) null,
+  valid_start datetime null,
+  valid_end datetime null,
+  access_status varchar(20) not null default 'PENDING',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  key idx_guarantee_access_project (tenant_id, project_id, access_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房访客通行登记';

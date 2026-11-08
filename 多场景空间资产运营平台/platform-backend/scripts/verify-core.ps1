@@ -469,6 +469,23 @@ Assert-True ($workOrderDone.orderStatus -eq "DONE") "work order completed"
 $workOrders = Api "GET" "/api/v1/platform/guarantee/work-orders?projectId=$projectId" $null
 Assert-True (@($workOrders).Count -ge 1) "work order listed"
 
+
+$access = Api "POST" "/api/v1/platform/guarantee/access-records" @{
+    projectId = $projectId
+    houseId = $roomHouse.id
+    personId = $person.id
+    visitorName = "访客A"
+    visitorPhone = "13900000000"
+    purpose = "探访"
+}
+Assert-True ($access.accessStatus -eq "PENDING") "access record created"
+
+$accessApproved = Api "POST" "/api/v1/platform/guarantee/access-records/$($access.id)/approve" @{ status = "APPROVED" }
+Assert-True ($accessApproved.accessStatus -eq "APPROVED") "access record approved"
+
+$accessList = Api "GET" "/api/v1/platform/guarantee/access-records?projectId=$projectId" $null
+Assert-True (@($accessList).Count -ge 1) "access record listed"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

@@ -332,6 +332,7 @@ HOUSE
 附件上传
 计量与能耗
 服务工单
+访客通行
 菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
@@ -383,6 +384,7 @@ HOUSE
 附件上传
 计量与能耗
 服务工单
+访客通行
 菜单权限
 通过/驳回
 审批记录
@@ -508,6 +510,7 @@ TERMINATION → 合同终止
 附件上传
 计量与能耗
 服务工单
+访客通行
 菜单权限
 
 ### GET /guarantee/applications?projectId=
@@ -622,6 +625,7 @@ WAITING → ALLOCATED
 附件上传
 计量与能耗
 服务工单
+访客通行
 菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
@@ -689,6 +693,7 @@ platform-sql/002_menu_seed.sql
 
 ## 15. 计量与能耗
 服务工单
+访客通行
 
 ### GET /guarantee/meters?projectId=
 
@@ -717,6 +722,7 @@ platform-sql/002_menu_seed.sql
 ---
 
 ## 16. 服务工单
+访客通行
 
 ### GET /guarantee/work-orders?projectId=
 
@@ -748,7 +754,32 @@ PENDING → PROCESSING → DONE → CLOSED
 
 ---
 
-## 17. 附件
+## 17. 访客通行
+
+### GET /guarantee/access-records?projectId=
+
+### POST /guarantee/access-records
+
+```json
+{
+  "projectId": 1,
+  "houseId": 2,
+  "personId": 3,
+  "visitorName": "访客A",
+  "visitorPhone": "13900000000",
+  "purpose": "探访"
+}
+```
+
+### POST /guarantee/access-records/{id}/approve
+
+```json
+{"status": "APPROVED"}
+```
+
+---
+
+## 18. 附件
 
 ### POST /files
 
@@ -774,7 +805,7 @@ file=<文件>
 
 ---
 
-## 18. 迁移异常
+## 19. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -792,7 +823,7 @@ PENDING → RESOLVED
 
 ---
 
-## 19. 验证脚本
+## 20. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -801,7 +832,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-78 个断言通过
+81 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -825,5 +856,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 附件上传
 计量与能耗
 服务工单
+访客通行
 菜单权限
 ```
