@@ -581,6 +581,7 @@ def migrate(apply=False):
             "/messages": "message",
             "/gov": "gov",
             "/search": "search",
+            "/help": "help",
             "/todos": "message",
             "/workorders": "service",
             "/access": "access",

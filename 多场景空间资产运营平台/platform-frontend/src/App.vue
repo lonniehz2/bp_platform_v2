@@ -62,7 +62,8 @@ const nav = [
   { to: '/audit', key: 'audit', menu: 'audit', icon: '✓' },
   { to: '/users', key: 'users', menu: 'config', icon: '♟' },
   { to: '/menus', key: 'config', menu: 'config', icon: '☰' },
-  { to: '/migration-exceptions', key: 'migration', menu: 'system', icon: '!' }
+  { to: '/migration-exceptions', key: 'migration', menu: 'system', icon: '!' },
+  { to: '/help', key: 'help', menu: 'help', icon: '?' }
 ]
 const visibleNav = computed(() => nav.filter(item => allowedMenus.value.length === 0 || allowedMenus.value.includes(item.menu)))
 
@@ -95,7 +96,8 @@ const titleKey = {
   '/audit': 'nav.audit',
   '/users': 'nav.users',
   '/menus': 'nav.config',
-  '/migration-exceptions': 'nav.migration'
+  '/migration-exceptions': 'nav.migration',
+  '/help': 'nav.help'
 }
 const title = computed(() => t(titleKey[route.path] || 'nav.dashboard'))
 

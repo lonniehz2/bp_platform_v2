@@ -32,7 +32,8 @@ const messages = {
       users: '用户管理',
       audit: '审批中心',
       config: '菜单与角色',
-      migration: '迁移异常'
+      migration: '迁移异常',
+      help: '使用帮助'
     },
     login: {
       brand: '多场景空间资产运营平台',
@@ -94,7 +95,8 @@ const messages = {
       users: 'Users',
       audit: 'Approvals',
       config: 'Menus & Roles',
-      migration: 'Migration Exceptions'
+      migration: 'Migration Exceptions',
+      help: 'Help'
     },
     login: {
       brand: 'Multi-scene Space Asset Platform',
