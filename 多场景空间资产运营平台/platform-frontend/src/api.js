@@ -99,6 +99,8 @@ export const api = {
   toggleFeeItem: (id, enabled) => request(`/guarantee/fee-items/${id}/toggle?enabled=${enabled}`, { method: 'POST' }),
   bills: (projectId) => request(`/billing/bills?projectId=${projectId}`),
   adjustBill: (billId, body) => request(`/billing/bills/${billId}/adjust`, { method: 'POST', body: JSON.stringify(body) }),
+  contractBills: (contractId) => request(`/billing/contracts/${contractId}/bills`),
+  payContract: (contractId, body) => request(`/billing/contracts/${contractId}/pay`, { method: 'POST', body: JSON.stringify(body) }),
   pay: (billId, body) => request(`/billing/bills/${billId}/pay`, { method: 'POST', body: JSON.stringify(body) }),
   payments: (projectId) => request(`/billing/payments?projectId=${projectId}`),
   cohabitants: (contractId) => request(`/guarantee/contracts/${contractId}/cohabitants`),

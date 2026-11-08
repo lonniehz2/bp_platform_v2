@@ -6,6 +6,7 @@ import com.yundao.platform.common.tenant.TenantContext;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,6 +153,101 @@ public class BillingService {
     }
 
 
+
+    public List<Map<String, Object>> contractBills(long contractId) {
+        contractService.load(contractId);
+        return jdbc.queryForList(
+                "select b.id, b.bill_no billNo, b.contract_id contractId, b.house_id houseId, "
+                        + "h.house_name houseName, b.period_start periodStart, b.period_end periodEnd, "
+                        + "b.amount, b.discount_amount discountAmount, b.payable_amount payableAmount, "
+                        + "b.paid_amount paidAmount, b.bill_status billStatus, b.due_date dueDate "
+                        + "from bp_bill b left join bp_house h on h.id=b.house_id "
+                        + "where b.tenant_id=? and b.contract_id=? and b.is_deleted=0 order by b.period_start, b.id",
+                TenantContext.require(), contractId);
+    }
+
+    @Transactional
+    public Map<String, Object> payContract(long contractId, ContractPayCmd cmd) {
+        GuaranteeContractService.Contract contract = contractService.load(contractId);
+        if (!"ACTIVE".equals(contract.contractStatus())) {
+            throw BizException.conflict("合同不是生效状态，不能收款");
+        }
+        if (cmd.allocations() == null || cmd.allocations().isEmpty()) {
+            throw BizException.param("请选择至少一笔账单");
+        }
+        Map<Long, BigDecimal> requested = new java.util.LinkedHashMap<>();
+        for (Allocation a : cmd.allocations()) {
+            if (a.billId() == null || a.amount() == null || a.amount().signum() <= 0) {
+                throw BizException.param("每笔账单的收款金额必须大于 0");
+            }
+            if (requested.put(a.billId(), a.amount()) != null) {
+                throw BizException.param("同一账单不能重复选择");
+            }
+        }
+        String tenant = TenantContext.require();
+        BigDecimal total = requested.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        long paymentId = idGen.nextId();
+        String paymentNo = "PAY" + System.currentTimeMillis() + paymentId % 1000;
+        String receiptNo = "RCP" + System.currentTimeMillis() + paymentId % 1000;
+        jdbc.update("insert into bp_payment(id,tenant_id,project_id,payment_no,payer_person_id,amount,"
+                        + "payment_method,payment_status,paid_time,is_deleted) "
+                        + "values(?,?,?,?,?,?,?, 'SUCCESS', now(),0)",
+                paymentId, tenant, contract.projectId(), paymentNo, contract.personId(), total,
+                cmd.paymentMethod() == null ? "CASH" : cmd.paymentMethod());
+        List<Map<String, Object>> allocated = new ArrayList<>();
+        for (Map.Entry<Long, BigDecimal> entry : requested.entrySet()) {
+            long billId = entry.getKey();
+            BigDecimal amount = entry.getValue();
+            List<Map<String, Object>> rows = jdbc.queryForList(
+                    "select id, contract_id contractId, payable_amount payableAmount, paid_amount paidAmount, "
+                            + "bill_status billStatus from bp_bill "
+                            + "where id=? and tenant_id=? and is_deleted=0 for update",
+                    billId, tenant);
+            if (rows.isEmpty()) {
+                throw BizException.notFound("账单不存在");
+            }
+            Map<String, Object> bill = rows.get(0);
+            if (!String.valueOf(contractId).equals(String.valueOf(bill.get("contractId")))) {
+                throw BizException.param("账单不属于当前合同");
+            }
+            if ("PAID".equals(String.valueOf(bill.get("billStatus")))) {
+                throw BizException.conflict("账单已结清");
+            }
+            BigDecimal payable = (BigDecimal) bill.get("payableAmount");
+            if (payable == null) payable = BigDecimal.ZERO;
+            BigDecimal paid = (BigDecimal) bill.get("paidAmount");
+            if (paid == null) paid = BigDecimal.ZERO;
+            BigDecimal outstanding = payable.subtract(paid);
+            if (amount.compareTo(outstanding) > 0) {
+                throw BizException.param("收款金额超过账单未收金额");
+            }
+            jdbc.update("insert into bp_payment_allocation(id,tenant_id,payment_id,bill_id,amount) "
+                    + "values(?,?,?,?,?)", idGen.nextId(), tenant, paymentId, billId, amount);
+            BigDecimal newPaid = paid.add(amount);
+            String newStatus = newPaid.compareTo(payable) >= 0 ? "PAID" : "PARTIAL";
+            jdbc.update("update bp_bill set paid_amount=?, bill_status=?, update_time=now() where id=?",
+                    newPaid, newStatus, billId);
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("billId", billId);
+            item.put("amount", amount);
+            item.put("paidAmount", newPaid);
+            item.put("billStatus", newStatus);
+            allocated.add(item);
+        }
+        long receiptId = idGen.nextId();
+        jdbc.update("insert into bp_receipt(id,tenant_id,project_id,receipt_no,payment_id,amount,"
+                        + "receipt_status,issued_time,is_deleted) values(?,?,?,?,?,?, 'ISSUED', now(),0)",
+                receiptId, tenant, contract.projectId(), receiptNo, paymentId, total);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("paymentId", paymentId);
+        out.put("paymentNo", paymentNo);
+        out.put("receiptId", receiptId);
+        out.put("receiptNo", receiptNo);
+        out.put("totalAmount", total);
+        out.put("allocations", allocated);
+        return out;
+    }
+
     @Transactional
     public Map<String, Object> adjust(long billId, AdjustCmd cmd) {
         String tenant = TenantContext.require();
@@ -223,6 +319,12 @@ public class BillingService {
     }
 
     public record AdjustCmd(BigDecimal discountAmount, String remark) {
+    }
+
+    public record Allocation(Long billId, BigDecimal amount) {
+    }
+
+    public record ContractPayCmd(String paymentMethod, String remark, List<Allocation> allocations) {
     }
 
     public record Receipt(String receiptNo, LocalDateTime issuedTime) {

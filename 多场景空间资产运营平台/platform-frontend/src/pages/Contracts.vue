@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can } from '../permissions'
 
@@ -19,6 +19,12 @@ const files = ref([])
 const cohabitants = ref([])
 const cohabForm = reactive({ personId: '', relationType: 'FAMILY', startDate: '', endDate: '', remark: '' })
 const fileBusy = ref(false)
+const payOpen = ref(false)
+const payContractRow = ref(null)
+const payBills = ref([])
+const payMethod = ref('CASH')
+const payBusy = ref(false)
+const payTotal = computed(() => payBills.value.filter(b => b.checked).reduce((s, b) => s + Number(b.amount || 0), 0))
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 
@@ -106,6 +112,42 @@ async function removeCohabitant(c) {
   try { await api.removeCohabitant(c.id); cohabitants.value = await api.cohabitants(selectedContract.value.id) } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+
+async function openPayment(c) {
+  error.value = ''
+  try {
+    const rows = await api.contractBills(c.id)
+    payBills.value = rows.filter(b => b.billStatus !== 'PAID').map(b => ({
+      ...b,
+      checked: false,
+      amount: Number(b.payableAmount || 0) - Number(b.paidAmount || 0)
+    }))
+    if (!payBills.value.length) { error.value = '该合同没有未结清账单'; return }
+    payContractRow.value = c
+    payMethod.value = 'CASH'
+    payOpen.value = true
+  } catch (e) { error.value = e.message }
+}
+
+function togglePayBill(b) {
+  if (b.checked && (!b.amount || b.amount <= 0)) {
+    b.amount = Number(b.payableAmount || 0) - Number(b.paidAmount || 0)
+  }
+}
+
+async function submitPayment() {
+  payBusy.value = true; error.value = ''
+  try {
+    const allocations = payBills.value.filter(b => b.checked).map(b => ({ billId: b.id, amount: Number(b.amount || 0) }))
+    if (!allocations.length) throw new Error('请选择至少一笔账单')
+    if (allocations.some(a => a.amount <= 0)) throw new Error('每笔收款金额必须大于 0')
+    const r = await api.payContract(payContractRow.value.id, { paymentMethod: payMethod.value, allocations })
+    payOpen.value = false
+    await load()
+    alert(`收款成功：${r.paymentNo}，金额 ¥${money(r.totalAmount)}，收据 ${r.receiptNo}`)
+  } catch (e) { error.value = e.message } finally { payBusy.value = false }
+}
+
 async function downloadFile(f) {
   try { await api.downloadFile(f.id, f.fileName) } catch (e) { error.value = e.message }
 }
@@ -163,7 +205,7 @@ onMounted(load)
                 <td>¥{{ money(c.rentAmount) }}</td><td>¥{{ money(c.depositAmount) }}</td>
                 <td>{{ c.billingCycle }}</td><td>{{ c.billDay }}</td>
                 <td><span class="badge" :class="c.contractStatus === 'ACTIVE' ? 'green' : 'orange'">{{ c.contractStatus }}</span></td>
-                <td><button class="sm" @click="openFiles(c)">附件</button></td>
+                <td><div class="row"><button class="sm" @click="openFiles(c)">附件</button><button v-if="can('billing') && c.contractStatus === 'ACTIVE'" class="sm primary" @click="openPayment(c)">收款</button></div></td>
               </tr>
             </tbody>
           </table>
@@ -209,6 +251,34 @@ onMounted(load)
           <div class="field"><label>周期结束</label><input v-model="billForm.periodEnd" type="date" /></div>
           <div class="field"><label>金额</label><input v-model.number="billForm.amount" type="number" /></div>
           <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button :disabled="busy" @click="generateBill">生成账单</button></div>
+        </div>
+      </div>
+
+      <div v-if="payOpen" class="modal-mask" @click.self="payOpen = false">
+        <div class="modal" style="max-width:760px">
+          <div class="panel-head"><h2>合同收款</h2><button class="sm" @click="payOpen = false">关闭</button></div>
+          <div class="small muted" style="margin-bottom:8px">{{ payContractRow?.contractNo }} · 选择未结清账单，支持部分收款</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>选择</th><th>账单号</th><th>账期</th><th>应付</th><th>已收</th><th>未收</th><th>本次收款</th></tr></thead>
+              <tbody>
+                <tr v-for="b in payBills" :key="b.id">
+                  <td><input type="checkbox" v-model="b.checked" @change="togglePayBill(b)" /></td>
+                  <td class="mono">{{ b.billNo }}</td>
+                  <td>{{ b.periodStart }} ~ {{ b.periodEnd }}</td>
+                  <td>¥{{ money(b.payableAmount) }}</td>
+                  <td>¥{{ money(b.paidAmount) }}</td>
+                  <td>¥{{ money(Number(b.payableAmount || 0) - Number(b.paidAmount || 0)) }}</td>
+                  <td><input v-model.number="b.amount" type="number" :disabled="!b.checked" style="width:110px" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="row" style="justify-content:space-between;margin-top:10px">
+            <div class="field" style="max-width:180px"><label>收款方式</label><select v-model="payMethod"><option value="CASH">现金</option><option value="WECHAT">微信</option><option value="ALIPAY">支付宝</option><option value="BANK">银行转账</option></select></div>
+            <strong>合计：¥{{ money(payTotal) }}</strong>
+          </div>
+          <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="payBusy" @click="submitPayment">确认收款</button></div>
         </div>
       </div>
     </template>

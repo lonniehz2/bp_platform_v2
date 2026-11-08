@@ -267,8 +267,25 @@ $adjust = Api "POST" "/api/v1/platform/billing/bills/$($adjustBill.id)/adjust" @
 Assert-True ($adjust.billStatus -ne "PAID") "bill adjusted"
 Assert-True ([decimal]$adjust.payableAmount -lt [decimal]$adjustBill.payableAmount) "bill payable reduced"
 
+
+$multiBill2 = Api "POST" "/api/v1/platform/guarantee/contracts/$($contract.id)/bills" @{
+    periodStart = "2027-03-01"
+    periodEnd = "2027-03-31"
+    amount = 900
+}
+$multiPay = Api "POST" "/api/v1/platform/billing/contracts/$($contract.id)/pay" @{
+    paymentMethod = "CASH"
+    allocations = @(
+        @{ billId = $adjustBill.id; amount = 100 },
+        @{ billId = $multiBill2.id; amount = 100 }
+    )
+}
+Assert-True ([decimal]$multiPay.totalAmount -eq 200.00) "multi-bill payment total"
+Assert-True (@($multiPay.allocations).Count -eq 2) "multi-bill allocations"
+Assert-True ($multiPay.receiptNo -ne $null) "multi-bill receipt"
+
 $payments = Api "GET" "/api/v1/platform/billing/payments?projectId=$projectId" $null
-Assert-True (@($payments).Count -eq 1) "payment listed"
+Assert-True (@($payments).Count -ge 1) "payment listed"
 $receipt = Api "GET" "/api/v1/platform/billing/payments/$($payment.paymentId)/receipt" $null
 Assert-True ($receipt.receiptNo -eq $payment.receiptNo) "receipt readable"
 

@@ -28,6 +28,17 @@ public class BillingController {
         return R.ok(service.bills(projectId, status));
     }
 
+    @GetMapping("/contracts/{contractId}/bills")
+    public R<List<Map<String, Object>>> contractBills(@PathVariable long contractId) {
+        return R.ok(service.contractBills(contractId));
+    }
+
+    @PostMapping("/contracts/{contractId}/pay")
+    public R<Map<String, Object>> payContract(@PathVariable long contractId,
+                                              @RequestBody BillingService.ContractPayCmd cmd) {
+        return R.ok(service.payContract(contractId, cmd));
+    }
+
     @PostMapping("/bills/{billId}/pay")
     public R<Map<String, Object>> pay(@PathVariable long billId,
                                       @RequestBody BillingService.PaymentCmd cmd) {

@@ -1384,7 +1384,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-129 个断言通过
+132 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -1426,4 +1426,48 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 保障申请档案
 保障档案明细
 菜单权限
+```
+
+
+---
+
+## 36. 合同多账单收款
+
+### GET /billing/contracts/{contractId}/bills
+
+返回合同下全部账单，供合同详情直接收款选择。
+
+### POST /billing/contracts/{contractId}/pay
+
+```json
+{
+  "paymentMethod": "CASH",
+  "allocations": [
+    {"billId": "1", "amount": 900},
+    {"billId": "2", "amount": 300}
+  ]
+}
+```
+
+规则：
+
+```text
+合同必须 ACTIVE
+账单必须属于当前合同
+每笔金额大于 0 且不超过未收
+同一账单不能重复
+一条 payment 对应多条 allocation
+统一生成一张收据
+事务保证
+```
+
+返回：
+
+```text
+paymentId
+paymentNo
+receiptId
+receiptNo
+totalAmount
+allocations
 ```
