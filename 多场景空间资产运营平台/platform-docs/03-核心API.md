@@ -330,6 +330,7 @@ HOUSE
 资格复核
 迁移异常处理
 附件上传
+计量与能耗
 菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
@@ -379,6 +380,7 @@ HOUSE
 资格复核
 迁移异常处理
 附件上传
+计量与能耗
 菜单权限
 通过/驳回
 审批记录
@@ -502,6 +504,7 @@ TERMINATION → 合同终止
 资格复核
 迁移异常处理
 附件上传
+计量与能耗
 菜单权限
 
 ### GET /guarantee/applications?projectId=
@@ -614,6 +617,7 @@ WAITING → ALLOCATED
 ## 13. 资格复核
 迁移异常处理
 附件上传
+计量与能耗
 菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
@@ -679,7 +683,35 @@ platform-sql/002_menu_seed.sql
 
 ---
 
-## 15. 附件
+## 15. 计量与能耗
+
+### GET /guarantee/meters?projectId=
+
+### POST /guarantee/meters
+
+```json
+{
+  "projectId": 1,
+  "houseId": 2,
+  "meterType": "WATER",
+  "meterNo": "WM-001",
+  "initialReading": 0
+}
+```
+
+### POST /guarantee/meters/{meterId}/readings
+
+```json
+{"readingDate": "2026-11-08", "readingValue": 100, "readerName": "抄表员A"}
+```
+
+### GET /guarantee/meters/{meterId}/readings
+
+### GET /guarantee/meters/summary?projectId=
+
+---
+
+## 16. 附件
 
 ### POST /files
 
@@ -705,7 +737,7 @@ file=<文件>
 
 ---
 
-## 16. 迁移异常
+## 17. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -723,7 +755,7 @@ PENDING → RESOLVED
 
 ---
 
-## 17. 验证脚本
+## 18. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -732,7 +764,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-72 个断言通过
+75 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -754,5 +786,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 资格复核
 迁移异常处理
 附件上传
+计量与能耗
 菜单权限
 ```

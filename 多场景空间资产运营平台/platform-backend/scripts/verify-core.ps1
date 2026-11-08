@@ -427,6 +427,26 @@ if (@($migrationPending).Count -gt 0) {
 $migrationResolved = Api "GET" "/api/v1/platform/migration/exceptions?status=RESOLVED" $null
 Assert-True (@($migrationResolved).Count -ge 1) "migration exception resolution listed"
 
+
+$meter = Api "POST" "/api/v1/platform/guarantee/meters" @{
+    projectId = $projectId
+    houseId = $roomHouse.id
+    meterType = "WATER"
+    meterNo = "VERIFY_METER_$suffix"
+    initialReading = 0
+}
+Assert-True ($null -ne $meter.id) "meter created"
+
+$reading = Api "POST" "/api/v1/platform/guarantee/meters/$($meter.id)/readings" @{
+    readingDate = "2026-11-08"
+    readingValue = 100
+    readerName = "抄表员A"
+}
+Assert-True ([decimal]$reading.usageAmount -eq 100) "meter reading recorded"
+
+$meterSummary = Api "GET" "/api/v1/platform/guarantee/meters/summary?projectId=$projectId" $null
+Assert-True (@($meterSummary).Count -ge 1) "meter summary loaded"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

@@ -20,6 +20,7 @@ import Audit from './pages/Audit.vue'
 import Qualification from './pages/Qualification.vue'
 import MigrationExceptions from './pages/MigrationExceptions.vue'
 import Devices from './pages/Devices.vue'
+import Meters from './pages/Meters.vue'
 import Menus from './pages/Menus.vue'
 
 const router = createRouter({
@@ -38,6 +39,7 @@ const router = createRouter({
     { path: '/reports', component: Reports, meta: { title: '运营报表' } },
     { path: '/changes', component: Changes, meta: { title: '合同变更' } },
     { path: '/qualification', component: Qualification, meta: { title: '资格复核' } },
+    { path: '/meters', component: Meters, meta: { title: '计量与能耗' } },
     { path: '/devices', component: Devices, meta: { title: '设备与授权' } },
     { path: '/audit', component: Audit, meta: { title: '审批中心' } },
     { path: '/menus', component: Menus, meta: { title: '菜单与角色' } },

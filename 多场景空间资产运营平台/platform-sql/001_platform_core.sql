@@ -725,3 +725,35 @@ create table if not exists guarantee_subsidy_standard (
   create_time datetime not null default current_timestamp,
   unique key uk_guarantee_subsidy_standard (tenant_id, standard_code)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房补贴标准';
+
+
+create table if not exists guarantee_meter (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  house_id bigint not null,
+  meter_type varchar(20) not null,
+  meter_no varchar(64) not null,
+  initial_reading decimal(14,2) not null default 0,
+  current_reading decimal(14,2) not null default 0,
+  install_date date null,
+  meter_status varchar(20) not null default 'ACTIVE',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_guarantee_meter_no (tenant_id, meter_no),
+  key idx_guarantee_meter_project (tenant_id, project_id, meter_type, meter_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房表计';
+
+create table if not exists guarantee_meter_reading (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  meter_id bigint not null,
+  reading_date date not null,
+  reading_value decimal(14,2) not null,
+  previous_value decimal(14,2) not null,
+  usage_amount decimal(14,2) not null,
+  reader_name varchar(64) null,
+  create_time datetime not null default current_timestamp,
+  key idx_guarantee_meter_reading (tenant_id, meter_id, reading_date)
+) engine=InnoDB default charset=utf8mb4 comment='保障房抄表记录';
