@@ -25,7 +25,8 @@ public class PersonService {
         String like = keyword == null || keyword.isBlank() ? null : "%" + keyword.trim() + "%";
         return jdbc.queryForList(
                 "select id, person_code personCode, person_name personName, phone, "
-                        + "id_card_mask idCardMask, person_type personType, verify_status verifyStatus, status "
+                        + "id_card_mask idCardMask, person_type personType, verify_status verifyStatus, status, "
+                        + "gender, birth_date birthDate, address, employer, emergency_contact emergencyContact, remark "
                         + "from bp_person where tenant_id=? and is_deleted=0 "
                         + "and (? is null or person_name like ? or person_code like ? or phone like ?) "
                         + "and (? is null or person_type=?) order by id desc",
@@ -41,9 +42,11 @@ public class PersonService {
         long id = idGen.nextId();
         try {
             jdbc.update("insert into bp_person(id,tenant_id,person_code,person_name,phone,"
-                            + "id_card_mask,person_type,status,is_deleted) values(?,?,?,?,?,?,?,'ENABLED',0)",
+                            + "id_card_mask,person_type,gender,birth_date,address,employer,emergency_contact,remark,"
+                            + "status,is_deleted) values(?,?,?,?,?,?,?,?,?,?,?,?,?,'ENABLED',0)",
                     id, tenant, cmd.personCode().trim(), cmd.personName().trim(), cmd.phone(),
-                    cmd.idCardMask(), cmd.personType());
+                    cmd.idCardMask(), cmd.personType(), cmd.gender(), cmd.birthDate(), cmd.address(),
+                    cmd.employer(), cmd.emergencyContact(), cmd.remark());
         } catch (DataIntegrityViolationException e) {
             throw BizException.conflict("人员编码已存在");
         }
@@ -118,7 +121,9 @@ public class PersonService {
     }
 
     public record PersonCmd(String personCode, String personName, String phone,
-                            String idCardMask, String personType) {
+                            String idCardMask, String personType, String gender,
+                            LocalDate birthDate, String address, String employer,
+                            String emergencyContact, String remark) {
     }
 
     public record RelationCmd(Long projectId, String targetType, Long targetId, String relationType,

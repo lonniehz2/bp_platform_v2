@@ -11,7 +11,7 @@ const persons = ref([])
 const spaces = ref([])
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ deviceCode: '', deviceName: '', deviceType: 'LOCK', spaceId: '' })
+const form = reactive({ deviceCode: '', deviceName: '', deviceType: 'LOCK', spaceId: '', deviceModel: '', installTime: '', warrantyEnd: '' })
 const grantForm = reactive({ personId: '', targetId: '', validStart: '2026-11-08', validEnd: '2027-11-07' })
 const grants = ref([])
 
@@ -53,7 +53,8 @@ async function createDevice() {
     await api.createDevice({
       projectId: project.value.id, spaceId: form.spaceId || null,
       deviceCode: form.deviceCode.trim(), deviceName: form.deviceName || form.deviceCode,
-      deviceType: form.deviceType, assetStatus: 'ACTIVE', businessStatus: 'IN_USE'
+      deviceType: form.deviceType, deviceModel: form.deviceModel, installTime: form.installTime || null,
+      warrantyEnd: form.warrantyEnd || null, assetStatus: 'ACTIVE', businessStatus: 'IN_USE'
     })
     form.deviceCode = ''; form.deviceName = ''
     await load()
@@ -101,6 +102,9 @@ onMounted(load)
           <div class="field"><label>设备类型</label>
             <select v-model="form.deviceType"><option value="LOCK">门锁</option><option value="METER">水电表</option><option value="ELEVATOR">电梯</option><option value="GATE">门禁</option></select>
           </div>
+          <div class="field"><label>设备型号</label><input v-model="form.deviceModel" /></div>
+          <div class="field"><label>安装时间</label><input v-model="form.installTime" type="datetime-local" /></div>
+          <div class="field"><label>保修到期</label><input v-model="form.warrantyEnd" type="date" /></div>
           <div class="field"><label>绑定空间</label>
             <select v-model="form.spaceId"><option v-for="s in spaces" :key="s.id" :value="s.id">{{ s.spaceName }}（{{ s.spaceType }}）</option></select>
           </div>
@@ -113,11 +117,12 @@ onMounted(load)
         <div v-if="!devices.length" class="empty">暂无设备</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>绑定空间</th><th>资产状态</th><th>业务状态</th></tr></thead>
+            <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>型号</th><th>绑定空间</th><th>保修到期</th><th>资产状态</th><th>业务状态</th></tr></thead>
             <tbody>
               <tr v-for="d in pagedDevices" :key="d.id">
                 <td class="mono">{{ d.deviceCode }}</td><td>{{ d.deviceName }}</td><td>{{ d.deviceType }}</td>
-                <td>{{ d.spaceName || '-' }}</td><td><span class="badge green">{{ d.assetStatus }}</span></td><td>{{ d.businessStatus }}</td>
+                <td>{{ d.deviceModel || '-' }}</td><td>{{ d.spaceName || '-' }}</td><td>{{ d.warrantyEnd || '-' }}</td>
+                <td><span class="badge green">{{ d.assetStatus }}</span></td><td>{{ d.businessStatus }}</td>
               </tr>
             </tbody>
           </table>
