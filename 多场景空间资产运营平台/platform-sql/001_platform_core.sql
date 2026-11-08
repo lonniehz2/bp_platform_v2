@@ -595,3 +595,37 @@ create table if not exists bp_grant_entitlement (
   key idx_bp_grant_person (tenant_id, person_id, grant_status),
   key idx_bp_grant_target (tenant_id, target_type, target_id, grant_status)
 ) engine=InnoDB default charset=utf8mb4 comment='人员空间/设备授权';
+
+
+create table if not exists bp_role (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  scene_code varchar(32) not null,
+  role_code varchar(64) not null,
+  role_name varchar(128) not null,
+  role_status varchar(20) not null default 'ENABLED',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  unique key uk_bp_role_code (tenant_id, scene_code, role_code)
+) engine=InnoDB default charset=utf8mb4 comment='场景角色模板';
+
+create table if not exists bp_menu (
+  id bigint not null primary key,
+  scene_code varchar(32) not null,
+  menu_code varchar(64) not null,
+  parent_code varchar(64) null,
+  menu_name varchar(128) not null,
+  menu_type varchar(20) not null default 'MENU',
+  route varchar(255) null,
+  sort_no int not null default 0,
+  menu_status varchar(20) not null default 'ENABLED',
+  unique key uk_bp_menu_code (scene_code, menu_code)
+) engine=InnoDB default charset=utf8mb4 comment='场景菜单';
+
+create table if not exists bp_role_menu (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  role_id bigint not null,
+  menu_id bigint not null,
+  unique key uk_bp_role_menu (tenant_id, role_id, menu_id)
+) engine=InnoDB default charset=utf8mb4 comment='角色菜单';

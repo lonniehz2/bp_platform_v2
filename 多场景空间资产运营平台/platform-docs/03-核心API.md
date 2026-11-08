@@ -276,7 +276,8 @@ HOUSE
 退租释放房屋
 补贴抵扣租金
 设备业务资产
-授权/人员钥匙包",
+授权/人员钥匙包
+菜单/角色模板",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
     {"nodeName": "经理终审", "approverRole": "PROPERTY_MANAGER"}
@@ -320,6 +321,7 @@ HOUSE
 补贴抵扣租金
 设备业务资产
 授权/人员钥匙包
+菜单/角色模板
 通过/驳回
 审批记录
 ```
@@ -437,6 +439,7 @@ TERMINATION → 合同终止
 补贴抵扣租金
 设备业务资产
 授权/人员钥匙包
+菜单/角色模板
 
 ### GET /guarantee/applications?projectId=
 
@@ -545,7 +548,43 @@ WAITING → ALLOCATED
 
 ---
 
-## 13. 验证脚本
+## 13. 菜单/角色
+
+### GET /menus?sceneCode=GUARANTEE
+
+返回场景菜单树。
+
+### GET /roles?sceneCode=GUARANTEE
+
+返回角色模板和菜单数量。
+
+### GET /roles/{roleId}/menus
+
+返回角色菜单。
+
+GUARANTEE 场景已预置：
+
+```text
+工作台
+项目与资产
+客户与人员
+合同与租赁
+收费与账务
+审核中心
+设备与授权
+基础配置
+系统与数据
+```
+
+种子文件：
+
+```text
+platform-sql/002_menu_seed.sql
+```
+
+---
+
+## 14. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -554,7 +593,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-63 个断言通过
+66 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -571,4 +610,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 补贴抵扣租金
 设备业务资产
 授权/人员钥匙包
+菜单/角色模板
 ```

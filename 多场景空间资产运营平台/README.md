@@ -142,6 +142,7 @@ platform-frontend/README.md
 补贴抵扣租金
 设备业务资产
 授权/人员钥匙包
+菜单/角色模板
 ```
 
 自验证：
@@ -150,7 +151,7 @@ platform-frontend/README.md
 powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\verify-core.ps1
 ```
 
-已验证 63 个断言通过。
+已验证 66 个断言通过。
 
 老数据迁移：
 

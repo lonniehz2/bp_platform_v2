@@ -7,7 +7,8 @@
 ## 目录规划
 
 ```text
-001_platform_core.sql       租户/场景/组织/权限
+001_platform_core.sql
+002_menu_seed.sql       租户/场景/组织/权限
 002_asset_model.sql         空间模板/资产类型/空间/房屋
 003_person_model.sql        人员/关系/标签/组
 004_workflow.sql            审批/工作流

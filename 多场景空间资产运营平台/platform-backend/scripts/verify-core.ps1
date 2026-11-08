@@ -377,6 +377,17 @@ Assert-True ($revoked.grantStatus -eq "REVOKED") "grant revoked"
 $keyringAfter = Api "GET" "/api/v1/platform/persons/$($person.id)/keyring" $null
 Assert-True (@($keyringAfter).Count -eq 0) "keyring empty after revoke"
 
+
+$menus = Api "GET" "/api/v1/platform/menus?sceneCode=GUARANTEE" $null
+Assert-True (@($menus).Count -eq 9) "guarantee menu tree loaded"
+
+$roles = Api "GET" "/api/v1/platform/roles?sceneCode=GUARANTEE" $null
+Assert-True (@($roles).Count -eq 4) "guarantee role templates loaded"
+
+$adminRole = @($roles | Where-Object { $_.roleCode -eq "GUARANTEE_ADMIN" })[0]
+$adminMenus = Api "GET" "/api/v1/platform/roles/$($adminRole.id)/menus" $null
+Assert-True (@($adminMenus).Count -ge 13) "admin role menus loaded"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"
