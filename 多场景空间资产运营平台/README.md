@@ -117,6 +117,7 @@ platform-docs/30-阶段6-原型走查记录.md
 platform-docs/31-五项确认复核记录.md
 platform-docs/32-真人角色可用性走查方案.md
 platform-docs/33-三项重点预检记录.md
+platform-docs/34-设计评审前准备清单.md
 platform-docs/prototype/standard-pages.html
 platform-sql/001_platform_core.sql
 platform-backend/README.md
