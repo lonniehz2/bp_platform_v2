@@ -10,7 +10,10 @@ const messages = {
       "finance": "收费与账务",
       "access": "通行与设备",
       "service": "服务与监督",
-      "system": "系统与数据"
+      "system": "系统与数据",
+      "application": "申请与资格",
+      "waitlist": "轮候与配租",
+      "asset": "房源与资产"
 },
     nav: {
       dashboard: '运营驾驶舱',
@@ -117,7 +120,10 @@ const messages = {
       "finance": "Billing & Finance",
       "access": "Access & Devices",
       "service": "Service & Supervision",
-      "system": "System & Data"
+      "system": "System & Data",
+      "application": "Applications",
+      "waitlist": "Waitlist & Allocation",
+      "asset": "Housing & Assets"
 },
     nav: {
       dashboard: 'Operations Dashboard',
