@@ -31,8 +31,11 @@ const nav = [
   { to: '/projects', label: '项目与资产', icon: '▦' },
   { to: '/applications', label: '申请与轮候', icon: '☷' },
   { to: '/contracts', label: '合同与租赁', icon: '▤' },
+  { to: '/changes', label: '合同变更', icon: '⇄' },
   { to: '/billing', label: '收费与账务', icon: '¥' },
+  { to: '/deposits', label: '押金与补贴', icon: '◫' },
   { to: '/devices', label: '设备与授权', icon: '⌘' },
+  { to: '/audit', label: '审批中心', icon: '✓' },
   { to: '/menus', label: '菜单与角色', icon: '☰' }
 ]
 </script>
