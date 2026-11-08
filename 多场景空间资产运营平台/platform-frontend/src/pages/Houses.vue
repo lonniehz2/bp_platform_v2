@@ -9,7 +9,7 @@ const status = ref('')
 const page = ref(1)
 const error = ref('')
 const editing = ref(null)
-const editForm = reactive({ area: 0, innerArea: 0, houseStatus: 'VACANT', assetTypeCode: '' })
+const editForm = reactive({ area: 0, innerArea: 0, houseStatus: 'VACANT', assetTypeCode: '', layoutType: '', orientation: '', floorNo: 1, totalFloors: 1 })
 const filtered = computed(() => status.value ? houses.value.filter(h => h.houseStatus === status.value) : houses.value)
 const paged = computed(() => filtered.value.slice((page.value - 1) * 10, page.value * 10))
 
@@ -31,6 +31,8 @@ function openEdit(h) {
   editing.value = h
   editForm.area = h.area || 0; editForm.innerArea = h.innerArea || 0
   editForm.houseStatus = h.houseStatus || 'VACANT'; editForm.assetTypeCode = h.assetTypeCode || ''
+  editForm.layoutType = h.layoutType || ''; editForm.orientation = h.orientation || ''
+  editForm.floorNo = h.floorNo || 1; editForm.totalFloors = h.totalFloors || 1
 }
 
 async function saveEdit() {
@@ -65,7 +67,7 @@ onMounted(load)
           <tbody>
             <tr v-for="h in paged" :key="h.id">
               <td class="mono">{{ h.houseCode }}</td><td>{{ h.houseName }}</td>
-              <td>{{ h.assetTypeCode || '-' }}</td><td>{{ h.area || '-' }}</td><td>{{ h.innerArea || '-' }}</td>
+              <td>{{ h.layoutType || '-' }}</td><td>{{ h.orientation || '-' }}</td><td>{{ h.floorNo || '-' }}/{{ h.totalFloors || '-' }}</td><td>{{ h.area || '-' }}</td><td>{{ h.innerArea || '-' }}</td>
               <td><span class="badge" :class="h.houseStatus === 'VACANT' ? 'green' : 'orange'">{{ h.houseStatus }}</span></td>
               <td><button class="sm" @click="openEdit(h)">编辑</button></td>
             </tr>
@@ -84,6 +86,10 @@ onMounted(load)
           <div class="field"><label>套内面积</label><input v-model.number="editForm.innerArea" type="number" /></div>
           <div class="field"><label>房态</label><select v-model="editForm.houseStatus"><option value="VACANT">空置</option><option value="ALLOCATED">已配租</option><option value="OCCUPIED">已入住</option><option value="FROZEN">冻结</option></select></div>
           <div class="field"><label>资产类型</label><input v-model="editForm.assetTypeCode" /></div>
+          <div class="field"><label>户型</label><input v-model="editForm.layoutType" placeholder="如 二室一厅" /></div>
+          <div class="field"><label>朝向</label><select v-model="editForm.orientation"><option value="">未填写</option><option value="SOUTH">南</option><option value="NORTH">北</option><option value="EAST">东</option><option value="WEST">西</option><option value="SOUTHEAST">东南</option><option value="SOUTHWEST">西南</option></select></div>
+          <div class="field"><label>所在楼层</label><input v-model.number="editForm.floorNo" type="number" min="1" /></div>
+          <div class="field"><label>总楼层</label><input v-model.number="editForm.totalFloors" type="number" min="1" /></div>
         </div>
         <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" @click="saveEdit">保存</button></div>
       </div>

@@ -129,6 +129,19 @@ $person = Api "POST" "/api/v1/platform/persons" @{
 Assert-True ($null -ne $person.id) "person created"
 
 $roomHouse = @($houses | Where-Object { $_.houseCode -eq "101" })[0]
+
+$houseUpdated = Api "POST" "/api/v1/platform/projects/$projectId/houses/$($roomHouse.id)/update" @{
+    layoutType = "TWO_BED"
+    orientation = "SOUTH"
+    floorNo = 3
+    totalFloors = 18
+}
+Assert-True ($null -ne $houseUpdated.id) "house attributes updated"
+
+$houses2 = Api "GET" "/api/v1/platform/projects/$projectId/houses" $null
+$roomHouse2 = @($houses2 | Where-Object { $_.id -eq $roomHouse.id })[0]
+Assert-True ($roomHouse2.orientation -eq "SOUTH") "house orientation persisted"
+
 $relation = Api "POST" "/api/v1/platform/persons/$($person.id)/relations" @{
     projectId = $projectId
     targetType = "HOUSE"
