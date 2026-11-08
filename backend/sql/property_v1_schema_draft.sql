@@ -4,34 +4,39 @@
 -- 编码：utf8mb4
 
 -- =========================================================
--- 1. 空间结构模板（租户级模板库，项目选择使用）
+-- 1. 空间结构模板（平台资产基础配置，租户级，场景共用）
 -- =========================================================
-create table if not exists prop_space_template (
+create table if not exists bp_asset_space_template (
   id bigint not null primary key,
   tenant_id varchar(32) not null,
   template_code varchar(64) not null,
   template_name varchar(128) not null,
+  scene_code varchar(32) not null,
   asset_type_code varchar(64) null,
   level_count int not null,
   levels_json json not null,
+  is_system tinyint not null default 0,
+  version_no int not null default 1,
   status varchar(20) not null default 'ENABLED',
   is_deleted tinyint not null default 0,
   create_by varchar(64) null,
   create_time datetime not null default current_timestamp,
   update_by varchar(64) null,
   update_time datetime not null default current_timestamp on update current_timestamp,
-  unique key uk_prop_space_template_code (tenant_id, template_code),
-  key idx_prop_space_template_type (tenant_id, asset_type_code, status)
-) engine=InnoDB default charset=utf8mb4 comment='空间结构模板';
+  unique key uk_bp_space_template_code (tenant_id, template_code, version_no),
+  key idx_bp_space_template_scene (tenant_id, scene_code, status),
+  key idx_bp_space_template_type (tenant_id, asset_type_code, status)
+) engine=InnoDB default charset=utf8mb4 comment='空间结构模板，平台资产基础配置，租户级；物业/保障房/园区等场景共用';
 
 -- =========================================================
--- 2. 资产类型字典（租户级，多项目共用）
+-- 2. 资产类型字典（平台资产基础配置，租户级，多场景共用）
 -- =========================================================
-create table if not exists prop_asset_type (
+create table if not exists bp_asset_type (
   id bigint not null primary key,
   tenant_id varchar(32) not null,
   type_code varchar(64) not null,
   type_name varchar(128) not null,
+  scene_code varchar(32) not null,
   type_category varchar(20) not null,
   sort_no int not null default 0,
   status varchar(20) not null default 'ENABLED',
@@ -40,9 +45,9 @@ create table if not exists prop_asset_type (
   create_time datetime not null default current_timestamp,
   update_by varchar(64) null,
   update_time datetime not null default current_timestamp on update current_timestamp,
-  unique key uk_prop_asset_type_code (tenant_id, type_code),
-  key idx_prop_asset_type_category (tenant_id, type_category, status)
-) engine=InnoDB default charset=utf8mb4 comment='资产类型字典，租户级';
+  unique key uk_bp_asset_type_code (tenant_id, scene_code, type_code),
+  key idx_bp_asset_type_category (tenant_id, scene_code, type_category, status)
+) engine=InnoDB default charset=utf8mb4 comment='资产类型字典，平台资产基础配置，租户级；多场景共用';
 
 -- =========================================================
 -- 3. 物业房屋扩展
@@ -320,7 +325,8 @@ create table if not exists prop_asset_exception (
 -- =========================================================
 -- 11. 已有表增量字段（草案，评审后再执行）
 -- =========================================================
--- alter table prop_project_config add column space_template_id bigint null comment '空间结构模板';
+-- alter table bp_iam_org add column space_template_id bigint null comment '空间结构模板，平台资产基础配置';
+-- alter table bp_iam_org add column default_asset_type_code varchar(64) null comment '默认资产类型';
 -- alter table bp_asset_space add column asset_type_code varchar(64) null comment '资产类型';
 -- alter table bp_asset_space add column space_template_id bigint null comment '空间结构模板';
 -- alter table bp_asset_space add column level_no int null comment '所在层级序号';
@@ -355,8 +361,11 @@ create table if not exists prop_asset_exception (
 -- RENT 租金
 -- OTHER 其他
 
--- 空间模板
--- 住宅标准：期/苑幢/单元/楼层/房号
--- 商业标准：楼/楼层/商铺
--- 办公标准：楼/楼层/房间
--- 场地标准：区域/点位
+-- 空间模板（bp_asset_space_template，scene_code 区分场景）
+-- 物业住宅：期/苑幢/单元/楼层/房号
+-- 物业商业：楼/楼层/商铺
+-- 物业办公：楼/楼层/房间
+-- 物业场地：区域/点位
+-- 保障房：小区/楼栋/单元/楼层/房屋/床位
+-- 园区：园区/楼栋/楼层/房间
+-- 校园：校区/楼栋/楼层/房间

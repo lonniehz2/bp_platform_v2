@@ -13,16 +13,16 @@
 erDiagram
     BP_IAM_ORG ||--o{ PROP_PROJECT_CONFIG : "project org"
     PROP_PROJECT_CONFIG ||--o{ BP_ASSET_SPACE : "project spaces"
-    PROP_SPACE_TEMPLATE ||--o{ PROP_PROJECT_CONFIG : "selected by project"
-    PROP_SPACE_TEMPLATE ||--o{ BP_ASSET_SPACE : "generates levels"
+    BP_ASSET_SPACE_TEMPLATE ||--o{ BP_IAM_ORG : "selected by project"
+    BP_ASSET_SPACE_TEMPLATE ||--o{ BP_ASSET_SPACE : "generates levels"
 
     BP_ASSET_SPACE ||--o{ BP_ASSET_HOUSE : "ROOM/BED"
     BP_ASSET_HOUSE ||--|| PROP_UNIT_EXT : "property ext"
     BP_ASSET_HOUSE ||--o{ PROP_OWNER_UNIT : "owners/tenants"
     BP_PERSON ||--o{ PROP_OWNER_UNIT : "person"
 
-    PROP_ASSET_TYPE ||--o{ PROP_UNIT_EXT : "asset type"
-    PROP_ASSET_TYPE ||--o{ PROP_BILLING_SCHEME : "asset type price"
+    BP_ASSET_TYPE ||--o{ PROP_UNIT_EXT : "asset type"
+    BP_ASSET_TYPE ||--o{ PROP_BILLING_SCHEME : "asset type price"
 
     PROP_FEE_ITEM ||--o{ PROP_BILLING_SCHEME : "fee item"
     PROP_PROJECT_CONFIG ||--o{ PROP_SERVICE_CONTRACT : "service contract"
@@ -62,8 +62,8 @@ bp_iam_org（PROPERTY_PROJECT）
 项目选择：
 
 ```text
-prop_space_template  空间结构模板
-prop_asset_type      租户级资产类型
+bp_asset_space_template  空间结构模板，平台资产基础配置
+bp_asset_type           资产类型字典，平台资产基础配置
 ```
 
 ### 2.2 空间与房屋
@@ -81,6 +81,13 @@ bp_asset_space
 asset_type_code
 space_template_id
 level_no
+```
+
+`bp_iam_org` 增加：
+
+```text
+space_template_id
+default_asset_type_code
 ```
 
 ### 2.3 人员
@@ -142,8 +149,8 @@ prop_audit_flow
 
 | 表 | 用途 |
 |---|---|
-| `prop_space_template` | 空间结构模板，租户级模板库，项目选择 |
-| `prop_asset_type` | 资产类型字典，租户级，多项目共用 |
+| `bp_asset_space_template` | 空间结构模板，平台资产基础配置，租户级，物业/保障房/园区共用 |
+| `bp_asset_type` | 资产类型字典，平台资产基础配置，租户级，多场景共用 |
 | `prop_unit_ext` | 物业房屋扩展，资产类型、建筑面积、套内面积、交付状态 |
 | `prop_service_contract` | 项目级物业服务合同，业委会/资产方 |
 | `prop_billing_scheme` | 计费方案，按项目/资产类型/楼栋/房屋 |
@@ -165,8 +172,9 @@ prop_audit_flow
 以下字段为草案，执行前需确认：
 
 ```sql
--- prop_project_config
+-- bp_iam_org
 space_template_id bigint null
+default_asset_type_code varchar(64) null
 
 -- bp_asset_space
 asset_type_code varchar(64) null
@@ -334,9 +342,9 @@ action_time
 
 ```text
 bp_iam_org (PROPERTY_PROJECT)
-→ prop_project_config
 → 选择默认空间模板
 → 默认资产类型
+→ prop_project_config 只保留物业业务配置
 ```
 
 ### 8.2 房屋
@@ -392,11 +400,12 @@ asset_type_code 可空
 ## 9. 索引与约束建议
 
 ```text
-prop_space_template
-  unique (tenant_id, template_code)
+bp_asset_space_template
+  unique (tenant_id, template_code, version_no)
+  index (tenant_id, scene_code, status)
 
-prop_asset_type
-  unique (tenant_id, type_code)
+bp_asset_type
+  unique (tenant_id, scene_code, type_code)
 
 prop_unit_ext
   unique (tenant_id, house_id)
