@@ -50,6 +50,47 @@
       </el-table>
     </el-card>
 
+
+    <el-card shadow="never">
+      <div class="toolbar">
+        <div>
+          <div class="title">{{ t('propertyParking.temporary') }}</div>
+          <div class="sub">{{ t('propertyParking.temporaryHint') }}</div>
+        </div>
+        <div class="spacer" />
+        <el-button type="primary" @click="openTempEntry">{{ t('propertyParking.entry') }}</el-button>
+      </div>
+      <el-table :data="tempRows" border size="small">
+        <el-table-column prop="plateNo" :label="t('propertyParking.plateNo')" width="140" />
+        <el-table-column prop="entryTime" :label="t('propertyParking.entryTime')" min-width="170" />
+        <el-table-column prop="exitTime" :label="t('propertyParking.exitTime')" min-width="170" />
+        <el-table-column prop="hours" :label="t('propertyParking.hours')" width="90" />
+        <el-table-column prop="amount" :label="t('propertyParking.amount')" width="100" />
+        <el-table-column prop="status" :label="t('propertyParking.status')" width="100" />
+        <el-table-column :label="t('propertyParking.actions')" width="190">
+          <template #default="{ row }">
+            <el-button v-if="row.status === 'IN'" link type="primary" @click="tempExit(row)">{{ t('propertyParking.exit') }}</el-button>
+            <el-button v-if="row.status === 'OUT'" link type="success" @click="tempPay(row)">{{ t('propertyParking.pay') }}</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
+
+    <el-dialog v-model="tempVisible" :title="t('propertyParking.entry')" width="440px">
+      <el-form :model="tempForm" label-width="100px">
+        <el-form-item :label="t('propertyParking.plateNo')" required>
+          <el-input v-model="tempForm.plateNo" />
+        </el-form-item>
+        <el-form-item :label="t('propertyParking.entryTime')">
+          <el-date-picker v-model="tempForm.entryTime" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" style="width:100%" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="tempVisible = false">{{ t('propertyParking.cancel') }}</el-button>
+        <el-button type="primary" @click="saveTempEntry">{{ t('propertyParking.save') }}</el-button>
+      </template>
+    </el-dialog>
+
     <el-dialog v-model="spaceVisible" :title="t('propertyParking.addSpace')" width="480px">
       <el-form :model="spaceForm" label-width="100px">
         <el-form-item :label="t('propertyParking.garage')">
@@ -162,6 +203,9 @@ const store = usePropertyStore()
 const projectId = computed(() => store.projectId)
 const spaces = ref([])
 const rates = ref([])
+const tempRows = ref([])
+const tempVisible = ref(false)
+const tempForm = reactive({ plateNo: '', entryTime: new Date().toISOString().slice(0, 19).replace('T', ' ') })
 const loading = ref(false)
 const saving = ref(false)
 const spaceVisible = ref(false)
@@ -190,13 +234,54 @@ async function loadAll() {
   if (!projectId.value) return
   loading.value = true
   try {
-    [spaces.value, rates.value] = await Promise.all([
+    [spaces.value, rates.value, tempRows.value] = await Promise.all([
       req.get('/property/parking/spaces', { params: { projectId: projectId.value } }),
-      req.get('/property/parking/rates', { params: { projectId: projectId.value } })
+      req.get('/property/parking/rates', { params: { projectId: projectId.value } }),
+      req.get('/property/parking/temporary', { params: { projectId: projectId.value } })
     ])
   } catch (e) {
     ElMessage.error(t('propertyParking.loadFailed'))
   } finally { loading.value = false }
+}
+
+function openTempEntry() {
+  Object.assign(tempForm, { plateNo: '', entryTime: new Date().toISOString().slice(0, 19).replace('T', ' ') })
+  tempVisible.value = true
+}
+
+async function saveTempEntry() {
+  if (!tempForm.plateNo.trim()) {
+    ElMessage.warning(t('propertyParking.required'))
+    return
+  }
+  try {
+    await req.post('/property/parking/temporary', tempForm, { params: { projectId: projectId.value } })
+    tempVisible.value = false
+    await loadAll()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || t('propertyParking.failed'))
+  }
+}
+
+async function tempExit(row) {
+  try {
+    const r = await req.post(`/property/parking/temporary/${row.id}/exit`, {}, { params: { projectId: projectId.value } })
+    ElMessage.success(t('propertyParking.exitDone', { amount: r.amount }))
+    await loadAll()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || t('propertyParking.failed'))
+  }
+}
+
+async function tempPay(row) {
+  await ElMessageBox.confirm(t('propertyParking.payConfirm'), t('propertyParking.pay'), { type: 'warning' })
+  try {
+    await req.post(`/property/parking/temporary/${row.id}/pay`, { payMethod: 'CASH' }, { params: { projectId: projectId.value } })
+    ElMessage.success(t('propertyParking.payDone'))
+    await loadAll()
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || t('propertyParking.failed'))
+  }
 }
 
 function openSpace() {
