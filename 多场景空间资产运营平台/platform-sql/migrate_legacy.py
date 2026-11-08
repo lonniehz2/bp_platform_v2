@@ -575,6 +575,9 @@ def migrate(apply=False):
             "/publicities": "application",
             "/workorders": "service",
             "/access": "access",
+            "/complaints": "complaint",
+            "/appeals": "complaint",
+            "/visits": "complaint",
         }
         oc.execute("""
             select r.id role_id, p.route_path route_path

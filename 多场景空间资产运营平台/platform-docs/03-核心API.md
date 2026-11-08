@@ -333,6 +333,7 @@ HOUSE
 计量与能耗
 服务工单
 访客通行
+投诉与申诉
 菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
@@ -385,6 +386,7 @@ HOUSE
 计量与能耗
 服务工单
 访客通行
+投诉与申诉
 菜单权限
 通过/驳回
 审批记录
@@ -511,6 +513,7 @@ TERMINATION → 合同终止
 计量与能耗
 服务工单
 访客通行
+投诉与申诉
 菜单权限
 
 ### GET /guarantee/applications?projectId=
@@ -626,6 +629,7 @@ WAITING → ALLOCATED
 计量与能耗
 服务工单
 访客通行
+投诉与申诉
 菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
@@ -694,6 +698,7 @@ platform-sql/002_menu_seed.sql
 ## 15. 计量与能耗
 服务工单
 访客通行
+投诉与申诉
 
 ### GET /guarantee/meters?projectId=
 
@@ -723,6 +728,7 @@ platform-sql/002_menu_seed.sql
 
 ## 16. 服务工单
 访客通行
+投诉与申诉
 
 ### GET /guarantee/work-orders?projectId=
 
@@ -755,6 +761,7 @@ PENDING → PROCESSING → DONE → CLOSED
 ---
 
 ## 17. 访客通行
+投诉与申诉
 
 ### GET /guarantee/access-records?projectId=
 
@@ -779,7 +786,40 @@ PENDING → PROCESSING → DONE → CLOSED
 
 ---
 
-## 18. 附件
+## 18. 投诉与申诉
+
+### GET /guarantee/complaints?projectId=&type=
+
+### POST /guarantee/complaints
+
+```json
+{
+  "projectId": 1,
+  "complaintType": "COMPLAINT",
+  "title": "楼道噪音",
+  "content": "夜间噪音",
+  "houseId": 2,
+  "personId": 3
+}
+```
+
+### POST /guarantee/complaints/{id}/handle
+
+```json
+{"complaintStatus": "RESOLVED", "handlerName": "客服中心", "handleResult": "已协调"}
+```
+
+类型：
+
+```text
+COMPLAINT 投诉
+APPEAL 申诉
+VISIT 走访
+```
+
+---
+
+## 19. 附件
 
 ### POST /files
 
@@ -805,7 +845,7 @@ file=<文件>
 
 ---
 
-## 19. 迁移异常
+## 20. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -823,7 +863,7 @@ PENDING → RESOLVED
 
 ---
 
-## 20. 验证脚本
+## 21. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -832,7 +872,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-81 个断言通过
+84 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -857,5 +897,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 计量与能耗
 服务工单
 访客通行
+投诉与申诉
 菜单权限
 ```

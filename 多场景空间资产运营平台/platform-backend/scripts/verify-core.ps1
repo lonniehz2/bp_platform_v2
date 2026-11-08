@@ -486,6 +486,27 @@ Assert-True ($accessApproved.accessStatus -eq "APPROVED") "access record approve
 $accessList = Api "GET" "/api/v1/platform/guarantee/access-records?projectId=$projectId" $null
 Assert-True (@($accessList).Count -ge 1) "access record listed"
 
+
+$complaint = Api "POST" "/api/v1/platform/guarantee/complaints" @{
+    projectId = $projectId
+    complaintType = "COMPLAINT"
+    title = "验证投诉"
+    content = "楼道噪音"
+    houseId = $roomHouse.id
+    personId = $person.id
+}
+Assert-True ($complaint.complaintStatus -eq "PENDING") "complaint created"
+
+$complaintHandled = Api "POST" "/api/v1/platform/guarantee/complaints/$($complaint.id)/handle" @{
+    complaintStatus = "RESOLVED"
+    handlerName = "客服中心"
+    handleResult = "已协调"
+}
+Assert-True ($complaintHandled.complaintStatus -eq "RESOLVED") "complaint resolved"
+
+$complaints = Api "GET" "/api/v1/platform/guarantee/complaints?projectId=$projectId" $null
+Assert-True (@($complaints).Count -ge 1) "complaint listed"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

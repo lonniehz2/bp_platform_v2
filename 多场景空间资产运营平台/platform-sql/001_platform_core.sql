@@ -798,3 +798,22 @@ create table if not exists guarantee_access_record (
   update_time datetime not null default current_timestamp on update current_timestamp,
   key idx_guarantee_access_project (tenant_id, project_id, access_status)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房访客通行登记';
+
+
+create table if not exists guarantee_complaint (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  project_id bigint not null,
+  complaint_type varchar(20) not null default 'COMPLAINT',
+  title varchar(200) not null,
+  content varchar(2000) null,
+  house_id bigint null,
+  person_id bigint null,
+  complaint_status varchar(20) not null default 'PENDING',
+  handler_name varchar(64) null,
+  handle_result varchar(1000) null,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  key idx_guarantee_complaint_project (tenant_id, project_id, complaint_status)
+) engine=InnoDB default charset=utf8mb4 comment='保障房投诉申诉走访';
