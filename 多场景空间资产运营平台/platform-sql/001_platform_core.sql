@@ -984,3 +984,16 @@ create table if not exists guarantee_contract_cohabitant (
   update_time datetime not null default current_timestamp on update current_timestamp,
   key idx_guarantee_cohabitant_contract (tenant_id, contract_id, cohabitant_status)
 ) engine=InnoDB default charset=utf8mb4 comment='合同同住人';
+
+
+create table if not exists bp_user_project (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  user_id bigint not null,
+  project_id bigint not null,
+  is_default tinyint not null default 0,
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  unique key uk_user_project (tenant_id,user_id,project_id),
+  key idx_user_project_user (tenant_id,user_id)
+) engine=InnoDB default charset=utf8mb4 comment='用户项目数据范围';

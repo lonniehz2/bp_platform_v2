@@ -4,7 +4,10 @@ import com.yundao.platform.common.exception.BizException;
 import com.yundao.platform.common.id.IdGenerator;
 import com.yundao.platform.common.tenant.TenantContext;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,22 +18,39 @@ public class PersonService {
 
     private final JdbcTemplate jdbc;
     private final IdGenerator idGen;
+    private final DataScopeService dataScope;
 
-    public PersonService(JdbcTemplate jdbc, IdGenerator idGen) {
+    public PersonService(JdbcTemplate jdbc, IdGenerator idGen, DataScopeService dataScope) {
         this.jdbc = jdbc;
         this.idGen = idGen;
+        this.dataScope = dataScope;
     }
 
     public List<Map<String, Object>> list(String keyword, String personType) {
         String like = keyword == null || keyword.isBlank() ? null : "%" + keyword.trim() + "%";
+        Set<Long> projectIds = dataScope.projectIds();
+        if (projectIds != null && projectIds.isEmpty()) {
+            return List.of();
+        }
+        String scopeSql = "";
+        List<Object> params = new ArrayList<>();
+        params.add(TenantContext.require());
+        params.add(like); params.add(like); params.add(like); params.add(like);
+        params.add(personType); params.add(personType);
+        if (projectIds != null) {
+            scopeSql = " and exists (select 1 from bp_person_relation r "
+                    + "where r.person_id=p.id and r.project_id in ("
+                    + String.join(",", Collections.nCopies(projectIds.size(), "?")) + "))";
+            params.addAll(projectIds);
+        }
         return jdbc.queryForList(
-                "select id, person_code personCode, person_name personName, phone, "
-                        + "id_card_mask idCardMask, person_type personType, verify_status verifyStatus, status, "
-                        + "gender, birth_date birthDate, address, employer, emergency_contact emergencyContact, remark "
-                        + "from bp_person where tenant_id=? and is_deleted=0 "
-                        + "and (? is null or person_name like ? or person_code like ? or phone like ?) "
-                        + "and (? is null or person_type=?) order by id desc",
-                TenantContext.require(), like, like, like, like, personType, personType);
+                "select p.id, p.person_code personCode, p.person_name personName, p.phone, "
+                        + "p.id_card_mask idCardMask, p.person_type personType, p.verify_status verifyStatus, p.status, "
+                        + "p.gender, p.birth_date birthDate, p.address, p.employer, p.emergency_contact emergencyContact, p.remark "
+                        + "from bp_person p where p.tenant_id=? and p.is_deleted=0 "
+                        + "and (? is null or p.person_name like ? or p.person_code like ? or p.phone like ?) "
+                        + "and (? is null or p.person_type=?)" + scopeSql + " order by p.id desc",
+                params.toArray());
     }
 
     public Map<String, Object> create(PersonCmd cmd) {
