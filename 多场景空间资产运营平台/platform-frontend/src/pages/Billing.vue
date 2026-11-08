@@ -1,16 +1,19 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can } from '../permissions'
+import Pager from '../components/Pager.vue'
 
 const project = ref(null)
 const bills = ref([])
 const payments = ref([])
+const page = ref(1)
 const error = ref('')
 const busy = ref(false)
 const payForm = reactive({ billId: '', amount: '', method: 'CASH' })
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
+const pagedBills = computed(() => bills.value.slice((page.value - 1) * 10, page.value * 10))
 const statusClass = (s) => ({ PAID: 'green', PARTIAL: 'orange', UNPAID: 'red' }[s] || '')
 
 async function currentProject() {
@@ -84,7 +87,7 @@ onMounted(load)
           <table>
             <thead><tr><th>账单号</th><th>承租人</th><th>周期</th><th>账单金额</th><th>补贴</th><th>应付</th><th>已收</th><th>状态</th></tr></thead>
             <tbody>
-              <tr v-for="b in bills" :key="b.id">
+              <tr v-for="b in pagedBills" :key="b.id">
                 <td class="mono">{{ b.billNo }}</td><td>{{ b.personName }}</td>
                 <td class="small">{{ b.periodStart }} ~ {{ b.periodEnd }}</td>
                 <td>¥{{ money(b.amount) }}</td><td>¥{{ money(b.discountAmount) }}</td>
@@ -94,6 +97,7 @@ onMounted(load)
             </tbody>
           </table>
         </div>
+        <Pager :total="bills.length" :page="page" @update:page="page = $event" />
       </div>
 
       <div class="panel">

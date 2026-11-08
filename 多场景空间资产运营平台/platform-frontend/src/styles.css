@@ -141,3 +141,6 @@ tr:hover td { background: #fafcff; }
 }
 .login-card .brand-title { color: var(--ink); }
 .login-card .brand-sub { color: var(--muted); }
+
+
+.pager { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 12px; }

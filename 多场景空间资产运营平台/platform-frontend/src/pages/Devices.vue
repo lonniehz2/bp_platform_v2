@@ -1,10 +1,12 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can } from '../permissions'
+import Pager from '../components/Pager.vue'
 
 const project = ref(null)
 const devices = ref([])
+const page = ref(1)
 const persons = ref([])
 const spaces = ref([])
 const error = ref('')
@@ -13,6 +15,7 @@ const form = reactive({ deviceCode: '', deviceName: '', deviceType: 'LOCK', spac
 const grantForm = reactive({ personId: '', targetId: '', validStart: '2026-11-08', validEnd: '2027-11-07' })
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN')
+const pagedDevices = computed(() => devices.value.slice((page.value - 1) * 10, page.value * 10))
 
 async function currentProject() {
   const all = await api.projects()
@@ -99,13 +102,14 @@ onMounted(load)
           <table>
             <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>绑定空间</th><th>资产状态</th><th>业务状态</th></tr></thead>
             <tbody>
-              <tr v-for="d in devices" :key="d.id">
+              <tr v-for="d in pagedDevices" :key="d.id">
                 <td class="mono">{{ d.deviceCode }}</td><td>{{ d.deviceName }}</td><td>{{ d.deviceType }}</td>
                 <td>{{ d.spaceName || '-' }}</td><td><span class="badge green">{{ d.assetStatus }}</span></td><td>{{ d.businessStatus }}</td>
               </tr>
             </tbody>
           </table>
         </div>
+        <Pager :total="devices.length" :page="page" @update:page="page = $event" />
       </div>
 
       <div class="panel">

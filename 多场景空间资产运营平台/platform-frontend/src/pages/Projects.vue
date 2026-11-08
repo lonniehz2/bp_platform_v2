@@ -1,13 +1,16 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can } from '../permissions'
+import Pager from '../components/Pager.vue'
 
 const projects = ref([])
 const templates = ref([])
 const modes = ref([])
+const page = ref(1)
 const error = ref('')
 const busy = ref(false)
+const pagedProjects = computed(() => projects.value.slice((page.value - 1) * 10, page.value * 10))
 const form = reactive({ orgCode: '', orgName: '保障房项目', businessMode: 'PUBLIC_RENTAL', spaceTemplateId: '', defaultAssetTypeCode: 'PUBLIC_RENTAL' })
 
 async function load() {
@@ -80,7 +83,7 @@ onMounted(load)
         <table>
           <thead><tr><th>项目编码</th><th>项目名称</th><th>场景</th><th>经营模式</th><th>空间模板</th><th>状态</th><th>操作</th></tr></thead>
           <tbody>
-            <tr v-for="p in projects" :key="p.id">
+            <tr v-for="p in pagedProjects" :key="p.id">
               <td class="mono">{{ p.orgCode }}</td>
               <td>{{ p.orgName }}</td>
               <td><span class="badge blue">{{ p.sceneCode }}</span></td>
@@ -92,6 +95,7 @@ onMounted(load)
           </tbody>
         </table>
       </div>
+      <Pager :total="projects.length" :page="page" @update:page="page = $event" />
     </div>
   </div>
 </template>
