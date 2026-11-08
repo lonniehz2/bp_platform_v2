@@ -18,3 +18,8 @@ Thumbs.db
 # frontend
 node_modules/
 dist/
+
+# browser profiles
+.edge-profile/
+.edge-cdp/
+.chrome-cdp/

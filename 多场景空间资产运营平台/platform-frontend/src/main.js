@@ -3,6 +3,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
 import './styles.css'
 
+import Login from './pages/Login.vue'
 import Dashboard from './pages/Dashboard.vue'
 import Projects from './pages/Projects.vue'
 import Applications from './pages/Applications.vue'
@@ -17,6 +18,7 @@ import Menus from './pages/Menus.vue'
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
+    { path: '/login', component: Login, meta: { title: '登录', public: true } },
     { path: '/', component: Dashboard, meta: { title: '工作台' } },
     { path: '/projects', component: Projects, meta: { title: '项目与资产' } },
     { path: '/applications', component: Applications, meta: { title: '申请与轮候' } },
@@ -28,6 +30,12 @@ const router = createRouter({
     { path: '/audit', component: Audit, meta: { title: '审批中心' } },
     { path: '/menus', component: Menus, meta: { title: '菜单与角色' } }
   ]
+})
+
+router.beforeEach((to) => {
+  const token = localStorage.getItem('platformToken')
+  if (!to.meta.public && !token) return '/login'
+  if (to.path === '/login' && token) return '/'
 })
 
 createApp(App).use(router).mount('#app')

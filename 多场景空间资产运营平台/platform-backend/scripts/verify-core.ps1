@@ -4,8 +4,8 @@
 )
 
 $ErrorActionPreference = "Stop"
-$Headers = @{ "X-Tenant-Id" = $TenantId }
 $script:Pass = 0
+
 
 function Assert-True($condition, $message) {
     if (-not $condition) { throw "ASSERT FAILED: $message" }
@@ -30,6 +30,15 @@ function Api($method, $path, $body) {
     }
     return $response.data
 }
+
+$loginBody = @{ username = "admin"; password = "admin123"; tenantId = $TenantId } | ConvertTo-Json
+$login = Invoke-RestMethod -Uri "$BaseUrl/api/v1/auth/login" -Method Post `
+    -ContentType "application/json; charset=utf-8" `
+    -Body ([Text.Encoding]::UTF8.GetBytes($loginBody))
+if ($login.code -ne "BP00000") { throw "login failed: $($login.message)" }
+$Headers = @{ "X-Tenant-Id" = $TenantId; "Authorization" = "Bearer $($login.data.token)" }
+Assert-True ($null -ne $login.data.token) "login token issued"
+
 
 $health = Invoke-RestMethod "$BaseUrl/actuator/health"
 Assert-True ($health.status -eq "UP") "health is UP"

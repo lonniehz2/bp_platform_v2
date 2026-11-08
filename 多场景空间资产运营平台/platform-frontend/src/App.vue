@@ -1,9 +1,14 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { api } from './api'
 
 const route = useRoute()
+const router = useRouter()
+const isLogin = computed(() => route.path === '/login')
+const currentUser = computed(() => {
+  try { return JSON.parse(localStorage.getItem('platformUser') || '{}') } catch { return {} }
+})
 const projects = ref([])
 const currentProjectId = ref(localStorage.getItem('platformProjectId') || '')
 
@@ -25,6 +30,12 @@ function switchProject() {
   localStorage.setItem('platformProjectId', currentProjectId.value)
   window.location.reload()
 }
+
+function logout() {
+  localStorage.removeItem('platformToken')
+  localStorage.removeItem('platformUser')
+  router.replace('/login')
+}
 const title = computed(() => route.meta.title || '工作台')
 const nav = [
   { to: '/', label: '工作台', icon: '◈' },
@@ -41,7 +52,8 @@ const nav = [
 </script>
 
 <template>
-  <div class="shell">
+  <RouterView v-if="isLogin" />
+  <div v-else class="shell">
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-mark">MS</div>
@@ -72,7 +84,8 @@ const nav = [
             <option value="">选择项目</option>
             <option v-for="p in projects" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option>
           </select>
-          <span class="pill">Phase 12</span>
+          <span class="pill">{{ currentUser.displayName || currentUser.username || '用户' }}</span>
+          <button class="sm" @click="logout">退出</button>
         </div>
       </header>
       <section class="content">

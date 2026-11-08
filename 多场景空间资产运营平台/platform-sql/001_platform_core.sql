@@ -629,3 +629,25 @@ create table if not exists bp_role_menu (
   menu_id bigint not null,
   unique key uk_bp_role_menu (tenant_id, role_id, menu_id)
 ) engine=InnoDB default charset=utf8mb4 comment='角色菜单';
+
+
+create table if not exists bp_user (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  username varchar(64) not null,
+  password_hash varchar(200) not null,
+  display_name varchar(128) not null,
+  user_status varchar(20) not null default 'ENABLED',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_bp_user_username (tenant_id, username)
+) engine=InnoDB default charset=utf8mb4 comment='平台用户';
+
+create table if not exists bp_user_role (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  user_id bigint not null,
+  role_id bigint not null,
+  unique key uk_bp_user_role (tenant_id, user_id, role_id)
+) engine=InnoDB default charset=utf8mb4 comment='用户角色';

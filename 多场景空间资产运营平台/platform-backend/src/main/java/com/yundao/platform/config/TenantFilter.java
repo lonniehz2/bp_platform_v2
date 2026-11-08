@@ -23,7 +23,10 @@ public class TenantFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String tenant = request.getHeader("X-Tenant-Id");
-        TenantContext.set(tenant == null || tenant.isBlank() ? defaultTenant : tenant.trim());
+        String current = TenantContext.get();
+        TenantContext.set(tenant == null || tenant.isBlank()
+                ? (current == null ? defaultTenant : current)
+                : tenant.trim());
         try {
             filterChain.doFilter(request, response);
         } finally {

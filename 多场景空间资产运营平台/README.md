@@ -121,7 +121,15 @@ platform-frontend/README.md
 
 ---
 
-## 8. 当前已跑通
+## 8. 登录
+
+```text
+http://127.0.0.1:5174
+租户 350600
+admin / admin123
+```
+
+## 9. 当前已跑通
 
 ```text
 平台服务 8090
@@ -158,7 +166,7 @@ http://127.0.0.1:5174
 powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\verify-core.ps1
 ```
 
-已验证 66 个断言通过。
+已验证 67 个断言通过。
 
 前端页面：
 

@@ -1,20 +1,51 @@
 const BASE = '/api/v1/platform'
+const AUTH = '/api/v1/auth'
 const TENANT = '350600'
+
+function token() {
+  return localStorage.getItem('platformToken') || ''
+}
 
 async function request(path, options = {}) {
   const headers = { 'X-Tenant-Id': TENANT, ...(options.headers || {}) }
+  if (token()) headers.Authorization = `Bearer ${token()}`
   if (options.body && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json; charset=utf-8'
   }
   const res = await fetch(BASE + path, { ...options, headers })
   const json = await res.json().catch(() => ({}))
+  if (res.status === 401) {
+    localStorage.removeItem('platformToken')
+    localStorage.removeItem('platformUser')
+    if (!location.hash.startsWith('#/login')) location.hash = '#/login'
+  }
   if (!res.ok || json.code !== 'BP00000') {
     throw new Error(json.message || `请求失败：${res.status}`)
   }
   return json.data
 }
 
+async function login(body) {
+  const res = await fetch(`${AUTH}/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: JSON.stringify(body)
+  })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok || json.code !== 'BP00000') throw new Error(json.message || '登录失败')
+  return json.data
+}
+
+async function me() {
+  const res = await fetch(`${AUTH}/me`, { headers: { Authorization: `Bearer ${token()}` } })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok || json.code !== 'BP00000') throw new Error(json.message || '获取用户失败')
+  return json.data
+}
+
 export const api = {
+  login,
+  me,
   scenes: () => request('/scenes'),
   modes: (sceneCode) => request(`/scenes/${sceneCode}/business-modes`),
   templates: (sceneCode) => request(`/space-templates?sceneCode=${sceneCode}`),

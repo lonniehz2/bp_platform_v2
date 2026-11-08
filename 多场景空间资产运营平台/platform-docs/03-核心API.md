@@ -6,6 +6,30 @@
 
 ---
 
+## 0. 登录
+
+### POST /api/v1/auth/login
+
+```json
+{"username": "admin", "password": "admin123", "tenantId": "350600"}
+```
+
+返回：
+
+```json
+{"token": "...", "displayName": "平台管理员", "roles": ["GUARANTEE_ADMIN"]}
+```
+
+平台接口需要：
+
+```text
+Authorization: Bearer <token>
+```
+
+### GET /api/v1/auth/me
+
+---
+
 ## 1. 场景
 
 ### GET /scenes
@@ -277,7 +301,8 @@ HOUSE
 补贴抵扣租金
 设备业务资产
 授权/人员钥匙包
-菜单/角色模板",
+菜单/角色模板
+登录鉴权",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
     {"nodeName": "经理终审", "approverRole": "PROPERTY_MANAGER"}
@@ -322,6 +347,7 @@ HOUSE
 设备业务资产
 授权/人员钥匙包
 菜单/角色模板
+登录鉴权
 通过/驳回
 审批记录
 ```
@@ -440,6 +466,7 @@ TERMINATION → 合同终止
 设备业务资产
 授权/人员钥匙包
 菜单/角色模板
+登录鉴权
 
 ### GET /guarantee/applications?projectId=
 
@@ -593,7 +620,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-66 个断言通过
+67 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -611,4 +638,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 设备业务资产
 授权/人员钥匙包
 菜单/角色模板
+登录鉴权
 ```
