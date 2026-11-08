@@ -1,0 +1,20 @@
+# build
+platform-backend/target/
+**/target/
+
+# logs
+*.log
+logs/
+
+# ide
+.idea/
+.vscode/
+*.iml
+
+# os
+.DS_Store
+Thumbs.db
+
+# frontend
+node_modules/
+dist/

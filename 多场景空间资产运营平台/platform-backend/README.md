@@ -1,13 +1,76 @@
 # platform-backend
 
-> 新平台后端工程目录规划  
+> 多场景平台后端  
 > 端口：8090（开发/UAT）  
 > 数据库：`bp_platform_v2`
+
+## 当前已实现
+
+```text
+场景包查询
+经营模式查询
+空间结构模板查询/新增
+资产类型查询/新增
+项目创建/查询
+空间节点创建/查询
+房源自动创建/查询
+租户上下文
+统一返回和异常处理
+```
+
+接口前缀：
+
+```text
+/api/v1/platform
+```
+
+## 运行
+
+初始化数据库：
+
+```text
+执行 platform-sql/001_platform_core.sql
+数据库：bp_platform_v2
+```
+
+构建：
+
+```powershell
+$env:JAVA_HOME='D:\Work\tools\jdk-17.0.20.1+1'
+D:\Work\tools\apache-maven-3.9.9\bin\mvn.cmd -B -q -DskipTests package -s D:\Work\tools\m2-settings.xml
+```
+
+启动：
+
+```powershell
+$env:DB_PASSWORD='******'
+$env:SERVER_PORT='8090'
+D:\Work\tools\jdk-17.0.20.1+1\bin\java.exe -jar target\multi-scene-platform.jar
+```
+
+## 自验证
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
+```
+
+验证内容：
+
+```text
+health
+GUARANTEE 场景
+PUBLIC_RENTAL 模式
+创建模板
+创建资产类型
+创建项目
+创建保障房 7 级空间树
+创建房屋/内房/床位房源
+```
 
 ## 模块规划
 
 ```text
-platform-core        租户/组织/场景/菜单/权限/公共
+platform-core        租户/组织/场景/菜单/权限
 platform-asset       空间模板/资产类型/空间/房屋
 platform-person      人员主档/关系/标签/组
 platform-workflow    审批/工作流
@@ -24,29 +87,4 @@ platform-scenes
 platform-web         对外 API
 ```
 
-## 包名建议
-
-```text
-com.yundao.platform.core
-com.yundao.platform.asset
-com.yundao.platform.person
-com.yundao.platform.workflow
-com.yundao.platform.contract
-com.yundao.platform.booking
-com.yundao.platform.billing
-com.yundao.platform.discount
-com.yundao.platform.device
-com.yundao.platform.grant
-com.yundao.platform.scene.guarantee
-com.yundao.platform.scene.property
-```
-
-## 原则
-
-```text
-平台模块不依赖 guarantee_*/prop_* 表
-场景模块依赖平台接口
-IOT/停车通过适配器接入
-```
-
-当前未生成 Java 代码，等待框架评审。
+当前先用单模块工程快速验证核心链路，后续按模块拆分。

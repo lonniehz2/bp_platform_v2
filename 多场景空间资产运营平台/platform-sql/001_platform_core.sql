@@ -1,0 +1,257 @@
+-- 多场景空间资产运营平台：平台核心 Schema
+-- 数据库：bp_platform_v2
+-- 状态：Phase 0 框架草案，先用于本地验证
+
+create table if not exists bp_tenant (
+  id bigint not null primary key,
+  tenant_code varchar(32) not null,
+  tenant_name varchar(128) not null,
+  status varchar(20) not null default 'ENABLED',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_bp_tenant_code (tenant_code)
+) engine=InnoDB default charset=utf8mb4 comment='平台租户';
+
+create table if not exists bp_scene_profile (
+  id bigint not null primary key,
+  scene_code varchar(32) not null,
+  scene_name varchar(128) not null,
+  sort_no int not null default 0,
+  status varchar(20) not null default 'ENABLED',
+  create_time datetime not null default current_timestamp,
+  unique key uk_bp_scene_code (scene_code)
+) engine=InnoDB default charset=utf8mb4 comment='场景包';
+
+create table if not exists bp_business_mode (
+  id bigint not null primary key,
+  scene_code varchar(32) not null,
+  mode_code varchar(32) not null,
+  mode_name varchar(128) not null,
+  sort_no int not null default 0,
+  status varchar(20) not null default 'ENABLED',
+  create_time datetime not null default current_timestamp,
+  unique key uk_bp_business_mode (scene_code, mode_code),
+  key idx_bp_business_mode_scene (scene_code, status)
+) engine=InnoDB default charset=utf8mb4 comment='经营模式';
+
+create table if not exists bp_tenant_scene (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  scene_code varchar(32) not null,
+  status varchar(20) not null default 'ENABLED',
+  create_time datetime not null default current_timestamp,
+  unique key uk_bp_tenant_scene (tenant_id, scene_code)
+) engine=InnoDB default charset=utf8mb4 comment='租户启用场景';
+
+create table if not exists bp_org (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  parent_id bigint null,
+  org_code varchar(64) not null,
+  org_name varchar(128) not null,
+  org_type varchar(32) not null,
+  scene_code varchar(32) null,
+  business_mode varchar(32) null,
+  space_template_id bigint null,
+  default_asset_type_code varchar(64) null,
+  org_path varchar(500) null,
+  sort_no int not null default 0,
+  status varchar(20) not null default 'ENABLED',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_bp_org_code (tenant_id, org_code),
+  key idx_bp_org_parent (tenant_id, parent_id),
+  key idx_bp_org_scene (tenant_id, scene_code, business_mode)
+) engine=InnoDB default charset=utf8mb4 comment='平台组织/项目';
+
+create table if not exists bp_space_template (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  scene_code varchar(32) not null,
+  template_code varchar(64) not null,
+  template_name varchar(128) not null,
+  asset_type_code varchar(64) null,
+  base_level_count int not null,
+  level_count int not null,
+  levels_json json not null,
+  allowed_sub_modes varchar(128) null,
+  is_system tinyint not null default 0,
+  version_no int not null default 1,
+  status varchar(20) not null default 'ENABLED',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_bp_space_template (tenant_id, template_code, version_no),
+  key idx_bp_space_template_scene (tenant_id, scene_code, status)
+) engine=InnoDB default charset=utf8mb4 comment='空间结构模板';
+
+create table if not exists bp_asset_type (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  scene_code varchar(32) not null,
+  type_code varchar(64) not null,
+  type_name varchar(128) not null,
+  type_category varchar(32) not null,
+  sort_no int not null default 0,
+  status varchar(20) not null default 'ENABLED',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_bp_asset_type (tenant_id, scene_code, type_code),
+  key idx_bp_asset_type_scene (tenant_id, scene_code, type_category, status)
+) engine=InnoDB default charset=utf8mb4 comment='资产类型字典';
+
+create table if not exists bp_space (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  org_id bigint not null,
+  parent_id bigint null,
+  space_code varchar(64) not null,
+  space_name varchar(128) not null,
+  space_type varchar(32) not null,
+  space_path varchar(1000) null,
+  level_no int not null default 1,
+  asset_type_code varchar(64) null,
+  space_template_id bigint null,
+  business_mode varchar(32) null,
+  sub_unit_mode varchar(20) null,
+  area decimal(14,2) null,
+  sort_no int not null default 0,
+  status varchar(20) not null default 'ENABLED',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_bp_space_code (tenant_id, org_id, space_code),
+  key idx_bp_space_parent (tenant_id, org_id, parent_id),
+  key idx_bp_space_type (tenant_id, org_id, space_type)
+) engine=InnoDB default charset=utf8mb4 comment='空间节点';
+
+create table if not exists bp_house (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  org_id bigint not null,
+  space_id bigint not null,
+  house_code varchar(64) not null,
+  house_name varchar(128) not null,
+  asset_type_code varchar(64) null,
+  area decimal(14,2) null,
+  inner_area decimal(14,2) null,
+  house_status varchar(20) not null default 'PENDING',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_bp_house_space (tenant_id, space_id),
+  unique key uk_bp_house_code (tenant_id, org_id, house_code)
+) engine=InnoDB default charset=utf8mb4 comment='房屋/可租资产';
+
+create table if not exists bp_person (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  org_id bigint null,
+  person_code varchar(64) not null,
+  person_name varchar(128) not null,
+  phone varchar(32) null,
+  id_card_mask varchar(32) null,
+  person_type varchar(32) null,
+  verify_status varchar(20) not null default 'UNVERIFIED',
+  face_photo_url varchar(500) null,
+  status varchar(20) not null default 'ENABLED',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_bp_person_code (tenant_id, person_code)
+) engine=InnoDB default charset=utf8mb4 comment='人员主档';
+
+-- 场景
+insert ignore into bp_scene_profile(id, scene_code, scene_name, sort_no)
+values
+(910000000000000001,'GUARANTEE','保障房',10),
+(910000000000000002,'PROPERTY','物业',20),
+(910000000000000003,'APARTMENT','公寓',30),
+(910000000000000004,'OFFICE','办公楼',40),
+(910000000000000005,'HOTEL','酒店',50),
+(910000000000000006,'BNB','民宿',60),
+(910000000000000007,'ONLINE_RENTAL','网约房',70),
+(910000000000000008,'DORMITORY','宿舍',80),
+(910000000000000009,'CAMPUS','校园',90);
+
+insert ignore into bp_business_mode(id, scene_code, mode_code, mode_name, sort_no)
+values
+(910000000000001001,'GUARANTEE','PUBLIC_RENTAL','公租房',1),
+(910000000000001002,'GUARANTEE','AFFORDABLE_RENTAL','保租房',2),
+(910000000000001003,'GUARANTEE','TALENT_APARTMENT','人才公寓',3),
+(910000000000001004,'GUARANTEE','DORMITORY','宿舍',4),
+(910000000000001005,'GUARANTEE','OTHER','其他',9),
+(910000000000001011,'PROPERTY','RESIDENTIAL','住宅物业',1),
+(910000000000001012,'PROPERTY','COMMERCIAL','商业物业',2),
+(910000000000001013,'PROPERTY','OFFICE','办公楼物业',3),
+(910000000000001014,'PROPERTY','MIXED_USE','混合业态',4),
+(910000000000001021,'APARTMENT','WHOLE_RENT','整租公寓',1),
+(910000000000001022,'APARTMENT','SHARED_RENT','合租公寓',2),
+(910000000000001023,'APARTMENT','SERVICED_APARTMENT','服务式公寓',3),
+(910000000000001031,'HOTEL','HOTEL','酒店',1),
+(910000000000001041,'BNB','BNB','民宿',1),
+(910000000000001051,'ONLINE_RENTAL','ONLINE_RENTAL','网约房',1),
+(910000000000001061,'DORMITORY','DORMITORY','宿舍',1),
+(910000000000001071,'CAMPUS','CAMPUS','校园',1);
+
+insert ignore into bp_tenant(id, tenant_code, tenant_name)
+values (1,'350600','演示租户');
+
+insert ignore into bp_tenant_scene(id, tenant_id, scene_code)
+values
+(910000000000002001,'350600','GUARANTEE'),
+(910000000000002002,'350600','PROPERTY'),
+(910000000000002003,'350600','APARTMENT'),
+(910000000000002004,'350600','OFFICE'),
+(910000000000002005,'350600','HOTEL'),
+(910000000000002006,'350600','BNB'),
+(910000000000002007,'350600','ONLINE_RENTAL'),
+(910000000000002008,'350600','DORMITORY'),
+(910000000000002009,'350600','CAMPUS');
+
+-- 模板
+insert ignore into bp_space_template
+(id, tenant_id, scene_code, template_code, template_name, base_level_count, level_count, levels_json, allowed_sub_modes, is_system)
+values
+(910000000000003001,'350600','GUARANTEE','GUARANTEE_BASE','保障房基础',
+ 5,5,
+ JSON_ARRAY(
+   JSON_OBJECT('level',1,'name','小区','required',true),
+   JSON_OBJECT('level',2,'name','楼栋','required',true),
+   JSON_OBJECT('level',3,'name','单元','required',false),
+   JSON_OBJECT('level',4,'name','楼层','required',true),
+   JSON_OBJECT('level',5,'name','房屋','required',true)
+ ),
+ 'NONE,BED,INNER_ROOM,INNER_ROOM_BED',1),
+(910000000000003002,'350600','PROPERTY','PROPERTY_RESIDENTIAL','住宅物业',
+ 6,6,
+ JSON_ARRAY(
+   JSON_OBJECT('level',1,'name','期','required',false),
+   JSON_OBJECT('level',2,'name','苑/幢','required',true),
+   JSON_OBJECT('level',3,'name','单元','required',false),
+   JSON_OBJECT('level',4,'name','楼层','required',true),
+   JSON_OBJECT('level',5,'name','房号','required',true),
+   JSON_OBJECT('level',6,'name','子房号','required',false)
+ ),
+ 'NONE,INNER_ROOM',1);
+
+-- 资产类型
+insert ignore into bp_asset_type(id,tenant_id,scene_code,type_code,type_name,type_category,sort_no)
+values
+(910000000000004001,'350600','GUARANTEE','PUBLIC_RENTAL','公租房','HOUSE',1),
+(910000000000004002,'350600','GUARANTEE','AFFORDABLE_RENTAL','保租房','HOUSE',2),
+(910000000000004003,'350600','GUARANTEE','TALENT_APARTMENT','人才公寓','HOUSE',3),
+(910000000000004004,'350600','GUARANTEE','DORMITORY','宿舍','HOUSE',4),
+(910000000000004005,'350600','GUARANTEE','BED','床位','BED',5),
+(910000000000004006,'350600','GUARANTEE','INNER_ROOM','内房','INNER_ROOM',6),
+(910000000000004011,'350600','PROPERTY','RES_HIGH_RISE','高层住宅','HOUSE',1),
+(910000000000004012,'350600','PROPERTY','RES_MULTI','多层住宅','HOUSE',2),
+(910000000000004013,'350600','PROPERTY','RES_TOWNHOUSE','排屋','HOUSE',3),
+(910000000000004014,'350600','PROPERTY','COMMERCIAL','商业','HOUSE',4),
+(910000000000004015,'350600','PROPERTY','SHOP','商铺','HOUSE',5),
+(910000000000004016,'350600','PROPERTY','OFFICE','办公','HOUSE',6),
+(910000000000004017,'350600','PROPERTY','PARKING_GARAGE','车库车位','PARKING',7),
+(910000000000004018,'350600','PROPERTY','PARKING_OPEN','露天车位','PARKING',8);

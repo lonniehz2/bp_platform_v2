@@ -86,7 +86,8 @@ https://platform.example.com
 platform-docs/00-平台框架设计.md
 platform-docs/01-保障房场景映射.md
 platform-docs/02-平台框架评审清单.md
-platform-sql/README.md
+platform-docs/03-核心API.md
+platform-sql/001_platform_core.sql
 platform-backend/README.md
 platform-frontend/README.md
 ```
@@ -113,3 +114,26 @@ platform-frontend/README.md
 不在生产暴露裸端口
 不把 IOT 控制、停车运营塞进业务平台
 ```
+
+
+---
+
+## 8. 当前已跑通
+
+```text
+平台服务 8090
+数据库 bp_platform_v2
+场景包 9 个
+经营模式 17 个
+保障房模板
+保障房 7 级空间树
+房屋/内房/床位房源
+```
+
+自验证：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\verify-core.ps1
+```
+
+已验证 13 个断言通过。
