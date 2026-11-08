@@ -26,7 +26,7 @@ public class ListingService {
         return jdbc.queryForList(
                 "select l.id, l.project_id projectId, l.house_id houseId, h.house_code houseCode, "
                         + "h.house_name houseName, l.title, l.description, l.monthly_rent monthlyRent, "
-                        + "l.deposit_amount depositAmount, l.listing_status listingStatus, l.publish_time publishTime, "
+                        + "l.deposit_amount depositAmount, l.cover_url coverUrl, l.listing_status listingStatus, l.publish_time publishTime, "
                         + "(select count(*) from bp_booking b where b.listing_id=l.id and b.is_deleted=0) bookingCount "
                         + "from bp_listing l join bp_house h on h.id=l.house_id "
                         + "where l.tenant_id=? and l.project_id=? and l.is_deleted=0 order by l.id desc",
@@ -49,10 +49,11 @@ public class ListingService {
         long id = idGen.nextId();
         try {
             jdbc.update("insert into bp_listing(id,tenant_id,project_id,house_id,title,description,"
-                            + "monthly_rent,deposit_amount,listing_status,is_deleted) "
-                            + "values(?,?,?,?,?,?,?,?,'DRAFT',0)",
+                            + "monthly_rent,deposit_amount,cover_url,listing_status,is_deleted) "
+                            + "values(?,?,?,?,?,?,?,?,?,'DRAFT',0)",
                     id, tenant, cmd.projectId(), cmd.houseId(), cmd.title().trim(), cmd.description(),
-                    cmd.monthlyRent(), cmd.depositAmount() == null ? BigDecimal.ZERO : cmd.depositAmount());
+                    cmd.monthlyRent(), cmd.depositAmount() == null ? BigDecimal.ZERO : cmd.depositAmount(),
+                    cmd.coverUrl());
         } catch (DataIntegrityViolationException e) {
             throw BizException.conflict("该房屋已有展示记录");
         }
@@ -115,7 +116,7 @@ public class ListingService {
     }
 
     public record CreateCmd(Long projectId, Long houseId, String title, String description,
-                            BigDecimal monthlyRent, BigDecimal depositAmount) {
+                            BigDecimal monthlyRent, BigDecimal depositAmount, String coverUrl) {
     }
 
     public record BookingCmd(Long personId, String contactPhone, String remark) {

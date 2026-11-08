@@ -10,9 +10,10 @@ const houses = ref([])
 const persons = ref([])
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ houseId: '', title: '', description: '', monthlyRent: 1200, depositAmount: 1200 })
+const form = reactive({ houseId: '', title: '', description: '', monthlyRent: 1200, depositAmount: 1200, coverUrl: '' })
 const booking = reactive({ listingId: '', personId: '', contactPhone: '', remark: '' })
 const bookingOpen = ref(false)
+const detail = ref(null)
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 
@@ -42,8 +43,9 @@ async function create() {
   try {
     if (!form.houseId || !form.title.trim()) throw new Error('请选择房屋并填写标题')
     await api.createListing({ projectId: project.value.id, houseId: form.houseId, title: form.title,
-      description: form.description, monthlyRent: Number(form.monthlyRent), depositAmount: Number(form.depositAmount) })
-    form.title = ''; form.description = ''
+      description: form.description, monthlyRent: Number(form.monthlyRent), depositAmount: Number(form.depositAmount),
+      coverUrl: form.coverUrl })
+    form.title = ''; form.description = ''; form.coverUrl = ''
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -55,6 +57,10 @@ async function action(l, type) {
     if (type === 'offline') await api.offlineListing(l.id)
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+function openDetail(l) {
+  detail.value = l
 }
 
 function openBooking(l) {
@@ -97,6 +103,7 @@ onMounted(load)
           <div class="field" style="flex:2"><label>标题</label><input v-model="form.title" placeholder="如 101室精装一居" /></div>
           <div class="field"><label>月租金</label><input v-model.number="form.monthlyRent" type="number" /></div>
           <div class="field"><label>押金</label><input v-model.number="form.depositAmount" type="number" /></div>
+          <div class="field" style="flex:2"><label>封面图 URL</label><input v-model="form.coverUrl" placeholder="https://..." /></div>
           <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('listing:manage', 'asset')" class="primary" :disabled="busy" @click="create">创建展示</button></div>
         </div>
       </div>
@@ -105,9 +112,10 @@ onMounted(load)
         <div class="panel-head"><h2>展示列表</h2><span class="small muted">{{ listings.length }} 条</span></div>
         <div v-if="!listings.length" class="empty">暂无展示</div>
         <div class="table-wrap" v-else>
-          <table><thead><tr><th>房屋</th><th>标题</th><th>月租金</th><th>押金</th><th>状态</th><th>预约</th><th>操作</th></tr></thead>
+          <table><thead><tr><th>封面</th><th>房屋</th><th>标题</th><th>月租金</th><th>押金</th><th>状态</th><th>预约</th><th>操作</th></tr></thead>
             <tbody><tr v-for="l in listings" :key="l.id">
-              <td>{{ l.houseCode }} · {{ l.houseName }}</td><td>{{ l.title }}</td>
+              <td><img v-if="l.coverUrl" :src="l.coverUrl" alt="" style="width:64px;height:44px;object-fit:cover;border-radius:6px" /><span v-else class="small muted">无图</span></td>
+              <td>{{ l.houseCode }} · {{ l.houseName }}</td><td><button class="link" @click="openDetail(l)">{{ l.title }}</button></td>
               <td>¥{{ money(l.monthlyRent) }}</td><td>¥{{ money(l.depositAmount) }}</td>
               <td><span class="badge" :class="l.listingStatus === 'PUBLISHED' ? 'green' : 'orange'">{{ l.listingStatus }}</span></td>
               <td>{{ l.bookingCount }}</td>
@@ -138,6 +146,16 @@ onMounted(load)
         </div>
       </div>
     </template>
+
+    <div v-if="detail" class="modal-mask" @click.self="detail = null">
+      <div class="modal" style="max-width:680px">
+        <div class="panel-head"><h2>{{ detail.title }}</h2><button class="sm" @click="detail = null">关闭</button></div>
+        <img v-if="detail.coverUrl" :src="detail.coverUrl" alt="" style="width:100%;max-height:280px;object-fit:cover;border-radius:8px" />
+        <p class="muted">{{ detail.description || '暂无描述' }}</p>
+        <div class="row"><span>月租金 ¥{{ money(detail.monthlyRent) }}</span><span>押金 ¥{{ money(detail.depositAmount) }}</span><span class="badge blue">{{ detail.listingStatus }}</span></div>
+        <div class="row" style="justify-content:flex-end"><button v-if="canAction('listing:book', 'asset') && detail.listingStatus === 'PUBLISHED'" class="primary" @click="openBooking(detail); detail = null">预约看房</button></div>
+      </div>
+    </div>
 
     <div v-if="bookingOpen" class="modal-mask" @click.self="bookingOpen = false">
       <div class="modal">
