@@ -26,3 +26,6 @@ dist/
 
 # local files
 uploads/
+
+# generated web static
+platform-backend/src/main/resources/static/

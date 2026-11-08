@@ -1,18 +1,55 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { api } from './api'
 import { getMenus, setMenus } from './permissions'
+import { mode, toggleMode } from './ui'
+import { setLocale } from './i18n'
 
 const route = useRoute()
 const router = useRouter()
+const { t, locale } = useI18n()
+
 const isLogin = computed(() => route.path === '/login')
-const currentUser = computed(() => {
-  try { return JSON.parse(localStorage.getItem('platformUser') || '{}') } catch { return {} }
-})
 const projects = ref([])
 const currentProjectId = ref(localStorage.getItem('platformProjectId') || '')
 const allowedMenus = ref(getMenus())
+const currentUser = computed(() => {
+  try { return JSON.parse(localStorage.getItem('platformUser') || '{}') } catch { return {} }
+})
+
+const nav = [
+  { to: '/', key: 'dashboard', menu: 'dashboard', icon: '◈' },
+  { to: '/projects', key: 'asset', menu: 'asset', icon: '▦' },
+  { to: '/applications', key: 'application', menu: 'application', icon: '☷' },
+  { to: '/contracts', key: 'contract', menu: 'contract', icon: '▤' },
+  { to: '/changes', key: 'changes', menu: 'contract', icon: '⇄' },
+  { to: '/qualification', key: 'qualification', menu: 'contract', icon: '◎' },
+  { to: '/billing', key: 'billing', menu: 'billing', icon: '¥' },
+  { to: '/deposits', key: 'deposits', menu: 'billing', icon: '◫' },
+  { to: '/devices', key: 'device', menu: 'device', icon: '⌘' },
+  { to: '/audit', key: 'audit', menu: 'audit', icon: '✓' },
+  { to: '/menus', key: 'config', menu: 'config', icon: '☰' },
+  { to: '/migration-exceptions', key: 'migration', menu: 'system', icon: '!' }
+]
+const visibleNav = computed(() => nav.filter(item => allowedMenus.value.length === 0 || allowedMenus.value.includes(item.menu)))
+
+const titleKey = {
+  '/': 'nav.dashboard',
+  '/projects': 'nav.asset',
+  '/applications': 'nav.application',
+  '/contracts': 'nav.contract',
+  '/changes': 'nav.changes',
+  '/qualification': 'nav.qualification',
+  '/billing': 'nav.billing',
+  '/deposits': 'nav.deposits',
+  '/devices': 'nav.device',
+  '/audit': 'nav.audit',
+  '/menus': 'nav.config',
+  '/migration-exceptions': 'nav.migration'
+}
+const title = computed(() => t(titleKey[route.path] || 'nav.dashboard'))
 
 onMounted(async () => {
   try {
@@ -40,28 +77,16 @@ function switchProject() {
   window.location.reload()
 }
 
+function switchLocale() {
+  setLocale(locale.value === 'zh-CN' ? 'en-US' : 'zh-CN')
+}
+
 function logout() {
   localStorage.removeItem('platformToken')
   localStorage.removeItem('platformUser')
   localStorage.removeItem('platformMenus')
   router.replace('/login')
 }
-const title = computed(() => route.meta.title || '工作台')
-const nav = [
-  { to: '/', label: '工作台', icon: '◈', menu: 'dashboard' },
-  { to: '/projects', label: '项目与资产', icon: '▦', menu: 'asset' },
-  { to: '/applications', label: '申请与轮候', icon: '☷', menu: 'application' },
-  { to: '/contracts', label: '合同与租赁', icon: '▤', menu: 'contract' },
-  { to: '/changes', label: '合同变更', icon: '⇄', menu: 'contract' },
-  { to: '/qualification', label: '资格复核', icon: '◎', menu: 'contract' },
-  { to: '/billing', label: '收费与账务', icon: '¥', menu: 'billing' },
-  { to: '/deposits', label: '押金与补贴', icon: '◫', menu: 'billing' },
-  { to: '/devices', label: '设备与授权', icon: '⌘', menu: 'device' },
-  { to: '/audit', label: '审批中心', icon: '✓', menu: 'audit' },
-  { to: '/menus', label: '菜单与角色', icon: '☰', menu: 'config' },
-  { to: '/migration-exceptions', label: '迁移异常', icon: '!', menu: 'system' }
-]
-const visibleNav = computed(() => nav.filter(item => allowedMenus.value.length === 0 || allowedMenus.value.includes(item.menu)))
 </script>
 
 <template>
@@ -70,35 +95,37 @@ const visibleNav = computed(() => nav.filter(item => allowedMenus.value.length =
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-mark">MS</div>
-        <div>
-          <div class="brand-title">多场景空间资产</div>
-          <div class="brand-sub">运营平台 · 保障房场景</div>
+        <div class="brand-text">
+          <div class="brand-title">{{ t('login.brand') }}</div>
+          <div class="brand-sub">{{ t('login.platform') }}</div>
         </div>
       </div>
       <nav class="nav">
         <RouterLink v-for="item in visibleNav" :key="item.to" :to="item.to" class="nav-item">
           <span class="nav-icon">{{ item.icon }}</span>
-          <span>{{ item.label }}</span>
+          <span>{{ t('nav.' + item.key) }}</span>
         </RouterLink>
       </nav>
       <div class="sidebar-foot">
         <span class="dot online"></span>
-        平台服务 8090
+        API 8090 · v0.1
       </div>
     </aside>
+
     <main class="main">
       <header class="topbar">
-        <div>
+        <div class="page-heading">
           <h1>{{ title }}</h1>
-          <p>租户 350600 · GUARANTEE 场景</p>
+          <p>{{ currentUser.displayName || currentUser.username || 'admin' }} · {{ currentUser.tenantId || '350600' }}</p>
         </div>
-        <div class="top-actions row">
-          <select v-model="currentProjectId" @change="switchProject" style="max-width:260px">
-            <option value="">选择项目</option>
+        <div class="top-actions">
+          <select v-model="currentProjectId" @change="switchProject" class="project-select">
+            <option value="">{{ t('common.project') }}</option>
             <option v-for="p in projects" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option>
           </select>
-          <span class="pill">{{ currentUser.displayName || currentUser.username || '用户' }}</span>
-          <button class="sm" @click="logout">退出</button>
+          <button class="ghost sm" @click="switchLocale">{{ locale === 'zh-CN' ? 'EN' : '中' }}</button>
+          <button class="ghost sm" @click="toggleMode">{{ mode === 'dark' ? '☀' : '☾' }}</button>
+          <button class="sm" @click="logout">{{ t('common.logout') }}</button>
         </div>
       </header>
       <section class="content">

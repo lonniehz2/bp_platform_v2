@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
+import { i18n } from './i18n'
 import './styles.css'
 
 import Login from './pages/Login.vue'
@@ -42,4 +43,4 @@ router.beforeEach((to) => {
   if (to.path === '/login' && token) return '/'
 })
 
-createApp(App).use(router).mount('#app')
+createApp(App).use(i18n).use(router).mount('#app')

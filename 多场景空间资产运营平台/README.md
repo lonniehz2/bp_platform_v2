@@ -91,6 +91,7 @@ platform-docs/04-实施进度.md
 platform-docs/05-老数据迁移报告.md
 platform-docs/06-前端操作台.md
 platform-docs/07-保障房平台验收报告.md
+platform-docs/08-部署说明.md
 platform-sql/001_platform_core.sql
 platform-backend/README.md
 platform-frontend/README.md
@@ -122,7 +123,15 @@ platform-frontend/README.md
 
 ---
 
-## 8. 登录
+## 8. 已部署
+
+```text
+http://192.168.31.11:8090/
+```
+
+旧保障房系统仍在 8080，未覆盖。
+
+## 9. 登录
 
 ```text
 http://127.0.0.1:5174

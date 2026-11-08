@@ -1,9 +1,13 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { api } from '../api'
+import { setLocale } from '../i18n'
+import { mode, toggleMode } from '../ui'
 
 const router = useRouter()
+const { t, locale } = useI18n()
 const busy = ref(false)
 const error = ref('')
 const form = reactive({ username: 'admin', password: 'admin123', tenantId: '350600' })
@@ -19,8 +23,10 @@ async function submit() {
     })
     localStorage.setItem('platformToken', result.token)
     localStorage.setItem('platformUser', JSON.stringify(result))
-    const menus = await api.myMenus('GUARANTEE')
-    localStorage.setItem('platformMenus', JSON.stringify(menus))
+    try {
+      const menus = await api.myMenus('GUARANTEE')
+      localStorage.setItem('platformMenus', JSON.stringify(menus))
+    } catch {}
     await router.replace('/')
   } catch (e) {
     error.value = e.message
@@ -28,35 +34,70 @@ async function submit() {
     busy.value = false
   }
 }
+
+function switchLocale() {
+  setLocale(locale.value === 'zh-CN' ? 'en-US' : 'zh-CN')
+}
 </script>
 
 <template>
   <div class="login-page">
-    <div class="login-card">
-      <div class="brand" style="padding:0 0 18px">
-        <div class="brand-mark">MS</div>
-        <div>
-          <div class="brand-title">多场景空间资产</div>
-          <div class="brand-sub">运营平台 · 保障房场景</div>
+    <div class="login-controls">
+      <button class="ghost sm" @click="switchLocale">{{ locale === 'zh-CN' ? 'EN' : '中' }}</button>
+      <button class="ghost sm" @click="toggleMode">{{ mode === 'dark' ? '☀' : '☾' }}</button>
+    </div>
+
+    <div class="login-shell">
+      <section class="login-brand">
+        <div class="brand-head">
+          <div class="brand-mark">MS</div>
+          <div>
+            <h1>{{ t('login.brand') }}</h1>
+            <p class="en">{{ t('login.en') }}</p>
+          </div>
         </div>
-      </div>
-      <h2 style="margin:0 0 4px">登录</h2>
-      <p class="muted small" style="margin:0 0 18px">租户 350600 · GUARANTEE 场景</p>
-      <div v-if="error" class="error">{{ error }}</div>
-      <div class="field" style="margin-bottom:10px">
-        <label>租户</label>
-        <input v-model="form.tenantId" />
-      </div>
-      <div class="field" style="margin-bottom:10px">
-        <label>用户名</label>
-        <input v-model="form.username" autocomplete="username" />
-      </div>
-      <div class="field" style="margin-bottom:16px">
-        <label>密码</label>
-        <input v-model="form.password" type="password" autocomplete="current-password" @keyup.enter="submit" />
-      </div>
-      <button class="primary" style="width:100%" :disabled="busy" @click="submit">{{ busy ? '登录中…' : '登录' }}</button>
-      <p class="small muted" style="margin:14px 0 0">演示账号：admin / admin123</p>
+        <p class="slogan">{{ t('login.slogan') }}</p>
+        <ul class="features">
+          <li><span class="dot" /><div><b>{{ t('login.flow') }}</b><em>{{ t('login.flowDesc') }}</em></div></li>
+          <li><span class="dot" /><div><b>{{ t('login.assetTitle') }}</b><em>{{ t('login.assetDesc') }}</em></div></li>
+          <li><span class="dot" /><div><b>{{ t('login.grantTitle') }}</b><em>{{ t('login.grantDesc') }}</em></div></li>
+          <li><span class="dot" /><div><b>{{ t('login.multiTitle') }}</b><em>{{ t('login.multiDesc') }}</em></div></li>
+        </ul>
+        <div class="login-stats">
+          <div><b>13</b><span>Pages</span></div>
+          <div><b>6</b><span>Scenes</span></div>
+          <div><b>24h</b><span>Online</span></div>
+        </div>
+      </section>
+
+      <section class="login-card">
+        <div class="card-head">
+          <h2>{{ t('login.welcome') }}</h2>
+          <p>{{ t('login.subtitle') }}</p>
+        </div>
+        <div v-if="error" class="error">{{ error }}</div>
+        <div class="field">
+          <label>{{ t('login.tenant') }}</label>
+          <input v-model="form.tenantId" autocomplete="organization" />
+        </div>
+        <div class="field">
+          <label>{{ t('login.username') }}</label>
+          <input v-model="form.username" autocomplete="username" />
+        </div>
+        <div class="field">
+          <label>{{ t('login.password') }}</label>
+          <input v-model="form.password" type="password" autocomplete="current-password" @keyup.enter="submit" />
+        </div>
+        <button class="primary login-submit" :disabled="busy" @click="submit">
+          {{ busy ? '...' : t('login.submit') }}
+        </button>
+        <div class="login-hint">
+          <div class="small muted">{{ t('login.demo') }}</div>
+          <div class="row" style="margin-top:6px">
+            <span class="badge blue">admin / admin123</span>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
