@@ -69,7 +69,7 @@ async function create() {
       houseId: form.houseId, personId: form.personId,
       startDate: form.startDate, endDate: form.endDate,
       rentAmount: Number(form.rentAmount), depositAmount: Number(form.depositAmount),
-      billingCycle: form.billingCycle, billDay: Number(form.billDay || 1)
+      billingCycle: form.billingCycle, billDay: Number(form.billDay || 1), draft: form.draft
     })
     form.contractNo = ''
     await load()
