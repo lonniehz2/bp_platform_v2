@@ -395,6 +395,12 @@ const routes = [
         meta: { title: '物业项目' }
       },
       {
+        path: 'invoices',
+        name: 'propertyInvoice',
+        component: () => import('@/views/property/PropertyInvoice.vue'),
+        meta: { title: '电子发票' }
+      },
+      {
         path: 'meters',
         name: 'propertyMeter',
         component: () => import('@/views/property/PropertyMeter.vue'),

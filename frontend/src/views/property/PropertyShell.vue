@@ -18,6 +18,10 @@
           <el-icon><Odometer /></el-icon>
           <span>{{ t('property.meters') }}</span>
         </el-menu-item>
+        <el-menu-item index="/property/invoices">
+          <el-icon><Tickets /></el-icon>
+          <span>{{ t('property.invoices') }}</span>
+        </el-menu-item>
         <el-menu-item index="/property/dunning">
           <el-icon><Bell /></el-icon>
           <span>{{ t('property.dunning') }}</span>
@@ -81,7 +85,7 @@
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { DataBoard, Collection, OfficeBuilding, Money, Van, TrendCharts, House, Bell, Odometer } from '@element-plus/icons-vue'
+import { DataBoard, Collection, OfficeBuilding, Money, Van, TrendCharts, House, Bell, Odometer, Tickets } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/store/auth'
 import { usePropertyStore } from '@/store/property'
 
@@ -96,6 +100,7 @@ const selectedProject = computed({
 })
 
 const pageTitle = computed(() => {
+  if (route.path.includes('invoices')) return t('property.invoices')
   if (route.path.includes('meters')) return t('property.meters')
   if (route.path.includes('dunning')) return t('property.dunning')
   if (route.path.includes('units')) return t('property.units')
