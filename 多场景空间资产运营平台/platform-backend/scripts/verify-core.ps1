@@ -624,6 +624,23 @@ $messageRead = Api "POST" "/api/v1/platform/messages/$($message.id)/read" $null
 Assert-True ($messageRead.readStatus -eq "READ") "message read"
 
 
+
+$pwdUser = Api "POST" "/api/v1/platform/users" @{
+    username = "PWD_USER_$suffix"
+    password = "start123"
+    displayName = "改密验证用户"
+    roleIds = @()
+}
+Assert-True ($pwdUser.userStatus -eq "ENABLED") "password user created"
+
+$pwdLogin = Invoke-RestMethod -Method Post -Uri "$BaseUrl/api/v1/auth/login" -ContentType "application/json; charset=utf-8" -Body ([Text.Encoding]::UTF8.GetBytes((@{ username = "PWD_USER_$suffix"; password = "start123"; tenantId = "350600" } | ConvertTo-Json)))
+$pwdToken = $pwdLogin.data.token
+$pwdChange = Invoke-RestMethod -Method Post -Uri "$BaseUrl/api/v1/auth/password" -Headers @{ Authorization = "Bearer $pwdToken" } -ContentType "application/json; charset=utf-8" -Body ([Text.Encoding]::UTF8.GetBytes((@{ oldPassword = "start123"; newPassword = "newpass123" } | ConvertTo-Json)))
+Assert-True ($pwdChange.code -eq "BP00000") "password changed"
+
+$pwdLogin2 = Invoke-RestMethod -Method Post -Uri "$BaseUrl/api/v1/auth/login" -ContentType "application/json; charset=utf-8" -Body ([Text.Encoding]::UTF8.GetBytes((@{ username = "PWD_USER_$suffix"; password = "newpass123"; tenantId = "350600" } | ConvertTo-Json)))
+Assert-True ($pwdLogin2.code -eq "BP00000") "new password login"
+
 $verifyUser = Api "POST" "/api/v1/platform/users" @{
     username = "VERIFY_USER_$suffix"
     password = "verify123"

@@ -208,3 +208,14 @@ html.dark .badge.red { background: #2e1718; border-color: #5c2b2d; color: #ff787
   color: var(--regular);
 }
 .admin-link:hover { border-color: var(--brand); color: var(--brand); }
+
+
+.modal-mask {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, .45); z-index: 100;
+  display: grid; place-items: center;
+}
+.modal {
+  width: min(420px, calc(100vw - 32px)); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 4px; padding: 18px; box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
+}
+.modal .field { margin-bottom: 10px; }

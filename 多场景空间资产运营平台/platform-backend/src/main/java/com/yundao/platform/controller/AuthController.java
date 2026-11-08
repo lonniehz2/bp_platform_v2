@@ -32,6 +32,12 @@ public class AuthController {
         return R.ok(authService.menuCodes(principal.userId(), principal.tenantId(), sceneCode));
     }
 
+    @PostMapping("/password")
+    public R<Void> changePassword(@RequestBody AuthService.ChangePasswordCmd cmd) {
+        authService.changePassword(cmd);
+        return R.ok(null);
+    }
+
     @GetMapping("/me")
     public R<Map<String, Object>> me() {
         UserContext.Principal principal = authService.me();
