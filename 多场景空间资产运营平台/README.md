@@ -89,6 +89,7 @@ platform-docs/02-平台框架评审清单.md
 platform-docs/03-核心API.md
 platform-docs/04-实施进度.md
 platform-docs/05-老数据迁移报告.md
+platform-docs/06-前端操作台.md
 platform-sql/001_platform_core.sql
 platform-backend/README.md
 platform-frontend/README.md
@@ -145,6 +146,12 @@ platform-frontend/README.md
 菜单/角色模板
 ```
 
+前端：
+
+```text
+http://127.0.0.1:5174
+```
+
 自验证：
 
 ```powershell
@@ -152,6 +159,19 @@ powershell -NoProfile -ExecutionPolicy Bypass -File platform-backend\scripts\ver
 ```
 
 已验证 66 个断言通过。
+
+前端页面：
+
+```text
+工作台
+项目与资产
+申请与轮候
+合同与租赁
+收费与账务
+设备与授权
+菜单与角色
+```
+
 
 老数据迁移：
 

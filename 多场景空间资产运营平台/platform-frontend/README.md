@@ -1,51 +1,75 @@
 # platform-frontend
 
-> 新平台前端工程目录规划  
+> 多场景平台前端  
 > 开发端口：5174  
 > 后端 API：8090
 
-## 页面组织
+## 页面
 
 ```text
-src/
-├─ platform/          平台基础页面
-│  ├─ tenant
-│  ├─ scene
-│  ├─ asset
-│  ├─ person
-│  ├─ workflow
-│  ├─ device
-│  └─ system
-├─ scenes/
-│  ├─ guarantee      保障房场景
-│  ├─ property       物业场景
-│  ├─ apartment      公寓
-│  ├─ office         办公
-│  ├─ hotel          酒店/民宿
-│  └─ campus         校园
-├─ layout/            场景化布局
-├─ router/            动态路由
-└─ store/             场景/项目上下文
+工作台
+项目与资产
+申请与轮候
+合同与租赁
+收费与账务
+设备与授权
+菜单与角色
 ```
 
-## 菜单组合
+## 运行
+
+当前复用老前端依赖目录做本地验证：
 
 ```text
-scene_profile
-+ business_mode
-+ feature_flag
-+ role_template
+platform-frontend/node_modules -> frontend/node_modules
 ```
 
-不同场景输出不同菜单，不做巨型菜单。
+启动：
 
-## 原则
+```bash
+npm run dev
+```
+
+构建：
+
+```bash
+npm run build
+```
+
+## 代理
+
+`vite.config.js`：
 
 ```text
-老系统前端保留
-新平台独立前端
-生产通过子域名/网关切换
-不把新代码写进老前端目录
+/api -> http://127.0.0.1:8090
+/actuator -> http://127.0.0.1:8090
 ```
 
-当前未生成前端代码，等待框架评审。
+## 关键处理
+
+- 后端 Long ID 统一序列化为字符串，避免 JS 大整数精度丢失。
+- 项目选择保存在 `localStorage.platformProjectId`。
+- 默认选择有合同/申请/设备数据的项目。
+- 业务页面直接调用平台 API。
+
+## 已验证
+
+```text
+工作台：项目、申请、合同、账单、设备统计
+项目与资产：项目列表、创建项目
+申请与轮候：申请列表、提交、审核、进入轮候、配租
+合同与租赁：合同列表、创建合同、生成账单
+收费与账务：账单列表、收款
+设备与授权：设备列表、新增设备、新增授权
+菜单与角色：菜单树、角色模板
+```
+
+截图：[dashboard.png](../platform-docs/dashboard.png)
+
+## 生产
+
+```text
+npm run build
+dist/ 由 Nginx/网关托管
+生产通过子域名/网关切换，不暴露 Vite 端口
+```

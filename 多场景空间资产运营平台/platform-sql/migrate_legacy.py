@@ -167,6 +167,9 @@ def migrate(apply=False):
         contracts = oc.fetchall()
         stats["contract"] = len(contracts)
         for r in contracts:
+            status = {"EFFECTIVE": "ACTIVE", "ACTIVE": "ACTIVE",
+                      "PENDING": "PENDING", "TERMINATED": "TERMINATED"}.get(
+                          r["contract_status"], r["contract_status"] or "ACTIVE")
             if apply and r["house_id"] and r["lessee_person_id"]:
                 nc.execute("""
                     insert ignore into guarantee_contract
@@ -177,7 +180,7 @@ def migrate(apply=False):
                 """, (r["id"], r["tenant_id"], r["org_id"], r["contract_no"], r["house_id"],
                       r["lessee_person_id"], r["lease_start"], r["lease_end"],
                       r["monthly_rent"], r["deposit_amount"], r["pay_cycle"], r["pay_day"],
-                      r["contract_status"], r["is_deleted"]))
+                      status, r["is_deleted"]))
                 inserted["contract"] += nc.rowcount
 
         # 6. 账单
@@ -214,6 +217,9 @@ def migrate(apply=False):
         applications = oc.fetchall()
         stats["application"] = len(applications)
         for r in applications:
+            status = {"REVIEWING": "SUBMITTED", "APPROVED": "APPROVED",
+                      "REJECTED": "REJECTED", "DRAFT": "DRAFT"}.get(
+                          r["application_status"], r["application_status"] or "DRAFT")
             if apply:
                 nc.execute("""
                     insert ignore into guarantee_application
@@ -223,7 +229,7 @@ def migrate(apply=False):
                     values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """, (r["id"], r["tenant_id"], r["org_id"], r["application_no"], r["person_id"],
                       r["security_type"] or "PUBLIC_RENTAL", r["family_size"] or 1,
-                      r["application_status"], r["apply_time"], r["accept_time"],
+                      status, r["apply_time"], r["accept_time"],
                       r["reject_reason"], r["is_deleted"]))
                 inserted["application"] += nc.rowcount
 

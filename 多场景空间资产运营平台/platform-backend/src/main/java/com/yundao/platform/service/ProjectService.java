@@ -26,7 +26,10 @@ public class ProjectService {
                 "select o.id, o.org_code orgCode, o.org_name orgName, o.scene_code sceneCode, "
                         + "o.business_mode businessMode, o.space_template_id spaceTemplateId, "
                         + "t.template_name templateName, o.default_asset_type_code defaultAssetTypeCode, "
-                        + "o.status, o.create_time createTime "
+                        + "o.status, o.create_time createTime, "
+                        + "(select count(*) from guarantee_contract c where c.project_id=o.id and c.is_deleted=0) contractCount, "
+                        + "(select count(*) from guarantee_application a where a.project_id=o.id and a.is_deleted=0) applicationCount, "
+                        + "(select count(*) from bp_dev_device d where d.project_id=o.id and d.is_deleted=0) deviceCount "
                         + "from bp_org o left join bp_space_template t on t.id=o.space_template_id "
                         + "where o.tenant_id=? and o.is_deleted=0 order by o.id desc",
                 TenantContext.require());
