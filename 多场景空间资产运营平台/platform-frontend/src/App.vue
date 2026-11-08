@@ -47,6 +47,7 @@ const nav = [
   { to: '/alerts', key: 'alert', menu: 'alert', icon: '⚠' },
   { to: '/credits', key: 'credit', menu: 'credit', icon: '✖' },
   { to: '/short-rent-orders', key: 'shortrent', menu: 'shortrent', icon: '⌂' },
+  { to: '/open-apps', key: 'open', menu: 'open', icon: '⇄' },
   { to: '/audit', key: 'audit', menu: 'audit', icon: '✓' },
   { to: '/menus', key: 'config', menu: 'config', icon: '☰' },
   { to: '/migration-exceptions', key: 'migration', menu: 'system', icon: '!' }
@@ -75,6 +76,7 @@ const titleKey = {
   '/alerts': 'nav.alert',
   '/credits': 'nav.credit',
   '/short-rent-orders': 'nav.shortrent',
+  '/open-apps': 'nav.open',
   '/audit': 'nav.audit',
   '/menus': 'nav.config',
   '/migration-exceptions': 'nav.migration'

@@ -599,6 +599,20 @@ Assert-True ($shortRentConfirmed.orderStatus -eq "CONFIRMED") "short rent order 
 $shortRents = Api "GET" "/api/v1/platform/guarantee/short-rent-orders?projectId=$projectId" $null
 Assert-True (@($shortRents).Count -ge 1) "short rent order listed"
 
+
+$openApp = Api "POST" "/api/v1/platform/open-apps" @{
+    appCode = "VERIFY_APP"
+    appName = "验证开放应用"
+    scopes = "project:read,bill:read"
+}
+Assert-True ($null -ne $openApp.id) "open app created"
+
+$openApps = Api "GET" "/api/v1/platform/open-apps" $null
+Assert-True (@($openApps).Count -ge 1) "open app listed"
+
+$openToggle = Api "POST" "/api/v1/platform/open-apps/$($openApp.id)/toggle?enabled=false" $null
+Assert-True ($openToggle.appStatus -eq "DISABLED") "open app disabled"
+
 Write-Host ""
 Write-Host "VERIFY OK: $script:Pass assertions passed"
 Write-Host "ProjectId=$projectId TemplateId=$($template.id)"

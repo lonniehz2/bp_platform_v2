@@ -48,6 +48,9 @@ public class PermissionInterceptor implements HandlerInterceptor {
     }
 
     private String menuFor(String path) {
+        if (path.startsWith("/api/v1/platform/open-apps")) {
+            return "open";
+        }
         if (path.startsWith("/api/v1/platform/guarantee/short-rent-orders")) {
             return "shortrent";
         }

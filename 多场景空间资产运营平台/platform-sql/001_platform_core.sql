@@ -913,3 +913,18 @@ create table if not exists guarantee_short_rent_order (
   unique key uk_guarantee_short_rent_no (tenant_id, order_no),
   key idx_guarantee_short_rent_project (tenant_id, project_id, order_status)
 ) engine=InnoDB default charset=utf8mb4 comment='保障房短租订单';
+
+
+create table if not exists guarantee_open_app (
+  id bigint not null primary key,
+  tenant_id varchar(32) not null,
+  app_code varchar(64) not null,
+  app_name varchar(128) not null,
+  app_secret varchar(128) not null,
+  scopes varchar(500) null,
+  app_status varchar(20) not null default 'ENABLED',
+  is_deleted tinyint not null default 0,
+  create_time datetime not null default current_timestamp,
+  update_time datetime not null default current_timestamp on update current_timestamp,
+  unique key uk_guarantee_open_app (tenant_id, app_code)
+) engine=InnoDB default charset=utf8mb4 comment='保障房开放平台应用';

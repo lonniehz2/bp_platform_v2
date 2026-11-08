@@ -339,6 +339,7 @@ HOUSE
 风险告警
 信用惩戒
 短租订单
+开放平台
 菜单权限",
   "nodes": [
     {"nodeName": "客服初审", "approverRole": "PROPERTY_STEWARD"},
@@ -397,6 +398,7 @@ HOUSE
 风险告警
 信用惩戒
 短租订单
+开放平台
 菜单权限
 通过/驳回
 审批记录
@@ -529,6 +531,7 @@ TERMINATION → 合同终止
 风险告警
 信用惩戒
 短租订单
+开放平台
 菜单权限
 
 ### GET /guarantee/applications?projectId=
@@ -650,6 +653,7 @@ WAITING → ALLOCATED
 风险告警
 信用惩戒
 短租订单
+开放平台
 菜单权限
 
 ### GET /guarantee/contracts/{contractId}/qualification-reviews
@@ -724,6 +728,7 @@ platform-sql/002_menu_seed.sql
 风险告警
 信用惩戒
 短租订单
+开放平台
 
 ### GET /guarantee/meters?projectId=
 
@@ -759,6 +764,7 @@ platform-sql/002_menu_seed.sql
 风险告警
 信用惩戒
 短租订单
+开放平台
 
 ### GET /guarantee/work-orders?projectId=
 
@@ -797,6 +803,7 @@ PENDING → PROCESSING → DONE → CLOSED
 风险告警
 信用惩戒
 短租订单
+开放平台
 
 ### GET /guarantee/access-records?projectId=
 
@@ -827,6 +834,7 @@ PENDING → PROCESSING → DONE → CLOSED
 风险告警
 信用惩戒
 短租订单
+开放平台
 
 ### GET /guarantee/complaints?projectId=&type=
 
@@ -864,6 +872,7 @@ VISIT 走访
 风险告警
 信用惩戒
 短租订单
+开放平台
 
 ### GET /guarantee/fee-items?projectId=
 
@@ -890,6 +899,7 @@ VISIT 走访
 风险告警
 信用惩戒
 短租订单
+开放平台
 
 ### GET /guarantee/publicities?projectId=
 
@@ -917,6 +927,7 @@ VISIT 走访
 ## 21. 风险告警
 信用惩戒
 短租订单
+开放平台
 
 ### GET /guarantee/alerts?projectId=
 
@@ -944,6 +955,7 @@ VISIT 走访
 
 ## 22. 信用惩戒
 短租订单
+开放平台
 
 ### GET /guarantee/credits?projectId=
 
@@ -964,6 +976,7 @@ VISIT 走访
 ---
 
 ## 23. 短租订单
+开放平台
 
 ### GET /guarantee/short-rent-orders?projectId=
 
@@ -995,7 +1008,21 @@ PENDING → CONFIRMED → CHECKED_IN → COMPLETED / CANCELLED
 
 ---
 
-## 24. 附件
+## 24. 开放平台
+
+### GET /open-apps
+
+### POST /open-apps
+
+```json
+{"appCode": "GOV_SYNC", "appName": "监管数据同步", "scopes": "project:read,bill:read"}
+```
+
+### POST /open-apps/{id}/toggle?enabled=
+
+---
+
+## 25. 附件
 
 ### POST /files
 
@@ -1021,7 +1048,7 @@ file=<文件>
 
 ---
 
-## 25. 迁移异常
+## 26. 迁移异常
 
 ### GET /migration/exceptions?status=PENDING
 
@@ -1039,7 +1066,7 @@ PENDING → RESOLVED
 
 ---
 
-## 26. 验证脚本
+## 27. 验证脚本
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
@@ -1048,7 +1075,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 预期：
 
 ```text
-99 个断言通过
+102 个断言通过
 保障房 7 级空间树
 3 个房源
 人员
@@ -1079,5 +1106,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-core.ps1
 风险告警
 信用惩戒
 短租订单
+开放平台
 菜单权限
 ```

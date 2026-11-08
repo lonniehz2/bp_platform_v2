@@ -25,6 +25,7 @@ const messages = {
       alert: '风险告警',
       credit: '信用惩戒',
       shortrent: '短租订单',
+      open: '开放平台',
       audit: '审批中心',
       config: '菜单与角色',
       migration: '迁移异常'
@@ -82,6 +83,7 @@ const messages = {
       alert: 'Risk Alerts',
       credit: 'Credit Discipline',
       shortrent: 'Short Rent',
+      open: 'Open Platform',
       audit: 'Approvals',
       config: 'Menus & Roles',
       migration: 'Migration Exceptions'
