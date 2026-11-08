@@ -139,6 +139,7 @@ export const api = {
   meterSummary: (projectId) => request(`/guarantee/meters/summary?projectId=${projectId}`),
   devices: (projectId) => request(`/devices?projectId=${projectId}`),
   createDevice: (body) => request('/devices', { method: 'POST', body: JSON.stringify(body) }),
+  bindDevice: (id, spaceId) => request(`/devices/${id}/bind`, { method: 'POST', body: JSON.stringify({ spaceId }) }),
   grants: (personId) => request(`/grants?personId=${personId}`),
   keyring: (personId) => request(`/persons/${personId}/keyring`),
   createGrant: (body) => request('/grants', { method: 'POST', body: JSON.stringify(body) }),

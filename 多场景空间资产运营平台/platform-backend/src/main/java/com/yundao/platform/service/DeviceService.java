@@ -69,6 +69,24 @@ public class DeviceService {
         return out;
     }
 
+
+    public Map<String, Object> bind(long deviceId, Long spaceId) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select project_id projectId from bp_dev_device where id=? and tenant_id=? and is_deleted=0",
+                deviceId, tenant);
+        if (rows.isEmpty()) {
+            throw BizException.notFound("设备不存在");
+        }
+        long projectId = ((Number) rows.get(0).get("projectId")).longValue();
+        if (spaceId != null && count("select count(*) from bp_space where id=? and tenant_id=? and org_id=? and is_deleted=0",
+                spaceId, tenant, projectId) == 0) {
+            throw BizException.param("空间不属于设备所在项目");
+        }
+        jdbc.update("update bp_dev_device set space_id=?, update_time=now() where id=? and tenant_id=?",
+                spaceId, deviceId, tenant);
+        return Map.of("id", deviceId, "spaceId", spaceId == null ? "" : spaceId);
+    }
     private long count(String sql, Object... args) {
         Long value = jdbc.queryForObject(sql, Long.class, args);
         return value == null ? 0 : value;

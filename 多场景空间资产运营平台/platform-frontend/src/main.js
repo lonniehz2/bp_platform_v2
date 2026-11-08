@@ -49,6 +49,10 @@ import Todos from './pages/Todos.vue'
 import Keyring from './pages/Keyring.vue'
 import Grants from './pages/Grants.vue'
 import DeviceEvents from './pages/DeviceEvents.vue'
+import DeviceBinding from './pages/DeviceBinding.vue'
+import AccessRecords from './pages/AccessRecords.vue'
+import Orgs from './pages/Orgs.vue'
+import PlatformInfo from './pages/PlatformInfo.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -104,18 +108,18 @@ const router = createRouter({
     { path: '/bills', component: Billing, meta: { title: '账单与缴费' } },
     { path: '/subsidies', component: Subsidies, meta: { title: '补贴管理' } },
     { path: '/meter-readings', component: MeterReadings, meta: { title: '抄表管理' } },
-    { path: '/device-bind', component: Devices, meta: { title: '设备绑定' } },
+    { path: '/device-bind', component: DeviceBinding, meta: { title: '设备绑定' } },
     { path: '/dev-events', component: DeviceEvents, meta: { title: '设备告警' } },
-    { path: '/access', component: Access, meta: { title: '通行记录' } },
+    { path: '/access', component: AccessRecords, meta: { title: '通行记录' } },
     { path: '/keyring', component: Keyring, meta: { title: '钥匙包' } },
     { path: '/grants', component: Grants, meta: { title: '通行授权' } },
     { path: '/appeals', component: Complaints, meta: { title: '申诉管理' } },
-    { path: '/orgs', component: Projects, meta: { title: '组织机构' } },
+    { path: '/orgs', component: Orgs, meta: { title: '组织机构' } },
     { path: '/gov', component: GovReport, meta: { title: '监管报送' } },
     { path: '/rbac', component: Users, meta: { title: '用户与权限' } },
     { path: '/sys', component: Menus, meta: { title: '系统支撑' } },
     { path: '/translations', component: Help, meta: { title: '业务数据翻译' } },
-    { path: '/platform-info', component: Help, meta: { title: '平台信息' } },
+    { path: '/platform-info', component: PlatformInfo, meta: { title: '平台信息' } },
     { path: '/short-rent', component: ShortRent, meta: { title: '短租订单' } }
   ]
 })
