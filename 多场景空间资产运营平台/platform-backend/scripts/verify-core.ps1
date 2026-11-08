@@ -318,8 +318,18 @@ $application = Api "POST" "/api/v1/platform/guarantee/applications" @{
     applicantPersonId = $person.id
     applicationType = "PUBLIC_RENTAL"
     familySize = 2
+    contactPhone = "13700001111"
+    incomeLevel = "LOW"
+    housingStatus = "NO_HOUSE"
+    urgency = "NORMAL"
+    remark = "验证保障档案"
 }
 Assert-True ($application.applicationStatus -eq "DRAFT") "guarantee application created"
+
+$appList = Api "GET" "/api/v1/platform/guarantee/applications?projectId=$projectId" $null
+$appFound = @($appList) | Where-Object { $_.id -eq $application.id } | Select-Object -First 1
+Assert-True ($appFound.incomeLevel -eq "LOW") "application income level persisted"
+Assert-True ($appFound.contactPhone -eq "13700001111") "application contact phone persisted"
 
 $appSubmitted = Api "POST" "/api/v1/platform/guarantee/applications/$($application.id)/submit" $null
 Assert-True ($appSubmitted.applicationStatus -eq "SUBMITTED") "guarantee application submitted"

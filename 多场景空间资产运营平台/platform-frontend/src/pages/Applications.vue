@@ -10,11 +10,14 @@ const houses = ref([])
 const waitlist = ref([])
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ applicationNo: '', applicantPersonId: '', familySize: 1, applicationType: 'PUBLIC_RENTAL' })
+const form = reactive({ applicationNo: '', applicantPersonId: '', familySize: 1, applicationType: 'PUBLIC_RENTAL', contactPhone: '', incomeLevel: 'LOW', housingStatus: 'NO_HOUSE', urgency: 'NORMAL', remark: '' })
 const allocateForm = reactive({ waitlistId: '', houseId: '' })
 
 const statusClass = (s) => ({ APPROVED: 'green', REJECTED: 'red', SUBMITTED: 'orange' }[s] || '')
 const money = (v) => Number(v || 0).toLocaleString('zh-CN')
+const incomeLabel = (v) => ({ LOW: '低收入', LOWER_MIDDLE: '中低收入', MIDDLE: '中等收入' }[v] || v || '-')
+const housingLabel = (v) => ({ NO_HOUSE: '无房', RENTING: '租房', WITH_FAMILY: '与家人同住' }[v] || v || '-')
+const urgencyLabel = (v) => ({ NORMAL: '普通', URGENT: '紧急' }[v] || v || '-')
 
 async function currentProject() {
   const all = await api.projects()
@@ -51,7 +54,9 @@ async function create() {
       applicationNo: form.applicationNo.trim(),
       applicantPersonId: form.applicantPersonId,
       applicationType: form.applicationType,
-      familySize: Number(form.familySize || 1)
+      familySize: Number(form.familySize || 1), contactPhone: form.contactPhone,
+      incomeLevel: form.incomeLevel, housingStatus: form.housingStatus,
+      urgency: form.urgency, remark: form.remark
     })
     form.applicationNo = ''
     await load()
@@ -93,6 +98,11 @@ onMounted(load)
           </div>
           <div class="field"><label>申请类型</label><select v-model="form.applicationType"><option value="PUBLIC_RENTAL">公共租赁</option><option value="AFFORDABLE_RENTAL">保障性租赁</option><option value="TALENT_APARTMENT">人才公寓</option><option value="DORMITORY">宿舍</option></select></div>
           <div class="field"><label>家庭人数</label><input v-model.number="form.familySize" type="number" min="1" /></div>
+          <div class="field"><label>联系电话</label><input v-model="form.contactPhone" /></div>
+          <div class="field"><label>收入水平</label><select v-model="form.incomeLevel"><option value="LOW">低收入</option><option value="LOWER_MIDDLE">中低收入</option><option value="MIDDLE">中等收入</option></select></div>
+          <div class="field"><label>住房情况</label><select v-model="form.housingStatus"><option value="NO_HOUSE">无房</option><option value="RENTING">租房</option><option value="WITH_FAMILY">与家人同住</option></select></div>
+          <div class="field"><label>紧急程度</label><select v-model="form.urgency"><option value="NORMAL">普通</option><option value="URGENT">紧急</option></select></div>
+          <div class="field" style="flex:2"><label>备注</label><input v-model="form.remark" /></div>
           <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('application')" class="primary" :disabled="busy" @click="create">创建申请</button></div>
         </div>
       </div>
@@ -102,12 +112,12 @@ onMounted(load)
         <div v-if="!applications.length" class="empty">暂无申请</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>申请编号</th><th>申请人</th><th>家庭人数</th><th>状态</th><th>操作</th></tr></thead>
+            <thead><tr><th>申请编号</th><th>申请人</th><th>家庭人数</th><th>收入水平</th><th>住房情况</th><th>紧急程度</th><th>状态</th><th>操作</th></tr></thead>
             <tbody>
               <tr v-for="a in applications" :key="a.id">
                 <td class="mono">{{ a.applicationNo }}</td>
                 <td>{{ a.applicantName }}</td>
-                <td>{{ a.familySize }}</td>
+                <td>{{ a.familySize }}</td><td>{{ incomeLabel(a.incomeLevel) }}</td><td>{{ housingLabel(a.housingStatus) }}</td><td>{{ urgencyLabel(a.urgency) }}</td>
                 <td><span class="badge" :class="statusClass(a.applicationStatus)">{{ a.applicationStatus }}</span></td>
                 <td class="row">
                   <button class="sm" v-if="a.applicationStatus === 'DRAFT'" @click="submit(a.id)">提交</button>
