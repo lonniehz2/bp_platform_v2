@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import { api } from '../api'
 import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
-import Pager from '../components/Pager.vue'
+import DataTable from '../components/DataTable.vue'
 
 const route = useRoute()
 const pageTitle = route.path === '/bills' ? '账单与缴费' : '收款'
@@ -13,6 +13,7 @@ const bills = ref([])
 const payments = ref([])
 const drillRange = ref({ start: '', end: '' })
 const page = ref(1)
+const billQuery = ref('')
 const error = ref('')
 const busy = ref(false)
 const payForm = reactive({ billId: '', amount: '', method: 'CASH' })
@@ -24,7 +25,23 @@ const refundAllocations = ref([])
 const refundForm = reactive({ allocationId: '', amount: 0, reason: '' })
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
-const pagedBills = computed(() => bills.value.slice((page.value - 1) * 10, page.value * 10))
+const filteredBills = computed(() => {
+  const q = billQuery.value.trim().toLowerCase()
+  if (!q) return bills.value
+  return bills.value.filter(b => (String(b.billNo) + ' ' + String(b.personName || '')).toLowerCase().includes(q))
+})
+const pagedBills = computed(() => filteredBills.value.slice((page.value - 1) * 10, page.value * 10))
+const billColumns = [
+  { key: 'billNo', title: '账单号', width: '170px' },
+  { key: 'personName', title: '承租人', width: '120px' },
+  { key: 'period', title: '周期', width: '200px' },
+  { key: 'amount', title: '账单金额', width: '100px' },
+  { key: 'discountAmount', title: '补贴', width: '90px' },
+  { key: 'payableAmount', title: '应付', width: '100px' },
+  { key: 'paidAmount', title: '已收', width: '100px' },
+  { key: 'billStatus', title: '状态', width: '90px' },
+  { key: 'actions', title: '操作', width: '80px' }
+]
 const statusClass = (s) => ({ PAID: 'green', PARTIAL: 'orange', UNPAID: 'red' }[s] || '')
 
 async function currentProject() {
@@ -143,23 +160,18 @@ onMounted(load)
 
       <div class="panel">
         <div class="panel-head"><h2>账单列表</h2><span class="small muted" v-if="drillRange.start">账期 {{ drillRange.start }} ~ {{ drillRange.end }} · 应收 {{ bills.length }} 笔</span><span class="small muted" v-else>应收 {{ bills.length }} 笔</span></div>
-        <div v-if="!bills.length" class="empty">暂无账单</div>
-        <div class="table-wrap" v-else>
-          <table>
-            <thead><tr><th>账单号</th><th>承租人</th><th>周期</th><th>账单金额</th><th>补贴</th><th>应付</th><th>已收</th><th>状态</th><th>操作</th></tr></thead>
-            <tbody>
-              <tr v-for="b in pagedBills" :key="b.id">
-                <td class="mono">{{ b.billNo }}</td><td>{{ b.personName }}</td>
-                <td class="small">{{ b.periodStart }} ~ {{ b.periodEnd }}</td>
-                <td>¥{{ money(b.amount) }}</td><td>¥{{ money(b.discountAmount) }}</td>
-                <td>¥{{ money(b.payableAmount || b.amount) }}</td><td>¥{{ money(b.paidAmount) }}</td>
-                <td><span class="badge" :class="statusClass(b.billStatus)">{{ b.billStatus }}</span></td>
-                <td><button v-if="canAction('billing:adjust', 'billing') && b.billStatus !== 'PAID'" class="sm" @click="openAdjust(b)">调整</button></td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="row" style="margin-bottom:8px">
+          <input v-model="billQuery" placeholder="搜索账单号/承租人" style="max-width:260px" @input="page = 1" />
         </div>
-        <Pager :total="bills.length" :page="page" @update:page="page = $event" />
+        <DataTable :rows="pagedBills" :columns="billColumns" :page="page" :page-size="10" :total="filteredBills.length" empty-text="暂无账单" @update:page="page = $event">
+          <template #cell-period="{ row }"><span class="small">{{ row.periodStart }} ~ {{ row.periodEnd }}</span></template>
+          <template #cell-amount="{ row }">¥{{ money(row.amount) }}</template>
+          <template #cell-discountAmount="{ row }">¥{{ money(row.discountAmount) }}</template>
+          <template #cell-payableAmount="{ row }">¥{{ money(row.payableAmount || row.amount) }}</template>
+          <template #cell-paidAmount="{ row }">¥{{ money(row.paidAmount) }}</template>
+          <template #cell-billStatus="{ row }"><span class="badge" :class="statusClass(row.billStatus)">{{ row.billStatus }}</span></template>
+          <template #cell-actions="{ row }"><button v-if="canAction('billing:adjust', 'billing') && row.billStatus !== 'PAID'" class="sm" @click="openAdjust(row)">调整</button></template>
+        </DataTable>
       </div>
 
       <div class="panel">
