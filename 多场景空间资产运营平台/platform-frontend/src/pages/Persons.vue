@@ -19,7 +19,14 @@ const paged = computed(() => persons.value.slice((page.value - 1) * 10, page.val
 
 async function load() {
   error.value = ''
-  try { persons.value = await api.persons() } catch (e) { error.value = e.message }
+  try {
+    const all = await api.projects()
+    projects.value = all
+    const saved = String(localStorage.getItem('platformProjectId') || '')
+    project.value = all.find(p => String(p.id) === saved) || all[0] || null
+    persons.value = await api.persons()
+    houses.value = project.value ? await api.houses(project.value.id) : []
+  } catch (e) { error.value = e.message }
 }
 
 async function create() {
@@ -123,8 +130,13 @@ onMounted(load)
     <div v-if="selected" class="panel">
       <div class="panel-head"><div><h2>人员关系</h2><p>{{ selected.personName }} · 项目/房屋/空间关系</p></div><span class="small muted">{{ relations.length }} 条</span></div>
       <div class="row">
-        <div class="field"><label>类型</label><select v-model="relForm.targetType"><option value="HOUSE">房屋</option><option value="PROJECT">项目</option></select></div>
-        <div class="field" style="flex:2"><label>关联对象</label><select v-model="relForm.targetId"><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></select></div>
+        <div class="field"><label>类型</label><select v-model="relForm.targetType" @change="relForm.targetId = ''"><option value="HOUSE">房屋</option><option value="PROJECT">项目</option></select></div>
+        <div class="field" style="flex:2"><label>关联对象</label>
+          <select v-model="relForm.targetId">
+            <template v-if="relForm.targetType === 'HOUSE'"><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></template>
+            <template v-else><option v-for="p in projects" :key="p.id" :value="p.id">{{ p.orgName }}（{{ p.orgCode }}）</option></template>
+          </select>
+        </div>
         <div class="field"><label>关系</label><select v-model="relForm.relationType"><option value="TENANT">承租人</option><option value="FAMILY">家庭成员</option><option value="COHABITANT">同住人</option><option value="OWNER">产权人</option></select></div>
         <div class="field"><label>开始</label><input v-model="relForm.startDate" type="date" /></div>
         <div class="field"><label>结束</label><input v-model="relForm.endDate" type="date" /></div>
