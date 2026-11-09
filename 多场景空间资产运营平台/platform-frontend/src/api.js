@@ -70,6 +70,7 @@ export const api = {
   createPerson: (body) => request('/persons', { method: 'POST', body: JSON.stringify(body) }),
   updatePerson: (id, body) => request(`/persons/${id}/update`, { method: 'POST', body: JSON.stringify(body) }),
   updatePersonStatus: (id, status) => request(`/persons/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
+  archivePerson: (id) => request(`/persons/${id}/archive`, { method: 'POST' }),
   relations: (personId) => request(`/persons/${personId}/relations`),
   createRelation: (personId, body) => request(`/persons/${personId}/relations`, { method: 'POST', body: JSON.stringify(body) }),
   applications: (projectId) => request(`/guarantee/applications?projectId=${projectId}`),

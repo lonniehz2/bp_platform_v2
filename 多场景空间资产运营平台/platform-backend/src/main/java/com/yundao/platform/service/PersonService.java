@@ -74,6 +74,18 @@ public class PersonService {
     }
 
 
+
+    public Map<String, Object> archive(long personId) {
+        String tenant = TenantContext.require();
+        Long contracts = jdbc.queryForObject("select count(*) from guarantee_contract where person_id=? and is_deleted=0 "
+                + "and contract_status in ('ACTIVE','APPROVING','DRAFT')", Long.class, personId);
+        if (contracts != null && contracts > 0) throw BizException.conflict("人员存在合同，不能归档");
+        int updated = jdbc.update("update bp_person set is_deleted=1, update_time=now() "
+                + "where id=? and tenant_id=? and is_deleted=0", personId, tenant);
+        if (updated == 0) throw BizException.notFound("人员不存在");
+        return Map.of("id", personId, "archived", true);
+    }
+
     public Map<String, Object> update(long personId, PersonCmd cmd) {
         String tenant = TenantContext.require();
         if (cmd.personName() == null || cmd.personName().isBlank()) {

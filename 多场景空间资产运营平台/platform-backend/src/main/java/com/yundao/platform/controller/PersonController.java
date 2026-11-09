@@ -39,6 +39,11 @@ public class PersonController {
         return R.ok(service.update(personId, cmd));
     }
 
+    @PostMapping("/{personId}/archive")
+    public R<Map<String, Object>> archive(@PathVariable long personId) {
+        return R.ok(service.archive(personId));
+    }
+
     @PostMapping("/{personId}/status")
     public R<Map<String, Object>> status(@PathVariable long personId,
                                          @RequestBody Map<String, String> body) {

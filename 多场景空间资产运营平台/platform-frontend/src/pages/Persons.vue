@@ -4,6 +4,7 @@ import { api } from '../api'
 import { can } from '../permissions'
 import DataTable from '../components/DataTable.vue'
 import SearchSelect from '../components/SearchSelect.vue'
+import { confirmAction } from '../confirm'
 
 const persons = ref([])
 const grants = ref([])
@@ -33,7 +34,7 @@ const personColumns = [
   { key: 'gender', title: '性别', width: '70px' },
   { key: 'personType', title: '类型', width: '120px' },
   { key: 'status', title: '状态', width: '80px' },
-  { key: 'actions', title: '操作', width: '130px' }
+  { key: 'actions', title: '操作', width: '200px' }
 ]
 
 async function load() {
@@ -91,6 +92,13 @@ function openPersonEdit(p) {
     birthDate: p.birthDate || '', address: p.address || '', employer: p.employer || '',
     emergencyContact: p.emergencyContact || '', remark: p.remark || ''
   })
+}
+
+
+async function archivePerson(p) {
+  if (!await confirmAction({ title: '归档人员', message: `确认归档 ${p.personName}？存在合同时会被拒绝。`, confirmText: '归档', danger: true })) return
+  busy.value = true; error.value = ''
+  try { await api.archivePerson(p.id); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
 async function savePersonEdit() {
@@ -154,6 +162,7 @@ onMounted(load)
           <template #cell-actions="{ row }">
             <button class="sm" @click.stop="openPersonEdit(row)">编辑</button>
             <button class="sm" :class="row.status === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click.stop="togglePersonStatus(row)">{{ row.status === 'ENABLED' ? '停用' : '启用' }}</button>
+            <button class="sm danger" :disabled="busy" @click.stop="archivePerson(row)">归档</button>
           </template>
         </DataTable>
       </div>
