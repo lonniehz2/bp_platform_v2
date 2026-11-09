@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can } from '../permissions'
+import TreeSelect from '../components/TreeSelect.vue'
 
 const project = ref(null)
 const devices = ref([])
@@ -137,7 +138,7 @@ onMounted(load)
       </div>
       <div class="row">
         <div class="field"><label>未绑定设备</label><select v-model="form.deviceId"><option value="">请选择</option><option v-for="d in unbound" :key="d.id" :value="d.id">{{ d.deviceCode }} · {{ d.deviceName }}</option></select></div>
-        <div class="field"><label>绑定空间</label><select v-model="form.spaceId"><option value="">请选择</option><option v-for="s in spaces" :key="s.id" :value="s.id">{{ s.spaceName }}（{{ s.spaceType }}）</option></select></div>
+        <div class="field"><label>绑定空间</label><TreeSelect v-model="form.spaceId" :nodes="spaces" label-key="spaceName" value-key="id" parent-key="parentId" placeholder="选择绑定空间" /></div>
         <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('device')" class="primary" :disabled="busy" @click="bind">绑定</button></div>
       </div>
       <div class="alert" style="margin-top:10px">设备绑定到楼栋/单元/楼层后，下级空间自动显示继承设备；绑定到房屋后只作用于该房屋。</div>

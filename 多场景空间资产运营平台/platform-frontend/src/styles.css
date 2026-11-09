@@ -280,3 +280,6 @@ html.dark .badge.red { background: #2e1718; border-color: #5c2b2d; color: #ff787
 
 
 .chart { width: 100%; height: 240px; }
+
+.project-picker { width: 260px; flex: 0 0 260px; }
+@media (max-width: 760px) { .project-picker { width: 100%; flex: 1 1 100%; } }

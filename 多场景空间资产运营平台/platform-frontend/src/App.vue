@@ -7,6 +7,7 @@ import { getMenus, setMenus } from './permissions'
 import { mode, toggleMode } from './ui'
 import { setLocale } from './i18n'
 import { navGroups, navItems } from './navConfig'
+import SearchSelect from './components/SearchSelect.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -194,10 +195,16 @@ function logout() {
           <p>{{ currentUser.displayName || currentUser.username || 'admin' }} · {{ currentUser.tenantId || '350600' }}</p>
         </div>
         <div class="top-actions">
-          <select v-model="currentProjectId" @change="switchProject" class="project-select">
-            <option value="">{{ t('common.project') }}</option>
-            <option v-for="p in projects" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option>
-          </select>
+          <SearchSelect
+            v-model="currentProjectId"
+            :options="projects"
+            label-key="orgName"
+            sublabel-key="orgCode"
+            value-key="id"
+            placeholder="选择项目"
+            class="project-picker"
+            @change="switchProject"
+          />
           <a v-if="isAdmin" class="admin-link" :href="legacyAdminUrl" target="_blank" rel="noopener">平台管理</a>
           <button class="ghost sm" @click="switchLocale">{{ locale === 'zh-CN' ? 'EN' : '中' }}</button>
           <button class="ghost sm" @click="toggleMode">{{ mode === 'dark' ? '☀' : '☾' }}</button>
