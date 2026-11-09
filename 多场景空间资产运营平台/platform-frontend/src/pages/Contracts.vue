@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
+import DataTable from '../components/DataTable.vue'
 
 const project = ref(null)
 const contracts = ref([])
@@ -10,6 +11,8 @@ const persons = ref([])
 const houses = ref([])
 const error = ref('')
 const busy = ref(false)
+const page = ref(1)
+const contractQuery = ref('')
 const form = reactive({
   contractNo: '', houseId: '', personId: '', startDate: '2026-11-01', endDate: '2027-10-31',
   rentAmount: 1200, depositAmount: 1200, billingCycle: 'MONTH', billDay: 1, draft: false
@@ -28,6 +31,23 @@ const payBusy = ref(false)
 const payTotal = computed(() => payBills.value.filter(b => b.checked).reduce((s, b) => s + Number(b.amount || 0), 0))
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
+const filteredContracts = computed(() => {
+  const q = contractQuery.value.trim().toLowerCase()
+  if (!q) return contracts.value
+  return contracts.value.filter(c => (String(c.contractNo) + ' ' + String(c.personName || '') + ' ' + String(c.houseName || '')).toLowerCase().includes(q))
+})
+const pagedContracts = computed(() => filteredContracts.value.slice((page.value - 1) * 10, page.value * 10))
+const contractColumns = [
+  { key: 'contractNo', title: '合同编号', width: '170px' },
+  { key: 'houseName', title: '房屋', width: '150px' },
+  { key: 'personName', title: '承租人', width: '110px' },
+  { key: 'rentAmount', title: '租金', width: '90px' },
+  { key: 'depositAmount', title: '押金', width: '90px' },
+  { key: 'billingCycle', title: '周期', width: '80px' },
+  { key: 'billDay', title: '账单日', width: '70px' },
+  { key: 'contractStatus', title: '状态', width: '90px' },
+  { key: 'actions', title: '操作', width: '360px' }
+]
 
 async function currentProject() {
   const all = await api.projects()
@@ -215,29 +235,25 @@ onMounted(load)
 
       <div class="panel">
         <div class="panel-head"><h2>合同列表</h2><span class="small muted">生效合同可生成租金账单</span></div>
-        <div v-if="!contracts.length" class="empty">暂无合同</div>
-        <div class="table-wrap" v-else>
-          <table>
-            <thead><tr><th>合同编号</th><th>房屋</th><th>承租人</th><th>租金</th><th>押金</th><th>周期</th><th>账单日</th><th>状态</th><th>操作</th></tr></thead>
-            <tbody>
-              <tr v-for="c in contracts" :key="c.id">
-                <td class="mono">{{ c.contractNo }}</td><td>{{ c.houseName }}</td><td>{{ c.personName }}</td>
-                <td>¥{{ money(c.rentAmount) }}</td><td>¥{{ money(c.depositAmount) }}</td>
-                <td>{{ c.billingCycle }}</td><td>{{ c.billDay }}</td>
-                <td><span class="badge" :class="c.contractStatus === 'ACTIVE' ? 'green' : 'orange'">{{ c.contractStatus }}</span></td>
-                <td><div class="row">
-                  <button class="sm" @click="openFiles(c)">附件</button>
-                  <button v-if="canAction('contract:submit', 'contract') && c.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(c, 'submit')">提交</button>
-                  <button v-if="canAction('contract:activate', 'contract') && c.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(c, 'activate')">直接生效</button>
-                  <button v-if="canAction('contract:discard', 'contract') && c.contractStatus === 'DRAFT'" class="sm danger" :disabled="busy" @click="contractAction(c, 'discard')">作废</button>
-                  <button v-if="canAction('contract:approve', 'contract') && c.contractStatus === 'APPROVING'" class="sm primary" :disabled="busy" @click="contractAction(c, 'approve')">审批通过</button>
-                  <button v-if="canAction('contract:withdraw', 'contract') && c.contractStatus === 'APPROVING'" class="sm" :disabled="busy" @click="contractAction(c, 'withdraw')">撤回</button>
-                  <button v-if="canAction('billing:pay', 'billing') && c.contractStatus === 'ACTIVE'" class="sm primary" @click="openPayment(c)">收款</button>
-                </div></td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="row" style="margin-bottom:8px">
+          <input v-model="contractQuery" placeholder="搜索合同号/承租人/房屋" style="max-width:300px" @input="page = 1" />
         </div>
+        <DataTable :rows="pagedContracts" :columns="contractColumns" :page="page" :page-size="10" :total="filteredContracts.length" empty-text="暂无合同" @update:page="page = $event">
+          <template #cell-rentAmount="{ row }">¥{{ money(row.rentAmount) }}</template>
+          <template #cell-depositAmount="{ row }">¥{{ money(row.depositAmount) }}</template>
+          <template #cell-contractStatus="{ row }"><span class="badge" :class="row.contractStatus === 'ACTIVE' ? 'green' : 'orange'">{{ row.contractStatus }}</span></template>
+          <template #cell-actions="{ row }">
+            <div class="row">
+              <button class="sm" @click="openFiles(row)">附件</button>
+              <button v-if="canAction('contract:submit', 'contract') && row.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(row, 'submit')">提交</button>
+              <button v-if="canAction('contract:activate', 'contract') && row.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(row, 'activate')">直接生效</button>
+              <button v-if="canAction('contract:discard', 'contract') && row.contractStatus === 'DRAFT'" class="sm danger" :disabled="busy" @click="contractAction(row, 'discard')">作废</button>
+              <button v-if="canAction('contract:approve', 'contract') && row.contractStatus === 'APPROVING'" class="sm primary" :disabled="busy" @click="contractAction(row, 'approve')">审批通过</button>
+              <button v-if="canAction('contract:withdraw', 'contract') && row.contractStatus === 'APPROVING'" class="sm" :disabled="busy" @click="contractAction(row, 'withdraw')">撤回</button>
+              <button v-if="canAction('billing:pay', 'billing') && row.contractStatus === 'ACTIVE'" class="sm primary" @click="openPayment(row)">收款</button>
+            </div>
+          </template>
+        </DataTable>
       </div>
 
       <div v-if="selectedContract" class="panel">
