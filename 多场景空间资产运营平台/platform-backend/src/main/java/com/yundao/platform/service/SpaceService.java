@@ -146,6 +146,20 @@ public class SpaceService {
     private record Template(int baseLevelCount, String allowedSubModes) {
     }
 
+
+    public Map<String, Object> update(long projectId, long spaceId, SpaceCmd cmd) {
+        String tenant = TenantContext.require();
+        if (cmd.spaceName() == null || cmd.spaceName().isBlank()) throw BizException.param("空间名称不能为空");
+        if (cmd.spaceType() != null && !SPACE_TYPES.contains(cmd.spaceType())) throw BizException.param("空间类型不合法");
+        int updated = jdbc.update("update bp_space set space_name=?, space_type=?, asset_type_code=?, area=?, "
+                        + "inner_area=?, rentable=?, sort_no=?, update_time=now() "
+                        + "where id=? and tenant_id=? and org_id=? and is_deleted=0",
+                cmd.spaceName().trim(), cmd.spaceType(), cmd.assetTypeCode(), cmd.area(), cmd.innerArea(),
+                cmd.rentable(), cmd.sortNo(), spaceId, tenant, projectId);
+        if (updated == 0) throw BizException.notFound("空间不存在");
+        return Map.of("id", spaceId, "spaceName", cmd.spaceName());
+    }
+
     public record SpaceCmd(Long parentId, String spaceCode, String spaceName, String spaceType,
                            String assetTypeCode, String subUnitMode, Double area, Double innerArea,
                            Boolean rentable, Integer sortNo) {

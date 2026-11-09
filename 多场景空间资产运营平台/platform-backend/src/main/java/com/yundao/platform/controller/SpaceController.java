@@ -26,6 +26,12 @@ public class SpaceController {
         return R.ok(service.list(projectId));
     }
 
+    @PostMapping("/{spaceId}/update")
+    public R<Map<String, Object>> update(@PathVariable long projectId, @PathVariable long spaceId,
+                                         @RequestBody SpaceService.SpaceCmd cmd) {
+        return R.ok(service.update(projectId, spaceId, cmd));
+    }
+
     @PostMapping
     public R<Map<String, Object>> create(@PathVariable long projectId,
                                          @RequestBody SpaceService.SpaceCmd cmd) {
