@@ -32,6 +32,12 @@ public class FeeItemController {
         return R.ok(service.create(cmd));
     }
 
+    @PostMapping("/{id}/update")
+    public R<Map<String, Object>> update(@PathVariable long id,
+                                         @RequestBody FeeItemService.CreateCmd cmd) {
+        return R.ok(service.update(id, cmd));
+    }
+
     @PostMapping("/{id}/toggle")
     public R<Map<String, Object>> toggle(@PathVariable long id, @RequestParam boolean enabled) {
         return R.ok(service.toggle(id, enabled));

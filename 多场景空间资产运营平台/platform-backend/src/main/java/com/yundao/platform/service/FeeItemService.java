@@ -70,6 +70,18 @@ public class FeeItemService {
         return Map.of("id", id, "feeStatus", enabled ? "ENABLED" : "DISABLED");
     }
 
+
+    public Map<String, Object> update(long id, CreateCmd cmd) {
+        if (cmd.feeName() == null || cmd.feeName().isBlank()) throw BizException.param("费用名称不能为空");
+        int updated = jdbc.update("update guarantee_fee_item set fee_name=?, fee_type=?, billing_cycle=?, "
+                        + "unit_price=?, unit_name=?, tax_rate=?, update_time=now() "
+                        + "where id=? and tenant_id=? and is_deleted=0",
+                cmd.feeName().trim(), cmd.feeType(), cmd.billingCycle(), cmd.unitPrice(), cmd.unitName(),
+                cmd.taxRate(), id, TenantContext.require());
+        if (updated == 0) throw BizException.notFound("计费项目不存在");
+        return Map.of("id", id, "feeName", cmd.feeName());
+    }
+
     public record CreateCmd(Long projectId, String feeCode, String feeName, String feeType,
                             String billingCycle, BigDecimal unitPrice, String unitName, BigDecimal taxRate) {
     }

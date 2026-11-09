@@ -116,6 +116,7 @@ export const api = {
   resolveMigrationException: (id, body) => request(`/migration/exceptions/${id}/resolve`, { method: 'POST', body: JSON.stringify(body) }),
   feeItems: (projectId) => request(`/guarantee/fee-items?projectId=${projectId}`),
   createFeeItem: (body) => request('/guarantee/fee-items', { method: 'POST', body: JSON.stringify(body) }),
+  updateFeeItem: (id, body) => request(`/guarantee/fee-items/${id}/update`, { method: 'POST', body: JSON.stringify(body) }),
   repairDevice: (id, body) => request(`/devices/${id}/repair`, { method: 'POST', body: JSON.stringify(body || {}) }),
   enableDevice: (id) => request(`/devices/${id}/enable`, { method: 'POST' }),
   discardApplication: (id) => request(`/guarantee/applications/${id}/discard`, { method: 'POST' }),
