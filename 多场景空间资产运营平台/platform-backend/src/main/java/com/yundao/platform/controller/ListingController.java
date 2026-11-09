@@ -36,6 +36,13 @@ public class ListingController {
         return R.ok(service.create(cmd));
     }
 
+    @PostMapping("/listings/{listingId}/update")
+    public R<Map<String, Object>> update(@PathVariable long listingId,
+                                         @RequestBody ListingService.CreateCmd cmd) {
+        permissions.require("listing:manage");
+        return R.ok(service.update(listingId, cmd));
+    }
+
     @PostMapping("/listings/{listingId}/publish")
     public R<Map<String, Object>> publish(@PathVariable long listingId) {
         permissions.require("listing:manage");

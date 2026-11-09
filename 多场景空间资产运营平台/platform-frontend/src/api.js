@@ -174,6 +174,7 @@ export const api = {
   meterSummary: (projectId) => request(`/guarantee/meters/summary?projectId=${projectId}`),
   listings: (projectId) => request(`/guarantee/listings?projectId=${projectId}`),
   createListing: (body) => request('/guarantee/listings', { method: 'POST', body: JSON.stringify(body) }),
+  updateListing: (id, body) => request(`/guarantee/listings/${id}/update`, { method: 'POST', body: JSON.stringify(body) }),
   publishListing: (id) => request(`/guarantee/listings/${id}/publish`, { method: 'POST' }),
   offlineListing: (id) => request(`/guarantee/listings/${id}/offline`, { method: 'POST' }),
   bookListing: (id, body) => request(`/guarantee/listings/${id}/bookings`, { method: 'POST', body: JSON.stringify(body) }),

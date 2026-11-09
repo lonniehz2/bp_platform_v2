@@ -16,6 +16,8 @@ const busy = ref(false)
 const form = reactive({ houseId: '', title: '', description: '', monthlyRent: 1200, depositAmount: 1200, coverUrl: '' })
 const booking = reactive({ listingId: '', personId: '', contactPhone: '', remark: '' })
 const bookingOpen = ref(false)
+const editingListing = ref(null)
+const listingEditForm = reactive({ title: '', description: '', monthlyRent: 0, depositAmount: 0, coverUrl: '' })
 const detail = ref(null)
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
@@ -59,6 +61,25 @@ async function action(l, type) {
   try {
     if (type === 'publish') await api.publishListing(l.id)
     if (type === 'offline') await api.offlineListing(l.id)
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+
+function openListingEdit(l) {
+  editingListing.value = l
+  Object.assign(listingEditForm, {
+    title: l.title || '', description: l.description || '', monthlyRent: l.monthlyRent || 0,
+    depositAmount: l.depositAmount || 0, coverUrl: l.coverUrl || ''
+  })
+}
+
+async function saveListingEdit() {
+  busy.value = true; error.value = ''
+  try {
+    if (!listingEditForm.title.trim()) throw new Error('标题不能为空')
+    await api.updateListing(editingListing.value.id, { ...listingEditForm })
+    editingListing.value = null
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -153,6 +174,7 @@ onMounted(load)
               <td><span class="badge" :class="l.listingStatus === 'PUBLISHED' ? 'green' : 'orange'">{{ l.listingStatus }}</span></td>
               <td>{{ l.bookingCount }}</td>
               <td class="row">
+                <button v-if="canAction('listing:manage', 'asset')" class="sm" @click="openListingEdit(l)">编辑</button>
                 <button v-if="canAction('listing:manage', 'asset') && l.listingStatus !== 'PUBLISHED'" class="sm" @click="action(l, 'publish')">发布</button>
                 <button v-if="canAction('listing:manage', 'asset') && l.listingStatus === 'PUBLISHED'" class="sm" @click="action(l, 'offline')">下线</button>
                 <button v-if="canAction('listing:book', 'asset') && l.listingStatus === 'PUBLISHED'" class="sm primary" @click="openBooking(l)">预约看房</button>
@@ -217,6 +239,19 @@ onMounted(load)
         <div class="field"><label>联系电话</label><input v-model="booking.contactPhone" /></div>
         <div class="field"><label>备注</label><input v-model="booking.remark" /></div>
         <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="submitBooking">提交预约</button></div>
+      </div>
+    </div>
+
+    <div v-if="editingListing" class="modal-mask" @click.self="editingListing = null">
+      <div class="modal">
+        <div class="panel-head"><h2>编辑房源展示</h2><button class="sm" @click="editingListing = null">关闭</button></div>
+        <div class="field"><label>房屋</label><div class="mono">{{ editingListing.houseCode }} · {{ editingListing.houseName }}</div></div>
+        <div class="field"><label>标题</label><input v-model="listingEditForm.title" /></div>
+        <div class="field"><label>描述</label><input v-model="listingEditForm.description" /></div>
+        <div class="field"><label>月租金</label><input v-model.number="listingEditForm.monthlyRent" type="number" /></div>
+        <div class="field"><label>押金</label><input v-model.number="listingEditForm.depositAmount" type="number" /></div>
+        <div class="field"><label>封面地址</label><input v-model="listingEditForm.coverUrl" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveListingEdit">保存</button></div>
       </div>
     </div>
   </div>
