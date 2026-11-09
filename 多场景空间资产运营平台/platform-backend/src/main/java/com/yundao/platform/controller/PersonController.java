@@ -50,6 +50,12 @@ public class PersonController {
         return R.ok(service.setStatus(personId, body.get("status")));
     }
 
+    @PostMapping("/{personId}/relations/{relationId}/remove")
+    public R<Map<String, Object>> removeRelation(@PathVariable long personId,
+                                                 @PathVariable long relationId) {
+        return R.ok(service.removeRelation(personId, relationId));
+    }
+
     @GetMapping("/{personId}/relations")
     public R<List<Map<String, Object>>> relations(@PathVariable long personId) {
         return R.ok(service.relations(personId));

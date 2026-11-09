@@ -157,6 +157,15 @@ public class PersonService {
         return Map.of("id", id, "personId", personId, "relationType", cmd.relationType());
     }
 
+
+    public Map<String, Object> removeRelation(long personId, long relationId) {
+        int updated = jdbc.update("update bp_person_relation set is_deleted=1, status='ENDED', "
+                        + "update_time=now() where id=? and person_id=? and tenant_id=? and is_deleted=0",
+                relationId, personId, TenantContext.require());
+        if (updated == 0) throw BizException.notFound("人员关系不存在");
+        return Map.of("id", relationId, "status", "ENDED");
+    }
+
     private void requirePerson(long personId) {
         if (count("select count(*) from bp_person where id=? and tenant_id=? and is_deleted=0",
                 personId, TenantContext.require()) == 0) {

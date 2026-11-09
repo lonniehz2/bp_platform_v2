@@ -10,7 +10,9 @@ const devices = ref([])
 const spaces = ref([])
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ deviceId: '', spaceId: '' })
+const expanded = ref(new Set())
+const unboundQuery = ref('')
+const selectedUnbound = ref([])
 const activeSpaceId = ref('')
 const importOpen = ref(false)
 const importFile = ref(null)
@@ -39,6 +41,7 @@ const spaceTree = computed(() => {
     const out = []
     for (const node of nodes) {
       node.depth = depth
+      node.ancestorIds = ancestors.map(a => String(a.id))
       node.fullPath = [...ancestors.map(a => a.spaceName), node.spaceName].join(' / ')
       node.inherited = ancestors.flatMap(a => a.direct.map(d => ({
         ...d,
@@ -68,16 +71,52 @@ async function load() {
     if (!project.value) return
     const [d, s] = await Promise.all([api.devices(project.value.id), api.spaces(project.value.id)])
     devices.value = d; spaces.value = s
-    if (!form.deviceId && unbound.value.length) form.deviceId = unbound.value[0].id
-    if (!form.spaceId && s.length) form.spaceId = s[0].id
+    const roots = s.filter(x => !x.parentId || !s.some(y => String(y.id) === String(x.parentId)))
+    if (!activeSpaceId.value && roots.length) activeSpaceId.value = String(roots[0].id)
+    if (!expanded.value.size) expanded.value = new Set(roots.map(x => String(x.id)))
   } catch (e) { error.value = e.message }
 }
 
-async function bind() {
+const visibleSpaces = computed(() => spaceTree.value.filter(s => (s.ancestorIds || []).every(id => expanded.value.has(String(id)))))
+const selectedSpace = computed(() => spaceTree.value.find(s => String(s.id) === String(activeSpaceId.value)) || null)
+const filteredUnbound = computed(() => {
+  const q = unboundQuery.value.trim().toLowerCase()
+  if (!q) return unbound.value
+  return unbound.value.filter(d => (String(d.deviceCode) + ' ' + String(d.deviceName || '') + ' ' + String(d.deviceType || '')).toLowerCase().includes(q))
+})
+
+function selectSpace(s) {
+  activeSpaceId.value = String(s.id)
+  selectedUnbound.value = []
+}
+
+function toggleExpand(s) {
+  const id = String(s.id)
+  const next = new Set(expanded.value)
+  next.has(id) ? next.delete(id) : next.add(id)
+  expanded.value = next
+}
+
+function toggleUnbound(id) {
+  const key = String(id)
+  selectedUnbound.value = selectedUnbound.value.includes(key) ? selectedUnbound.value.filter(x => x !== key) : [...selectedUnbound.value, key]
+}
+
+async function bindOne(d) {
+  if (!selectedSpace.value) { error.value = '请先选择空间'; return }
   busy.value = true; error.value = ''
   try {
-    if (!form.deviceId || !form.spaceId) throw new Error('请选择设备和空间')
-    await api.bindDevice(form.deviceId, form.spaceId)
+    await api.bindDevice(d.id, selectedSpace.value.id)
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+async function bindSelected() {
+  if (!selectedSpace.value || !selectedUnbound.value.length) return
+  busy.value = true; error.value = ''
+  try {
+    for (const id of selectedUnbound.value) await api.bindDevice(id, selectedSpace.value.id)
+    selectedUnbound.value = []
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -119,7 +158,13 @@ async function runImport() {
 function jumpSource(d) {
   if (!d.sourceSpaceId) return
   activeSpaceId.value = String(d.sourceSpaceId)
-  document.getElementById('space-' + d.sourceSpaceId)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  const source = spaceTree.value.find(s => String(s.id) === String(d.sourceSpaceId))
+  if (source) {
+    const next = new Set(expanded.value)
+    for (const id of source.ancestorIds || []) next.add(String(id))
+    next.add(String(source.id))
+    expanded.value = next
+  }
 }
 
 async function unbind(d) {
@@ -134,49 +179,87 @@ onMounted(load)
 <template>
   <div>
     <div v-if="error" class="error">{{ error }}</div>
+
     <div class="panel">
-      <div class="panel-head"><div><h2>设备绑定</h2><p>{{ project?.orgName || '未选择项目' }} · 设备绑定到空间，子空间自动继承</p></div>
+      <div class="panel-head">
+        <div><h2>设备绑定</h2><p>{{ project?.orgName || '未选择项目' }} · 按空间查看、绑定和解绑设备</p></div>
         <div class="row"><span class="badge blue">{{ unbound.length }} 台未绑定</span><button class="sm" @click="openImport">设备导入</button></div>
       </div>
-      <div class="row">
-        <div class="field"><label>未绑定设备</label><select v-model="form.deviceId"><option value="">请选择</option><option v-for="d in unbound" :key="d.id" :value="d.id">{{ d.deviceCode }} · {{ d.deviceName }}</option></select></div>
-        <div class="field"><label>绑定空间</label><TreeSelect v-model="form.spaceId" :nodes="spaces" label-key="spaceName" value-key="id" parent-key="parentId" placeholder="选择绑定空间" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('device')" class="primary" :disabled="busy" @click="bind">绑定</button></div>
-      </div>
-      <div class="alert" style="margin-top:10px">设备绑定到楼栋/单元/楼层后，下级空间自动显示继承设备；绑定到房屋后只作用于该房屋。</div>
+      <div class="alert">左侧选择空间；右侧查看该空间直绑设备和继承设备。设备绑定到楼栋/单元/楼层后会向下继承显示，但设备只属于实际绑定空间。</div>
     </div>
 
-    <div class="grid" style="grid-template-columns:1.25fr .75fr">
-      <div class="panel">
-        <div class="panel-head"><h2>空间层级与设备</h2><span class="small muted">{{ spaces.length }} 个空间 · {{ devices.length }} 台设备</span></div>
-        <div v-if="!spaceTree.length" class="empty">暂无空间</div>
-        <div v-for="s in spaceTree" :id="'space-' + s.id" :key="s.id" class="space-node" :class="{ active: String(s.id) === activeSpaceId }" :style="{ paddingLeft: (s.depth * 18 + 6) + 'px' }">
-          <div class="row" style="border-bottom:1px solid var(--line);padding:7px 0">
-            <span class="badge" :class="s.spaceType === 'ROOM' || s.spaceType === 'BED' ? 'blue' : ''">{{ s.spaceType }}</span>
-            <strong>{{ s.spaceName }}</strong>
-            <span class="mono small">{{ s.spaceCode }}</span>
-            <span v-if="s.direct.length" class="badge green">直绑 {{ s.direct.length }}</span>
-            <span v-if="s.inherited.length" class="badge orange">继承 {{ s.inherited.length }}</span>
+    <div class="binding-grid">
+      <div class="panel binding-tree">
+        <div class="panel-head"><h2>空间树</h2><span class="small muted">{{ spaces.length }} 个空间</span></div>
+        <div class="tree-scroll">
+          <div v-for="s in visibleSpaces" :key="s.id" class="tree-row" :class="{ active: String(s.id) === String(activeSpaceId) }" :style="{ paddingLeft: (12 + s.depth * 18) + 'px' }" @click="selectSpace(s)">
+            <button v-if="s.children.length" class="tree-toggle" type="button" @click.stop="toggleExpand(s)">{{ expanded.has(String(s.id)) ? '⌄' : '›' }}</button>
+            <span v-else class="tree-toggle-placeholder"></span>
+            <span class="tree-name">{{ s.spaceName }}</span>
+            <span class="tree-counts"><span v-if="s.direct.length" class="badge green">{{ s.direct.length }}</span><span v-if="s.inherited.length" class="badge orange">{{ s.inherited.length }}</span></span>
           </div>
-          <div v-for="d in [...s.inherited, ...s.direct]" :key="d.id" class="row" style="padding:4px 0 4px 18px;font-size:12px">
-            <span class="mono">{{ d.deviceCode }}</span>
-            <span>{{ d.deviceName }}</span>
-            <span class="badge" :class="s.direct.includes(d) ? 'green' : 'orange'">{{ s.direct.includes(d) ? '直绑' : '继承' }}</span>
-            <template v-if="!s.direct.includes(d)">
-              <span class="small muted">来自 {{ d.sourceSpaceName }} · {{ d.sourcePath }}</span>
-              <button class="sm" @click="jumpSource(d)">跳转来源</button>
-            </template>
-            <button v-if="can('device') && s.direct.includes(d)" class="sm danger" :disabled="busy" @click="unbind(d)">解绑</button>
-          </div>
+          <div v-if="!visibleSpaces.length" class="empty">暂无空间</div>
         </div>
       </div>
 
-      <div class="panel">
-        <div class="panel-head"><h2>未绑定设备</h2><span class="small muted">{{ unbound.length }} 台</span></div>
-        <div v-if="!unbound.length" class="empty">全部设备已绑定</div>
-        <div v-for="d in unbound" :key="d.id" class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
-          <div style="flex:1"><div class="mono">{{ d.deviceCode }}</div><div class="small muted">{{ d.deviceName }} · {{ d.deviceType }}</div></div>
-          <span class="badge orange">UNBOUND</span>
+      <div class="binding-main">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>{{ selectedSpace?.spaceName || '未选择空间' }}</h2>
+              <p class="small muted">{{ selectedSpace?.fullPath || '请选择左侧空间' }}</p>
+            </div>
+            <span v-if="selectedSpace" class="badge blue">{{ selectedSpace.spaceType }}</span>
+          </div>
+
+          <div v-if="!selectedSpace" class="empty">请选择空间</div>
+          <template v-else>
+            <h3 class="section-title">直绑设备 <span class="small muted">{{ selectedSpace.direct.length }} 台</span></h3>
+            <div v-if="!selectedSpace.direct.length" class="empty small">该空间暂无直绑设备</div>
+            <div v-else class="table-wrap">
+              <table>
+                <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>操作</th></tr></thead>
+                <tbody>
+                  <tr v-for="d in selectedSpace.direct" :key="d.id">
+                    <td class="mono">{{ d.deviceCode }}</td><td>{{ d.deviceName }}</td><td>{{ d.deviceType }}</td>
+                    <td><button v-if="can('device')" class="sm danger" :disabled="busy" @click="unbind(d)">解绑</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 class="section-title">继承设备 <span class="small muted">{{ selectedSpace.inherited.length }} 台</span></h3>
+            <div v-if="!selectedSpace.inherited.length" class="empty small">暂无继承设备</div>
+            <div v-else class="table-wrap">
+              <table>
+                <thead><tr><th>设备编码</th><th>名称</th><th>来源空间</th><th>操作</th></tr></thead>
+                <tbody>
+                  <tr v-for="d in selectedSpace.inherited" :key="d.id + '-' + d.sourceSpaceId">
+                    <td class="mono">{{ d.deviceCode }}</td><td>{{ d.deviceName }}</td>
+                    <td class="small">{{ d.sourceSpaceName }} · {{ d.sourcePath }}</td>
+                    <td><button class="sm" @click="jumpSource(d)">跳转来源</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </template>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div><h2>未绑定设备</h2><p class="small muted">选择设备后批量绑定到当前空间</p></div>
+            <span class="badge orange">{{ filteredUnbound.length }} 台</span>
+          </div>
+          <div class="row" style="margin-bottom:8px">
+            <input v-model="unboundQuery" placeholder="搜索设备编码/名称/类型" style="max-width:300px" />
+            <button v-if="can('device')" class="primary" :disabled="busy || !selectedSpace || !selectedUnbound.length" @click="bindSelected">批量绑定 {{ selectedUnbound.length ? '(' + selectedUnbound.length + ')' : '' }}</button>
+          </div>
+          <div v-if="!filteredUnbound.length" class="empty">暂无未绑定设备</div>
+          <div v-for="d in filteredUnbound" :key="d.id" class="unbound-row">
+            <input type="checkbox" :checked="selectedUnbound.includes(String(d.id))" @change="toggleUnbound(d.id)" />
+            <div style="flex:1"><div class="mono">{{ d.deviceCode }}</div><div class="small muted">{{ d.deviceName }} · {{ d.deviceType }}</div></div>
+            <button v-if="can('device')" class="sm" :disabled="busy || !selectedSpace" @click="bindOne(d)">绑定到当前空间</button>
+          </div>
         </div>
       </div>
     </div>
@@ -213,3 +296,19 @@ onMounted(load)
     </div>
   </div>
 </template>
+
+<style scoped>
+.binding-grid { display:grid; grid-template-columns: 300px minmax(0,1fr); gap:14px; align-items:start; }
+.binding-tree { position:sticky; top:12px; }
+.tree-scroll { max-height:calc(100vh - 210px); overflow:auto; padding:4px 0; }
+.tree-row { display:flex; align-items:center; gap:4px; min-height:34px; padding:4px 8px 4px 0; border-radius:5px; cursor:pointer; color:var(--regular); }
+.tree-row:hover, .tree-row.active { background:var(--brand-soft); color:var(--brand); }
+.tree-toggle { width:18px; border:0; background:transparent; color:var(--muted); cursor:pointer; padding:0; }
+.tree-toggle-placeholder { width:18px; }
+.tree-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tree-counts { display:flex; gap:3px; }
+.binding-main { min-width:0; }
+.section-title { font-size:13px; margin:14px 0 6px; color:var(--regular); }
+.unbound-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--line); }
+@media (max-width:900px) { .binding-grid { grid-template-columns:1fr; } .binding-tree { position:static; } }
+</style>

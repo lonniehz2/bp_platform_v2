@@ -71,6 +71,14 @@ async function selectPerson(p) {
   try { grants.value = await api.keyring(p.id); relations.value = await api.relations(p.id) } catch { grants.value = []; relations.value = [] }
 }
 
+
+async function removeRelation(r) {
+  if (!selected.value) return
+  if (!await confirmAction({ title: '移除人员关系', message: `确认移除 ${r.targetName || r.relationType} 关系？`, confirmText: '移除', danger: true })) return
+  busy.value = true; error.value = ''
+  try { await api.removePersonRelation(selected.value.id, r.id); relations.value = await api.relations(selected.value.id) } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 async function addRelation() {
   if (!selected.value || !relForm.targetId) { error.value = '请选择关联对象'; return }
   busy.value = true; error.value = ''
@@ -213,6 +221,7 @@ onMounted(load)
       <div v-for="r in relations" :key="r.id" class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
         <div style="flex:1"><div>{{ r.targetName }} · {{ r.relationType }}</div><div class="small muted">{{ r.startDate || '' }} ~ {{ r.endDate || '长期' }}</div></div>
         <span class="badge green">{{ r.status }}</span>
+        <button class="sm danger" :disabled="busy" @click="removeRelation(r)">移除</button>
       </div>
     </div>
   </div>
