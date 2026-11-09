@@ -4,6 +4,7 @@ import { api } from '../api'
 import TreeSelect from '../components/TreeSelect.vue'
 import { can } from '../permissions'
 import Pager from '../components/Pager.vue'
+import { confirmAction } from '../confirm'
 
 const projects = ref([])
 const templates = ref([])
@@ -69,6 +70,13 @@ function openProjectEdit(p) {
     contactPhone: p.contactPhone || '', remark: p.remark || '', totalArea: p.totalArea || 0,
     landArea: p.landArea || 0, propertyType: p.propertyType || '', buildYear: p.buildYear || 2020
   })
+}
+
+
+async function archiveProject(p) {
+  if (!await confirmAction({ title: '归档项目', message: `确认归档项目 ${p.orgName}？存在合同或申请时会被拒绝。`, confirmText: '归档', danger: true })) return
+  busy.value = true; error.value = ''
+  try { await api.archiveProject(p.id); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
 async function saveProjectEdit() {
@@ -162,7 +170,7 @@ onMounted(load)
               <td>{{ p.propertyType || '-' }}</td><td>{{ p.businessMode }}</td>
               <td>{{ p.templateName || p.spaceTemplateId }}</td>
               <td><span class="badge green">{{ p.status }}</span></td>
-              <td><button class="sm" @click="selectProject(p)">设为当前</button> <button class="sm" @click="openProjectEdit(p)">编辑</button></td>
+              <td><button class="sm" @click="selectProject(p)">设为当前</button> <button class="sm" @click="openProjectEdit(p)">编辑</button> <button class="sm danger" :disabled="busy" @click="archiveProject(p)">归档</button></td>
             </tr>
           </tbody>
         </table>

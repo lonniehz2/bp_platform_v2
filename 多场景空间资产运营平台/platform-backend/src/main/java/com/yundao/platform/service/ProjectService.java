@@ -101,6 +101,20 @@ public class ProjectService {
         return Map.of("id", projectId, "orgName", cmd.orgName());
     }
 
+
+    public Map<String, Object> archive(long projectId) {
+        String tenant = TenantContext.require();
+        Long contracts = jdbc.queryForObject("select count(*) from guarantee_contract where project_id=? and is_deleted=0", Long.class, projectId);
+        Long apps = jdbc.queryForObject("select count(*) from guarantee_application where project_id=? and is_deleted=0", Long.class, projectId);
+        if ((contracts != null && contracts > 0) || (apps != null && apps > 0)) {
+            throw BizException.conflict("项目存在合同或申请，不能归档");
+        }
+        int updated = jdbc.update("update bp_org set is_deleted=1, update_time=now() "
+                + "where id=? and tenant_id=? and is_deleted=0", projectId, tenant);
+        if (updated == 0) throw BizException.notFound("项目不存在");
+        return Map.of("id", projectId, "archived", true);
+    }
+
     public record ProjectCmd(String orgCode, String orgName, Long parentId, String sceneCode,
                              String businessMode, Long spaceTemplateId,
                              String defaultAssetTypeCode, String address,
