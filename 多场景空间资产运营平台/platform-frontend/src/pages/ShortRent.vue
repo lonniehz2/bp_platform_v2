@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
 
 const project = ref(null)
@@ -56,7 +57,7 @@ onMounted(load)
     <div class="panel">
       <div class="panel-head"><div><h2>短租订单</h2><p>{{ project?.orgName || '未选择项目' }} · 短租、日房态</p></div><span class="badge blue">{{ orders.length }} 单</span></div>
       <div class="row">
-        <div class="field"><label>房屋</label><select v-model="form.houseId"><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></select></div>
+        <div class="field"><label>房屋</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" /></div>
         <div class="field"><label>入住人</label><input v-model="form.guestName" /></div>
         <div class="field"><label>手机号</label><input v-model="form.guestPhone" /></div>
         <div class="field"><label>入住</label><input v-model="form.startDate" type="date" /></div>

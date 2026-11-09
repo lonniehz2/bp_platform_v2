@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
 
 const project = ref(null)
@@ -66,8 +67,8 @@ onMounted(load)
         <div class="field"><label>访客姓名</label><input v-model="form.visitorName" /></div>
         <div class="field"><label>手机号</label><input v-model="form.visitorPhone" /></div>
         <div class="field"><label>事由</label><input v-model="form.purpose" /></div>
-        <div class="field"><label>被访房屋</label><select v-model="form.houseId"><option value="">不关联</option><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></select></div>
-        <div class="field"><label>被访人</label><select v-model="form.personId"><option value="">不关联</option><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}</option></select></div>
+        <div class="field"><label>被访房屋</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" clearable /></div>
+        <div class="field"><label>被访人</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" clearable /></div>
         <div class="field"><label>开始</label><input v-model="form.validStart" type="datetime-local" /></div>
         <div class="field"><label>结束</label><input v-model="form.validEnd" type="datetime-local" /></div>
         <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('access')" class="primary" :disabled="busy" @click="create">登记访客</button></div>

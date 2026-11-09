@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
 import { can, canAction } from '../permissions'
+import SearchSelect from '../components/SearchSelect.vue'
 import Pager from '../components/Pager.vue'
 
 const route = useRoute()
@@ -130,10 +131,7 @@ onMounted(load)
         <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project.orgName }} · 按应付金额收款，自动生成收据</p></div><span class="pill">BILLING</span></div>
         <div class="row">
           <div class="field"><label>账单</label>
-            <select v-model="payForm.billId" @change="selectBill(bills.find(b => b.id === payForm.billId))">
-              <option value="">请选择</option>
-              <option v-for="b in bills.filter(x => x.billStatus !== 'PAID')" :key="b.id" :value="b.id">{{ b.billNo }} · {{ b.personName }} · ¥{{ money(b.payableAmount || b.amount) }}</option>
-            </select>
+            <SearchSelect v-model="payForm.billId" :options="bills.filter(x => x.billStatus !== 'PAID')" label-key="billNo" sublabel-key="personName" value-key="id" placeholder="搜索账单号/承租人" @change="selectBill" />
           </div>
           <div class="field"><label>收款金额</label><input v-model.number="payForm.amount" type="number" /></div>
           <div class="field"><label>方式</label>

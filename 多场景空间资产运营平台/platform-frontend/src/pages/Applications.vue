@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can, canAction } from '../permissions'
+import SearchSelect from '../components/SearchSelect.vue'
 
 const project = ref(null)
 const applications = ref([])
@@ -100,9 +101,7 @@ onMounted(load)
         <div class="row">
           <div class="field"><label>申请编号</label><input v-model="form.applicationNo" placeholder="如 APP2026001" /></div>
           <div class="field"><label>申请人</label>
-            <select v-model="form.applicantPersonId">
-              <option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}（{{ p.personCode }}）</option>
-            </select>
+            <SearchSelect v-model="form.applicantPersonId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索姓名/编码" />
           </div>
           <div class="field"><label>申请类型</label><select v-model="form.applicationType"><option value="PUBLIC_RENTAL">公共租赁</option><option value="AFFORDABLE_RENTAL">保障性租赁</option><option value="TALENT_APARTMENT">人才公寓</option><option value="DORMITORY">宿舍</option></select></div>
           <div class="field"><label>家庭人数</label><input v-model.number="form.familySize" type="number" min="1" /></div>

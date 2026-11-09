@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can, canAction } from '../permissions'
+import SearchSelect from '../components/SearchSelect.vue'
 
 const project = ref(null)
 const contracts = ref([])
@@ -196,7 +197,7 @@ onMounted(load)
         <div class="row">
           <div class="field"><label>合同编号</label><input v-model="form.contractNo" placeholder="如 HT2026001" /></div>
           <div class="field"><label>房屋</label>
-            <select v-model="form.houseId"><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></select>
+            <SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋编码/名称" />
           </div>
           <div class="field"><label>承租人</label>
             <select v-model="form.personId"><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}</option></select>
@@ -272,7 +273,7 @@ onMounted(load)
         <div class="panel-head"><h2>生成租金账单</h2><span class="small muted">补贴会在账单生成时自动抵扣</span></div>
         <div class="row">
           <div class="field"><label>合同</label>
-            <select v-model="billForm.contractId"><option v-for="c in contracts" :key="c.id" :value="c.id">{{ c.contractNo }}</option></select>
+            <SearchSelect v-model="billForm.contractId" :options="contracts" label-key="contractNo" sublabel-key="personName" value-key="id" placeholder="搜索合同号/承租人" />
           </div>
           <div class="field"><label>周期开始</label><input v-model="billForm.periodStart" type="date" /></div>
           <div class="field"><label>周期结束</label><input v-model="billForm.periodEnd" type="date" /></div>

@@ -1,6 +1,8 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
+import TreeSelect from '../components/TreeSelect.vue'
 
 const project = ref(null)
 const persons = ref([])
@@ -61,8 +63,8 @@ onMounted(load)
     <div class="panel">
       <div class="panel-head"><div><h2>通行授权</h2><p>{{ project?.orgName || '未选择项目' }} · 人员到空间的通行授权</p></div><span class="badge blue">{{ grants.length }} 条</span></div>
       <div class="row">
-        <div class="field"><label>人员</label><select v-model="personId" @change="loadGrants"><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}</option></select></div>
-        <div class="field"><label>授权空间</label><select v-model="form.targetId"><option v-for="s in spaces" :key="s.id" :value="s.id">{{ s.spaceName }}</option></select></div>
+        <div class="field"><label>人员</label><SearchSelect v-model="personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" @change="loadGrants" /></div>
+        <div class="field"><label>授权空间</label><TreeSelect v-model="form.targetId" :nodes="spaces" label-key="spaceName" value-key="id" parent-key="parentId" placeholder="选择授权空间" /></div>
         <div class="field"><label>开始</label><input v-model="form.validStart" type="date" /></div>
         <div class="field"><label>结束</label><input v-model="form.validEnd" type="date" /></div>
         <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="create">新增授权</button></div>

@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
 import { canAction } from '../permissions'
 
 const project = ref(null)
@@ -130,7 +131,7 @@ onMounted(load)
       <div class="panel">
         <div class="panel-head"><div><h2>房源展示</h2><p>{{ project.orgName }} · 发布房源、看房预约</p></div><span class="pill">LISTING</span></div>
         <div class="row">
-          <div class="field"><label>房屋</label><select v-model="form.houseId"><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></select></div>
+          <div class="field"><label>房屋</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" /></div>
           <div class="field" style="flex:2"><label>标题</label><input v-model="form.title" placeholder="如 101室精装一居" /></div>
           <div class="field"><label>月租金</label><input v-model.number="form.monthlyRent" type="number" /></div>
           <div class="field"><label>押金</label><input v-model.number="form.depositAmount" type="number" /></div>
@@ -211,7 +212,7 @@ onMounted(load)
     <div v-if="bookingOpen" class="modal-mask" @click.self="bookingOpen = false">
       <div class="modal">
         <div class="panel-head"><h2>预约看房</h2><button class="sm" @click="bookingOpen = false">关闭</button></div>
-        <div class="field"><label>预约人</label><select v-model="booking.personId"><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}（{{ p.personCode }}）</option></select></div>
+        <div class="field"><label>预约人</label><SearchSelect v-model="booking.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索预约人" /></div>
         <div class="field"><label>联系电话</label><input v-model="booking.contactPhone" /></div>
         <div class="field"><label>备注</label><input v-model="booking.remark" /></div>
         <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="submitBooking">提交预约</button></div>

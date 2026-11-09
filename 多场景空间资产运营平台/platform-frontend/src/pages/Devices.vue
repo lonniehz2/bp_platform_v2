@@ -1,6 +1,8 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
+import TreeSelect from '../components/TreeSelect.vue'
 import { can, canAction } from '../permissions'
 import Pager from '../components/Pager.vue'
 
@@ -106,7 +108,7 @@ onMounted(load)
           <div class="field"><label>安装时间</label><input v-model="form.installTime" type="datetime-local" /></div>
           <div class="field"><label>保修到期</label><input v-model="form.warrantyEnd" type="date" /></div>
           <div class="field"><label>绑定空间</label>
-            <select v-model="form.spaceId"><option v-for="s in spaces" :key="s.id" :value="s.id">{{ s.spaceName }}（{{ s.spaceType }}）</option></select>
+            <TreeSelect v-model="form.spaceId" :nodes="spaces" label-key="spaceName" value-key="id" parent-key="parentId" placeholder="选择绑定空间" />
           </div>
           <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('device:create', 'device')" class="primary" :disabled="busy" @click="createDevice">新增设备</button></div>
         </div>
@@ -135,10 +137,10 @@ onMounted(load)
         <div class="panel-head"><h2>人员授权</h2><span class="small muted">授权到空间，钥匙包按人员聚合</span></div>
         <div class="row">
           <div class="field"><label>人员</label>
-            <select v-model="grantForm.personId" @change="loadGrants"><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}</option></select>
+            <SearchSelect v-model="grantForm.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" @change="loadGrants" />
           </div>
           <div class="field"><label>授权空间</label>
-            <select v-model="grantForm.targetId"><option v-for="s in spaces" :key="s.id" :value="s.id">{{ s.spaceName }}</option></select>
+            <TreeSelect v-model="grantForm.targetId" :nodes="spaces" label-key="spaceName" value-key="id" parent-key="parentId" placeholder="选择授权空间" />
           </div>
           <div class="field"><label>开始日期</label><input v-model="grantForm.validStart" type="date" /></div>
           <div class="field"><label>结束日期</label><input v-model="grantForm.validEnd" type="date" /></div>

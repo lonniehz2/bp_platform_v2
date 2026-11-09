@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
 
 const project = ref(null)
@@ -55,7 +56,7 @@ onMounted(load)
     <div class="panel">
       <div class="panel-head"><div><h2>补贴管理</h2><p>{{ project?.orgName || '未选择项目' }} · 租金补贴登记与抵扣</p></div><span class="badge blue">{{ subsidies.length }} 条</span></div>
       <div class="row">
-        <div class="field" style="flex:2"><label>合同</label><select v-model="contractId" @change="loadSubsidies"><option v-for="c in contracts" :key="c.id" :value="c.id">{{ c.contractNo }} · {{ c.personName }}</option></select></div>
+        <div class="field" style="flex:2"><label>合同</label><SearchSelect v-model="contractId" :options="contracts" label-key="contractNo" sublabel-key="personName" value-key="id" placeholder="搜索合同" @change="loadSubsidies" /></div>
         <div class="field"><label>月补贴金额</label><input v-model.number="form.amount" type="number" /></div>
         <div class="field"><label>开始</label><input v-model="form.startDate" type="date" /></div>
         <div class="field"><label>结束</label><input v-model="form.endDate" type="date" /></div>
