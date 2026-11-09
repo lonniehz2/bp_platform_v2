@@ -160,6 +160,20 @@ public class SpaceService {
         return Map.of("id", spaceId, "spaceName", cmd.spaceName());
     }
 
+
+    public Map<String, Object> archive(long projectId, long spaceId) {
+        String tenant = TenantContext.require();
+        Long children = jdbc.queryForObject("select count(*) from bp_space where parent_id=? and tenant_id=? and is_deleted=0", Long.class, spaceId, tenant);
+        Long houses = jdbc.queryForObject("select count(*) from bp_house where space_id=? and tenant_id=? and is_deleted=0", Long.class, spaceId, tenant);
+        if ((children != null && children > 0) || (houses != null && houses > 0)) {
+            throw BizException.conflict("空间存在子空间或房屋，不能归档");
+        }
+        int updated = jdbc.update("update bp_space set is_deleted=1, update_time=now() "
+                + "where id=? and tenant_id=? and org_id=? and is_deleted=0", spaceId, tenant, projectId);
+        if (updated == 0) throw BizException.notFound("空间不存在");
+        return Map.of("id", spaceId, "archived", true);
+    }
+
     public record SpaceCmd(Long parentId, String spaceCode, String spaceName, String spaceType,
                            String assetTypeCode, String subUnitMode, Double area, Double innerArea,
                            Boolean rentable, Integer sortNo) {

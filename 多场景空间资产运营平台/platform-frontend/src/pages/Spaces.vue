@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import TreeSelect from '../components/TreeSelect.vue'
 import { can } from '../permissions'
+import { confirmAction } from '../confirm'
 
 const project = ref(null)
 const spaces = ref([])
@@ -54,6 +55,13 @@ function openSpaceEdit(s) {
   })
 }
 
+
+async function archiveSpace(s) {
+  if (!await confirmAction({ title: '归档空间', message: `确认归档空间 ${s.spaceName}？存在子空间或房屋时会被拒绝。`, confirmText: '归档', danger: true })) return
+  busy.value = true; error.value = ''
+  try { await api.archiveSpace(project.value.id, s.id); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 async function saveSpaceEdit() {
   busy.value = true; error.value = ''
   try {
@@ -92,7 +100,7 @@ onMounted(load)
             <tr v-for="s in spaces" :key="s.id">
               <td class="mono">{{ s.spaceCode }}</td><td>{{ s.spaceName }}</td><td>{{ s.spaceType }}</td>
               <td>{{ s.levelNo }}</td><td>{{ s.assetTypeCode || '-' }}</td><td class="small">{{ s.spacePath }}</td>
-              <td><button class="sm" @click="openSpaceEdit(s)">编辑</button></td>
+              <td><button class="sm" @click="openSpaceEdit(s)">编辑</button> <button class="sm danger" :disabled="busy" @click="archiveSpace(s)">归档</button></td>
             </tr>
           </tbody>
         </table>

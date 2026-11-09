@@ -26,6 +26,11 @@ public class SpaceController {
         return R.ok(service.list(projectId));
     }
 
+    @PostMapping("/{spaceId}/archive")
+    public R<Map<String, Object>> archive(@PathVariable long projectId, @PathVariable long spaceId) {
+        return R.ok(service.archive(projectId, spaceId));
+    }
+
     @PostMapping("/{spaceId}/update")
     public R<Map<String, Object>> update(@PathVariable long projectId, @PathVariable long spaceId,
                                          @RequestBody SpaceService.SpaceCmd cmd) {

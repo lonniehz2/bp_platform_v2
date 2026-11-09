@@ -64,6 +64,7 @@ export const api = {
   updateHouse: (projectId, houseId, body) => request(`/projects/${projectId}/houses/${houseId}/update`, { method: 'POST', body: JSON.stringify(body) }),
   createSpace: (projectId, body) => request(`/projects/${projectId}/spaces`, { method: 'POST', body: JSON.stringify(body) }),
   updateSpace: (projectId, spaceId, body) => request(`/projects/${projectId}/spaces/${spaceId}/update`, { method: 'POST', body: JSON.stringify(body) }),
+  archiveSpace: (projectId, spaceId) => request(`/projects/${projectId}/spaces/${spaceId}/archive`, { method: 'POST' }),
   houses: (projectId) => request(`/projects/${projectId}/houses`),
   persons: (keyword = '') => request(`/persons?keyword=${encodeURIComponent(keyword)}`),
   createPerson: (body) => request('/persons', { method: 'POST', body: JSON.stringify(body) }),
