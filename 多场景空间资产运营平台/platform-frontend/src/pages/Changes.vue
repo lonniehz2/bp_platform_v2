@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
 
 const route = useRoute()
@@ -101,7 +102,7 @@ onMounted(load)
           </div>
           <div class="field" v-if="form.changeType === 'RENT_CHANGE'"><label>新租金</label><input v-model.number="form.rentAmount" type="number" /></div>
           <div class="field" v-else-if="form.changeType === 'ROOM_CHANGE'"><label>新房屋</label>
-            <select v-model="form.houseId"><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></select>
+            <SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索新房屋" />
           </div>
           <div class="field" v-else><label>新结束日期</label><input v-model="form.endDate" type="date" /></div>
           <div class="field"><label>生效日期</label><input v-model="form.effectiveDate" type="date" /></div>

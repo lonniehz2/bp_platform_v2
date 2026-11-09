@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
 
 const project = ref(null)
@@ -56,7 +57,7 @@ onMounted(load)
     <div class="panel">
       <div class="panel-head"><div><h2>信用惩戒</h2><p>{{ project?.orgName || '未选择项目' }} · 违规、欠费、信用扣分</p></div><span class="badge blue">{{ records.length }} 条</span></div>
       <div class="row">
-        <div class="field"><label>人员</label><select v-model="form.personId"><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}</option></select></div>
+        <div class="field"><label>人员</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" /></div>
         <div class="field"><label>类型</label><select v-model="form.creditType"><option value="VIOLATION">违规</option><option value="ARREARS">欠费</option><option value="OTHER">其他</option></select></div>
         <div class="field"><label>分值</label><input v-model.number="form.scoreChange" type="number" /></div>
         <div class="field" style="flex:2"><label>原因</label><input v-model="form.reason" /></div>

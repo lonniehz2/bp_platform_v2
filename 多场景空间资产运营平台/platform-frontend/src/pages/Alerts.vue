@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
 
 const project = ref(null)
@@ -74,8 +75,8 @@ onMounted(load)
         <div class="field"><label>类型</label><select v-model="form.alertType"><option value="RISK">风险</option><option value="OVERDUE">欠费</option><option value="DEVICE">设备</option><option value="OTHER">其他</option></select></div>
         <div class="field"><label>级别</label><select v-model="form.alertLevel"><option value="LOW">低</option><option value="NORMAL">普通</option><option value="HIGH">高</option><option value="URGENT">紧急</option></select></div>
         <div class="field" style="flex:2"><label>标题</label><input v-model="form.title" /></div>
-        <div class="field"><label>房屋</label><select v-model="form.houseId"><option value="">不关联</option><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></select></div>
-        <div class="field"><label>人员</label><select v-model="form.personId"><option value="">不关联</option><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}</option></select></div>
+        <div class="field"><label>房屋</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" clearable /></div>
+        <div class="field"><label>人员</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" clearable /></div>
         <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('alert')" class="primary" :disabled="busy" @click="create">新增告警</button></div>
       </div>
       <div class="field" style="margin-top:8px"><label>内容</label><textarea v-model="form.content" rows="2" /></div>

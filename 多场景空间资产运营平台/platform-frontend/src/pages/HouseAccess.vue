@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
 
 const project = ref(null)
 const houses = ref([])
@@ -63,8 +64,8 @@ onMounted(load)
     <div class="panel">
       <div class="panel-head"><div><h2>房源权限</h2><p>{{ project?.orgName || '未选择项目' }} · 按房源授权人员通行</p></div><span class="badge blue">{{ houseGrants.length }} 项</span></div>
       <div class="row">
-        <div class="field" style="flex:2"><label>房源</label><select v-model="houseId"><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></select></div>
-        <div class="field" style="flex:2"><label>人员</label><select v-model="personId" @change="loadGrants"><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}</option></select></div>
+        <div class="field" style="flex:2"><label>房源</label><SearchSelect v-model="houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" /></div>
+        <div class="field" style="flex:2"><label>人员</label><SearchSelect v-model="personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" @change="loadGrants" /></div>
         <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="grant">授权通行</button></div>
       </div>
       <div class="alert" style="margin-top:10px">房源权限基于房源对应空间授权；子空间/床位按空间继承规则生效。</div>

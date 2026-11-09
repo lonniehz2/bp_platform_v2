@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import TreeSelect from '../components/TreeSelect.vue'
 import { can } from '../permissions'
 
 const project = ref(null)
@@ -51,7 +52,7 @@ onMounted(load)
     <div class="panel">
       <div class="panel-head"><div><h2>空间层级</h2><p>{{ project?.orgName || '未选择项目' }} · 小区/楼栋/单元/楼层/房屋</p></div><span class="badge blue">{{ spaces.length }} 个空间</span></div>
       <div class="row">
-        <div class="field"><label>上级空间</label><select v-model="form.parentId"><option value="">根节点</option><option v-for="s in spaces" :key="s.id" :value="s.id">{{ s.spaceName }}（{{ s.spaceType }}）</option></select></div>
+        <div class="field"><label>上级空间</label><TreeSelect v-model="form.parentId" :nodes="spaces" label-key="spaceName" value-key="id" parent-key="parentId" placeholder="选择上级空间（空为根）" clearable /></div>
         <div class="field"><label>空间编码</label><input v-model="form.spaceCode" /></div>
         <div class="field"><label>空间名称</label><input v-model="form.spaceName" /></div>
         <div class="field"><label>类型</label><select v-model="form.spaceType"><option v-for="t in types" :key="t" :value="t">{{ t }}</option></select></div>

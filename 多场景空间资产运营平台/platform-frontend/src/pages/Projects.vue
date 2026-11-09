@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import TreeSelect from '../components/TreeSelect.vue'
 import { can } from '../permissions'
 import Pager from '../components/Pager.vue'
 
@@ -155,7 +156,7 @@ onMounted(load)
         </div>
         <div class="row" style="margin-bottom:12px">
           <div class="field"><label>上级空间</label>
-            <select v-model="spaceForm.parentId"><option value="">根节点</option><option v-for="s in spaces" :key="s.id" :value="s.id">{{ s.spaceName }}（{{ s.spaceType }}）</option></select>
+            <TreeSelect v-model="spaceForm.parentId" :nodes="spaces" label-key="spaceName" value-key="id" parent-key="parentId" placeholder="选择上级空间（空为根）" clearable />
           </div>
           <div class="field"><label>空间编码</label><input v-model="spaceForm.spaceCode" placeholder="如 A / 101" /></div>
           <div class="field"><label>空间名称</label><input v-model="spaceForm.spaceName" placeholder="如 A栋 / 101室" /></div>

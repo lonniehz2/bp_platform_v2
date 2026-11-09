@@ -220,7 +220,7 @@ onMounted(load)
             <SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋编码/名称" />
           </div>
           <div class="field"><label>承租人</label>
-            <select v-model="form.personId"><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}</option></select>
+            <SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索承租人" />
           </div>
           <div class="field"><label>开始日期</label><input v-model="form.startDate" type="date" /></div>
           <div class="field"><label>结束日期</label><input v-model="form.endDate" type="date" /></div>
@@ -271,7 +271,7 @@ onMounted(load)
       <div v-if="selectedContract" class="panel">
         <div class="panel-head"><h2>合同同住人</h2><span class="small muted">{{ selectedContract.contractNo }} · {{ cohabitants.length }} 人</span></div>
         <div class="row" style="margin-bottom:10px">
-          <div class="field" style="flex:2"><label>人员</label><select v-model="cohabForm.personId"><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}（{{ p.personCode }}）</option></select></div>
+          <div class="field" style="flex:2"><label>人员</label><SearchSelect v-model="cohabForm.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" /></div>
           <div class="field"><label>关系</label><select v-model="cohabForm.relationType"><option value="SPOUSE">配偶</option><option value="CHILD">子女</option><option value="PARENT">父母</option><option value="FAMILY">家庭成员</option><option value="OTHER">其他</option></select></div>
           <div class="field"><label>开始</label><input v-model="cohabForm.startDate" type="date" /></div>
           <div class="field"><label>结束</label><input v-model="cohabForm.endDate" type="date" /></div>

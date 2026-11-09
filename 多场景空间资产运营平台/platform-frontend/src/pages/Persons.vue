@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can } from '../permissions'
 import DataTable from '../components/DataTable.vue'
+import SearchSelect from '../components/SearchSelect.vue'
 
 const persons = ref([])
 const grants = ref([])
@@ -141,10 +142,8 @@ onMounted(load)
       <div class="row">
         <div class="field"><label>类型</label><select v-model="relForm.targetType" @change="relForm.targetId = ''"><option value="HOUSE">房屋</option><option value="PROJECT">项目</option></select></div>
         <div class="field" style="flex:2"><label>关联对象</label>
-          <select v-model="relForm.targetId">
-            <template v-if="relForm.targetType === 'HOUSE'"><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></template>
-            <template v-else><option v-for="p in projects" :key="p.id" :value="p.id">{{ p.orgName }}（{{ p.orgCode }}）</option></template>
-          </select>
+          <SearchSelect v-if="relForm.targetType === 'HOUSE'" v-model="relForm.targetId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" />
+          <SearchSelect v-else v-model="relForm.targetId" :options="projects" label-key="orgName" sublabel-key="orgCode" value-key="id" placeholder="搜索项目" />
         </div>
         <div class="field"><label>关系</label><select v-model="relForm.relationType"><option value="TENANT">承租人</option><option value="FAMILY">家庭成员</option><option value="COHABITANT">同住人</option><option value="OWNER">产权人</option></select></div>
         <div class="field"><label>开始</label><input v-model="relForm.startDate" type="date" /></div>

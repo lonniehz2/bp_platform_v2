@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
 
 const project = ref(null)
 const waitlist = ref([])
@@ -53,8 +54,8 @@ onMounted(load)
     <div class="panel" style="margin-top:16px">
       <div class="panel-head"><div><h2>配租摇号</h2><p>{{ project?.orgName || '未选择项目' }} · 轮候记录配租到空置房屋</p></div></div>
       <div class="row">
-        <div class="field"><label>轮候记录</label><select v-model="form.waitlistId"><option value="">请选择</option><option v-for="w in waiting" :key="w.id" :value="w.id">{{ w.queueNo }} · {{ w.applicantName }}</option></select></div>
-        <div class="field"><label>房屋</label><select v-model="form.houseId"><option value="">请选择</option><option v-for="h in vacant" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></select></div>
+        <div class="field"><label>轮候记录</label><SearchSelect v-model="form.waitlistId" :options="waiting" label-key="queueNo" sublabel-key="applicantName" value-key="id" placeholder="搜索轮候记录" /></div>
+        <div class="field"><label>房屋</label><SearchSelect v-model="form.houseId" :options="vacant" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索空置房屋" /></div>
         <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="allocate">确认配租</button></div>
       </div>
     </div>

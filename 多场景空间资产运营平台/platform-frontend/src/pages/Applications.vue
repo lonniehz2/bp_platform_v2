@@ -149,16 +149,10 @@ onMounted(load)
         <div class="panel-head"><h2>轮候与配租</h2><span class="small muted">等待中的轮候记录可分配空置房屋</span></div>
         <div class="row" style="margin-bottom:12px">
           <div class="field"><label>轮候记录</label>
-            <select v-model="allocateForm.waitlistId">
-              <option value="">请选择</option>
-              <option v-for="w in waitlist.filter(x => x.waitlistStatus === 'WAITING')" :key="w.id" :value="w.id">{{ w.queueNo }} · {{ w.applicantName }}</option>
-            </select>
+            <SearchSelect v-model="allocateForm.waitlistId" :options="waitlist.filter(x => x.waitlistStatus === 'WAITING')" label-key="queueNo" sublabel-key="applicantName" value-key="id" placeholder="搜索轮候记录" />
           </div>
           <div class="field"><label>房屋</label>
-            <select v-model="allocateForm.houseId">
-              <option value="">请选择</option>
-              <option v-for="h in houses.filter(x => x.houseStatus === 'VACANT')" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option>
-            </select>
+            <SearchSelect v-model="allocateForm.houseId" :options="houses.filter(x => x.houseStatus === 'VACANT')" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索空置房屋" />
           </div>
           <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('allocation:create', 'application')" class="primary" :disabled="busy" @click="allocate">配租</button></div>
         </div>

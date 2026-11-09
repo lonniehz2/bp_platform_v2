@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
 
 const persons = ref([])
 const personId = ref('')
@@ -35,7 +36,7 @@ onMounted(load)
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
       <div class="panel-head"><div><h2>钥匙包</h2><p>按人员聚合的有效通行授权</p></div><span class="badge blue">{{ entries.length }} 项</span></div>
-      <div class="field" style="max-width:320px"><label>人员</label><select v-model="personId" @change="loadKeyring"><option v-for="p in persons" :key="p.id" :value="p.id">{{ p.personName }}（{{ p.personCode }}）</option></select></div>
+      <div class="field" style="max-width:320px"><label>人员</label><SearchSelect v-model="personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" @change="loadKeyring" /></div>
     </div>
 
     <div class="panel">

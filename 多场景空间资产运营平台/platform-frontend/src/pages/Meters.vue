@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
 import Pager from '../components/Pager.vue'
 
@@ -87,7 +88,7 @@ onMounted(load)
     <div class="panel" style="margin-top:16px">
       <div class="panel-head"><div><h2>表计台账</h2><p>{{ project?.orgName || '未选择项目' }} · 水表/电表/燃气表</p></div></div>
       <div class="row">
-        <div class="field"><label>房屋</label><select v-model="form.houseId"><option v-for="h in houses" :key="h.id" :value="h.id">{{ h.houseCode }} · {{ h.houseName }}</option></select></div>
+        <div class="field"><label>房屋</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" /></div>
         <div class="field"><label>类型</label><select v-model="form.meterType"><option value="WATER">水表</option><option value="ELECTRICITY">电表</option><option value="GAS">燃气表</option></select></div>
         <div class="field"><label>表号</label><input v-model="form.meterNo" placeholder="如 WM-001" /></div>
         <div class="field"><label>初始读数</label><input v-model.number="form.initialReading" type="number" /></div>
