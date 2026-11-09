@@ -32,6 +32,12 @@ public class DeviceController {
         return R.ok(service.list(projectId));
     }
 
+    @PostMapping("/{deviceId}/update")
+    public R<Map<String, Object>> update(@org.springframework.web.bind.annotation.PathVariable long deviceId,
+                                         @RequestBody DeviceService.DeviceCmd cmd) {
+        return R.ok(service.update(deviceId, cmd));
+    }
+
     @PostMapping("/{deviceId}/bind")
     public R<Map<String, Object>> bind(@org.springframework.web.bind.annotation.PathVariable long deviceId,
                                        @RequestBody Map<String, Long> body) {

@@ -119,6 +119,19 @@ public class DeviceService {
         return value == null ? 0 : value;
     }
 
+
+    public Map<String, Object> update(long deviceId, DeviceCmd cmd) {
+        String tenant = TenantContext.require();
+        if (cmd.deviceName() == null || cmd.deviceName().isBlank()) throw BizException.param("设备名称不能为空");
+        int updated = jdbc.update("update bp_dev_device set device_name=?, device_type=?, device_model=?, "
+                        + "install_time=?, warranty_end=?, remark=?, update_time=now() "
+                        + "where id=? and tenant_id=? and is_deleted=0",
+                cmd.deviceName().trim(), cmd.deviceType(), cmd.deviceModel(),
+                cmd.installTime(), cmd.warrantyEnd(), cmd.remark(), deviceId, tenant);
+        if (updated == 0) throw BizException.notFound("设备不存在");
+        return Map.of("id", deviceId, "deviceName", cmd.deviceName());
+    }
+
     public record DeviceCmd(Long projectId, Long spaceId, String deviceCode, String deviceName,
                             String deviceType, String deviceModel, String assetStatus,
                             String businessStatus, java.time.LocalDateTime installTime,

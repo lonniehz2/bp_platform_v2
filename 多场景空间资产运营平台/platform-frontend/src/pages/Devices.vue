@@ -18,6 +18,8 @@ const busy = ref(false)
 const form = reactive({ deviceCode: '', deviceName: '', deviceType: 'LOCK', spaceId: '', deviceModel: '', installTime: '', warrantyEnd: '' })
 const grantForm = reactive({ personId: '', targetId: '', validStart: '2026-11-08', validEnd: '2027-11-07' })
 const grants = ref([])
+const editingDevice = ref(null)
+const deviceEditForm = reactive({ deviceName: '', deviceType: 'LOCK', deviceModel: '', installTime: '', warrantyEnd: '', remark: '' })
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN')
 const filteredDevices = computed(() => {
@@ -37,7 +39,7 @@ const deviceColumns = [
   { key: 'warrantyEnd', title: '保修到期', width: '110px' },
   { key: 'assetStatus', title: '资产状态', width: '90px' },
   { key: 'businessStatus', title: '业务状态', width: '90px' },
-  { key: 'actions', title: '操作', width: '150px' }
+  { key: 'actions', title: '操作', width: '220px' }
 ]
 
 async function currentProject() {
@@ -109,6 +111,25 @@ async function revokeGrant(g) {
 }
 
 
+
+function openDeviceEdit(d) {
+  editingDevice.value = d
+  Object.assign(deviceEditForm, {
+    deviceName: d.deviceName || '', deviceType: d.deviceType || 'LOCK', deviceModel: d.deviceModel || '',
+    installTime: d.installTime || '', warrantyEnd: d.warrantyEnd || '', remark: d.remark || ''
+  })
+}
+
+async function saveDeviceEdit() {
+  busy.value = true; error.value = ''
+  try {
+    if (!deviceEditForm.deviceName.trim()) throw new Error('设备名称不能为空')
+    await api.updateDevice(editingDevice.value.id, { ...deviceEditForm })
+    editingDevice.value = null
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 async function repairDevice(d) {
   if (!await confirmAction({ title: '设备报修', message: `确认将设备 ${d.deviceCode} 标记为报修？`, confirmText: '报修', danger: true })) return
   busy.value = true; error.value = ''
@@ -155,6 +176,7 @@ onMounted(load)
         <DataTable :rows="pagedDevices" :columns="deviceColumns" :page="page" :page-size="10" :total="filteredDevices.length" empty-text="暂无设备" @update:page="page = $event">
           <template #cell-assetStatus="{ row }"><span class="badge green">{{ row.assetStatus }}</span></template>
           <template #cell-actions="{ row }">
+            <button class="sm" @click="openDeviceEdit(row)">编辑</button>
             <button v-if="canAction('device:repair', 'device') && row.businessStatus !== 'FAULT'" class="sm" :disabled="busy" @click="repairDevice(row)">报修</button>
             <button v-if="canAction('device:enable', 'device') && ['FAULT','DISABLED'].includes(row.businessStatus)" class="sm primary" :disabled="busy" @click="enableDevice(row)">启用</button>
           </template>
@@ -190,5 +212,19 @@ onMounted(load)
         <div v-else class="empty">暂无授权</div>
       </div>
     </template>
+
+    <div v-if="editingDevice" class="modal-mask" @click.self="editingDevice = null">
+      <div class="modal">
+        <div class="panel-head"><h2>编辑设备</h2><button class="sm" @click="editingDevice = null">关闭</button></div>
+        <div class="field"><label>设备编码</label><input :value="editingDevice.deviceCode" disabled /></div>
+        <div class="field"><label>设备名称</label><input v-model="deviceEditForm.deviceName" /></div>
+        <div class="field"><label>设备类型</label><select v-model="deviceEditForm.deviceType"><option value="LOCK">门锁</option><option value="METER">水电表</option><option value="ELEVATOR">电梯</option><option value="GATE">门禁</option></select></div>
+        <div class="field"><label>型号</label><input v-model="deviceEditForm.deviceModel" /></div>
+        <div class="field"><label>安装时间</label><input v-model="deviceEditForm.installTime" type="datetime-local" /></div>
+        <div class="field"><label>保修到期</label><input v-model="deviceEditForm.warrantyEnd" type="date" /></div>
+        <div class="field"><label>备注</label><input v-model="deviceEditForm.remark" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveDeviceEdit">保存</button></div>
+      </div>
+    </div>
   </div>
 </template>

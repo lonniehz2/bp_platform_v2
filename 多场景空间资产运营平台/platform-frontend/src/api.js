@@ -187,6 +187,7 @@ export const api = {
   devices: (projectId) => request(`/devices?projectId=${projectId}`),
   importDevices: (file) => { const fd = new FormData(); fd.append('file', file); return request('/devices/import', { method: 'POST', body: fd }) },
   createDevice: (body) => request('/devices', { method: 'POST', body: JSON.stringify(body) }),
+  updateDevice: (id, body) => request(`/devices/${id}/update`, { method: 'POST', body: JSON.stringify(body) }),
   bindDevice: (id, spaceId) => request(`/devices/${id}/bind`, { method: 'POST', body: JSON.stringify({ spaceId }) }),
   grants: (personId) => request(`/grants?personId=${personId}`),
   keyring: (personId) => request(`/persons/${personId}/keyring`),
