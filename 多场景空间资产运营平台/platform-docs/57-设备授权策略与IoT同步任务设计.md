@@ -686,119 +686,104 @@ accessDevices(S) =
 
 ## 18. 设备类型、能力与生效范围
 
-### 18.1 设备功能由设备类型决定
-
-设备功能分类在设备入库时确定，不在绑定空间时人工指定。
+### 18.1 设备类型由入库时确定
 
 ```text
-设备类型 → 功能分类 → 能力
+设备类型由设备管理员在入库时选择
+设备类型决定功能分类
+绑定空间时不重新指定
 设备实例继承类型定义
 ```
 
-设备类型目录建议：
+设备类型目录：
 
 ```text
 typeCode
 typeName
 functionCode
 capabilities
-requiresPhysicalAccess
 ```
 
 ### 18.2 功能分类
 
 ```text
-PASSAGE          小区门、楼栋门、单元门、梯控、闸机
-ENTRY_LOCK       入户门锁
-INDOOR_LOCK      室内门锁，可选
-METER            表计
-SENSOR           传感器
-OTHER            其他
+PASSAGE        小区门、楼栋门、单元门、梯控、闸机
+ENTRY_LOCK     入户门锁
+INDOOR_LOCK    室内门锁
+METER          表计
+SENSOR         传感器
+OTHER          其他
 ```
 
-说明：
+### 18.3 通行类与非通行类
 
 ```text
-单元门、楼栋门 → PASSAGE
-入户门 → ENTRY_LOCK
-梯控 → PASSAGE，能力 OPEN + FLOOR
-不做电梯设备，只做梯控设备
+通行类：
+  PASSAGE
+  ENTRY_LOCK
+  INDOOR_LOCK
+
+非通行类：
+  METER
+  SENSOR
+  OTHER
 ```
 
-### 18.3 物理通行与功能访问分开
-
-设备能力：
+规则：
 
 ```text
-OPEN       开门/通行
-FLOOR      楼层控制
-READ       读取读数/状态
-RECHARGE   充值
-MANAGE     管理设备
+通行类设备参与空间路径授权
+非通行类设备跟随空间授权，不做单独权限控制
 ```
 
-两类授权：
+表计/传感器：
 
 ```text
-物理通行授权：OPEN / FLOOR
-功能访问授权：READ / RECHARGE
+不做 READ/RECHARGE 特殊权限
+租户获得空间授权后即可查看/使用该空间内的计量/采集设备
 ```
 
-因此：
+### 18.4 空间授权
 
 ```text
-表计/传感器不是“永远不开放”
-而是不开放物理通行，但可以开放读取/充值
-```
+devicesAtSpace(S) = S 内全部设备
+ancestorPassage(S) = 祖先空间的 PASSAGE 设备
 
-### 18.4 空间授权的设备范围
-
-```text
-physicalDevices(S) =
-  accessDevicesAt(S)
-  ∪ passageDevices(ancestors(S))
-
-functionalDevices(S) =
-  functionalDevicesAt(S)
-```
-
-含义：
-
-```text
-目标空间：通行设备 + 户内门锁 + 表计/传感器
-祖先空间：只取 PASSAGE
-子空间：不取
-兄弟空间：不取
+accessDevices(S) =
+  devicesAtSpace(S)
+  ∪ ancestorPassage(S)
 ```
 
 示例授权 101：
 
 ```text
-物理通行：
-  101 入户门锁
-  1单元门禁
-  A栋门禁
-
-功能访问：
-  101 电表：读取/充值
-  101 水表：读取/充值
-
-不包含：
-  102 门锁
-  102 表计
+101 门锁、表计、传感器
++ 1单元门禁
++ A栋门禁
 ```
 
-### 18.5 设备授权的设备范围
+不包含：
 
 ```text
-如果设备能力包含 OPEN 或 FLOOR：
-  accessDevices(D at S) =
-    {D}
-    ∪ passageDevices(ancestors(S))
+102 的任何设备
+```
 
-如果设备只有 READ / RECHARGE：
-  accessDevices(D at S) = {D}
-  不附带祖先通行
+### 18.5 设备授权
+
+设备级授权只用于通行类设备：
+
+```text
+PASSAGE
+ENTRY_LOCK
+INDOOR_LOCK
+```
+
+计算：
+
+```text
+accessDevices(D at S) =
+  {D}
+  ∪ ancestorPassage(S)
 ```
 
 示例：
@@ -808,15 +793,18 @@ functionalDevices(S) =
   → 101 门锁
   → 1单元门禁
   → A栋门禁
+```
 
-授权 101 电表读取
-  → 只授权电表读取
-  → 不附带门禁通行
+非通行类设备：
+
+```text
+不提供设备级授权入口
+跟随空间授权
 ```
 
 ### 18.6 实际生效范围
 
-“实际生效范围”是授权计算后的只读结果，不是授权本身。
+“实际生效范围”是授权计算后的只读结果。
 
 设备详情展示：
 
@@ -829,17 +817,13 @@ functionalDevices(S) =
 实际生效设备：
   A栋门禁（通行）
   1单元门禁（通行）
-  101 门锁（开门）
+  101 入户门锁（开门）
 不包含：
   102 门锁
   其他房间设备
 ```
 
-业务系统只展示，不参与计算。
-
 ### 18.7 计算归属
-
-建议：
 
 ```text
 IoT 根据空间树和设备类型统一计算
@@ -847,20 +831,13 @@ IoT 根据空间树和设备类型统一计算
 业务系统展示只读的生效范围
 ```
 
-原因：
+### 18.8 已确认
 
 ```text
-新增祖先门禁后，已有授权自动获得通行
-设备类型变化时，能力自动更新
-避免业务系统缓存设备列表导致遗漏
-```
-
-### 18.8 需要确认
-
-```text
-1. 入户门锁的 typeCode 是否统一为 ENTRY_LOCK？
-2. 梯控是否统一为 PASSAGE，能力 OPEN + FLOOR？
-3. 表计/传感器是否只开放 READ/RECHARGE，不开放 OPEN？
-4. 室内门锁是否需要 INDOOR_LOCK？
-5. “实际生效范围”是否在设备详情只读展示？
+ENTRY_LOCK  入户门锁
+INDOOR_LOCK 室内门锁
+梯控        PASSAGE + OPEN/FLOOR
+表计/传感器 跟随空间，不做特殊权限
+设备类型    入库时由管理员选择
+实际生效范围 设备详情只读展示
 ```
