@@ -4,11 +4,12 @@ import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import TreeSelect from '../components/TreeSelect.vue'
 import { can, canAction } from '../permissions'
-import Pager from '../components/Pager.vue'
+import DataTable from '../components/DataTable.vue'
 
 const project = ref(null)
 const devices = ref([])
 const page = ref(1)
+const deviceQuery = ref('')
 const persons = ref([])
 const spaces = ref([])
 const error = ref('')
@@ -18,7 +19,24 @@ const grantForm = reactive({ personId: '', targetId: '', validStart: '2026-11-08
 const grants = ref([])
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN')
-const pagedDevices = computed(() => devices.value.slice((page.value - 1) * 10, page.value * 10))
+const filteredDevices = computed(() => {
+  const q = deviceQuery.value.trim().toLowerCase()
+  if (!q) return devices.value
+  return devices.value.filter(d => (String(d.deviceCode) + ' ' + String(d.deviceName || '') + ' ' + String(d.deviceMac || '') + ' ' + String(d.spaceName || '')).toLowerCase().includes(q))
+})
+const pagedDevices = computed(() => filteredDevices.value.slice((page.value - 1) * 10, page.value * 10))
+const deviceColumns = [
+  { key: 'deviceCode', title: '设备编码', width: '150px' },
+  { key: 'deviceName', title: '名称', width: '130px' },
+  { key: 'deviceType', title: '类型', width: '80px' },
+  { key: 'deviceModel', title: '型号', width: '110px' },
+  { key: 'deviceMac', title: '物理MAC', width: '150px' },
+  { key: 'spaceName', title: '绑定空间', width: '140px' },
+  { key: 'installStatus', title: '安装状态', width: '90px' },
+  { key: 'warrantyEnd', title: '保修到期', width: '110px' },
+  { key: 'assetStatus', title: '资产状态', width: '90px' },
+  { key: 'businessStatus', title: '业务状态', width: '90px' }
+]
 
 async function currentProject() {
   const all = await api.projects()
@@ -116,21 +134,12 @@ onMounted(load)
 
       <div class="panel">
         <div class="panel-head"><h2>设备列表</h2><span class="small muted">{{ devices.length }} 台设备</span></div>
-        <div v-if="!devices.length" class="empty">暂无设备</div>
-        <div class="table-wrap" v-else>
-          <table>
-            <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>型号</th><th>物理MAC</th><th>绑定空间</th><th>安装状态</th><th>保修到期</th><th>资产状态</th><th>业务状态</th></tr></thead>
-            <tbody>
-              <tr v-for="d in pagedDevices" :key="d.id">
-                <td class="mono">{{ d.deviceCode }}</td><td>{{ d.deviceName }}</td><td>{{ d.deviceType }}</td>
-                <td>{{ d.deviceModel || '-' }}</td><td>{{ d.deviceMac || '-' }}</td><td>{{ d.spaceName || '-' }}</td>
-                <td>{{ d.installStatus || '-' }}</td><td>{{ d.warrantyEnd || '-' }}</td>
-                <td><span class="badge green">{{ d.assetStatus }}</span></td><td>{{ d.businessStatus }}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="row" style="margin-bottom:8px">
+          <input v-model="deviceQuery" placeholder="搜索设备编码/名称/MAC/空间" style="max-width:320px" @input="page = 1" />
         </div>
-        <Pager :total="devices.length" :page="page" @update:page="page = $event" />
+        <DataTable :rows="pagedDevices" :columns="deviceColumns" :page="page" :page-size="10" :total="filteredDevices.length" empty-text="暂无设备" @update:page="page = $event">
+          <template #cell-assetStatus="{ row }"><span class="badge green">{{ row.assetStatus }}</span></template>
+        </DataTable>
       </div>
 
       <div class="panel">

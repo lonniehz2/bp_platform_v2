@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can } from '../permissions'
+import DataTable from '../components/DataTable.vue'
 
 const persons = ref([])
 const grants = ref([])
@@ -13,9 +14,23 @@ const selected = ref(null)
 const error = ref('')
 const busy = ref(false)
 const page = ref(1)
+const personQuery = ref('')
 const relForm = reactive({ targetType: 'HOUSE', targetId: '', relationType: 'TENANT', startDate: '', endDate: '' })
 const form = reactive({ personCode: '', personName: '', phone: '', idCardMask: '', personType: 'GUARANTEE_TENANT', gender: '', birthDate: '', address: '', employer: '', emergencyContact: '', remark: '' })
-const paged = computed(() => persons.value.slice((page.value - 1) * 10, page.value * 10))
+const filteredPersons = computed(() => {
+  const q = personQuery.value.trim().toLowerCase()
+  if (!q) return persons.value
+  return persons.value.filter(p => (String(p.personCode) + ' ' + String(p.personName || '') + ' ' + String(p.phone || '')).toLowerCase().includes(q))
+})
+const paged = computed(() => filteredPersons.value.slice((page.value - 1) * 10, page.value * 10))
+const personColumns = [
+  { key: 'personCode', title: '人员编码', width: '140px' },
+  { key: 'personName', title: '姓名', width: '110px' },
+  { key: 'phone', title: '手机号', width: '130px' },
+  { key: 'gender', title: '性别', width: '70px' },
+  { key: 'personType', title: '类型', width: '120px' },
+  { key: 'status', title: '状态', width: '80px' }
+]
 
 async function load() {
   error.value = ''
@@ -98,19 +113,13 @@ onMounted(load)
     <div class="grid" style="grid-template-columns: 1.3fr .7fr">
       <div class="panel">
         <div class="panel-head"><h2>人员列表</h2><span class="small muted">点击查看钥匙包</span></div>
-        <div v-if="!persons.length" class="empty">暂无人员</div>
-        <div class="table-wrap" v-else>
-          <table>
-            <thead><tr><th>人员编码</th><th>姓名</th><th>手机号</th><th>性别</th><th>类型</th><th>状态</th></tr></thead>
-            <tbody>
-              <tr v-for="p in paged" :key="p.id" @click="selectPerson(p)" style="cursor:pointer">
-                <td class="mono">{{ p.personCode }}</td><td>{{ p.personName }}</td><td>{{ p.phone || '-' }}</td>
-                <td>{{ p.gender === 'MALE' ? '男' : p.gender === 'FEMALE' ? '女' : '-' }}</td>
-                <td>{{ p.personType || '-' }}</td><td><span class="badge green">{{ p.status }}</span></td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="row" style="margin-bottom:8px">
+          <input v-model="personQuery" placeholder="搜索姓名/编码/手机号" style="max-width:280px" @input="page = 1" />
         </div>
+        <DataTable :rows="paged" :columns="personColumns" :page="page" :page-size="10" :total="filteredPersons.length" empty-text="暂无人员" @update:page="page = $event" @row-click="selectPerson">
+          <template #cell-gender="{ row }">{{ row.gender === 'MALE' ? '男' : row.gender === 'FEMALE' ? '女' : '-' }}</template>
+          <template #cell-status="{ row }"><span class="badge green">{{ row.status }}</span></template>
+        </DataTable>
       </div>
 
       <div class="panel">
