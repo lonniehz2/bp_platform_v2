@@ -32,6 +32,18 @@ public class MeterController {
         return R.ok(service.create(cmd));
     }
 
+    @PostMapping("/{meterId}/update")
+    public R<Map<String, Object>> update(@PathVariable long meterId,
+                                         @RequestBody MeterService.MeterCmd cmd) {
+        return R.ok(service.update(meterId, cmd));
+    }
+
+    @PostMapping("/{meterId}/status")
+    public R<Map<String, Object>> status(@PathVariable long meterId,
+                                         @RequestBody Map<String, String> body) {
+        return R.ok(service.setStatus(meterId, body.get("status")));
+    }
+
     @GetMapping("/{meterId}/readings")
     public R<List<Map<String, Object>>> readings(@PathVariable long meterId) {
         return R.ok(service.readings(meterId));

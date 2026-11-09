@@ -60,6 +60,25 @@ public class MeterService {
         return Map.of("id", id, "meterNo", cmd.meterNo(), "meterType", cmd.meterType());
     }
 
+
+    public Map<String, Object> update(long meterId, MeterCmd cmd) {
+        if (cmd.meterNo() == null || cmd.meterNo().isBlank()) throw BizException.param("表号不能为空");
+        int updated = jdbc.update("update guarantee_meter set house_id=?, meter_type=?, meter_no=?, "
+                        + "install_date=?, update_time=now() where id=? and tenant_id=? and is_deleted=0",
+                cmd.houseId(), cmd.meterType(), cmd.meterNo().trim(), cmd.installDate(),
+                meterId, TenantContext.require());
+        if (updated == 0) throw BizException.notFound("表计不存在");
+        return Map.of("id", meterId, "meterNo", cmd.meterNo());
+    }
+
+    public Map<String, Object> setStatus(long meterId, String status) {
+        if (!List.of("ACTIVE", "DISABLED").contains(status)) throw BizException.param("状态不合法");
+        int updated = jdbc.update("update guarantee_meter set meter_status=?, update_time=now() "
+                + "where id=? and tenant_id=? and is_deleted=0", status, meterId, TenantContext.require());
+        if (updated == 0) throw BizException.notFound("表计不存在");
+        return Map.of("id", meterId, "meterStatus", status);
+    }
+
     public List<Map<String, Object>> readings(long meterId) {
         return jdbc.queryForList(
                 "select id, meter_id meterId, reading_date readingDate, reading_value readingValue, "

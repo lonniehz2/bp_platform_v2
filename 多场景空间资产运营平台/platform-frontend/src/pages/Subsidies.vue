@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
+import { confirmAction } from '../confirm'
 
 const project = ref(null)
 const contracts = ref([])
@@ -11,6 +12,8 @@ const subsidies = ref([])
 const error = ref('')
 const busy = ref(false)
 const form = reactive({ amount: 300, startDate: '2026-11-01', endDate: '2027-10-31', remark: '补贴登记' })
+const editing = ref(null)
+const editForm = reactive({ amount: 0, startDate: '', endDate: '', remark: '' })
 const selected = computed(() => contracts.value.find(c => String(c.id) === String(contractId.value)) || null)
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 
@@ -47,6 +50,27 @@ async function create() {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+
+function openEdit(s) {
+  editing.value = s
+  Object.assign(editForm, { amount: s.subsidyAmount || 0, startDate: s.startDate || '', endDate: s.endDate || '', remark: s.remark || '' })
+}
+
+async function saveEdit() {
+  busy.value = true; error.value = ''
+  try {
+    await api.updateSubsidy(editing.value.id, { amount: Number(editForm.amount || 0), startDate: editForm.startDate, endDate: editForm.endDate, remark: editForm.remark })
+    editing.value = null
+    await loadSubsidies()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+async function terminate(s) {
+  if (!await confirmAction({ title: '终止补贴', message: '确认终止该补贴？', confirmText: '终止', danger: true })) return
+  busy.value = true; error.value = ''
+  try { await api.terminateSubsidy(s.id); await loadSubsidies() } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 onMounted(load)
 </script>
 
@@ -69,14 +93,29 @@ onMounted(load)
       <div v-if="!subsidies.length" class="empty">暂无补贴</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>金额/月</th><th>开始</th><th>结束</th><th>状态</th></tr></thead>
+          <thead><tr><th>金额/月</th><th>开始</th><th>结束</th><th>状态</th><th>操作</th></tr></thead>
           <tbody>
             <tr v-for="s in subsidies" :key="s.id">
               <td>¥{{ money(s.amount) }}</td><td>{{ s.startDate }}</td><td>{{ s.endDate }}</td>
               <td><span class="badge" :class="s.subsidyStatus === 'ACTIVE' ? 'green' : 'orange'">{{ s.subsidyStatus }}</span></td>
+              <td>
+                <button v-if="can('billing') && s.subsidyStatus === 'ACTIVE'" class="sm" @click="openEdit(s)">编辑</button>
+                <button v-if="can('billing') && s.subsidyStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="terminate(s)">终止</button>
+              </td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <div v-if="editing" class="modal-mask" @click.self="editing = null">
+      <div class="modal">
+        <div class="panel-head"><h2>编辑补贴</h2><button class="sm" @click="editing = null">关闭</button></div>
+        <div class="field"><label>月补贴金额</label><input v-model.number="editForm.amount" type="number" /></div>
+        <div class="field"><label>开始</label><input v-model="editForm.startDate" type="date" /></div>
+        <div class="field"><label>结束</label><input v-model="editForm.endDate" type="date" /></div>
+        <div class="field"><label>备注</label><input v-model="editForm.remark" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveEdit">保存</button></div>
       </div>
     </div>
   </div>

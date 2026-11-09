@@ -70,6 +70,27 @@ public class GuaranteeSubsidyService {
         return value == null ? BigDecimal.ZERO : value;
     }
 
+
+    public Map<String, Object> update(long subsidyId, SubsidyCmd cmd) {
+        if (cmd.amount() == null || cmd.amount().signum() < 0) throw BizException.param("补贴金额不能为负数");
+        if (cmd.startDate() == null || cmd.endDate() == null || cmd.endDate().isBefore(cmd.startDate())) {
+            throw BizException.param("补贴起止日期不合法");
+        }
+        int updated = jdbc.update("update guarantee_subsidy set subsidy_type=?, subsidy_amount=?, start_date=?, "
+                        + "end_date=?, remark=?, update_time=now() where id=? and tenant_id=? and is_deleted=0",
+                cmd.subsidyType() == null ? "RENT_SUBSIDY" : cmd.subsidyType(), cmd.amount(),
+                cmd.startDate(), cmd.endDate(), cmd.remark(), subsidyId, TenantContext.require());
+        if (updated == 0) throw BizException.notFound("补贴不存在");
+        return Map.of("id", subsidyId, "subsidyAmount", cmd.amount());
+    }
+
+    public Map<String, Object> terminate(long subsidyId) {
+        int updated = jdbc.update("update guarantee_subsidy set subsidy_status='TERMINATED', update_time=now() "
+                + "where id=? and tenant_id=? and is_deleted=0", subsidyId, TenantContext.require());
+        if (updated == 0) throw BizException.notFound("补贴不存在");
+        return Map.of("id", subsidyId, "subsidyStatus", "TERMINATED");
+    }
+
     public record SubsidyCmd(String subsidyType, BigDecimal amount, LocalDate startDate,
                              LocalDate endDate, String remark) {
     }

@@ -26,6 +26,17 @@ public class GuaranteeSubsidyController {
         return R.ok(service.list(contractId));
     }
 
+    @PostMapping("/subsidies/{subsidyId}/update")
+    public R<Map<String, Object>> update(@PathVariable long subsidyId,
+                                         @RequestBody GuaranteeSubsidyService.SubsidyCmd cmd) {
+        return R.ok(service.update(subsidyId, cmd));
+    }
+
+    @PostMapping("/subsidies/{subsidyId}/terminate")
+    public R<Map<String, Object>> terminate(@PathVariable long subsidyId) {
+        return R.ok(service.terminate(subsidyId));
+    }
+
     @PostMapping("/contracts/{contractId}/subsidies")
     public R<Map<String, Object>> create(@PathVariable long contractId,
                                          @RequestBody GuaranteeSubsidyService.SubsidyCmd cmd) {
