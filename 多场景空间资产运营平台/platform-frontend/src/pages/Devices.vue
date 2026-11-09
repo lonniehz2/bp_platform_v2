@@ -130,6 +130,13 @@ async function saveDeviceEdit() {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+
+async function archiveDevice(d) {
+  if (!await confirmAction({ title: '报废设备', message: `确认报废设备 ${d.deviceCode}？报废后不再显示。`, confirmText: '报废', danger: true })) return
+  busy.value = true; error.value = ''
+  try { await api.archiveDevice(d.id); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 async function repairDevice(d) {
   if (!await confirmAction({ title: '设备报修', message: `确认将设备 ${d.deviceCode} 标记为报修？`, confirmText: '报修', danger: true })) return
   busy.value = true; error.value = ''
@@ -177,6 +184,7 @@ onMounted(load)
           <template #cell-assetStatus="{ row }"><span class="badge green">{{ row.assetStatus }}</span></template>
           <template #cell-actions="{ row }">
             <button class="sm" @click="openDeviceEdit(row)">编辑</button>
+            <button v-if="canAction('device:archive', 'device')" class="sm danger" :disabled="busy" @click="archiveDevice(row)">报废</button>
             <button v-if="canAction('device:repair', 'device') && row.businessStatus !== 'FAULT'" class="sm" :disabled="busy" @click="repairDevice(row)">报修</button>
             <button v-if="canAction('device:enable', 'device') && ['FAULT','DISABLED'].includes(row.businessStatus)" class="sm primary" :disabled="busy" @click="enableDevice(row)">启用</button>
           </template>

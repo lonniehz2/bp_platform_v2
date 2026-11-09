@@ -120,6 +120,14 @@ public class DeviceService {
     }
 
 
+
+    public Map<String, Object> archive(long deviceId) {
+        int updated = jdbc.update("update bp_dev_device set is_deleted=1, update_time=now() "
+                + "where id=? and tenant_id=? and is_deleted=0", deviceId, TenantContext.require());
+        if (updated == 0) throw BizException.notFound("设备不存在");
+        return Map.of("id", deviceId, "archived", true);
+    }
+
     public Map<String, Object> update(long deviceId, DeviceCmd cmd) {
         String tenant = TenantContext.require();
         if (cmd.deviceName() == null || cmd.deviceName().isBlank()) throw BizException.param("设备名称不能为空");

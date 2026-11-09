@@ -60,6 +60,12 @@ public class DeviceController {
         return R.ok(service.repair(deviceId, body == null ? null : body.get("reason")));
     }
 
+    @PostMapping("/{deviceId}/archive")
+    public R<Map<String, Object>> archive(@org.springframework.web.bind.annotation.PathVariable long deviceId) {
+        permissions.require("device:archive");
+        return R.ok(service.archive(deviceId));
+    }
+
     @PostMapping("/{deviceId}/enable")
     public R<Map<String, Object>> enable(@org.springframework.web.bind.annotation.PathVariable long deviceId) {
         permissions.require("device:enable");
