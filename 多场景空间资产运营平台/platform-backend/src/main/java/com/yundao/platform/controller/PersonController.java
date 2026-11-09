@@ -33,6 +33,18 @@ public class PersonController {
         return R.ok(service.create(cmd));
     }
 
+    @PostMapping("/{personId}/update")
+    public R<Map<String, Object>> update(@PathVariable long personId,
+                                         @RequestBody PersonService.PersonCmd cmd) {
+        return R.ok(service.update(personId, cmd));
+    }
+
+    @PostMapping("/{personId}/status")
+    public R<Map<String, Object>> status(@PathVariable long personId,
+                                         @RequestBody Map<String, String> body) {
+        return R.ok(service.setStatus(personId, body.get("status")));
+    }
+
     @GetMapping("/{personId}/relations")
     public R<List<Map<String, Object>>> relations(@PathVariable long personId) {
         return R.ok(service.relations(personId));

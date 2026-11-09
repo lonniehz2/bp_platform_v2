@@ -24,13 +24,16 @@ const filteredPersons = computed(() => {
   return persons.value.filter(p => (String(p.personCode) + ' ' + String(p.personName || '') + ' ' + String(p.phone || '')).toLowerCase().includes(q))
 })
 const paged = computed(() => filteredPersons.value.slice((page.value - 1) * 10, page.value * 10))
+const editingPerson = ref(null)
+const personEditForm = reactive({ personCode: '', personName: '', phone: '', idCardMask: '', personType: 'GUARANTEE_TENANT', gender: '', birthDate: '', address: '', employer: '', emergencyContact: '', remark: '' })
 const personColumns = [
   { key: 'personCode', title: '人员编码', width: '140px' },
   { key: 'personName', title: '姓名', width: '110px' },
   { key: 'phone', title: '手机号', width: '130px' },
   { key: 'gender', title: '性别', width: '70px' },
   { key: 'personType', title: '类型', width: '120px' },
-  { key: 'status', title: '状态', width: '80px' }
+  { key: 'status', title: '状态', width: '80px' },
+  { key: 'actions', title: '操作', width: '130px' }
 ]
 
 async function load() {
@@ -79,6 +82,34 @@ async function addRelation() {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+
+function openPersonEdit(p) {
+  editingPerson.value = p
+  Object.assign(personEditForm, {
+    personCode: p.personCode || '', personName: p.personName || '', phone: p.phone || '',
+    idCardMask: p.idCardMask || '', personType: p.personType || 'GUARANTEE_TENANT', gender: p.gender || '',
+    birthDate: p.birthDate || '', address: p.address || '', employer: p.employer || '',
+    emergencyContact: p.emergencyContact || '', remark: p.remark || ''
+  })
+}
+
+async function savePersonEdit() {
+  busy.value = true; error.value = ''
+  try {
+    if (!personEditForm.personName.trim()) throw new Error('姓名不能为空')
+    await api.updatePerson(editingPerson.value.id, { ...personEditForm })
+    editingPerson.value = null
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+async function togglePersonStatus(p) {
+  const next = p.status === 'ENABLED' ? 'DISABLED' : 'ENABLED'
+  if (!await confirmAction({ title: '变更人员状态', message: `确认将 ${p.personName} 设为 ${next}？`, confirmText: '确认' })) return
+  busy.value = true; error.value = ''
+  try { await api.updatePersonStatus(p.id, next); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 onMounted(load)
 </script>
 
@@ -119,7 +150,11 @@ onMounted(load)
         </div>
         <DataTable :rows="paged" :columns="personColumns" :page="page" :page-size="10" :total="filteredPersons.length" empty-text="暂无人员" @update:page="page = $event" @row-click="selectPerson">
           <template #cell-gender="{ row }">{{ row.gender === 'MALE' ? '男' : row.gender === 'FEMALE' ? '女' : '-' }}</template>
-          <template #cell-status="{ row }"><span class="badge green">{{ row.status }}</span></template>
+          <template #cell-status="{ row }"><span class="badge" :class="row.status === 'ENABLED' ? 'green' : 'orange'">{{ row.status }}</span></template>
+          <template #cell-actions="{ row }">
+            <button class="sm" @click.stop="openPersonEdit(row)">编辑</button>
+            <button class="sm" :class="row.status === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click.stop="togglePersonStatus(row)">{{ row.status === 'ENABLED' ? '停用' : '启用' }}</button>
+          </template>
         </DataTable>
       </div>
 
@@ -134,6 +169,21 @@ onMounted(load)
           </div>
           <span class="badge blue">{{ g.grantLevel }}</span>
         </div>
+      </div>
+    </div>
+
+    <div v-if="editingPerson" class="modal-mask" @click.self="editingPerson = null">
+      <div class="modal">
+        <div class="panel-head"><h2>编辑人员</h2><button class="sm" @click="editingPerson = null">关闭</button></div>
+        <div class="field"><label>人员编码</label><input v-model="personEditForm.personCode" disabled /></div>
+        <div class="field"><label>姓名</label><input v-model="personEditForm.personName" /></div>
+        <div class="field"><label>手机号</label><input v-model="personEditForm.phone" /></div>
+        <div class="field"><label>人员类型</label><select v-model="personEditForm.personType"><option value="GUARANTEE_TENANT">保障对象</option><option value="APPLICANT">申请人</option><option value="COHABITANT">同住人</option><option value="STAFF">工作人员</option></select></div>
+        <div class="field"><label>性别</label><select v-model="personEditForm.gender"><option value="">未知</option><option value="MALE">男</option><option value="FEMALE">女</option></select></div>
+        <div class="field"><label>地址</label><input v-model="personEditForm.address" /></div>
+        <div class="field"><label>工作单位</label><input v-model="personEditForm.employer" /></div>
+        <div class="field"><label>备注</label><input v-model="personEditForm.remark" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="savePersonEdit">保存</button></div>
       </div>
     </div>
 

@@ -73,6 +73,30 @@ public class PersonService {
         return Map.of("id", id, "personCode", cmd.personCode(), "personName", cmd.personName());
     }
 
+
+    public Map<String, Object> update(long personId, PersonCmd cmd) {
+        String tenant = TenantContext.require();
+        if (cmd.personName() == null || cmd.personName().isBlank()) {
+            throw BizException.param("姓名不能为空");
+        }
+        int updated = jdbc.update("update bp_person set person_name=?, phone=?, id_card_mask=?, person_type=?, "
+                        + "gender=?, birth_date=?, address=?, employer=?, emergency_contact=?, remark=?, update_time=now() "
+                        + "where id=? and tenant_id=? and is_deleted=0",
+                cmd.personName().trim(), cmd.phone(), cmd.idCardMask(), cmd.personType(), cmd.gender(),
+                cmd.birthDate(), cmd.address(), cmd.employer(), cmd.emergencyContact(), cmd.remark(),
+                personId, tenant);
+        if (updated == 0) throw BizException.notFound("人员不存在");
+        return Map.of("id", personId, "personName", cmd.personName());
+    }
+
+    public Map<String, Object> setStatus(long personId, String status) {
+        if (!List.of("ENABLED", "DISABLED").contains(status)) throw BizException.param("状态不合法");
+        int updated = jdbc.update("update bp_person set status=?, update_time=now() "
+                + "where id=? and tenant_id=? and is_deleted=0", status, personId, TenantContext.require());
+        if (updated == 0) throw BizException.notFound("人员不存在");
+        return Map.of("id", personId, "status", status);
+    }
+
     public List<Map<String, Object>> relations(long personId) {
         requirePerson(personId);
         return jdbc.queryForList(
