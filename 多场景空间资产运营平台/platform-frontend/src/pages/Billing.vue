@@ -122,6 +122,19 @@ async function submitRefund() {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+
+async function discardBill(b) {
+  if (!window.confirm(`确认作废账单 ${b.billNo}？`)) return
+  busy.value = true; error.value = ''
+  try { await api.discardBill(b.id); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+async function closeBill(b) {
+  if (!window.confirm(`确认关闭账单 ${b.billNo}？`)) return
+  busy.value = true; error.value = ''
+  try { await api.closeBill(b.id); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 function openReceipt(p) { receipt.value = p }
 function printReceipt() { window.print() }
 
@@ -170,7 +183,11 @@ onMounted(load)
           <template #cell-payableAmount="{ row }">¥{{ money(row.payableAmount || row.amount) }}</template>
           <template #cell-paidAmount="{ row }">¥{{ money(row.paidAmount) }}</template>
           <template #cell-billStatus="{ row }"><span class="badge" :class="statusClass(row.billStatus)">{{ row.billStatus }}</span></template>
-          <template #cell-actions="{ row }"><button v-if="canAction('billing:adjust', 'billing') && row.billStatus !== 'PAID'" class="sm" @click="openAdjust(row)">调整</button></template>
+          <template #cell-actions="{ row }">
+            <button v-if="canAction('billing:adjust', 'billing') && row.billStatus !== 'PAID'" class="sm" @click="openAdjust(row)">调整</button>
+            <button v-if="canAction('billing:discard', 'billing') && row.billStatus === 'DRAFT'" class="sm danger" @click="discardBill(row)">作废</button>
+            <button v-if="canAction('billing:close', 'billing') && row.billStatus === 'WAIVED'" class="sm" @click="closeBill(row)">关闭</button>
+          </template>
         </DataTable>
       </div>
 

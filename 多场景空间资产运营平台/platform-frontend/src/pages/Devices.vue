@@ -35,7 +35,8 @@ const deviceColumns = [
   { key: 'installStatus', title: '安装状态', width: '90px' },
   { key: 'warrantyEnd', title: '保修到期', width: '110px' },
   { key: 'assetStatus', title: '资产状态', width: '90px' },
-  { key: 'businessStatus', title: '业务状态', width: '90px' }
+  { key: 'businessStatus', title: '业务状态', width: '90px' },
+  { key: 'actions', title: '操作', width: '150px' }
 ]
 
 async function currentProject() {
@@ -106,6 +107,19 @@ async function revokeGrant(g) {
   try { await api.revokeGrant(g.id, '页面撤销'); await loadGrants() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+
+async function repairDevice(d) {
+  if (!window.confirm(`确认将设备 ${d.deviceCode} 标记为报修？`)) return
+  busy.value = true; error.value = ''
+  try { await api.repairDevice(d.id, { reason: '页面报修' }); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+async function enableDevice(d) {
+  if (!window.confirm(`确认启用设备 ${d.deviceCode}？`)) return
+  busy.value = true; error.value = ''
+  try { await api.enableDevice(d.id); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 onMounted(load)
 </script>
 
@@ -139,6 +153,10 @@ onMounted(load)
         </div>
         <DataTable :rows="pagedDevices" :columns="deviceColumns" :page="page" :page-size="10" :total="filteredDevices.length" empty-text="暂无设备" @update:page="page = $event">
           <template #cell-assetStatus="{ row }"><span class="badge green">{{ row.assetStatus }}</span></template>
+          <template #cell-actions="{ row }">
+            <button v-if="canAction('device:repair', 'device') && row.businessStatus !== 'FAULT'" class="sm" :disabled="busy" @click="repairDevice(row)">报修</button>
+            <button v-if="canAction('device:enable', 'device') && ['FAULT','DISABLED'].includes(row.businessStatus)" class="sm primary" :disabled="busy" @click="enableDevice(row)">启用</button>
+          </template>
         </DataTable>
       </div>
 
