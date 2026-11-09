@@ -8,6 +8,7 @@ import { mode, toggleMode } from './ui'
 import { setLocale } from './i18n'
 import { navGroups, navItems } from './navConfig'
 import SearchSelect from './components/SearchSelect.vue'
+import ConfirmDialog from './components/ConfirmDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -227,5 +228,6 @@ function logout() {
         <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" @click="changePassword">保存</button></div>
       </div>
     </div>
+    <ConfirmDialog />
   </div>
 </template>

@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can } from '../permissions'
 import TreeSelect from '../components/TreeSelect.vue'
+import { confirmAction } from '../confirm'
 
 const project = ref(null)
 const devices = ref([])
@@ -122,6 +123,7 @@ function jumpSource(d) {
 }
 
 async function unbind(d) {
+  if (!await confirmAction({ title: '解绑设备', message: `确认解绑设备 ${d.deviceName || d.deviceCode}？`, confirmText: '解绑', danger: true })) return
   busy.value = true; error.value = ''
   try { await api.bindDevice(d.id, null); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
 }

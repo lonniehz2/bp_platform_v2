@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
+import { confirmAction } from '../confirm'
 
 const project = ref(null)
 const applications = ref([])
@@ -77,12 +78,12 @@ async function returnForSupplement(id) { const comment = window.prompt('退回�
 async function resubmit(id) { await run(() => api.resubmitApplication(id)) }
 
 async function discardApplication(a) {
-  if (!window.confirm(`确认作废申请 ${a.applicationNo}？`)) return
+  if (!await confirmAction({ title: '作废申请', message: `确认作废申请 ${a.applicationNo}？`, confirmText: '作废', danger: true })) return
   await run(() => api.discardApplication(a.id))
 }
 
 async function closeApplication(a) {
-  if (!window.confirm(`确认关闭申请 ${a.applicationNo}？`)) return
+  if (!await confirmAction({ title: '关闭申请', message: `确认关闭申请 ${a.applicationNo}？`, confirmText: '关闭', danger: true })) return
   await run(() => api.closeApplication(a.id))
 }
 

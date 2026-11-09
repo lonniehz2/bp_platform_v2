@@ -4,6 +4,7 @@ import { api } from '../api'
 import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
 import DataTable from '../components/DataTable.vue'
+import { confirmAction } from '../confirm'
 
 const project = ref(null)
 const contracts = ref([])
@@ -99,6 +100,10 @@ async function create() {
 
 
 async function contractAction(c, action) {
+  if (action === 'discard' || action === 'withdraw') {
+    const ok = await confirmAction({ title: action === 'discard' ? '作废合同' : '撤回合同', message: `确认${action === 'discard' ? '作废' : '撤回'}合同 ${c.contractNo}？`, confirmText: action === 'discard' ? '作废' : '撤回', danger: action === 'discard' })
+    if (!ok) return
+  }
   error.value = ''
   busy.value = true
   try {

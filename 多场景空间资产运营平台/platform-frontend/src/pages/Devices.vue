@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import TreeSelect from '../components/TreeSelect.vue'
+import { confirmAction } from '../confirm'
 import { can, canAction } from '../permissions'
 import DataTable from '../components/DataTable.vue'
 
@@ -109,13 +110,13 @@ async function revokeGrant(g) {
 
 
 async function repairDevice(d) {
-  if (!window.confirm(`确认将设备 ${d.deviceCode} 标记为报修？`)) return
+  if (!await confirmAction({ title: '设备报修', message: `确认将设备 ${d.deviceCode} 标记为报修？`, confirmText: '报修', danger: true })) return
   busy.value = true; error.value = ''
   try { await api.repairDevice(d.id, { reason: '页面报修' }); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
 async function enableDevice(d) {
-  if (!window.confirm(`确认启用设备 ${d.deviceCode}？`)) return
+  if (!await confirmAction({ title: '启用设备', message: `确认启用设备 ${d.deviceCode}？`, confirmText: '启用' })) return
   busy.value = true; error.value = ''
   try { await api.enableDevice(d.id); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
 }

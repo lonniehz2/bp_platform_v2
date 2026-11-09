@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { canAction } from '../permissions'
+import { confirmAction } from '../confirm'
 
 const project = ref(null)
 const listings = ref([])
@@ -102,7 +103,7 @@ async function convertOrder(o) {
 
 
 async function payOrder(o) {
-  if (!window.confirm(`确认支付 ¥${money(Number(o.rentAmount) + Number(o.depositAmount))}？`)) return
+  if (!await confirmAction({ title: '确认支付', message: `确认支付 ¥${money(Number(o.rentAmount) + Number(o.depositAmount))}？`, confirmText: '支付' })) return
   busy.value = true; error.value = ''
   try {
     await api.payListingOrder(o.id, { paymentMethod: 'ONLINE' })
@@ -112,7 +113,7 @@ async function payOrder(o) {
 
 
 async function cancelOrder(o) {
-  if (!window.confirm('确认取消该订单？')) return
+  if (!await confirmAction({ title: '取消订单', message: '确认取消该订单？', confirmText: '取消订单', danger: true })) return
   busy.value = true; error.value = ''
   try {
     await api.cancelListingOrder(o.id)

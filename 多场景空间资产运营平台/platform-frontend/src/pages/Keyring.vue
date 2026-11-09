@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
+import { confirmAction } from '../confirm'
 
 const persons = ref([])
 const personId = ref('')
@@ -24,6 +25,7 @@ async function loadKeyring() {
 }
 
 async function revoke(g) {
+  if (!await confirmAction({ title: '撤销授权', message: '确认撤销该授权？', confirmText: '撤销', danger: true })) return
   busy.value = true; error.value = ''
   try { await api.revokeGrant(g.id, '钥匙包撤销'); await loadKeyring() } catch (e) { error.value = e.message } finally { busy.value = false }
 }

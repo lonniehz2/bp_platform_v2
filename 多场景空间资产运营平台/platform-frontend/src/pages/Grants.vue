@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
+import { confirmAction } from '../confirm'
 import TreeSelect from '../components/TreeSelect.vue'
 
 const project = ref(null)
@@ -50,6 +51,7 @@ async function create() {
 }
 
 async function revoke(g) {
+  if (!await confirmAction({ title: '撤销授权', message: '确认撤销该授权？', confirmText: '撤销', danger: true })) return
   busy.value = true; error.value = ''
   try { await api.revokeGrant(g.id, '授权撤销'); await loadGrants() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
