@@ -86,6 +86,21 @@ public class ProjectService {
         return out;
     }
 
+
+    public Map<String, Object> update(long projectId, ProjectCmd cmd) {
+        if (cmd.orgName() == null || cmd.orgName().isBlank()) {
+            throw BizException.param("项目名称不能为空");
+        }
+        int updated = jdbc.update("update bp_org set org_name=?, address=?, contact_name=?, contact_phone=?, "
+                        + "remark=?, total_area=?, land_area=?, property_type=?, build_year=?, update_time=now() "
+                        + "where id=? and tenant_id=? and is_deleted=0",
+                cmd.orgName().trim(), cmd.address(), cmd.contactName(), cmd.contactPhone(), cmd.remark(),
+                cmd.totalArea(), cmd.landArea(), cmd.propertyType(), cmd.buildYear(),
+                projectId, TenantContext.require());
+        if (updated == 0) throw BizException.notFound("项目不存在");
+        return Map.of("id", projectId, "orgName", cmd.orgName());
+    }
+
     public record ProjectCmd(String orgCode, String orgName, Long parentId, String sceneCode,
                              String businessMode, Long spaceTemplateId,
                              String defaultAssetTypeCode, String address,

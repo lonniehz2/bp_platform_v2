@@ -58,6 +58,7 @@ export const api = {
   assetTypes: (sceneCode) => request(`/asset-types?sceneCode=${sceneCode}`),
   projects: () => request('/projects'),
   createProject: (body) => request('/projects', { method: 'POST', body: JSON.stringify(body) }),
+  updateProject: (id, body) => request(`/projects/${id}/update`, { method: 'POST', body: JSON.stringify(body) }),
   spaces: (projectId) => request(`/projects/${projectId}/spaces`),
   updateHouse: (projectId, houseId, body) => request(`/projects/${projectId}/houses/${houseId}/update`, { method: 'POST', body: JSON.stringify(body) }),
   createSpace: (projectId, body) => request(`/projects/${projectId}/spaces`, { method: 'POST', body: JSON.stringify(body) }),

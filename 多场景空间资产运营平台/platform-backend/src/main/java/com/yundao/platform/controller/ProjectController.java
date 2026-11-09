@@ -25,6 +25,12 @@ public class ProjectController {
         return R.ok(service.list());
     }
 
+    @PostMapping("/{projectId}/update")
+    public R<Map<String, Object>> update(@org.springframework.web.bind.annotation.PathVariable long projectId,
+                                         @RequestBody ProjectService.ProjectCmd cmd) {
+        return R.ok(service.update(projectId, cmd));
+    }
+
     @PostMapping
     public R<Map<String, Object>> create(@RequestBody ProjectService.ProjectCmd cmd) {
         return R.ok(service.create(cmd));

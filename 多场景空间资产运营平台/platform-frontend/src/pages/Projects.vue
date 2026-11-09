@@ -17,6 +17,8 @@ const error = ref('')
 const busy = ref(false)
 const pagedProjects = computed(() => projects.value.slice((page.value - 1) * 10, page.value * 10))
 const form = reactive({ orgCode: '', orgName: '保障房项目', businessMode: 'PUBLIC_RENTAL', spaceTemplateId: '', defaultAssetTypeCode: 'PUBLIC_RENTAL', address: '', contactName: '', contactPhone: '', remark: '', totalArea: 0, landArea: 0, propertyType: '', buildYear: 2020 })
+const editingProject = ref(null)
+const projectEditForm = reactive({ orgName: '', address: '', contactName: '', contactPhone: '', remark: '', totalArea: 0, landArea: 0, propertyType: '', buildYear: 2020 })
 const spaceForm = reactive({ parentId: '', spaceCode: '', spaceName: '', spaceType: 'BUILDING', assetTypeCode: 'PUBLIC_RENTAL', rentable: false, area: 0 })
 const spaceTypes = ['AREA', 'BUILDING', 'UNIT', 'FLOOR', 'ROOM', 'INNER_ROOM', 'BED']
 
@@ -55,6 +57,26 @@ async function create() {
       propertyType: form.propertyType, buildYear: Number(form.buildYear || 0)
     })
     form.orgCode = ''
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+
+function openProjectEdit(p) {
+  editingProject.value = p
+  Object.assign(projectEditForm, {
+    orgName: p.orgName || '', address: p.address || '', contactName: p.contactName || '',
+    contactPhone: p.contactPhone || '', remark: p.remark || '', totalArea: p.totalArea || 0,
+    landArea: p.landArea || 0, propertyType: p.propertyType || '', buildYear: p.buildYear || 2020
+  })
+}
+
+async function saveProjectEdit() {
+  busy.value = true; error.value = ''
+  try {
+    if (!projectEditForm.orgName.trim()) throw new Error('项目名称不能为空')
+    await api.updateProject(editingProject.value.id, { ...projectEditForm })
+    editingProject.value = null
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -140,7 +162,7 @@ onMounted(load)
               <td>{{ p.propertyType || '-' }}</td><td>{{ p.businessMode }}</td>
               <td>{{ p.templateName || p.spaceTemplateId }}</td>
               <td><span class="badge green">{{ p.status }}</span></td>
-              <td><button class="sm" @click="selectProject(p)">设为当前</button></td>
+              <td><button class="sm" @click="selectProject(p)">设为当前</button> <button class="sm" @click="openProjectEdit(p)">编辑</button></td>
             </tr>
           </tbody>
         </table>
@@ -202,5 +224,19 @@ onMounted(load)
         </div>
       </div>
     </template>
+
+    <div v-if="editingProject" class="modal-mask" @click.self="editingProject = null">
+      <div class="modal">
+        <div class="panel-head"><h2>编辑项目</h2><button class="sm" @click="editingProject = null">关闭</button></div>
+        <div class="field"><label>项目编码</label><input :value="editingProject.orgCode" disabled /></div>
+        <div class="field"><label>项目名称</label><input v-model="projectEditForm.orgName" /></div>
+        <div class="field"><label>地址</label><input v-model="projectEditForm.address" /></div>
+        <div class="field"><label>联系人</label><input v-model="projectEditForm.contactName" /></div>
+        <div class="field"><label>联系电话</label><input v-model="projectEditForm.contactPhone" /></div>
+        <div class="field"><label>总建筑面积</label><input v-model.number="projectEditForm.totalArea" type="number" /></div>
+        <div class="field"><label>产权类型</label><input v-model="projectEditForm.propertyType" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveProjectEdit">保存</button></div>
+      </div>
+    </div>
   </div>
 </template>
