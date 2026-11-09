@@ -8,7 +8,7 @@ const roles = ref([])
 const error = ref('')
 const busy = ref(false)
 const form = reactive({ username: '', displayName: '', password: '', roleIds: [] })
-const edit = reactive({ id: '', password: '', displayName: '' })
+const edit = reactive({ id: '', password: '', displayName: '', roleIds: [] })
 const scopeUser = ref(null)
 const scopeProjectIds = ref([])
 const scopeOrgIds = ref([])
@@ -47,12 +47,13 @@ async function toggle(u) {
 
 function openEdit(u) {
   edit.id = u.id; edit.displayName = u.displayName || ''; edit.password = ''
+  edit.roleIds = roles.value.filter(r => (u.roleCodes || []).includes(r.roleCode)).map(r => r.id)
 }
 
 async function saveEdit() {
   busy.value = true; error.value = ''
   try {
-    await api.updateUser(edit.id, { displayName: edit.displayName, password: edit.password })
+    await api.updateUser(edit.id, { displayName: edit.displayName, password: edit.password, roleIds: edit.roleIds.map(Number) })
     edit.id = ''
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
@@ -145,6 +146,7 @@ onMounted(load)
       <div class="row">
         <div class="field"><label>姓名</label><input v-model="edit.displayName" /></div>
         <div class="field"><label>新密码（留空不改）</label><input v-model="edit.password" type="password" /></div>
+        <div class="field" style="flex:2"><label>角色</label><select v-model="edit.roleIds" multiple size="3"><option v-for="r in roles" :key="r.id" :value="r.id">{{ r.roleName }}（{{ r.roleCode }}）</option></select></div>
         <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="saveEdit">保存</button></div>
       </div>
     </div>
