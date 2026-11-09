@@ -86,9 +86,9 @@ onMounted(load)
               <td>{{ o.houseName || '-' }}</td><td>{{ o.personName || '-' }}</td><td>{{ o.assigneeName || '-' }}</td>
               <td><span class="badge" :class="statusClass(o.orderStatus)">{{ o.orderStatus }}</span></td>
               <td class="row">
-                <button v-if="can('service') && o.orderStatus === 'PENDING'" class="sm" @click="update(o, 'PROCESSING')">受理</button>
-                <button v-if="can('service') && o.orderStatus === 'PROCESSING'" class="sm" @click="update(o, 'DONE')">完成</button>
-                <button v-if="can('service') && o.orderStatus === 'DONE'" class="sm" @click="update(o, 'CLOSED')">关闭</button>
+                <button v-if="can('service') && o.orderStatus === 'PENDING'" class="sm" :disabled="busy" @click="update(o, 'PROCESSING')">受理</button>
+                <button v-if="can('service') && o.orderStatus === 'PROCESSING'" class="sm" :disabled="busy" @click="update(o, 'DONE')">完成</button>
+                <button v-if="can('service') && o.orderStatus === 'DONE'" class="sm" :disabled="busy" @click="update(o, 'CLOSED')">关闭</button>
               </td>
             </tr>
           </tbody>

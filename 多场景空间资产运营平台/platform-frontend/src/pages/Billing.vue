@@ -184,7 +184,7 @@ onMounted(load)
           <template #cell-paidAmount="{ row }">¥{{ money(row.paidAmount) }}</template>
           <template #cell-billStatus="{ row }"><span class="badge" :class="statusClass(row.billStatus)">{{ row.billStatus }}</span></template>
           <template #cell-actions="{ row }">
-            <button v-if="canAction('billing:adjust', 'billing') && row.billStatus !== 'PAID'" class="sm" @click="openAdjust(row)">调整</button>
+            <button v-if="canAction('billing:adjust', 'billing') && row.billStatus !== 'PAID'" class="sm" :disabled="busy" @click="openAdjust(row)">调整</button>
             <button v-if="canAction('billing:discard', 'billing') && row.billStatus === 'DRAFT'" class="sm danger" @click="discardBill(row)">作废</button>
             <button v-if="canAction('billing:close', 'billing') && row.billStatus === 'WAIVED'" class="sm" @click="closeBill(row)">关闭</button>
           </template>
@@ -201,7 +201,7 @@ onMounted(load)
               <tr v-for="p in payments" :key="p.id">
                 <td class="mono">{{ p.paymentNo }}</td><td>¥{{ money(p.amount) }}</td><td>{{ p.paymentMethod }}</td>
                 <td><span class="badge green">{{ p.paymentStatus }}</span></td><td class="mono">{{ p.receiptNo || '-' }}</td><td class="small">{{ p.paidTime }}</td>
-                <td><div class="row"><button v-if="p.receiptNo" class="sm" @click="openReceipt(p)">打印</button><button v-if="canAction('billing:refund', 'billing')" class="sm" @click="openRefund(p)">退款</button></div></td>
+                <td><div class="row"><button v-if="p.receiptNo" class="sm" :disabled="busy" @click="openReceipt(p)">打印</button><button v-if="canAction('billing:refund', 'billing')" class="sm" @click="openRefund(p)">退款</button></div></td>
               </tr>
             </tbody>
           </table>
