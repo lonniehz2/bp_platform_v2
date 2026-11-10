@@ -1,8 +1,11 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
 
 const props = defineProps({ type: { type: String, required: true }, entityId: { type: [String, Number], required: true } })
+const route = useRoute()
+const router = useRouter()
 const loading = ref(false)
 const error = ref('')
 const entity = ref(null)
@@ -15,11 +18,21 @@ async function load() {
     const data = await api.entitySections(props.type, props.entityId)
     entity.value = data.entity || null
     sections.value = data.sections || []
-    active.value = sections.value[0]?.key || ''
+    const wanted = String(route.query.tab || '')
+    active.value = sections.value.some(s => s.key === wanted) ? wanted : (sections.value[0]?.key || '')
   } catch (e) { error.value = e.message } finally { loading.value = false }
 }
 
 const current = computed(() => sections.value.find(s => s.key === active.value) || sections.value[0] || null)
+
+function selectTab(key) {
+  active.value = key
+  router.replace({ query: { ...route.query, tab: key } })
+}
+
+watch(() => route.query.tab, key => {
+  if (key && sections.value.some(s => s.key === key)) active.value = String(key)
+})
 watch(() => [props.type, props.entityId], load, { immediate: true })
 </script>
 
@@ -33,7 +46,7 @@ watch(() => [props.type, props.entityId], load, { immediate: true })
         <span class="badge">{{ entity.type }}</span>
       </div>
       <div class="tab-strip">
-        <button v-for="s in sections" :key="s.key" class="tab-btn" :class="{ active: s.key === active }" @click="active = s.key">
+        <button v-for="s in sections" :key="s.key" class="tab-btn" :class="{ active: s.key === active }" @click="selectTab(s.key)">
           {{ s.label }}<span v-if="s.items?.length" class="tab-count">{{ s.items.length }}</span>
         </button>
       </div>
