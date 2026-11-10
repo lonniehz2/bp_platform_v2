@@ -39,7 +39,7 @@ public class PersonService {
         params.add(personType); params.add(personType);
         if (projectIds != null) {
             scopeSql = " and exists (select 1 from bp_person_relation r "
-                    + "where r.person_id=p.id and r.project_id in ("
+                    + "where r.person_id=p.id and r.is_deleted=0 and r.project_id in ("
                     + String.join(",", Collections.nCopies(projectIds.size(), "?")) + "))";
             params.addAll(projectIds);
         }
