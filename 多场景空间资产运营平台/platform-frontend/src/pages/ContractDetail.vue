@@ -22,12 +22,12 @@ const fileBusy = ref(false)
 
 const tabs = computed(() => [
   { key: 'overview', label: '概览' },
-  { key: 'persons', label: '人员', count: cohabitants.value.length },
+  { key: 'persons', label: '人员' },
   { key: 'house', label: '房屋' },
-  can('billing') ? { key: 'bills', label: '账单与收款', count: bills.value.length } : null,
-  can('deposits') ? { key: 'deposit', label: '押金/补贴', count: subsidies.value.length } : null,
-  { key: 'files', label: '附件', count: files.value.length },
-  { key: 'changes', label: '变更记录', count: changes.value.length }
+  can('billing') ? { key: 'bills', label: '账单与收款' } : null,
+  can('deposits') ? { key: 'deposit', label: '押金/补贴' } : null,
+  { key: 'files', label: '附件' },
+  { key: 'changes', label: '变更记录' }
 ].filter(Boolean))
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
@@ -130,7 +130,7 @@ watch(tab, loadTab)
 
       <div class="panel">
         <div class="row tab-bar">
-          <button v-for="t in tabs" :key="t.key" class="sm" :class="{ primary: tab === t.key }" @click="switchTab(t.key)">{{ t.label }}<span v-if="t.count !== undefined" class="tab-count">{{ t.count }}</span></button>
+          <button v-for="t in tabs" :key="t.key" class="sm" :class="{ primary: tab === t.key }" @click="switchTab(t.key)">{{ t.label }}</button>
         </div>
 
         <div v-if="tab === 'overview'" class="tab-body">
