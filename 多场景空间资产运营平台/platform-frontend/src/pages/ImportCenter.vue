@@ -11,8 +11,28 @@ const spaceFile = ref(null)
 const spaceBusy = ref(false)
 const spaceResult = ref(null)
 const spaceError = ref('')
+const relationFile = ref(null)
+const relationBusy = ref(false)
+const relationResult = ref(null)
+const relationError = ref('')
 
 function pickPerson(e) { personFile.value = e.target.files?.[0] || null; personResult.value = null; personError.value = '' }
+
+function pickRelation(e) { relationFile.value = e.target.files?.[0] || null; relationResult.value = null; relationError.value = '' }
+
+function downloadRelationTemplate() {
+  const csv = '\ufeff项目编码,人员编码,房屋编码,关系类型,开始日期,结束日期,是否主要关系\n'
+    + 'ZZ0020,P0001,101,TENANT,2026-01-01,2026-12-31,是\n'
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+  a.download = '人员资产关系导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+}
+
+async function importRelations() {
+  if (!relationFile.value) { relationError.value = '请选择 CSV 文件'; return }
+  relationBusy.value = true; relationError.value = ''; relationResult.value = null
+  try { relationResult.value = await api.importPersonAssets(relationFile.value) } catch (e) { relationError.value = e.message } finally { relationBusy.value = false }
+}
 
 function pickSpace(e) { spaceFile.value = e.target.files?.[0] || null; spaceResult.value = null; spaceError.value = '' }
 
@@ -75,6 +95,17 @@ async function importPersons() {
         <div v-if="spaceResult" style="margin-top:12px">
           <div class="alert" :class="spaceResult.failed ? 'warn' : 'ok'">共 {{ spaceResult.total }} 行，成功 {{ spaceResult.success }}，失败 {{ spaceResult.failed }}。</div>
           <div v-if="spaceResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in spaceResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>人员-资产关系导入</h2><span class="small muted">CSV</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadRelationTemplate">下载模板</button><input type="file" accept=".csv" @change="pickRelation" /><span class="small muted">{{ relationFile?.name || '未选择文件' }}</span></div>
+        <div v-if="relationError" class="error">{{ relationError }}</div>
+        <button class="primary" :disabled="relationBusy || !relationFile" @click="importRelations">{{ relationBusy ? '导入中…' : '开始导入' }}</button>
+        <div v-if="relationResult" style="margin-top:12px">
+          <div class="alert" :class="relationResult.failed ? 'warn' : 'ok'">共 {{ relationResult.total }} 行，成功 {{ relationResult.success }}，失败 {{ relationResult.failed }}。</div>
+          <div v-if="relationResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in relationResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
