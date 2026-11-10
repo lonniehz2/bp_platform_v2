@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { api } from '../api'
 import { can } from '../permissions'
 import DataTable from '../components/DataTable.vue'
@@ -16,6 +17,7 @@ const selected = ref(null)
 const error = ref('')
 const busy = ref(false)
 const page = ref(1)
+const route = useRoute()
 const personQuery = ref('')
 const relForm = reactive({ targetType: 'HOUSE', targetId: '', relationType: 'TENANT', startDate: '', endDate: '' })
 const form = reactive({ personCode: '', personName: '', phone: '', idCardMask: '', personType: 'GUARANTEE_TENANT', gender: '', birthDate: '', address: '', employer: '', emergencyContact: '', remark: '' })
@@ -126,7 +128,12 @@ async function togglePersonStatus(p) {
   try { await api.updatePersonStatus(p.id, next); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
-onMounted(load)
+onMounted(async () => {
+  await load()
+  const id = String(route.query.id || '')
+  const found = persons.value.find(p => String(p.id) === id)
+  if (found) selectPerson(found)
+})
 </script>
 
 <template>

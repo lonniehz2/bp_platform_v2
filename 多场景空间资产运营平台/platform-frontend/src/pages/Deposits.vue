@@ -1,8 +1,10 @@
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { api } from '../api'
 
 const project = ref(null)
+const route = useRoute()
 const contracts = ref([])
 const selectedContractId = ref('')
 const deposit = ref(null)
@@ -31,7 +33,9 @@ async function load() {
     project.value = await currentProject()
     if (!project.value) return
     contracts.value = await api.contracts(project.value.id)
-    if (!selectedContractId.value && contracts.value.length) selectedContractId.value = contracts.value[0].id
+    const requested = String(route.query.contractId || '')
+    if (requested && contracts.value.some(c => String(c.id) === requested)) selectedContractId.value = requested
+    else if (!selectedContractId.value && contracts.value.length) selectedContractId.value = contracts.value[0].id
     await loadContract()
   } catch (e) { error.value = e.message }
 }

@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { api } from '../api'
 import DataTable from '../components/DataTable.vue'
 
@@ -7,6 +8,7 @@ const project = ref(null)
 const houses = ref([])
 const status = ref('')
 const page = ref(1)
+const route = useRoute()
 const houseQuery = ref('')
 const error = ref('')
 const editing = ref(null)
@@ -62,7 +64,12 @@ async function saveEdit() {
   } catch (e) { error.value = e.message }
 }
 
-onMounted(load)
+onMounted(async () => {
+  await load()
+  const id = String(route.query.id || '')
+  const found = houses.value.find(h => String(h.id) === id)
+  if (found) houseQuery.value = found.houseName || found.houseCode || ''
+})
 </script>
 
 <template>

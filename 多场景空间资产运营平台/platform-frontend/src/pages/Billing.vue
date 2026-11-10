@@ -29,8 +29,11 @@ const refundForm = reactive({ allocationId: '', amount: 0, reason: '' })
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 const filteredBills = computed(() => {
   const q = billQuery.value.trim().toLowerCase()
-  if (!q) return bills.value
-  return bills.value.filter(b => (String(b.billNo) + ' ' + String(b.personName || '')).toLowerCase().includes(q))
+  const contractId = String(route.query.contractId || '')
+  let rows = bills.value
+  if (contractId) rows = rows.filter(b => String(b.contractId) === contractId)
+  if (!q) return rows
+  return rows.filter(b => (String(b.billNo) + ' ' + String(b.personName || '')).toLowerCase().includes(q))
 })
 const pagedBills = computed(() => filteredBills.value.slice((page.value - 1) * 10, page.value * 10))
 const billColumns = [
