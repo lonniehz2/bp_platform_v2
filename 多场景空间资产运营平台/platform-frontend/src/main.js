@@ -17,6 +17,7 @@ import Arrears from './pages/Arrears.vue'
 import Cashflow from './pages/Cashflow.vue'
 import Reports from './pages/Reports.vue'
 import FeeItems from './pages/FeeItems.vue'
+import ImportCenter from './pages/ImportCenter.vue'
 import Changes from './pages/Changes.vue'
 import Audit from './pages/Audit.vue'
 import WorkOrders from './pages/WorkOrders.vue'
@@ -84,6 +85,7 @@ const router = createRouter({
     { path: '/arrears', alias: '/guarantee/arrears', component: Arrears, meta: { title: '欠费清单' } },
     { path: '/cashflow', alias: '/guarantee/cashflow', component: Cashflow, meta: { title: '资金流水' } },
     { path: '/fee-items', alias: '/guarantee/fee-items', component: FeeItems, meta: { title: '计费项目' } },
+    { path: '/imports', alias: '/guarantee/imports', component: ImportCenter, meta: { title: '批量导入' } },
     { path: '/reports', alias: '/guarantee/reports', component: Reports, meta: { title: '运营报表' } },
     { path: '/changes', component: Changes, meta: { title: '合同变更' } },
     { path: '/qualification', alias: '/guarantee/qualification', component: Qualification, meta: { title: '资格复核' } },

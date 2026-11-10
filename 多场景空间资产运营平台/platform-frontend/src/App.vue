@@ -80,6 +80,7 @@ const titleKey = {
   '/arrears': 'nav.arrears',
   '/cashflow': 'nav.cashflow',
   '/fee-items': 'nav.fee',
+  '/imports': 'nav.batchImport',
   '/reports': 'nav.reports',
   '/meters': 'nav.meter',
   '/energy': 'nav.energy',

@@ -17,6 +17,7 @@ const messages = {
 },
     nav: {
       dashboard: '运营驾驶舱',
+      batchImport: '批量导入',
       asset: '房源与空间',
       listings: '房源展示',
       search: '统一查询',
@@ -130,6 +131,7 @@ const messages = {
 },
     nav: {
       dashboard: 'Operations Dashboard',
+      batchImport: 'Batch Import',
       asset: 'Housing & Spaces',
       listings: 'Listings',
       search: 'Search',
