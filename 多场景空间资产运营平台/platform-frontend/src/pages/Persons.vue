@@ -19,6 +19,10 @@ const contractRelations = ref(null)
 const error = ref('')
 const busy = ref(false)
 const page = ref(1)
+const relationLabels = { TENANT: '承租人', FAMILY: '家庭成员', COHABITANT: '同住人', OWNER: '产权人', SPOUSE: '配偶', CHILD: '子女', PARENT: '父母', OTHER: '其他' }
+const relationLabel = (v) => relationLabels[v] || v || '-'
+const relationStatusLabels = { ACTIVE: '有效', INACTIVE: '已结束', ENDED: '已结束' }
+const relationStatusLabel = (v) => relationStatusLabels[v] || v || '-'
 const route = useRoute()
 const router = useRouter()
 const personQuery = ref('')
@@ -190,6 +194,7 @@ onMounted(async () => {
         <div class="row" style="margin-bottom:8px">
           <input v-model="personQuery" placeholder="搜索姓名/编码/手机号" style="max-width:280px" @input="page = 1" />
         </div>
+        <div v-if="selected" class="alert">当前人员：<strong>{{ selected.personName }}</strong>（{{ selected.personCode }}）<span v-if="contractRelations" class="small muted"> · 承租人合同 {{ contractRelations.tenantContracts?.length || 0 }} · 同住合同 {{ contractRelations.cohabitantContracts?.length || 0 }}</span></div>
         <DataTable :rows="paged" :columns="personColumns" :page="page" :page-size="10" :total="filteredPersons.length" empty-text="暂无人员" @update:page="page = $event" @row-click="selectPerson">
           <template #cell-gender="{ row }">{{ row.gender === 'MALE' ? '男' : row.gender === 'FEMALE' ? '女' : '-' }}</template>
           <template #cell-status="{ row }"><span class="badge" :class="row.status === 'ENABLED' ? 'green' : 'orange'">{{ row.status }}</span></template>
@@ -220,7 +225,7 @@ onMounted(async () => {
           <div class="section-title">同住人</div>
           <div v-if="!contractRelations.cohabitants?.length" class="empty">暂无同住人</div>
           <div v-for="c in contractRelations.cohabitants" :key="c.contractId + '-' + c.personId" class="entity-row">
-            <span>{{ c.personName }} · {{ c.relationType }}</span><span class="small muted">合同 {{ c.contractId }}</span>
+            <span>{{ c.personName }} · {{ relationLabel(c.relationType) }}</span><span class="small muted">合同 {{ c.contractId }}</span>
           </div>
         </template>
       </div>
@@ -269,8 +274,8 @@ onMounted(async () => {
       </div>
       <div v-if="!relations.length" class="empty">暂无关系</div>
       <div v-for="r in relations" :key="r.id" class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
-        <div style="flex:1"><div>{{ r.targetName }} · {{ r.relationType }}</div><div class="small muted">{{ r.startDate || '' }} ~ {{ r.endDate || '长期' }}</div></div>
-        <span class="badge green">{{ r.status }}</span>
+        <div style="flex:1"><div>{{ r.targetName }} · {{ relationLabel(r.relationType) }}</div><div class="small muted">{{ r.startDate || '' }} ~ {{ r.endDate || '长期' }}</div></div>
+        <span class="badge green">{{ relationStatusLabel(r.status) }}</span>
         <button class="sm danger" :disabled="busy" @click="removeRelation(r)">移除</button>
       </div>
     </div>
