@@ -105,9 +105,11 @@ const router = createRouter({
     { path: '/help', alias: '/guarantee/help', component: Help, meta: { title: '使用帮助' } },
     { path: '/house-calendar', alias: '/guarantee/house-calendar', component: HouseCalendar, meta: { title: '日房态' } },
     { path: '/energy', component: Energy, meta: { title: '能耗分析' } },
-    { path: '/users', alias: '/guarantee/users', component: Users, meta: { title: '用户管理' } },
+    { path: '/users', redirect: '/rbac/user' },
+    { path: '/guarantee/users', redirect: '/rbac/user' },
     { path: '/audit', alias: '/guarantee/audit', component: Audit, meta: { title: '审批中心' } },
-    { path: '/menus', alias: '/guarantee/menus', component: Menus, meta: { title: '菜单与角色' } },
+    { path: '/menus', redirect: '/rbac/role' },
+    { path: '/guarantee/menus', redirect: '/rbac/role' },
     { path: '/migration-exceptions', component: MigrationExceptions, meta: { title: '迁移异常' } },
 
     // 旧系统路径兼容

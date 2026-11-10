@@ -89,7 +89,7 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>用户管理</h2><p>平台账号、角色绑定、启用/停用</p></div><span class="badge blue">{{ users.length }} 个用户</span></div>
+      <div v-if="!props.embedded" class="panel-head"><div><h2>用户管理</h2><p>平台账号、角色绑定、启用/停用</p></div><span class="badge blue">{{ users.length }} 个用户</span></div>
       <div class="row">
         <div class="field"><label>用户名</label><input v-model="form.username" /></div>
         <div class="field"><label>姓名</label><input v-model="form.displayName" /></div>

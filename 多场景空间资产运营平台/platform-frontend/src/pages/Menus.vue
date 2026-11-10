@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 
+const props = defineProps({ embedded: Boolean })
 const menus = ref([])
 const roles = ref([])
 const roleMenus = ref([])
@@ -69,7 +70,7 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>平台角色</h2><p>GUARANTEE · 场景角色和菜单授权</p></div><span class="badge blue">{{ roles.length }} 个角色</span></div>
+      <div v-if="!props.embedded" class="panel-head"><div><h2>平台角色</h2><p>GUARANTEE · 场景角色和菜单授权</p></div><span class="badge blue">{{ roles.length }} 个角色</span></div>
       <div class="row">
         <div class="field"><label>角色编码</label><input v-model="newRole.roleCode" placeholder="如 GUARANTEE_AUDITOR" /></div>
         <div class="field"><label>角色名称</label><input v-model="newRole.roleName" placeholder="稽核员" /></div>

@@ -47,8 +47,8 @@ onMounted(async () => {
       </div>
     </div>
     <div v-if="error" class="error">{{ error }}</div>
-    <Users v-if="tab === 'user'" />
-    <Menus v-else-if="tab === 'role'" />
+    <Users v-if="tab === 'user'" embedded />
+    <Menus v-else-if="tab === 'role'" embedded />
     <div v-else class="panel">
       <div class="panel-head"><h2>权限清单</h2><span class="small muted">{{ flatMenus.length }} 项</span></div>
       <div class="table-wrap">
