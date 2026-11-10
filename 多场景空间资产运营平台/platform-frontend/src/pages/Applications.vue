@@ -10,6 +10,8 @@ const applications = ref([])
 const persons = ref([])
 const houses = ref([])
 const waitlist = ref([])
+const createOpen = ref(false)
+const allocateOpen = ref(false)
 const error = ref('')
 const busy = ref(false)
 const form = reactive({ applicationNo: '', applicantPersonId: '', familySize: 1, applicationType: 'PUBLIC_RENTAL', contactPhone: '', incomeLevel: 'LOW', housingStatus: 'NO_HOUSE', urgency: 'NORMAL', remark: '', guaranteeType: 'PUBLIC_RENTAL', familyType: 'SINGLE', subsidyStatus: 'NONE', archiveNo: '' })
@@ -108,25 +110,10 @@ onMounted(load)
       <div class="panel">
         <div class="panel-head">
           <div><h2>保障房申请</h2><p>{{ project.orgName }} · 申请 → 审核 → 轮候 → 配租</p></div>
-          <span class="pill">GUARANTEE</span>
-        </div>
-        <div class="row">
-          <div class="field"><label>申请编号</label><input v-model="form.applicationNo" placeholder="如 APP2026001" /></div>
-          <div class="field"><label>申请人</label>
-            <SearchSelect v-model="form.applicantPersonId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索姓名/编码" />
+          <div class="row">
+            <button v-if="canAction('application:create', 'application')" class="primary" @click="createOpen = true">新建申请</button>
+            <button v-if="canAction('allocation:create', 'application')" class="sm" @click="allocateOpen = true">配租</button>
           </div>
-          <div class="field"><label>申请类型</label><select v-model="form.applicationType"><option value="PUBLIC_RENTAL">公共租赁</option><option value="AFFORDABLE_RENTAL">保障性租赁</option><option value="TALENT_APARTMENT">人才公寓</option><option value="DORMITORY">宿舍</option></select></div>
-          <div class="field"><label>家庭人数</label><input v-model.number="form.familySize" type="number" min="1" /></div>
-          <div class="field"><label>联系电话</label><input v-model="form.contactPhone" /></div>
-          <div class="field"><label>收入水平</label><select v-model="form.incomeLevel"><option value="LOW">低收入</option><option value="LOWER_MIDDLE">中低收入</option><option value="MIDDLE">中等收入</option></select></div>
-          <div class="field"><label>住房情况</label><select v-model="form.housingStatus"><option value="NO_HOUSE">无房</option><option value="RENTING">租房</option><option value="WITH_FAMILY">与家人同住</option></select></div>
-          <div class="field"><label>紧急程度</label><select v-model="form.urgency"><option value="NORMAL">普通</option><option value="URGENT">紧急</option></select></div>
-          <div class="field"><label>保障类型</label><select v-model="form.guaranteeType"><option value="PUBLIC_RENTAL">公共租赁</option><option value="LOW_RENT">廉租住房</option><option value="SUBSIDY">租赁补贴</option></select></div>
-          <div class="field"><label>家庭结构</label><select v-model="form.familyType"><option value="SINGLE">单身</option><option value="COUPLE">夫妻</option><option value="WITH_CHILDREN">有子女家庭</option><option value="ELDERLY">老年家庭</option></select></div>
-          <div class="field"><label>补贴状态</label><select v-model="form.subsidyStatus"><option value="NONE">无</option><option value="APPLYING">申请中</option><option value="ACTIVE">已享受</option></select></div>
-          <div class="field"><label>档案编号</label><input v-model="form.archiveNo" /></div>
-          <div class="field" style="flex:2"><label>备注</label><input v-model="form.remark" /></div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('application:create', 'application')" class="primary" :disabled="busy" @click="create">创建申请</button></div>
         </div>
       </div>
 
@@ -161,15 +148,6 @@ onMounted(load)
 
       <div class="panel">
         <div class="panel-head"><h2>轮候与配租</h2><span class="small muted">等待中的轮候记录可分配空置房屋</span></div>
-        <div class="row" style="margin-bottom:12px">
-          <div class="field"><label>轮候记录</label>
-            <SearchSelect v-model="allocateForm.waitlistId" :options="waitlist.filter(x => x.waitlistStatus === 'WAITING')" label-key="queueNo" sublabel-key="applicantName" value-key="id" placeholder="搜索轮候记录" />
-          </div>
-          <div class="field"><label>房屋</label>
-            <SearchSelect v-model="allocateForm.houseId" :options="houses.filter(x => x.houseStatus === 'VACANT')" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索空置房屋" />
-          </div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('allocation:create', 'application')" class="primary" :disabled="busy" @click="allocate">配租</button></div>
-        </div>
         <div v-if="!waitlist.length" class="empty">暂无轮候</div>
         <div class="table-wrap" v-else>
           <table>
@@ -184,5 +162,38 @@ onMounted(load)
         </div>
       </div>
     </template>
+
+    <div v-if="createOpen" class="modal-mask" @click.self="createOpen = false">
+      <div class="modal" style="max-width:860px">
+        <div class="panel-head"><h2>新建申请</h2><button class="sm" @click="createOpen = false">关闭</button></div>
+        <div class="row">
+          <div class="field"><label>申请编号</label><input v-model="form.applicationNo" placeholder="如 APP2026001" /></div>
+          <div class="field"><label>申请人</label><SearchSelect v-model="form.applicantPersonId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索姓名/编码" /></div>
+          <div class="field"><label>申请类型</label><select v-model="form.applicationType"><option value="PUBLIC_RENTAL">公共租赁</option><option value="AFFORDABLE_RENTAL">保障性租赁</option><option value="TALENT_APARTMENT">人才公寓</option><option value="DORMITORY">宿舍</option></select></div>
+          <div class="field"><label>家庭人数</label><input v-model.number="form.familySize" type="number" min="1" /></div>
+          <div class="field"><label>联系电话</label><input v-model="form.contactPhone" /></div>
+          <div class="field"><label>收入水平</label><select v-model="form.incomeLevel"><option value="LOW">低收入</option><option value="LOWER_MIDDLE">中低收入</option><option value="MIDDLE">中等收入</option></select></div>
+          <div class="field"><label>住房情况</label><select v-model="form.housingStatus"><option value="NO_HOUSE">无房</option><option value="RENTING">租房</option><option value="WITH_FAMILY">与家人同住</option></select></div>
+          <div class="field"><label>紧急程度</label><select v-model="form.urgency"><option value="NORMAL">普通</option><option value="URGENT">紧急</option></select></div>
+          <div class="field"><label>保障类型</label><select v-model="form.guaranteeType"><option value="PUBLIC_RENTAL">公共租赁</option><option value="LOW_RENT">廉租住房</option><option value="SUBSIDY">租赁补贴</option></select></div>
+          <div class="field"><label>家庭结构</label><select v-model="form.familyType"><option value="SINGLE">单身</option><option value="COUPLE">夫妻</option><option value="WITH_CHILDREN">有子女家庭</option><option value="ELDERLY">老年家庭</option></select></div>
+          <div class="field"><label>补贴状态</label><select v-model="form.subsidyStatus"><option value="NONE">无</option><option value="APPLYING">申请中</option><option value="ACTIVE">已享受</option></select></div>
+          <div class="field"><label>档案编号</label><input v-model="form.archiveNo" /></div>
+          <div class="field" style="flex:2"><label>备注</label><input v-model="form.remark" /></div>
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="create">创建申请</button></div>
+      </div>
+    </div>
+
+    <div v-if="allocateOpen" class="modal-mask" @click.self="allocateOpen = false">
+      <div class="modal" style="max-width:620px">
+        <div class="panel-head"><h2>配租</h2><button class="sm" @click="allocateOpen = false">关闭</button></div>
+        <div class="row">
+          <div class="field"><label>轮候记录</label><SearchSelect v-model="allocateForm.waitlistId" :options="waitlist.filter(x => x.waitlistStatus === 'WAITING')" label-key="queueNo" sublabel-key="applicantName" value-key="id" placeholder="搜索轮候记录" /></div>
+          <div class="field"><label>房屋</label><SearchSelect v-model="allocateForm.houseId" :options="houses.filter(x => x.houseStatus === 'VACANT')" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索空置房屋" /></div>
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="allocate(); allocateOpen = false">确认配租</button></div>
+      </div>
+    </div>
   </div>
 </template>
