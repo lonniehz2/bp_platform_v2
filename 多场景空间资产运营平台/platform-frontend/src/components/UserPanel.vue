@@ -4,6 +4,9 @@ import { api } from '../api'
 
 const users = ref([])
 const roles = ref([])
+const projects = ref([])
+const scopeUser = ref(null)
+const scopeForm = reactive({ overrideEnabled: false, projectIds: [] })
 const error = ref('')
 const busy = ref(false)
 const search = ref('')
@@ -20,8 +23,8 @@ const filtered = computed(() => {
 async function load() {
   error.value = ''
   try {
-    const [u, r] = await Promise.all([api.users(), api.userRoles()])
-    users.value = u; roles.value = r
+    const [u, r, p] = await Promise.all([api.users(), api.userRoles(), api.projects()])
+    users.value = u; roles.value = r; projects.value = p
   } catch (e) { error.value = e.message }
 }
 
@@ -63,6 +66,27 @@ async function saveEdit() {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+
+async function openScope(u) {
+  scopeUser.value = u
+  error.value = ''
+  try {
+    const sc = await api.userScopes(u.id)
+    scopeForm.overrideEnabled = !!sc.overrideEnabled
+    scopeForm.projectIds = (sc.projectIds || []).map(String)
+  } catch (e) { error.value = e.message }
+}
+
+async function saveScope() {
+  if (!scopeUser.value) return
+  busy.value = true; error.value = ''
+  try {
+    await api.updateUserScopes(scopeUser.value.id, { projectIds: scopeForm.projectIds.map(Number), orgIds: [], overrideEnabled: scopeForm.overrideEnabled })
+    scopeUser.value = null
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 async function toggle(u) {
   busy.value = true; error.value = ''
   try {
@@ -94,7 +118,7 @@ onMounted(load)
               <td class="mono">{{ u.username }}</td><td>{{ u.displayName }}</td>
               <td><span v-for="r in u.roleNames" :key="r" class="badge blue" style="margin-right:4px">{{ r }}</span><span v-if="!u.roleNames?.length" class="muted">未分配</span></td>
               <td><span class="badge" :class="u.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ u.userStatus }}</span></td>
-              <td><div class="row"><button class="sm" @click="openEdit(u)">编辑</button><button class="sm" :class="u.userStatus === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? '停用' : '启用' }}</button></div></td>
+              <td><div class="row"><button class="sm" @click="openEdit(u)">编辑</button><button class="sm" @click="openScope(u)">数据范围</button><button class="sm" :class="u.userStatus === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? '停用' : '启用' }}</button></div></td>
             </tr>
           </tbody>
         </table>
@@ -121,6 +145,16 @@ onMounted(load)
         <div class="field"><label>角色</label><select v-model="editForm.roleIds" multiple size="5"><option v-for="r in roles" :key="r.id" :value="r.id">{{ r.roleName }}（{{ r.roleCode }}）</option></select></div>
         <div class="field"><label>状态</label><select v-model="editForm.userStatus"><option value="ENABLED">启用</option><option value="DISABLED">停用</option></select></div>
         <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveEdit">保存</button></div>
+      </div>
+    </div>
+
+    <div v-if="scopeUser" class="modal-mask" @click.self="scopeUser = null">
+      <div class="modal" style="max-width:560px">
+        <div class="panel-head"><h2>数据范围</h2><button class="sm" @click="scopeUser = null">关闭</button></div>
+        <div class="alert">默认继承角色范围。开启单独限制后只能缩小，不能扩大。</div>
+        <div class="field"><label><input type="checkbox" v-model="scopeForm.overrideEnabled" /> 单独限制该用户的数据范围</label></div>
+        <div v-if="scopeForm.overrideEnabled" class="field"><label>项目范围</label><select v-model="scopeForm.projectIds" multiple size="6"><option v-for="p in projects" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option></select></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveScope">保存</button></div>
       </div>
     </div>
   </div>

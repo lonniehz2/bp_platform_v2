@@ -132,6 +132,10 @@ public class UserService {
         out.put("orgIds", jdbc.queryForList(
                 "select org_id from bp_user_org where tenant_id=? and user_id=? and is_deleted=0",
                 Long.class, tenant, userId));
+        List<Integer> overrides = jdbc.queryForList(
+                "select enabled from bp_user_scope_override where tenant_id=? and user_id=?",
+                Integer.class, tenant, userId);
+        out.put("overrideEnabled", !overrides.isEmpty() && overrides.get(0) != null && overrides.get(0) == 1);
         return out;
     }
 
@@ -167,6 +171,9 @@ public class UserService {
                         idGen.nextId(), tenant, userId, orgId);
             }
         }
+        jdbc.update("insert into bp_user_scope_override(user_id,tenant_id,enabled) values(?,?,?) "
+                        + "on duplicate key update enabled=values(enabled)",
+                userId, tenant, Boolean.TRUE.equals(cmd.overrideEnabled()) ? 1 : 0);
         return scopes(userId);
     }
 
@@ -192,6 +199,6 @@ public class UserService {
     public record UpdateCmd(String userStatus, String displayName, String password, List<Long> roleIds) {
     }
 
-    public record ScopeCmd(List<Long> projectIds, List<Long> orgIds) {
+    public record ScopeCmd(List<Long> projectIds, List<Long> orgIds, Boolean overrideEnabled) {
     }
 }
