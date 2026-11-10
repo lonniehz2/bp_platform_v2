@@ -98,6 +98,7 @@ const titleKey = {
   '/gov-report': 'nav.gov',
   '/audit': 'nav.audit',
   '/users': 'nav.users',
+  '/rbac': 'nav.rbac',
   '/menus': 'nav.config',
   '/migration-exceptions': 'nav.migration',
   '/help': 'nav.help'

@@ -3,6 +3,8 @@ import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can } from '../permissions'
 
+const props = defineProps({ embedded: Boolean })
+
 const users = ref([])
 const roles = ref([])
 const error = ref('')
