@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 -- 本地全新数据库初始化：001 已包含当前完整 schema；003~017 仅用于旧库升级
 source /sql/001_platform_core.sql;
 source /sql/002_menu_seed.sql;
