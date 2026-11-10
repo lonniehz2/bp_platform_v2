@@ -17,6 +17,7 @@ const search = ref('')
 const pageSearch = ref('')
 const projectSearch = ref('')
 const createOpen = ref(false)
+const deleteTarget = ref(null)
 const form = reactive({ roleCode: '', roleName: '' })
 const actionOptions = [
   { code: 'view', label: '查看' },
@@ -172,6 +173,19 @@ function selectAllProjects() {
   }
 }
 
+function askDelete() { deleteTarget.value = selected.value; error.value = '' }
+
+async function confirmDelete() {
+  if (!deleteTarget.value) return
+  busy.value = true; error.value = ''
+  try {
+    await api.deleteRole(deleteTarget.value.id)
+    deleteTarget.value = null
+    selected.value = null
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 async function createRole() {
   busy.value = true; error.value = ''
   try {
@@ -201,7 +215,7 @@ onMounted(load)
 
       <div v-if="selected" class="role-detail">
         <div class="panel">
-          <div class="panel-head"><div><h2>{{ selected.roleName }}</h2><p class="mono small muted">{{ selected.roleCode }} · {{ selectedPageCount }}/{{ pageCount }} 个页面 · {{ selectedActions.length }} 个功能点</p></div></div>
+          <div class="panel-head"><div><h2>{{ selected.roleName }}</h2><p class="mono small muted">{{ selected.roleCode }} · {{ selectedPageCount }}/{{ pageCount }} 个页面 · {{ selectedActions.length }} 个功能点</p></div><button class="sm danger" @click="askDelete">删除角色</button></div>
           <div v-if="notice" class="alert success">{{ notice }}</div>
         </div>
 
@@ -264,6 +278,14 @@ onMounted(load)
         </div>
       </div>
       <div v-else class="panel"><div class="empty">请选择角色</div></div>
+    </div>
+
+    <div v-if="deleteTarget" class="modal-mask" @click.self="deleteTarget = null">
+      <div class="modal" style="max-width:480px">
+        <div class="panel-head"><h2>删除角色</h2><button class="sm" @click="deleteTarget = null">关闭</button></div>
+        <div class="alert">确认删除角色“{{ deleteTarget.roleName }}（{{ deleteTarget.roleCode }}）”？页面权限、操作权限和数据范围将一并删除。有用户使用该角色时不能删除。</div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="sm" @click="deleteTarget = null">取消</button><button class="danger" :disabled="busy" @click="confirmDelete">{{ busy ? '删除中…' : '确认删除' }}</button></div>
+      </div>
     </div>
 
     <div v-if="createOpen" class="modal-mask" @click.self="createOpen = false">

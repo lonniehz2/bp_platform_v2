@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class MenuService {
@@ -68,6 +69,32 @@ public class MenuService {
                         + "m.route, m.sort_no sortNo from bp_role_menu rm join bp_menu m on m.id=rm.menu_id "
                         + "where rm.tenant_id=? and rm.role_id=? order by m.sort_no, m.menu_code",
                 TenantContext.require(), roleId);
+    }
+
+
+    @Transactional
+    public Map<String, Object> deleteRole(long roleId) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select role_code roleCode, role_name roleName from bp_role where id=? and tenant_id=? and is_deleted=0",
+                roleId, tenant);
+        if (rows.isEmpty()) throw BizException.notFound("角色不存在");
+        String code = String.valueOf(rows.get(0).get("roleCode"));
+        if (List.of("GUARANTEE_ADMIN", "ADMIN").contains(code)) {
+            throw BizException.conflict("系统内置角色不能删除");
+        }
+        Long members = jdbc.queryForObject(
+                "select count(*) from bp_user_role where tenant_id=? and role_id=?", Long.class, tenant, roleId);
+        if (members != null && members > 0) {
+            throw BizException.conflict("该角色还有 " + members + " 个用户，请先移除用户角色");
+        }
+        jdbc.update("update bp_role set is_deleted=1, role_status='DISABLED' where id=? and tenant_id=?", roleId, tenant);
+        jdbc.update("delete from bp_role_menu where tenant_id=? and role_id=?", tenant, roleId);
+        jdbc.update("delete from bp_role_action where role_id=?", roleId);
+        jdbc.update("delete from bp_role_scope where role_id=?", roleId);
+        jdbc.update("delete from bp_role_project where role_id=?", roleId);
+        jdbc.update("delete from bp_role_org where role_id=?", roleId);
+        return Map.of("id", roleId, "status", "DELETED");
     }
 
     public Map<String, Object> createRole(CreateRoleCmd cmd) {

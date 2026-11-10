@@ -181,6 +181,34 @@ public class UserService {
         return scopes(userId);
     }
 
+
+    @Transactional
+    public Map<String, Object> archive(long userId) {
+        UserContext.Principal principal = UserContext.require();
+        if (principal.userId() == userId) throw BizException.conflict("不能删除当前登录用户");
+        String tenant = principal.tenantId();
+        Long exists = jdbc.queryForObject(
+                "select count(*) from bp_user where id=? and tenant_id=? and is_deleted=0",
+                Long.class, userId, tenant);
+        if (exists == null || exists == 0) throw BizException.notFound("用户不存在");
+        List<String> roles = jdbc.queryForList(
+                "select r.role_code from bp_user_role ur join bp_role r on r.id=ur.role_id where ur.tenant_id=? and ur.user_id=?",
+                String.class, tenant, userId);
+        if (roles.contains("GUARANTEE_ADMIN") || roles.contains("ADMIN")) {
+            Long admins = jdbc.queryForObject(
+                    "select count(distinct u.id) from bp_user u join bp_user_role ur on ur.user_id=u.id "
+                            + "join bp_role r on r.id=ur.role_id where u.tenant_id=? and u.is_deleted=0 "
+                            + "and r.role_code in ('GUARANTEE_ADMIN','ADMIN')", Long.class, tenant);
+            if (admins == null || admins <= 1) throw BizException.conflict("不能删除最后一个管理员");
+        }
+        jdbc.update("update bp_user set is_deleted=1, user_status='DISABLED' where id=? and tenant_id=?", userId, tenant);
+        jdbc.update("delete from bp_user_role where tenant_id=? and user_id=?", tenant, userId);
+        jdbc.update("delete from bp_user_project where tenant_id=? and user_id=?", tenant, userId);
+        jdbc.update("delete from bp_user_org where tenant_id=? and user_id=?", tenant, userId);
+        jdbc.update("delete from bp_user_scope_override where tenant_id=? and user_id=?", tenant, userId);
+        return Map.of("id", userId, "status", "ARCHIVED");
+    }
+
     private void bindRoles(long userId, String tenant, List<Long> roleIds) {
         if (roleIds == null || roleIds.isEmpty()) {
             return;

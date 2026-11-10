@@ -6,6 +6,7 @@ const users = ref([])
 const roles = ref([])
 const projects = ref([])
 const scopeUser = ref(null)
+const archiveTarget = ref(null)
 const scopeMode = ref('inherit')
 const scopeProjectIds = ref([])
 const scopeNotice = ref('')
@@ -126,6 +127,18 @@ async function saveScope() {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+function askArchive(u) { archiveTarget.value = u; error.value = '' }
+
+async function confirmArchive() {
+  if (!archiveTarget.value) return
+  busy.value = true; error.value = ''
+  try {
+    await api.archiveUser(archiveTarget.value.id)
+    archiveTarget.value = null
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 async function toggle(u) {
   busy.value = true; error.value = ''
   try {
@@ -158,7 +171,7 @@ onMounted(load)
               <td><span v-for="r in u.roleNames" :key="r" class="badge blue" style="margin-right:4px">{{ r }}</span><span v-if="!u.roleNames?.length" class="muted">未分配</span></td>
               <td><span v-if="hasOverride(u)" class="badge orange">单独限制 · {{ u.scopeProjectCount || 0 }} 个项目</span><span v-else class="badge">跟随角色</span></td>
               <td><span class="badge" :class="u.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ u.userStatus }}</span></td>
-              <td><div class="row"><button class="sm" @click="openEdit(u)">编辑</button><button class="sm" @click="openScope(u)">数据范围</button><button class="sm" :class="u.userStatus === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? '停用' : '启用' }}</button></div></td>
+              <td><div class="row"><button class="sm" @click="openEdit(u)">编辑</button><button class="sm" @click="openScope(u)">数据范围</button><button class="sm danger" @click="askArchive(u)">删除</button><button class="sm" :class="u.userStatus === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? '停用' : '启用' }}</button></div></td>
             </tr>
           </tbody>
         </table>
@@ -185,6 +198,14 @@ onMounted(load)
         <div class="field"><label>角色</label><select v-model="editForm.roleIds" multiple size="5"><option v-for="r in roles" :key="r.id" :value="r.id">{{ r.roleName }}（{{ r.roleCode }}）</option></select></div>
         <div class="field"><label>状态</label><select v-model="editForm.userStatus"><option value="ENABLED">启用</option><option value="DISABLED">停用</option></select></div>
         <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveEdit">保存</button></div>
+      </div>
+    </div>
+
+    <div v-if="archiveTarget" class="modal-mask" @click.self="archiveTarget = null">
+      <div class="modal" style="max-width:460px">
+        <div class="panel-head"><h2>删除用户</h2><button class="sm" @click="archiveTarget = null">关闭</button></div>
+        <div class="alert">用户“{{ archiveTarget.displayName }}（{{ archiveTarget.username }}）”将无法登录，历史业务记录保留。此操作不可在页面恢复。</div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="sm" @click="archiveTarget = null">取消</button><button class="danger" :disabled="busy" @click="confirmArchive">{{ busy ? '删除中…' : '确认删除' }}</button></div>
       </div>
     </div>
 

@@ -62,6 +62,11 @@ public class MenuController {
         return R.ok(roleScopeService.saveActions(roleId, body.get("actions")));
     }
 
+    @PostMapping("/roles/{roleId}/delete")
+    public R<Map<String, Object>> deleteRole(@PathVariable long roleId) {
+        return R.ok(service.deleteRole(roleId));
+    }
+
     @PostMapping("/roles")
     public R<Map<String, Object>> createRole(@RequestBody MenuService.CreateRoleCmd cmd) {
         return R.ok(service.createRole(cmd));
