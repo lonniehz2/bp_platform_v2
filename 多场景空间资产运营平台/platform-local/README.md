@@ -16,7 +16,7 @@ Copy-Item .env.example .env
 首次启动会自动执行：
 
 ```text
-platform-sql/001~019
+platform-sql/001、002、018、019（003~017 仅用于旧库升级）
 platform-local/seed/001_local_seed.sql
 ```
 
@@ -71,7 +71,7 @@ VERIFY OK: 168 assertions passed
 platform-local/scripts/db-local-reset.ps1
 ```
 
-会删除本地数据卷并重新执行 001~019 和 seed。
+会删除本地数据卷并重新执行 001、002、018、019 和 seed。
 
 ## 注意
 
