@@ -32,8 +32,11 @@ public class DataScopeService {
                         + "where rs.tenant_id=? and r.role_code in (" + placeholders(roles) + ")",
                 args(principal.tenantId(), roles));
         if (scopes.isEmpty()) return legacyProjects(principal);
-        if (scopes.stream().anyMatch(r -> "ALL".equals(r.get("scopeType")))) return null;
+        boolean override = overrideEnabled(principal);
+        boolean all = scopes.stream().anyMatch(r -> "ALL".equals(r.get("scopeType")));
+        if (all && !override) return null;
         Set<Long> ids = new LinkedHashSet<>();
+        if (all && override) ids.addAll(legacyProjects(principal));
         for (String role : roles) {
             List<Map<String, Object>> r = jdbc.queryForList(
                     "select rs.scope_type scopeType from bp_role_scope rs join bp_role ro on ro.id=rs.role_id "
@@ -48,7 +51,7 @@ public class DataScopeService {
                         + "where ro.role_code=? and ro.tenant_id=?", Long.class, role, principal.tenantId()));
             }
         }
-        if (overrideEnabled(principal)) {
+        if (override) {
             ids.retainAll(legacyProjects(principal));
         }
         return ids;
@@ -63,8 +66,11 @@ public class DataScopeService {
                         + "where rs.tenant_id=? and r.role_code in (" + placeholders(roles) + ")",
                 args(principal.tenantId(), roles));
         if (scopes.isEmpty()) return legacyOrgs(principal);
-        if (scopes.stream().anyMatch(r -> "ALL".equals(r.get("scopeType")))) return null;
+        boolean override = overrideEnabled(principal);
+        boolean all = scopes.stream().anyMatch(r -> "ALL".equals(r.get("scopeType")));
+        if (all && !override) return null;
         Set<Long> roots = new LinkedHashSet<>();
+        if (all && override) roots.addAll(legacyOrgs(principal));
         for (String role : roles) {
             List<Map<String, Object>> r = jdbc.queryForList(
                     "select rs.scope_type scopeType from bp_role_scope rs join bp_role ro on ro.id=rs.role_id "
@@ -80,7 +86,7 @@ public class DataScopeService {
             }
         }
         Set<Long> expanded = expandOrgs(roots);
-        if (overrideEnabled(principal)) {
+        if (override) {
             expanded.retainAll(legacyOrgs(principal));
         }
         return expanded;
