@@ -6,7 +6,9 @@ const users = ref([])
 const roles = ref([])
 const projects = ref([])
 const scopeUser = ref(null)
-const scopeForm = reactive({ overrideEnabled: false, projectIds: [] })
+const scopeMode = ref('inherit')
+const scopeProjectIds = ref([])
+const scopeNotice = ref('')
 const error = ref('')
 const busy = ref(false)
 const search = ref('')
@@ -70,19 +72,34 @@ async function saveEdit() {
 async function openScope(u) {
   scopeUser.value = u
   error.value = ''
+  scopeNotice.value = ''
   try {
     const sc = await api.userScopes(u.id)
-    scopeForm.overrideEnabled = !!sc.overrideEnabled
-    scopeForm.projectIds = (sc.projectIds || []).map(String)
+    scopeMode.value = sc.overrideEnabled ? 'limit' : 'inherit'
+    scopeProjectIds.value = (sc.projectIds || []).map(String)
   } catch (e) { error.value = e.message }
+}
+
+function chooseScopeMode(mode) {
+  scopeMode.value = mode
+  scopeNotice.value = ''
+  if (mode === 'inherit') scopeProjectIds.value = []
 }
 
 async function saveScope() {
   if (!scopeUser.value) return
   busy.value = true; error.value = ''
+  scopeNotice.value = ''
   try {
-    await api.updateUserScopes(scopeUser.value.id, { projectIds: scopeForm.projectIds.map(Number), orgIds: [], overrideEnabled: scopeForm.overrideEnabled })
-    scopeUser.value = null
+    const limit = scopeMode.value === 'limit'
+    const saved = await api.updateUserScopes(scopeUser.value.id, {
+      projectIds: limit ? scopeProjectIds.value.map(Number) : [],
+      orgIds: [],
+      overrideEnabled: limit
+    })
+    scopeMode.value = saved.overrideEnabled ? 'limit' : 'inherit'
+    scopeProjectIds.value = (saved.projectIds || []).map(String)
+    scopeNotice.value = limit ? `已保存：单独限制 ${scopeProjectIds.value.length} 个项目` : '已保存：跟随角色范围'
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -149,13 +166,41 @@ onMounted(load)
     </div>
 
     <div v-if="scopeUser" class="modal-mask" @click.self="scopeUser = null">
-      <div class="modal" style="max-width:560px">
-        <div class="panel-head"><h2>数据范围</h2><button class="sm" @click="scopeUser = null">关闭</button></div>
-        <div class="alert">默认继承角色范围。开启单独限制后只能缩小，不能扩大。</div>
-        <div class="field"><label><input type="checkbox" v-model="scopeForm.overrideEnabled" /> 单独限制该用户的数据范围</label></div>
-        <div v-if="scopeForm.overrideEnabled" class="field"><label>项目范围</label><select v-model="scopeForm.projectIds" multiple size="6"><option v-for="p in projects" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option></select></div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveScope">保存</button></div>
+      <div class="modal scope-modal" style="max-width:620px">
+        <div class="panel-head"><div><h2>数据范围</h2><p class="small muted">{{ scopeUser.displayName }}（{{ scopeUser.username }}）</p></div><button class="sm" @click="scopeUser = null">关闭</button></div>
+        <div v-if="scopeNotice" class="alert success">{{ scopeNotice }}</div>
+        <div class="scope-choice">
+          <button class="scope-card" :class="{ active: scopeMode === 'inherit' }" @click="chooseScopeMode('inherit')">
+            <strong>跟随角色范围</strong>
+            <span>用户可见范围由角色决定，不单独限制。</span>
+          </button>
+          <button class="scope-card" :class="{ active: scopeMode === 'limit' }" @click="chooseScopeMode('limit')">
+            <strong>单独限制</strong>
+            <span>只允许缩小角色范围，不能扩大。</span>
+          </button>
+        </div>
+        <div v-if="scopeMode === 'limit'">
+          <div class="row" style="justify-content:space-between;margin:12px 0 6px">
+            <span class="small">已选 {{ scopeProjectIds.length }} 个项目</span>
+            <button class="sm" @click="scopeProjectIds = []">清空</button>
+          </div>
+          <select v-model="scopeProjectIds" multiple size="7">
+            <option v-for="p in projects" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option>
+          </select>
+          <div class="small muted" style="margin-top:6px">不选项目表示该用户没有项目数据。</div>
+        </div>
+        <div v-else class="alert">保存后清除该用户的单独范围，恢复为角色默认范围。</div>
+        <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="sm" @click="scopeUser = null">取消</button><button class="primary" :disabled="busy" @click="saveScope">{{ busy ? '保存中…' : '保存' }}</button></div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.scope-choice { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+.scope-card { text-align:left; padding:12px; border:1px solid var(--line); border-radius:8px; background:var(--bg); cursor:pointer; display:flex; flex-direction:column; gap:4px; }
+.scope-card strong { font-size:14px; }
+.scope-card span { font-size:12px; color:var(--muted); line-height:1.5; }
+.scope-card.active { border-color:var(--brand); background:var(--brand-soft); }
+.alert.success { background:#ecfdf5; color:#047857; border-color:#a7f3d0; }
+</style>

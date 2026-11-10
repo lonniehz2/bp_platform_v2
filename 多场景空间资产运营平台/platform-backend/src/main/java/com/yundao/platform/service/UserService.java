@@ -150,7 +150,8 @@ public class UserService {
         }
         jdbc.update("delete from bp_user_project where tenant_id=? and user_id=?", tenant, userId);
         jdbc.update("delete from bp_user_org where tenant_id=? and user_id=?", tenant, userId);
-        if (cmd.projectIds() != null) {
+        boolean override = Boolean.TRUE.equals(cmd.overrideEnabled());
+        if (override && cmd.projectIds() != null) {
             for (Long projectId : cmd.projectIds()) {
                 Long count = jdbc.queryForObject(
                         "select count(*) from bp_org where id=? and tenant_id=? and is_deleted=0",
@@ -161,7 +162,7 @@ public class UserService {
                         idGen.nextId(), tenant, userId, projectId);
             }
         }
-        if (cmd.orgIds() != null) {
+        if (override && cmd.orgIds() != null) {
             for (Long orgId : cmd.orgIds()) {
                 Long count = jdbc.queryForObject(
                         "select count(*) from bp_org where id=? and tenant_id=? and is_deleted=0",
@@ -173,7 +174,7 @@ public class UserService {
         }
         jdbc.update("insert into bp_user_scope_override(user_id,tenant_id,enabled) values(?,?,?) "
                         + "on duplicate key update enabled=values(enabled)",
-                userId, tenant, Boolean.TRUE.equals(cmd.overrideEnabled()) ? 1 : 0);
+                userId, tenant, override ? 1 : 0);
         return scopes(userId);
     }
 
