@@ -17,6 +17,11 @@ const editing = ref(null)
 const createForm = reactive({ username: '', password: '', displayName: '', roleIds: [] })
 const editForm = reactive({ displayName: '', password: '', roleIds: [], userStatus: 'ENABLED' })
 const hasOverride = (u) => Number(u.scopeOverrideEnabled) > 0
+const projectSearch = ref('')
+const filteredProjects = computed(() => {
+  const q = projectSearch.value.trim().toLowerCase()
+  return projects.value.filter(p => !q || (String(p.orgName) + ' ' + String(p.orgCode)).toLowerCase().includes(q))
+})
 const selectedProjectNames = computed(() => projects.value.filter(p => scopeProjectIds.value.includes(String(p.id))).map(p => p.orgName))
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
@@ -79,7 +84,22 @@ async function openScope(u) {
     const sc = await api.userScopes(u.id)
     scopeMode.value = sc.overrideEnabled ? 'limit' : 'inherit'
     scopeProjectIds.value = (sc.projectIds || []).map(String)
+    projectSearch.value = ''
   } catch (e) { error.value = e.message }
+}
+
+function toggleProject(id) {
+  const key = String(id)
+  const i = scopeProjectIds.value.indexOf(key)
+  if (i >= 0) scopeProjectIds.value.splice(i, 1)
+  else scopeProjectIds.value.push(key)
+}
+
+function selectAllFiltered() {
+  for (const p of filteredProjects.value) {
+    const key = String(p.id)
+    if (!scopeProjectIds.value.includes(key)) scopeProjectIds.value.push(key)
+  }
 }
 
 function chooseScopeMode(mode) {
@@ -187,15 +207,20 @@ onMounted(load)
           </button>
         </div>
         <div v-if="scopeMode === 'limit'">
-          <div class="row" style="justify-content:space-between;margin:12px 0 6px">
-            <span class="small">已选 {{ scopeProjectIds.length }} 个项目</span>
-            <button class="sm" @click="scopeProjectIds = []">清空</button>
+          <div class="scope-help">勾选项目即可多选，不需要按 Ctrl；可以搜索后全选当前结果。不勾选任何项目表示该用户没有项目数据。</div>
+          <input v-model="projectSearch" placeholder="搜索项目名称或编码" style="margin:10px 0 8px" />
+          <div class="project-picker">
+            <label v-for="p in filteredProjects" :key="p.id" class="project-option" :class="{ selected: scopeProjectIds.includes(String(p.id)) }">
+              <input type="checkbox" :checked="scopeProjectIds.includes(String(p.id))" @change="toggleProject(p.id)" />
+              <span>{{ p.orgName }}</span><span class="mono small muted">{{ p.orgCode }}</span>
+            </label>
+            <div v-if="!filteredProjects.length" class="empty">没有匹配的项目</div>
           </div>
-          <div v-if="selectedProjectNames.length" class="small" style="margin-bottom:6px">{{ selectedProjectNames.join('、') }}</div>
-          <select v-model="scopeProjectIds" multiple size="7">
-            <option v-for="p in projects" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option>
-          </select>
-          <div class="small muted" style="margin-top:6px">不选项目表示该用户没有项目数据。</div>
+          <div class="row" style="justify-content:space-between;margin-top:8px">
+            <span class="small">已选 <strong>{{ scopeProjectIds.length }}</strong> 个项目</span>
+            <div class="row"><button class="sm" @click="selectAllFiltered">全选当前</button><button class="sm" @click="scopeProjectIds = []">清空</button></div>
+          </div>
+          <div v-if="selectedProjectNames.length" class="small muted" style="margin-top:6px">已选：{{ selectedProjectNames.join('、') }}</div>
         </div>
         <div v-else class="alert">保存后清除该用户的单独范围，恢复为角色默认范围。</div>
         <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="sm" @click="scopeUser = null">取消</button><button class="primary" :disabled="busy" @click="saveScope">{{ busy ? '保存中…' : '保存' }}</button></div>
@@ -211,4 +236,10 @@ onMounted(load)
 .scope-card span { font-size:12px; color:var(--muted); line-height:1.5; }
 .scope-card.active { border-color:var(--brand); background:var(--brand-soft); }
 .alert.success { background:#ecfdf5; color:#047857; border-color:#a7f3d0; }
+.scope-help { margin-top:12px; padding:10px 12px; background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; border-radius:6px; font-size:12px; line-height:1.7; }
+.project-picker { max-height:260px; overflow:auto; border:1px solid var(--line); border-radius:6px; padding:4px; }
+.project-option { display:flex; align-items:center; gap:8px; padding:8px; border-radius:4px; cursor:pointer; }
+.project-option:hover, .project-option.selected { background:var(--brand-soft); }
+.project-option input { width:auto; }
+.project-option .mono { margin-left:auto; }
 </style>
