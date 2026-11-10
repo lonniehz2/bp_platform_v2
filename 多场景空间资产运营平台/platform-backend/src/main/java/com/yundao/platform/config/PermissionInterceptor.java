@@ -58,6 +58,10 @@ public class PermissionInterceptor implements HandlerInterceptor {
         if (count == null || count == 0) {
             return deny(response, "BP40300", "无权访问该功能", 403);
         }
+        String action = actionFor(path, request.getMethod());
+        if (action != null && !actionAllowed(principal, menuCode, action)) {
+            return deny(response, "BP40301", "无权限执行该操作", 403);
+        }
         return true;
     }
 
@@ -81,6 +85,42 @@ public class PermissionInterceptor implements HandlerInterceptor {
         } catch (Exception ignored) {
             // 审计失败不阻断业务
         }
+    }
+
+    private String actionFor(String path, String method) {
+        String m = method == null ? "" : method.toUpperCase();
+        if ("GET".equals(m) || "HEAD".equals(m)) return "view";
+        if ("OPTIONS".equals(m)) return null;
+        String p = path.toLowerCase();
+        if (p.contains("/approve") || p.contains("/reject") || p.contains("/resolve")
+                || p.contains("/confirm") || p.contains("/pay") || p.contains("/refund")
+                || p.contains("/terminate") || p.contains("/allocate") || p.contains("/publish")
+                || p.contains("/checkout")) {
+            return "approve";
+        }
+        if ("DELETE".equals(m)) return "delete";
+        if ("PUT".equals(m) || "PATCH".equals(m) || p.contains("/update") || p.contains("/edit")) return "edit";
+        if ("POST".equals(m)) return "create";
+        return "edit";
+    }
+
+    private boolean actionAllowed(UserContext.Principal principal, String menuCode, String action) {
+        List<String> roles = jdbc.queryForList(
+                "select r.role_code roleCode from bp_user_role ur join bp_role r on r.id=ur.role_id "
+                        + "where ur.tenant_id=? and ur.user_id=? and r.role_status='ENABLED'",
+                String.class, principal.tenantId(), principal.userId());
+        if (roles.contains("GUARANTEE_ADMIN") || roles.contains("ADMIN")) return true;
+        Long configured = jdbc.queryForObject(
+                "select count(*) from bp_user_role ur join bp_role_action ra on ra.role_id=ur.role_id "
+                        + "where ur.tenant_id=? and ur.user_id=? and ra.menu_code=?",
+                Long.class, principal.tenantId(), principal.userId(), menuCode);
+        if (configured == null || configured == 0) return true;
+        Long granted = jdbc.queryForObject(
+                "select count(*) from bp_user_role ur join bp_role_action ra on ra.role_id=ur.role_id "
+                        + "where ur.tenant_id=? and ur.user_id=? and ra.menu_code=? "
+                        + "and ra.action_code in (?, '*')",
+                Long.class, principal.tenantId(), principal.userId(), menuCode, action);
+        return granted != null && granted > 0;
     }
 
     private String menuFor(String path) {

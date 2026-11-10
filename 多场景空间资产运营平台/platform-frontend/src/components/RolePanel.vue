@@ -84,28 +84,59 @@ function groupAll(g) { const codes = pageCodes(g); return codes.length > 0 && co
 function groupSome(g) { return pageCodes(g).some(c => selectedCodes.value.includes(c)) }
 function toggleGroup(g) {
   const codes = pageCodes(g)
-  if (groupAll(g)) selectedCodes.value = selectedCodes.value.filter(c => !codes.includes(c))
-  else for (const c of codes) if (!selectedCodes.value.includes(c)) selectedCodes.value.push(c)
+  if (groupAll(g)) {
+    selectedCodes.value = selectedCodes.value.filter(c => !codes.includes(c))
+    selectedActions.value = selectedActions.value.filter(k => !codes.some(c => k.startsWith(c + ':')))
+  } else {
+    for (const c of codes) {
+      if (!selectedCodes.value.includes(c)) selectedCodes.value.push(c)
+      if (!selectedActions.value.includes(c + ':view')) selectedActions.value.push(c + ':view')
+    }
+  }
 }
 function toggleCode(code) {
   const i = selectedCodes.value.indexOf(code)
-  if (i >= 0) selectedCodes.value.splice(i, 1)
-  else selectedCodes.value.push(code)
+  if (i >= 0) {
+    selectedCodes.value.splice(i, 1)
+    selectedActions.value = selectedActions.value.filter(k => !k.startsWith(code + ':'))
+  } else {
+    selectedCodes.value.push(code)
+    if (!selectedActions.value.includes(code + ':view')) selectedActions.value.push(code + ':view')
+  }
 }
-function actionKey(group, action) { return group.menuCode + ':' + action.code }
-function toggleAction(key) {
+function pageHas(code, action) { return selectedActions.value.includes(code + ':' + action) }
+function togglePageAction(code, action) {
+  if (action === 'view') return
+  if (!selectedCodes.value.includes(code)) return
+  const key = code + ':' + action
   const i = selectedActions.value.indexOf(key)
   if (i >= 0) selectedActions.value.splice(i, 1)
   else selectedActions.value.push(key)
 }
-function groupActionCount(g) { return actionOptions.filter(a => selectedActions.value.includes(actionKey(g, a))).length }
+function groupActionAll(g, action) {
+  const pages = g.pages.filter(p => selectedCodes.value.includes(p.menuCode))
+  return pages.length > 0 && pages.every(p => pageHas(p.menuCode, action))
+}
+function toggleGroupAction(g, action) {
+  if (action === 'view') return
+  const pages = g.pages.filter(p => selectedCodes.value.includes(p.menuCode))
+  if (!pages.length) return
+  const all = pages.every(p => pageHas(p.menuCode, action))
+  for (const p of pages) {
+    const key = p.menuCode + ':' + action
+    const i = selectedActions.value.indexOf(key)
+    if (all && i >= 0) selectedActions.value.splice(i, 1)
+    if (!all && i < 0) selectedActions.value.push(key)
+  }
+}
 
 async function savePages() {
   if (!selected.value) return
   busy.value = true; error.value = ''
   try {
     await api.saveRoleMenus(selected.value.id, selectedCodes.value)
-    notice.value = '页面权限已保存'
+    await api.saveRoleActions(selected.value.id, selectedActions.value)
+    notice.value = '页面权限和操作权限已保存'
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -175,40 +206,40 @@ onMounted(load)
         </div>
 
         <div class="panel">
-          <div class="panel-head"><div><h2>页面权限</h2><p>勾选分组会选中该分组下所有页面</p></div><button class="primary" :disabled="busy" @click="savePages">保存页面权限</button></div>
+          <div class="panel-head"><div><h2>页面权限</h2><p>分组行用于批量设置，页面行配置该页面的操作权限</p></div><button class="primary" :disabled="busy" @click="savePages">保存权限</button></div>
           <input v-model="pageSearch" placeholder="搜索页面名称或编码" style="margin-bottom:10px" />
-          <div class="group-list">
+          <div class="perm-table">
+            <div class="perm-head">
+              <span>页面 / 菜单</span>
+              <span v-for="a in actionOptions" :key="a.code" class="center">{{ a.label }}</span>
+            </div>
             <div v-for="g in filteredGroups" :key="g.menuCode" class="perm-group">
-              <label class="group-head">
-                <input type="checkbox" :checked="groupAll(g)" @change="toggleGroup(g)" />
-                <strong>{{ g.menuName }}</strong>
-                <span class="badge" :class="groupAll(g) ? 'green' : (groupSome(g) ? 'orange' : '')">{{ pageCodes(g).filter(c => selectedCodes.includes(c)).length }}/{{ g.pages.length }}</span>
-                <span class="mono small muted">{{ g.menuCode }}</span>
-              </label>
-              <div class="page-grid">
-                <label v-for="p in g.pages" :key="p.menuCode" class="page-item" :class="{ checked: selectedCodes.includes(p.menuCode) }">
+              <div class="group-row">
+                <label class="group-name">
+                  <input type="checkbox" :checked="groupAll(g)" @change="toggleGroup(g)" />
+                  <strong>{{ g.menuName }}</strong>
+                  <span class="badge" :class="groupAll(g) ? 'green' : (groupSome(g) ? 'orange' : '')">{{ pageCodes(g).filter(c => selectedCodes.includes(c)).length }}/{{ g.pages.length }}</span>
+                  <span class="mono small muted">{{ g.menuCode }}</span>
+                </label>
+                <template v-for="a in actionOptions" :key="a.code">
+                  <span v-if="a.code === 'view'" class="center muted">—</span>
+                  <input v-else type="checkbox" class="cell-check" :checked="groupActionAll(g, a.code)" :disabled="!pageCodes(g).some(c => selectedCodes.includes(c))" @change="toggleGroupAction(g, a.code)" />
+                </template>
+              </div>
+              <div v-for="p in g.pages" :key="p.menuCode" class="page-row">
+                <label class="page-name">
                   <input type="checkbox" :checked="selectedCodes.includes(p.menuCode)" @change="toggleCode(p.menuCode)" />
                   <span>{{ p.menuName }}</span>
+                  <span class="mono small muted">{{ p.menuCode }}</span>
                 </label>
+                <input v-for="a in actionOptions" :key="a.code" type="checkbox" class="cell-check"
+                  :checked="pageHas(p.menuCode, a.code)"
+                  :disabled="a.code === 'view' || !selectedCodes.includes(p.menuCode)"
+                  @change="togglePageAction(p.menuCode, a.code)" />
               </div>
             </div>
           </div>
         </div>
-
-        <div class="panel">
-          <div class="panel-head"><div><h2>功能权限</h2><p>按模块配置查看、新增、编辑、删除、审批</p></div><button class="primary" :disabled="busy" @click="saveActions">保存功能权限</button></div>
-          <div class="action-grid">
-            <div v-for="g in groups" :key="g.menuCode" class="action-card">
-              <div class="action-head"><strong>{{ g.menuName }}</strong><span class="badge">{{ groupActionCount(g) }}/{{ actionOptions.length }}</span></div>
-              <div class="row" style="flex-wrap:wrap;gap:10px">
-                <label v-for="a in actionOptions" :key="a.code" class="action-item" :class="{ checked: selectedActions.includes(actionKey(g, a)) }">
-                  <input type="checkbox" :checked="selectedActions.includes(actionKey(g, a))" @change="toggleAction(actionKey(g, a))" />{{ a.label }}
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="panel">
           <div class="panel-head"><div><h2>默认数据范围</h2><p>用户默认继承此范围，可在用户页面进一步收窄</p></div><button class="primary" :disabled="busy" @click="saveScope">保存数据范围</button></div>
           <div class="scope-choice">
@@ -252,20 +283,23 @@ onMounted(load)
 .role-row:hover, .role-row.active { background:var(--brand-soft); color:var(--brand); }
 .ellipsis { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .role-detail { display:flex; flex-direction:column; gap:12px; min-width:0; }
-.group-list { display:flex; flex-direction:column; gap:8px; max-height:430px; overflow:auto; padding-right:4px; }
-.perm-group { border:1px solid var(--line); border-radius:8px; overflow:hidden; }
-.group-head { display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--bg); cursor:pointer; }
-.group-head input { width:auto; }
-.page-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:4px; padding:8px 12px 12px; }
-.page-item { display:flex; align-items:center; gap:6px; padding:7px 8px; border-radius:5px; cursor:pointer; font-size:13px; }
-.page-item:hover, .page-item.checked { background:var(--brand-soft); color:var(--brand); }
-.page-item input { width:auto; }
-.action-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:8px; max-height:340px; overflow:auto; }
-.action-card { border:1px solid var(--line); border-radius:8px; padding:10px; }
-.action-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-.action-item { display:flex; align-items:center; gap:4px; font-size:12px; padding:4px 6px; border-radius:4px; cursor:pointer; background:var(--bg); }
-.action-item.checked { background:var(--brand-soft); color:var(--brand); }
-.action-item input { width:auto; }
+.perm-table { border:1px solid var(--line); border-radius:8px; overflow:auto; max-height:500px; }
+.perm-head, .group-row, .page-row { display:grid; grid-template-columns:minmax(250px,1fr) repeat(5,56px); align-items:center; }
+.perm-head { position:sticky; top:0; z-index:1; background:var(--bg); border-bottom:1px solid var(--line); padding:9px 12px; font-size:12px; color:var(--muted); }
+.perm-head span { text-align:center; }
+.perm-head span:first-child { text-align:left; }
+.perm-group { border-bottom:1px solid var(--line); }
+.group-row { background:var(--bg); padding:9px 12px; }
+.group-name, .page-name { display:flex; align-items:center; gap:8px; cursor:pointer; min-width:0; }
+.group-name input, .page-name input, .cell-check { width:auto; }
+.group-name strong { font-size:13px; }
+.page-row { padding:7px 12px 7px 30px; }
+.page-row:hover { background:var(--brand-soft); }
+.page-name { font-size:13px; }
+.page-name .mono { margin-left:auto; }
+.cell-check { justify-self:center; }
+.center { text-align:center; }
+.muted { color:var(--muted); }
 .scope-choice { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
 .scope-card { text-align:left; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); cursor:pointer; display:flex; flex-direction:column; gap:4px; }
 .scope-card strong { font-size:13px; }

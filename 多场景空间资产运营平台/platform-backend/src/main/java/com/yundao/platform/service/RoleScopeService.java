@@ -67,7 +67,7 @@ public class RoleScopeService {
         String tenant = TenantContext.require();
         requireRole(roleId, tenant);
         return java.util.Map.of("roleId", roleId,
-                "actions", jdbc.queryForList("select action_code from bp_role_action where role_id=?", String.class, roleId));
+                "actions", jdbc.queryForList("select concat(menu_code,':',action_code) from bp_role_action where role_id=?", String.class, roleId));
     }
 
     @Transactional
@@ -78,7 +78,15 @@ public class RoleScopeService {
         if (actions != null) {
             for (String code : actions) {
                 if (code == null || code.isBlank()) continue;
-                jdbc.update("insert ignore into bp_role_action(role_id,action_code) values(?,?)", roleId, code);
+                int pos = code.lastIndexOf(':');
+                if (pos <= 0 || pos == code.length() - 1) throw BizException.param("操作权限编码不合法");
+                String menuCode = code.substring(0, pos);
+                String actionCode = code.substring(pos + 1);
+                Long page = jdbc.queryForObject("select count(*) from bp_menu where scene_code='GUARANTEE' and menu_code=? and menu_type='PAGE' and menu_status='ENABLED'", Long.class, menuCode);
+                if (page == null || page == 0) throw BizException.param("操作权限必须对应页面");
+                Long granted = jdbc.queryForObject("select count(*) from bp_role_menu rm join bp_menu m on m.id=rm.menu_id where rm.role_id=? and m.menu_code=?", Long.class, roleId, menuCode);
+                if (granted == null || granted == 0) throw BizException.param("操作权限不能超出页面权限");
+                jdbc.update("insert ignore into bp_role_action(role_id,menu_code,action_code) values(?,?,?)", roleId, menuCode, actionCode);
             }
         }
         return actions(roleId);
