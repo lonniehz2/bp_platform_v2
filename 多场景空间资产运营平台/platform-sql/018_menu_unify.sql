@@ -71,7 +71,7 @@ insert ignore into bp_menu(id,scene_code,menu_code,parent_code,menu_name,menu_ty
 (922000000000000047,'GUARANTEE','sys','group_system','系统支撑','PAGE','/guarantee/sys',470,'ENABLED'),
 (922000000000000048,'GUARANTEE','help','group_system','使用帮助','PAGE','/guarantee/help',480,'ENABLED');
 -- 旧编码到新页面映射
-create temporary table tmp_menu_map(old_code varchar(64), new_code varchar(64));
+create temporary table tmp_menu_map(old_code varchar(64), new_code varchar(64)) engine=InnoDB default charset=utf8mb4 collate=utf8mb4_unicode_ci;
 insert into tmp_menu_map values
 ('legacy_dashboard','dashboard'),('legacy_search','search'),('legacy_message','message'),
 ('legacy_asset','asset'),('legacy_asset','listings'),('legacy_asset','houses'),('legacy_asset','spaces'),('legacy_asset','calendar'),('legacy_asset','shortrent'),
@@ -96,8 +96,8 @@ insert ignore into bp_role_menu(id,tenant_id,role_id,menu_id)
 select UUID_SHORT(),rm.tenant_id,rm.role_id,p.id
 from bp_role_menu rm
 join bp_menu old on old.id=rm.menu_id and old.scene_code='GUARANTEE'
-join tmp_menu_map m on m.old_code=old.menu_code
-join bp_menu p on p.scene_code='GUARANTEE' and p.menu_code=m.new_code;
+join tmp_menu_map m on m.old_code=old.menu_code COLLATE utf8mb4_unicode_ci
+join bp_menu p on p.scene_code='GUARANTEE' and p.menu_code COLLATE utf8mb4_unicode_ci=m.new_code;
 -- 删除旧授权和旧菜单
 delete rm from bp_role_menu rm join bp_menu old on old.id=rm.menu_id where old.scene_code='GUARANTEE' and old.menu_code like 'legacy_%';
 delete from bp_menu where scene_code='GUARANTEE' and menu_code like 'legacy_%';

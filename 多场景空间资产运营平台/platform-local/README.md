@@ -93,3 +93,13 @@ platform-local/scripts/dev-backend.ps1 -DbPort 3307 -DbPassword 'local123'
 MySQL 127.0.0.1:3307
 后端 127.0.0.1:8091
 ```
+
+
+## Docker 命令不在 PATH
+
+如果 `docker` 命令找不到，但 Docker Desktop 已启动：
+
+```powershell
+$env:PATH = "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\bin;$env:PATH"
+docker --version
+```
