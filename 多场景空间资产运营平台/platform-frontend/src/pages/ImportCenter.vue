@@ -7,8 +7,29 @@ const personFile = ref(null)
 const personBusy = ref(false)
 const personResult = ref(null)
 const personError = ref('')
+const spaceFile = ref(null)
+const spaceBusy = ref(false)
+const spaceResult = ref(null)
+const spaceError = ref('')
 
 function pickPerson(e) { personFile.value = e.target.files?.[0] || null; personResult.value = null; personError.value = '' }
+
+function pickSpace(e) { spaceFile.value = e.target.files?.[0] || null; spaceResult.value = null; spaceError.value = '' }
+
+function downloadSpaceTemplate() {
+  const csv = '\ufeff项目编码,上级空间编码,空间编码,空间名称,空间类型,资产类型,建筑面积,套内面积,可出租\n'
+    + 'ZZ0020,A栋,1单元,1单元,UNIT,PUBLIC_RENTAL,0,0,否\n'
+    + 'ZZ0020,1单元,101,101室,ROOM,PUBLIC_RENTAL,60,52,是\n'
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+  a.download = '房屋空间导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+}
+
+async function importSpaces() {
+  if (!spaceFile.value) { spaceError.value = '请选择 CSV 文件'; return }
+  spaceBusy.value = true; spaceError.value = ''; spaceResult.value = null
+  try { spaceResult.value = await api.importSpaces(spaceFile.value) } catch (e) { spaceError.value = e.message } finally { spaceBusy.value = false }
+}
 
 function downloadPersonTemplate() {
   const csv = '\ufeff人员编码,姓名,手机号,身份证脱敏,人员类型,性别,出生日期,地址,工作单位,紧急联系人,备注\n'
@@ -47,7 +68,18 @@ async function importPersons() {
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>房屋/空间/设备导入</h2><span class="small muted">CSV</span></div>
+        <div class="panel-head"><h2>房屋/空间导入</h2><span class="small muted">CSV</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadSpaceTemplate">下载模板</button><input type="file" accept=".csv" @change="pickSpace" /><span class="small muted">{{ spaceFile?.name || '未选择文件' }}</span></div>
+        <div v-if="spaceError" class="error">{{ spaceError }}</div>
+        <button class="primary" :disabled="spaceBusy || !spaceFile" @click="importSpaces">{{ spaceBusy ? '导入中…' : '开始导入' }}</button>
+        <div v-if="spaceResult" style="margin-top:12px">
+          <div class="alert" :class="spaceResult.failed ? 'warn' : 'ok'">共 {{ spaceResult.total }} 行，成功 {{ spaceResult.success }}，失败 {{ spaceResult.failed }}。</div>
+          <div v-if="spaceResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in spaceResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>设备导入</h2><span class="small muted">CSV</span></div>
         <p class="muted">设备导入模板按“组织-楼栋-单元-楼层-房间-设备”一行一台设备，导入时自动创建空间和房屋。</p>
         <RouterLink class="primary" to="/guarantee/device-bind">去设备绑定页导入</RouterLink>
       </div>
