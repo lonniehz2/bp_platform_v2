@@ -6,6 +6,7 @@ import SearchSelect from '../components/SearchSelect.vue'
 import EntityRelationPanel from '../components/EntityRelationPanel.vue'
 import DataTable from '../components/DataTable.vue'
 import { confirmAction } from '../confirm'
+import { useRouter } from 'vue-router'
 
 const project = ref(null)
 const contracts = ref([])
