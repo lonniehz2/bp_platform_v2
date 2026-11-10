@@ -154,9 +154,10 @@ async function saveScope() {
   busy.value = true; error.value = ''
   try {
     const projectIds = scopeMode.value === 'PROJECTS' ? scopeProjectIds.value.map(Number) : []
-    await api.saveRoleScope(selected.value.id, { scopeType: scopeMode.value, projectIds })
-    notice.value = '默认数据范围已保存'
-    await load()
+    const saved = await api.saveRoleScope(selected.value.id, { scopeType: scopeMode.value, projectIds })
+    scopeMode.value = saved.scopeType || 'NONE'
+    scopeProjectIds.value = (saved.projectIds || []).map(String)
+    notice.value = '默认数据范围已保存；页面/功能权限的未保存修改不会丢失' 
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 function chooseScope(mode) { scopeMode.value = mode; if (mode !== 'PROJECTS') scopeProjectIds.value = [] }
