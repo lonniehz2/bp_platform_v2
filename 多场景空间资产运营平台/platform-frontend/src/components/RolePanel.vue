@@ -18,6 +18,9 @@ const pageSearch = ref('')
 const projectSearch = ref('')
 const createOpen = ref(false)
 const deleteTarget = ref(null)
+const members = ref([])
+const editOpen = ref(false)
+const editForm = reactive({ roleName: '', roleStatus: 'ENABLED' })
 const form = reactive({ roleCode: '', roleName: '' })
 const actionOptions = [
   { code: 'view', label: '查看' },
@@ -72,11 +75,12 @@ async function selectRole(r) {
   projectSearch.value = ''
   if (!r) { selectedCodes.value = []; selectedActions.value = []; return }
   try {
-    const [list, scope, actions] = await Promise.all([api.roleMenus(r.id), api.roleScope(r.id), api.roleActions(r.id)])
+    const [list, scope, actions, memberList] = await Promise.all([api.roleMenus(r.id), api.roleScope(r.id), api.roleActions(r.id), api.roleMembers(r.id).catch(() => [])])
     selectedCodes.value = list.map(x => x.menuCode)
     scopeMode.value = scope.scopeType || 'NONE'
     scopeProjectIds.value = (scope.projectIds || []).map(String)
     selectedActions.value = actions.actions || []
+    members.value = memberList || []
   } catch (e) { error.value = e.message; selectedCodes.value = [] }
 }
 
@@ -174,6 +178,24 @@ function selectAllProjects() {
   }
 }
 
+
+function openRoleEdit() {
+  editForm.roleName = selected.value?.roleName || ''
+  editForm.roleStatus = selected.value?.roleStatus || 'ENABLED'
+  editOpen.value = true
+}
+
+async function saveRoleEdit() {
+  if (!selected.value) return
+  busy.value = true; error.value = ''
+  try {
+    await api.updateRole(selected.value.id, { roleName: editForm.roleName.trim(), roleStatus: editForm.roleStatus })
+    editOpen.value = false
+    notice.value = '角色信息已更新'
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 function askDelete() { deleteTarget.value = selected.value; error.value = '' }
 
 async function confirmDelete() {
@@ -216,7 +238,7 @@ onMounted(load)
 
       <div v-if="selected" class="role-detail">
         <div class="panel">
-          <div class="panel-head"><div><h2>{{ selected.roleName }}</h2><p class="mono small muted">{{ selected.roleCode }} · {{ selectedPageCount }}/{{ pageCount }} 个页面 · {{ selectedActions.length }} 个功能点</p></div><button class="sm danger" @click="askDelete">删除角色</button></div>
+          <div class="panel-head"><div><h2>{{ selected.roleName }}</h2><p class="mono small muted">{{ selected.roleCode }} · {{ selectedPageCount }}/{{ pageCount }} 个页面 · {{ selectedActions.length }} 个功能点</p></div><div class="row"><button class="sm" @click="openRoleEdit">编辑角色</button><button class="sm danger" @click="askDelete">删除角色</button></div></div>
           <div v-if="notice" class="alert success">{{ notice }}</div>
         </div>
 
@@ -256,6 +278,12 @@ onMounted(load)
           </div>
         </div>
         <div class="panel">
+          <div class="panel-head"><div><h2>角色成员</h2><p>当前使用该角色的用户</p></div><span class="badge">{{ members.length }} 人</span></div>
+          <div v-if="!members.length" class="empty">暂无成员</div>
+          <div v-for="m in members" :key="m.id" class="entity-row"><div><strong>{{ m.displayName }}</strong><span class="small muted"> · {{ m.username }}</span></div><span class="badge" :class="m.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ m.userStatus }}</span></div>
+        </div>
+
+        <div class="panel">
           <div class="panel-head"><div><h2>默认数据范围</h2><p>用户默认继承此范围，可在用户页面进一步收窄</p></div><button class="primary" :disabled="busy" @click="saveScope">保存数据范围</button></div>
           <div class="scope-choice">
             <button class="scope-card" :class="{ active: scopeMode === 'NONE' }" @click="chooseScope('NONE')"><strong>无数据</strong><span>默认不可见任何项目。</span></button>
@@ -279,6 +307,16 @@ onMounted(load)
         </div>
       </div>
       <div v-else class="panel"><div class="empty">请选择角色</div></div>
+    </div>
+
+    <div v-if="editOpen" class="modal-mask" @click.self="editOpen = false">
+      <div class="modal" style="max-width:480px">
+        <div class="panel-head"><h2>编辑角色</h2><button class="sm" @click="editOpen = false">关闭</button></div>
+        <div class="field"><label>角色编码</label><input :value="selected?.roleCode" disabled /></div>
+        <div class="field"><label>角色名称</label><input v-model="editForm.roleName" /></div>
+        <div class="field"><label>状态</label><select v-model="editForm.roleStatus"><option value="ENABLED">启用</option><option value="DISABLED">停用</option></select></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveRoleEdit">保存</button></div>
+      </div>
     </div>
 
     <div v-if="deleteTarget" class="modal-mask" @click.self="deleteTarget = null">

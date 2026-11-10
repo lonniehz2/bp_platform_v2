@@ -62,6 +62,17 @@ public class MenuController {
         return R.ok(roleScopeService.saveActions(roleId, body.get("actions")));
     }
 
+    @GetMapping("/roles/{roleId}/members")
+    public R<List<Map<String, Object>>> roleMembers(@PathVariable long roleId) {
+        return R.ok(service.roleMembers(roleId));
+    }
+
+    @PostMapping("/roles/{roleId}/update")
+    public R<Map<String, Object>> updateRole(@PathVariable long roleId,
+                                             @RequestBody MenuService.UpdateRoleCmd cmd) {
+        return R.ok(service.updateRole(roleId, cmd));
+    }
+
     @PostMapping("/roles/{roleId}/delete")
     public R<Map<String, Object>> deleteRole(@PathVariable long roleId) {
         return R.ok(service.deleteRole(roleId));

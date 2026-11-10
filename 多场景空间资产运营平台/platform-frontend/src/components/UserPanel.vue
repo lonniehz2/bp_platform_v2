@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { api } from '../api'
 
 const users = ref([])
@@ -13,6 +13,10 @@ const scopeNotice = ref('')
 const error = ref('')
 const busy = ref(false)
 const search = ref('')
+const page = ref(1)
+const pageSize = ref(10)
+const previewUser = ref(null)
+const preview = ref(null)
 const createOpen = ref(false)
 const editing = ref(null)
 const createForm = reactive({ username: '', password: '', displayName: '', roleIds: [] })
@@ -24,6 +28,8 @@ const filteredProjects = computed(() => {
   return projects.value.filter(p => !q || (String(p.orgName) + ' ' + String(p.orgCode)).toLowerCase().includes(q))
 })
 const selectedProjectNames = computed(() => projects.value.filter(p => scopeProjectIds.value.includes(String(p.id))).map(p => p.orgName))
+const pageCount = computed(() => Math.max(1, Math.ceil(filtered.value.length / pageSize.value)))
+const pagedUsers = computed(() => filtered.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value))
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
   if (!q) return users.value
@@ -147,6 +153,16 @@ async function toggle(u) {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+watch(search, () => { page.value = 1 })
+
+async function openPreview(u) {
+  previewUser.value = u; preview.value = null; error.value = ''
+  try {
+    const [perms, scope] = await Promise.all([api.effectivePermissions(u.id), api.effectiveScope(u.id)])
+    preview.value = { ...perms, ...scope }
+  } catch (e) { error.value = e.message }
+}
+
 onMounted(load)
 </script>
 
@@ -166,15 +182,31 @@ onMounted(load)
         <table>
           <thead><tr><th>用户名</th><th>姓名</th><th>角色</th><th>数据范围</th><th>状态</th><th>操作</th></tr></thead>
           <tbody>
-            <tr v-for="u in filtered" :key="u.id">
+            <tr v-for="u in pagedUsers" :key="u.id">
               <td class="mono">{{ u.username }}</td><td>{{ u.displayName }}</td>
               <td><span v-for="r in u.roleNames" :key="r" class="badge blue" style="margin-right:4px">{{ r }}</span><span v-if="!u.roleNames?.length" class="muted">未分配</span></td>
               <td><span v-if="hasOverride(u)" class="badge orange">单独限制 · {{ u.scopeProjectCount || 0 }} 个项目</span><span v-else class="badge">跟随角色</span></td>
               <td><span class="badge" :class="u.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ u.userStatus }}</span></td>
-              <td><div class="row"><button class="sm" @click="openEdit(u)">编辑</button><button class="sm" @click="openScope(u)">数据范围</button><button class="sm danger" @click="askArchive(u)">删除</button><button class="sm" :class="u.userStatus === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? '停用' : '启用' }}</button></div></td>
+              <td><div class="row"><button class="sm" @click="openEdit(u)">编辑</button><button class="sm" @click="openScope(u)">数据范围</button><button class="sm" @click="openPreview(u)">权限预览</button><button class="sm danger" @click="askArchive(u)">删除</button><button class="sm" :class="u.userStatus === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? '停用' : '启用' }}</button></div></td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="sm" :disabled="page <= 1" @click="page--">上一页</button><span class="small muted">{{ page }} / {{ pageCount }} · {{ filtered.length }} 人</span><button class="sm" :disabled="page >= pageCount" @click="page++">下一页</button></div>
+
+    <div v-if="previewUser" class="modal-mask" @click.self="previewUser = null">
+      <div class="modal" style="max-width:620px">
+        <div class="panel-head"><div><h2>最终权限预览</h2><p class="small muted">{{ previewUser.displayName }}（{{ previewUser.username }}）</p></div><button class="sm" @click="previewUser = null">关闭</button></div>
+        <div v-if="!preview" class="empty">加载中…</div>
+        <template v-else>
+          <div class="alert"><strong>角色：</strong>{{ preview.roles?.join('、') || '未分配' }}</div>
+          <div class="alert"><strong>页面权限：</strong>{{ preview.pageCodes?.length || 0 }} 个</div>
+          <div class="small muted" style="margin:6px 0 12px">{{ preview.pageCodes?.join('、') || '无' }}</div>
+          <div class="alert"><strong>操作权限：</strong>{{ preview.actionCodes?.length || 0 }} 个</div>
+          <div class="alert"><strong>数据范围：</strong><span v-if="preview.allProjects">全部项目</span><span v-else>{{ preview.effectiveProjectIds?.length || 0 }} 个项目</span><span v-if="preview.overrideEnabled" class="badge orange">用户例外</span></div>
+        </template>
       </div>
     </div>
 

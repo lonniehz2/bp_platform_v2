@@ -209,6 +209,63 @@ public class UserService {
         return Map.of("id", userId, "status", "ARCHIVED");
     }
 
+
+    public Map<String, Object> effectivePermissions(long userId) {
+        String tenant = UserContext.require().tenantId();
+        List<String> roles = jdbc.queryForList(
+                "select r.role_code from bp_user_role ur join bp_role r on r.id=ur.role_id "
+                        + "where ur.tenant_id=? and ur.user_id=? and r.role_status='ENABLED'", String.class, tenant, userId);
+        List<String> pages = jdbc.queryForList(
+                "select distinct m.menu_code from bp_user_role ur join bp_role_menu rm on rm.role_id=ur.role_id "
+                        + "join bp_menu m on m.id=rm.menu_id where ur.tenant_id=? and ur.user_id=? and m.menu_type='PAGE' "
+                        + "and m.menu_status='ENABLED' order by m.menu_code", String.class, tenant, userId);
+        List<String> actions = jdbc.queryForList(
+                "select distinct concat(ra.menu_code,':',ra.action_code) from bp_user_role ur "
+                        + "join bp_role_action ra on ra.role_id=ur.role_id where ur.tenant_id=? and ur.user_id=? "
+                        + "order by 1", String.class, tenant, userId);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("roles", roles); out.put("pageCodes", pages); out.put("actionCodes", actions);
+        return out;
+    }
+
+    public Map<String, Object> effectiveScope(long userId) {
+        String tenant = UserContext.require().tenantId();
+        List<String> roles = jdbc.queryForList(
+                "select r.role_code from bp_user_role ur join bp_role r on r.id=ur.role_id "
+                        + "where ur.tenant_id=? and ur.user_id=? and r.role_status='ENABLED'", String.class, tenant, userId);
+        List<Map<String, Object>> scopes = jdbc.queryForList(
+                "select r.role_code roleCode, rs.scope_type scopeType from bp_user_role ur "
+                        + "join bp_role r on r.id=ur.role_id left join bp_role_scope rs on rs.role_id=r.id "
+                        + "where ur.tenant_id=? and ur.user_id=?", tenant, userId);
+        List<Long> roleProjects = jdbc.queryForList(
+                "select distinct rp.project_id from bp_user_role ur join bp_role_project rp on rp.role_id=ur.role_id "
+                        + "where ur.tenant_id=? and ur.user_id=?", Long.class, tenant, userId);
+        List<Integer> override = jdbc.queryForList(
+                "select enabled from bp_user_scope_override where tenant_id=? and user_id=?", Integer.class, tenant, userId);
+        boolean overrideEnabled = !override.isEmpty() && override.get(0) != null && override.get(0) == 1;
+        List<Long> userProjects = jdbc.queryForList(
+                "select project_id from bp_user_project where tenant_id=? and user_id=? and is_deleted=0",
+                Long.class, tenant, userId);
+        boolean all = scopes.stream().anyMatch(x -> "ALL".equals(x.get("scopeType")));
+        List<Long> effective = new java.util.ArrayList<>();
+        if (all && !overrideEnabled) {
+            effective = null;
+        } else if (overrideEnabled) {
+            effective.addAll(userProjects);
+        } else if (!roleProjects.isEmpty()) {
+            effective.addAll(roleProjects);
+        } else {
+            effective.addAll(userProjects);
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("roles", roles); out.put("roleScopes", scopes);
+        out.put("overrideEnabled", overrideEnabled);
+        out.put("userProjectIds", userProjects);
+        out.put("effectiveProjectIds", effective);
+        out.put("allProjects", effective == null);
+        return out;
+    }
+
     private void bindRoles(long userId, String tenant, List<Long> roleIds) {
         if (roleIds == null || roleIds.isEmpty()) {
             return;

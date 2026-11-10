@@ -47,6 +47,16 @@ public class UserController {
         return R.ok(service.updateScopes(id, cmd));
     }
 
+    @GetMapping("/{id}/effective-permissions")
+    public R<Map<String, Object>> effectivePermissions(@PathVariable long id) {
+        return R.ok(service.effectivePermissions(id));
+    }
+
+    @GetMapping("/{id}/effective-scope")
+    public R<Map<String, Object>> effectiveScope(@PathVariable long id) {
+        return R.ok(service.effectiveScope(id));
+    }
+
     @PostMapping("/{id}/archive")
     public R<Map<String, Object>> archive(@PathVariable long id) {
         return R.ok(service.archive(id));

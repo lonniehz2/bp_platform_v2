@@ -150,6 +150,30 @@ public class MenuService {
         return Map.of("id", roleId, "status", "DELETED");
     }
 
+
+    @Transactional
+    public Map<String, Object> updateRole(long roleId, UpdateRoleCmd cmd) {
+        String tenant = TenantContext.require();
+        Long exists = jdbc.queryForObject("select count(*) from bp_role where id=? and tenant_id=? and is_deleted=0", Long.class, roleId, tenant);
+        if (exists == null || exists == 0) throw BizException.notFound("角色不存在");
+        if (cmd.roleName() != null && !cmd.roleName().isBlank()) {
+            jdbc.update("update bp_role set role_name=? where id=? and tenant_id=?", cmd.roleName().trim(), roleId, tenant);
+        }
+        if (cmd.roleStatus() != null && !cmd.roleStatus().isBlank()) {
+            if (!java.util.List.of("ENABLED", "DISABLED").contains(cmd.roleStatus())) throw BizException.param("角色状态不合法");
+            jdbc.update("update bp_role set role_status=? where id=? and tenant_id=?", cmd.roleStatus(), roleId, tenant);
+        }
+        return Map.of("id", roleId, "updated", true);
+    }
+
+    public List<Map<String, Object>> roleMembers(long roleId) {
+        String tenant = TenantContext.require();
+        return jdbc.queryForList(
+                "select u.id, u.username, u.display_name displayName, u.user_status userStatus "
+                        + "from bp_user_role ur join bp_user u on u.id=ur.user_id "
+                        + "where ur.tenant_id=? and ur.role_id=? and u.is_deleted=0 order by u.id", tenant, roleId);
+    }
+
     public Map<String, Object> createRole(CreateRoleCmd cmd) {
         String tenant = TenantContext.require();
         if (cmd.sceneCode() == null || cmd.sceneCode().isBlank()
@@ -201,5 +225,8 @@ public class MenuService {
     }
 
     public record CreateRoleCmd(String sceneCode, String roleCode, String roleName, List<String> menuCodes) {
+    }
+
+    public record UpdateRoleCmd(String roleName, String roleStatus) {
     }
 }
