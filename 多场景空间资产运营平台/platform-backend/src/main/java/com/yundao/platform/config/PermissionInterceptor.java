@@ -131,6 +131,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
         }
         if (path.startsWith("/api/v1/platform/audit-logs")) return "audit";
         if (path.startsWith("/api/v1/platform/imports")) return "batchImport";
+        if (path.startsWith("/api/v1/platform/relations")) return "contracts";
         if (path.startsWith("/api/v1/platform/messages")) return "message";
         if (path.startsWith("/api/v1/platform/open-apps")) return "sys";
         if (path.startsWith("/api/v1/platform/guarantee/short-rent-orders")) return "shortrent";

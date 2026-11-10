@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
+import EntityRelationPanel from '../components/EntityRelationPanel.vue'
 import DataTable from '../components/DataTable.vue'
 import { confirmAction } from '../confirm'
 
@@ -257,6 +258,7 @@ onMounted(load)
       <div v-if="detailOpen" class="modal-mask" @click.self="detailOpen = false">
         <div class="modal" style="max-width:900px">
           <div class="panel-head"><h2>合同详情</h2><button class="sm" @click="detailOpen = false">关闭</button></div>
+      <EntityRelationPanel v-if="selectedContract" type="CONTRACT" :entity-id="selectedContract.id" />
       <div v-if="detailOpen && selectedContract" class="panel">
         <div class="panel-head"><h2>合同附件</h2><span class="small muted">{{ selectedContract.contractNo }}</span></div>
         <div class="row" style="margin-bottom:10px">
