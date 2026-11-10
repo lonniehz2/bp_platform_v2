@@ -237,7 +237,7 @@ onMounted(load)
 .scope-card.active { border-color:var(--brand); background:var(--brand-soft); }
 .alert.success { background:#ecfdf5; color:#047857; border-color:#a7f3d0; }
 .scope-help { margin-top:12px; padding:10px 12px; background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; border-radius:6px; font-size:12px; line-height:1.7; }
-.project-picker { max-height:260px; overflow:auto; border:1px solid var(--line); border-radius:6px; padding:4px; }
+.project-picker { width:100%; max-height:260px; overflow:auto; border:1px solid var(--line); border-radius:6px; padding:4px; box-sizing:border-box; }
 .project-option { display:flex; align-items:center; gap:8px; padding:8px; border-radius:4px; cursor:pointer; }
 .project-option:hover, .project-option.selected { background:var(--brand-soft); }
 .project-option input { width:auto; }
