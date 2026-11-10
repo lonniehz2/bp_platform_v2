@@ -10,7 +10,7 @@ const router = useRouter()
 const contract = ref(null)
 const error = ref('')
 const busy = ref(false)
-const tab = ref(String(route.query.tab || 'overview'))
+const tab = ref(['overview','persons','house','bills','deposit','files','changes'].includes(String(route.query.tab)) ? String(route.query.tab) : 'overview')
 const cohabitants = ref([])
 const bills = ref([])
 const deposit = ref(null)
@@ -18,6 +18,7 @@ const subsidies = ref([])
 const files = ref([])
 const changes = ref([])
 const loaded = ref({})
+const fileBusy = ref(false)
 
 const tabs = computed(() => [
   { key: 'overview', label: '概览' },
@@ -33,6 +34,8 @@ const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDig
 
 async function load() {
   error.value = ''
+  loaded.value = {}
+  cohabitants.value = []; bills.value = []; deposit.value = null; subsidies.value = []; files.value = []; changes.value = []
   try {
     const projects = await api.projects()
     const saved = localStorage.getItem('platformProjectId')
@@ -40,28 +43,55 @@ async function load() {
       ...projects.filter(p => String(p.id) === String(saved)),
       ...projects.filter(p => String(p.id) !== String(saved))
     ]
+    contract.value = null
     for (const project of ordered) {
       const list = await api.contracts(project.id)
       const found = list.find(c => String(c.id) === String(route.params.id))
       if (found) { contract.value = found; break }
     }
     if (!contract.value) throw new Error('合同不存在或不在当前项目')
-    await loadTab()
+    await preload()
   } catch (e) { error.value = e.message }
 }
 
-async function loadTab() {
+async function preload() {
   if (!contract.value) return
-  const key = tab.value
-  if (loaded.value[key]) return
+  const allowed = new Set(tabs.value.map(t => t.key))
+  const jobs = []
+  if (allowed.has('persons')) jobs.push(loadSection('persons'))
+  if (allowed.has('bills')) jobs.push(loadSection('bills'))
+  if (allowed.has('deposit')) jobs.push(loadSection('deposit'))
+  if (allowed.has('files')) jobs.push(loadSection('files'))
+  if (allowed.has('changes')) jobs.push(loadSection('changes'))
+  await Promise.all(jobs)
+}
+
+async function loadSection(key) {
+  if (!contract.value || loaded.value[key]) return
   try {
     if (key === 'persons') cohabitants.value = await api.cohabitants(contract.value.id)
     if (key === 'bills') bills.value = await api.contractBills(contract.value.id)
     if (key === 'deposit') { deposit.value = await api.deposit(contract.value.id); subsidies.value = await api.subsidies(contract.value.id) }
     if (key === 'files') files.value = await api.files('CONTRACT', contract.value.id)
     if (key === 'changes') changes.value = await api.changes(contract.value.id)
-    loaded.value[key] = true
-  } catch (e) { error.value = e.message }
+  } catch (e) { /* 权限不足的 Tab 保持空，不阻断其他 Tab */ }
+  loaded.value[key] = true
+}
+
+async function loadTab() {
+  if (!contract.value) return
+  await loadSection(tab.value)
+}
+
+async function uploadFile(event) {
+  const file = event.target.files?.[0]
+  if (!file || !contract.value) return
+  fileBusy.value = true
+  try {
+    await api.uploadFile('CONTRACT', contract.value.id, file)
+    files.value = await api.files('CONTRACT', contract.value.id)
+    loaded.value.files = true
+  } catch (e) { error.value = e.message } finally { fileBusy.value = false; event.target.value = '' }
 }
 
 function switchTab(key) {
@@ -144,6 +174,7 @@ watch(tab, loadTab)
         </div>
 
         <div v-else-if="tab === 'files'" class="tab-body">
+          <div class="row" style="margin-bottom:10px"><input type="file" :disabled="fileBusy" @change="uploadFile" /><span v-if="fileBusy" class="small muted">上传中…</span></div>
           <div v-if="!files.length" class="empty">暂无附件</div>
           <div v-for="f in files" :key="f.id" class="entity-row"><div>{{ f.fileName }}<div class="small muted">{{ f.fileSize }} bytes · {{ f.createTime }}</div></div><button class="sm" @click="api.downloadFile(f.id, f.fileName)">下载</button></div>
         </div>
