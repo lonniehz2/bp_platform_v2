@@ -3,6 +3,9 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 
 const roles = ref([])
+const projects = ref([])
+const scopeType = ref('NONE')
+const scopeProjectIds = ref([])
 const menus = ref([])
 const selected = ref(null)
 const selectedCodes = ref([])
@@ -32,8 +35,8 @@ const pageCount = computed(() => permissionRows.value.filter(r => !r.group).leng
 async function load() {
   error.value = ''
   try {
-    const [m, r] = await Promise.all([api.menus('GUARANTEE'), api.roles('GUARANTEE')])
-    menus.value = m; roles.value = r
+    const [m, r, p] = await Promise.all([api.menus('GUARANTEE'), api.roles('GUARANTEE'), api.projects()])
+    menus.value = m; roles.value = r; projects.value = p
     const keep = selected.value && r.find(x => String(x.id) === String(selected.value.id))
     await selectRole(keep || r[0] || null)
   } catch (e) { error.value = e.message }
@@ -43,8 +46,10 @@ async function selectRole(r) {
   selected.value = r || null
   if (!r) { selectedCodes.value = []; return }
   try {
-    const list = await api.roleMenus(r.id)
+    const [list, scope] = await Promise.all([api.roleMenus(r.id), api.roleScope(r.id)])
     selectedCodes.value = list.map(x => x.menuCode)
+    scopeType.value = scope.scopeType || 'NONE'
+    scopeProjectIds.value = (scope.projectIds || []).map(String)
   } catch (e) { error.value = e.message; selectedCodes.value = [] }
 }
 
@@ -52,6 +57,16 @@ function toggle(code) {
   const i = selectedCodes.value.indexOf(code)
   if (i >= 0) selectedCodes.value.splice(i, 1)
   else selectedCodes.value.push(code)
+}
+
+
+async function saveScope() {
+  if (!selected.value) return
+  busy.value = true; error.value = ''
+  try {
+    await api.saveRoleScope(selected.value.id, { scopeType: scopeType.value, projectIds: scopeProjectIds.value.map(Number) })
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
 async function save() {
@@ -98,6 +113,14 @@ onMounted(load)
             <template v-if="m.group"><strong>{{ m.menuName }}</strong></template>
             <label v-else class="row" style="gap:6px;cursor:pointer"><input type="checkbox" :checked="selectedCodes.includes(m.menuCode)" @change="toggle(m.menuCode)" /><span>{{ m.menuName }}</span><span class="mono small muted">{{ m.menuCode }}</span></label>
           </div>
+        </div>
+        <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+          <div class="row" style="justify-content:space-between"><strong>默认数据范围</strong><button class="sm" :disabled="busy" @click="saveScope">保存范围</button></div>
+          <div class="row" style="margin-top:8px">
+            <div class="field" style="max-width:220px"><label>范围</label><select v-model="scopeType"><option value="NONE">无数据</option><option value="ALL">全部项目</option><option value="PROJECTS">指定项目</option><option value="SELF">仅本人</option></select></div>
+            <div v-if="scopeType === 'PROJECTS'" class="field" style="flex:1"><label>项目（多选）</label><select v-model="scopeProjectIds" multiple size="5"><option v-for="p in projects" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option></select></div>
+          </div>
+          <div class="small muted">用户可继承此范围，也可在用户页面进一步收窄。</div>
         </div>
       </div>
       <div v-else class="panel"><div class="empty">请选择角色</div></div>

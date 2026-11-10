@@ -2,6 +2,7 @@ package com.yundao.platform.controller;
 
 import com.yundao.platform.common.api.R;
 import com.yundao.platform.service.MenuService;
+import com.yundao.platform.service.RoleScopeService;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class MenuController {
 
     private final MenuService service;
+    private final RoleScopeService roleScopeService;
 
-    public MenuController(MenuService service) {
+    public MenuController(MenuService service, RoleScopeService roleScopeService) {
         this.service = service;
+        this.roleScopeService = roleScopeService;
     }
 
     @GetMapping("/menus")
@@ -35,6 +38,17 @@ public class MenuController {
     @GetMapping("/roles/{roleId}/menus")
     public R<List<Map<String, Object>>> roleMenus(@PathVariable long roleId) {
         return R.ok(service.roleMenus(roleId));
+    }
+
+    @GetMapping("/roles/{roleId}/scope")
+    public R<Map<String, Object>> roleScope(@PathVariable long roleId) {
+        return R.ok(roleScopeService.get(roleId));
+    }
+
+    @PostMapping("/roles/{roleId}/scope")
+    public R<Map<String, Object>> saveRoleScope(@PathVariable long roleId,
+                                                @RequestBody RoleScopeService.ScopeCmd cmd) {
+        return R.ok(roleScopeService.save(roleId, cmd));
     }
 
     @PostMapping("/roles")
