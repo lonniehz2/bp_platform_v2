@@ -85,85 +85,43 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
     private String menuFor(String path) {
         if (path.startsWith("/api/v1/platform/users")
-                || path.startsWith("/api/v1/platform/audit-logs")) {
-            return "config";
+                || path.startsWith("/api/v1/platform/menus")
+                || path.startsWith("/api/v1/platform/roles")) {
+            return "rbac";
         }
-        if (path.startsWith("/api/v1/platform/messages")) {
-            return "message";
-        }
-        if (path.startsWith("/api/v1/platform/open-apps")) {
-            return "open";
-        }
-        if (path.startsWith("/api/v1/platform/guarantee/short-rent-orders")) {
-            return "shortrent";
-        }
-        if (path.startsWith("/api/v1/platform/guarantee/credits")) {
-            return "credit";
-        }
-        if (path.startsWith("/api/v1/platform/guarantee/alerts")) {
-            return "alert";
-        }
-        if (path.startsWith("/api/v1/platform/guarantee/publicities")) {
-            return "publicity";
-        }
-        if (path.startsWith("/api/v1/platform/guarantee/fee-items")) {
-            return "billing";
-        }
-        if (path.startsWith("/api/v1/platform/guarantee/complaints")) {
-            return "complaint";
-        }
-        if (path.startsWith("/api/v1/platform/guarantee/access-records")) {
-            return "access";
-        }
-        if (path.startsWith("/api/v1/platform/guarantee/work-orders")) {
-            return "service";
-        }
-        if (path.startsWith("/api/v1/platform/guarantee/meters")
-                || path.startsWith("/api/v1/platform/guarantee/listings")
-                || path.startsWith("/api/v1/platform/guarantee/bookings")) {
-            return "asset";
-        }
+        if (path.startsWith("/api/v1/platform/audit-logs")) return "audit";
+        if (path.startsWith("/api/v1/platform/imports")) return "batchImport";
+        if (path.startsWith("/api/v1/platform/messages")) return "message";
+        if (path.startsWith("/api/v1/platform/open-apps")) return "sys";
+        if (path.startsWith("/api/v1/platform/guarantee/short-rent-orders")) return "shortrent";
+        if (path.startsWith("/api/v1/platform/guarantee/credits")) return "credit";
+        if (path.startsWith("/api/v1/platform/guarantee/alerts")) return "alertCenter";
+        if (path.startsWith("/api/v1/platform/guarantee/publicities")) return "publicities";
+        if (path.startsWith("/api/v1/platform/guarantee/fee-items")) return "fee";
+        if (path.startsWith("/api/v1/platform/guarantee/complaints")) return "complaints";
+        if (path.startsWith("/api/v1/platform/guarantee/access-records")) return "accessRecords";
+        if (path.startsWith("/api/v1/platform/guarantee/work-orders")) return "workOrders";
+        if (path.startsWith("/api/v1/platform/guarantee/meters")) return "asset";
+        if (path.startsWith("/api/v1/platform/guarantee/listings")
+                || path.startsWith("/api/v1/platform/guarantee/bookings")) return "listings";
         if (path.startsWith("/api/v1/platform/projects")
                 || path.startsWith("/api/v1/platform/space-templates")
-                || path.startsWith("/api/v1/platform/asset-types")) {
-            return "asset";
-        }
-        if (path.startsWith("/api/v1/platform/persons")) {
-            return "person";
-        }
-        if (path.startsWith("/api/v1/platform/guarantee/applications")
-                || path.startsWith("/api/v1/platform/guarantee/waitlist")
-                || path.startsWith("/api/v1/platform/guarantee/allocations")) {
-            return "application";
-        }
-        if (path.contains("/deposit") || path.contains("/subsidies")) {
-            return "billing";
-        }
-        if (path.startsWith("/api/v1/platform/guarantee/contracts")
-                || path.startsWith("/api/v1/platform/guarantee/contract-changes")
-                || path.startsWith("/api/v1/platform/guarantee/qualification-reviews")) {
-            return "contract";
-        }
-        if (path.startsWith("/api/v1/platform/guarantee/deposits")
-                || path.startsWith("/api/v1/platform/guarantee/subsidies")
-                || path.startsWith("/api/v1/platform/billing")) {
-            return "billing";
-        }
-        if (path.startsWith("/api/v1/platform/devices")
-                || path.startsWith("/api/v1/platform/grants")) {
-            return "device";
-        }
+                || path.startsWith("/api/v1/platform/asset-types")) return "asset";
+        if (path.startsWith("/api/v1/platform/persons")) return "person";
+        if (path.startsWith("/api/v1/platform/guarantee/applications")) return "applications";
+        if (path.startsWith("/api/v1/platform/guarantee/waitlist")) return "waitlist";
+        if (path.startsWith("/api/v1/platform/guarantee/allocations")) return "allocations";
+        if (path.contains("/deposits")) return "deposits";
+        if (path.contains("/subsidies")) return "subsidies";
+        if (path.startsWith("/api/v1/platform/guarantee/contract-changes")) return "contractChanges";
+        if (path.startsWith("/api/v1/platform/guarantee/qualification-reviews")) return "qualification";
+        if (path.startsWith("/api/v1/platform/guarantee/contracts")) return "contracts";
+        if (path.startsWith("/api/v1/platform/billing")) return "billing";
+        if (path.startsWith("/api/v1/platform/devices")) return "devices";
+        if (path.startsWith("/api/v1/platform/grants")) return "grants";
         if (path.startsWith("/api/v1/platform/workflows")
-                || path.startsWith("/api/v1/platform/workflow-tasks")) {
-            return "audit";
-        }
-        if (path.startsWith("/api/v1/platform/menus")
-                || path.startsWith("/api/v1/platform/roles")) {
-            return "config";
-        }
-        if (path.startsWith("/api/v1/platform/migration")) {
-            return "system";
-        }
+                || path.startsWith("/api/v1/platform/workflow-tasks")) return "audit";
+        if (path.startsWith("/api/v1/platform/migration")) return "sys";
         return null;
     }
 
