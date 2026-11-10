@@ -4,6 +4,7 @@ import com.yundao.platform.common.api.R;
 import com.yundao.platform.service.PersonImportService;
 import com.yundao.platform.service.SpaceImportService;
 import com.yundao.platform.service.RelationImportService;
+import com.yundao.platform.service.BindingImportService;
 import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,17 +19,24 @@ public class PersonImportController {
     private final PersonImportService service;
     private final SpaceImportService spaceService;
     private final RelationImportService relationService;
+    private final BindingImportService bindingService;
 
     public PersonImportController(PersonImportService service, SpaceImportService spaceService,
-                                  RelationImportService relationService) {
+                                  RelationImportService relationService, BindingImportService bindingService) {
         this.service = service;
         this.spaceService = spaceService;
         this.relationService = relationService;
+        this.bindingService = bindingService;
     }
 
     @PostMapping("/persons")
     public R<Map<String, Object>> persons(@RequestParam("file") MultipartFile file) {
         return R.ok(service.importCsv(file));
+    }
+
+    @PostMapping("/device-bindings")
+    public R<Map<String, Object>> deviceBindings(@RequestParam("file") MultipartFile file) {
+        return R.ok(bindingService.importDeviceBindings(file));
     }
 
     @PostMapping("/person-assets")

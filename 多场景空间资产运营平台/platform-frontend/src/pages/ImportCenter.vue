@@ -15,8 +15,27 @@ const relationFile = ref(null)
 const relationBusy = ref(false)
 const relationResult = ref(null)
 const relationError = ref('')
+const bindingFile = ref(null)
+const bindingBusy = ref(false)
+const bindingResult = ref(null)
+const bindingError = ref('')
 
 function pickPerson(e) { personFile.value = e.target.files?.[0] || null; personResult.value = null; personError.value = '' }
+
+function pickBinding(e) { bindingFile.value = e.target.files?.[0] || null; bindingResult.value = null; bindingError.value = '' }
+
+function downloadBindingTemplate() {
+  const csv = '\ufeff项目编码,设备编码,空间编码\nZZ0020,LOCK-001,101\n'
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+  a.download = '设备资产绑定导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+}
+
+async function importBindings() {
+  if (!bindingFile.value) { bindingError.value = '请选择 CSV 文件'; return }
+  bindingBusy.value = true; bindingError.value = ''; bindingResult.value = null
+  try { bindingResult.value = await api.importDeviceBindings(bindingFile.value) } catch (e) { bindingError.value = e.message } finally { bindingBusy.value = false }
+}
 
 function pickRelation(e) { relationFile.value = e.target.files?.[0] || null; relationResult.value = null; relationError.value = '' }
 
@@ -106,6 +125,17 @@ async function importPersons() {
         <div v-if="relationResult" style="margin-top:12px">
           <div class="alert" :class="relationResult.failed ? 'warn' : 'ok'">共 {{ relationResult.total }} 行，成功 {{ relationResult.success }}，失败 {{ relationResult.failed }}。</div>
           <div v-if="relationResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in relationResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>设备-资产绑定导入</h2><span class="small muted">CSV</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadBindingTemplate">下载模板</button><input type="file" accept=".csv" @change="pickBinding" /><span class="small muted">{{ bindingFile?.name || '未选择文件' }}</span></div>
+        <div v-if="bindingError" class="error">{{ bindingError }}</div>
+        <button class="primary" :disabled="bindingBusy || !bindingFile" @click="importBindings">{{ bindingBusy ? '导入中…' : '开始导入' }}</button>
+        <div v-if="bindingResult" style="margin-top:12px">
+          <div class="alert" :class="bindingResult.failed ? 'warn' : 'ok'">共 {{ bindingResult.total }} 行，成功 {{ bindingResult.success }}，失败 {{ bindingResult.failed }}。</div>
+          <div v-if="bindingResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in bindingResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
