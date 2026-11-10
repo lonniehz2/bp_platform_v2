@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
 import { can } from '../permissions'
+import { contractStatusLabel, contractStatusTone } from '../contractStatus'
 
 const route = useRoute()
 const router = useRouter()
@@ -87,7 +88,7 @@ watch(tab, loadTab)
             <h2>{{ contract.contractNo }}</h2>
             <p>{{ contract.personName }} · {{ contract.houseName }} · {{ contract.startDate }} ~ {{ contract.endDate }}</p>
           </div>
-          <div class="row"><span class="badge" :class="contract.contractStatus === 'ACTIVE' ? 'green' : 'orange'">{{ contract.contractStatus }}</span><button class="sm" @click="router.push('/guarantee/contracts')">返回列表</button></div>
+          <div class="row"><span class="badge" :class="contractStatusTone(contract.contractStatus)">{{ contractStatusLabel(contract.contractStatus) }}</span><button class="sm" @click="router.push('/guarantee/contracts')">返回列表</button></div>
         </div>
         <div class="summary">
           <div><span>租金</span><strong>{{ money(contract.rentAmount) }}</strong></div>
@@ -105,7 +106,7 @@ watch(tab, loadTab)
         <div v-if="tab === 'overview'" class="tab-body">
           <div class="kv-grid">
             <div><span>合同编号</span><strong>{{ contract.contractNo }}</strong></div>
-            <div><span>状态</span><strong>{{ contract.contractStatus }}</strong></div>
+            <div><span>状态</span><strong>{{ contractStatusLabel(contract.contractStatus) }}</strong></div>
             <div><span>承租人</span><a v-if="contract.personId" @click="openPerson(contract.personId)">{{ contract.personName }} →</a><span v-else>—</span></div>
             <div><span>房屋</span><a v-if="contract.houseId" @click="openHouse(contract.houseId)">{{ contract.houseName }} →</a><span v-else>—</span></div>
             <div><span>开始日期</span><strong>{{ contract.startDate }}</strong></div>

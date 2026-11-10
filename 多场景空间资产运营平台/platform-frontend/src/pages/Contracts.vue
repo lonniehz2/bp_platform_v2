@@ -6,6 +6,7 @@ import SearchSelect from '../components/SearchSelect.vue'
 import EntityRelationPanel from '../components/EntityRelationPanel.vue'
 import DataTable from '../components/DataTable.vue'
 import { confirmAction } from '../confirm'
+import { contractStatusLabel, contractStatusTone } from '../contractStatus'
 import { useRouter } from 'vue-router'
 
 const project = ref(null)
@@ -241,7 +242,7 @@ onMounted(load)
         <DataTable :rows="pagedContracts" :columns="contractColumns" :page="page" :page-size="10" :total="filteredContracts.length" empty-text="暂无合同" @update:page="page = $event">
           <template #cell-rentAmount="{ row }">¥{{ money(row.rentAmount) }}</template>
           <template #cell-depositAmount="{ row }">¥{{ money(row.depositAmount) }}</template>
-          <template #cell-contractStatus="{ row }"><span class="badge" :class="row.contractStatus === 'ACTIVE' ? 'green' : 'orange'">{{ row.contractStatus }}</span></template>
+          <template #cell-contractStatus="{ row }"><span class="badge" :class="contractStatusTone(row.contractStatus)">{{ contractStatusLabel(row.contractStatus) }}</span></template>
           <template #cell-actions="{ row }">
             <div class="row">
               <button class="sm" @click="openDetail(row)">详情</button>
