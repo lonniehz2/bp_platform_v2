@@ -78,3 +78,18 @@ platform-local/scripts/db-local-reset.ps1
 - 本地库只用于开发，不替代远程联调库
 - 不要把生产数据直接拷入本地
 - 远程部署仍按批次执行
+
+## 无 Docker 的本机 MySQL 回退
+
+如果本机已有独立 MySQL，可指定端口和密码启动后端：
+
+```powershell
+platform-local/scripts/dev-backend.ps1 -DbPort 3307 -DbPassword ''
+```
+
+当前本机验证实例：
+
+```text
+MySQL 127.0.0.1:3307
+后端 127.0.0.1:8091
+```
