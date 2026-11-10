@@ -214,5 +214,7 @@ export const api = {
   revokeGrant: (grantId, reason = '') => request(`/grants/${grantId}/revoke`, { method: 'POST', body: JSON.stringify({ reason }) }),
   menus: (sceneCode) => request(`/menus?sceneCode=${sceneCode}`),
   roles: (sceneCode) => request(`/roles?sceneCode=${sceneCode}`),
-  roleMenus: (roleId) => request(`/roles/${roleId}/menus`)
+  roleMenus: (roleId) => request(`/roles/${roleId}/menus`),
+  createRole: (body) => request('/roles', { method: 'POST', body: JSON.stringify(body) }),
+  saveRoleMenus: (roleId, menuCodes) => request(`/roles/${roleId}/menus`, { method: 'POST', body: JSON.stringify({ menuCodes }) })
 }
