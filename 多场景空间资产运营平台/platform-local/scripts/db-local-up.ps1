@@ -1,4 +1,4 @@
-param([string]$ComposeFile = (Join-Path (Split-Path -Parent $PSScriptRoot) 'docker-compose.yml'))
+﻿param([string]$ComposeFile = (Join-Path (Split-Path -Parent $PSScriptRoot) 'docker-compose.yml'))
 $ErrorActionPreference = 'Stop'
 docker compose -f $ComposeFile up -d
 if ($LASTEXITCODE -ne 0) { throw 'docker compose up 失败' }

@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$Jar = (Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'platform-backend/target/multi-scene-platform.jar'),
     [int]$Port = 8091,
     [int]$DbPort = 3306,
