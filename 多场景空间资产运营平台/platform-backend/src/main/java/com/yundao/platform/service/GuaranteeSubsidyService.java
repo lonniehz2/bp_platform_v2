@@ -65,6 +65,7 @@ public class GuaranteeSubsidyService {
         BigDecimal value = jdbc.queryForObject(
                 "select coalesce(sum(subsidy_amount),0) from guarantee_subsidy "
                         + "where tenant_id=? and contract_id=? and subsidy_status='ACTIVE' and is_deleted=0 "
+                        + "and subsidy_type='RENT_SUBSIDY' "
                         + "and start_date<=? and end_date>=?",
                 BigDecimal.class, TenantContext.require(), contractId, periodEnd, periodStart);
         return value == null ? BigDecimal.ZERO : value;

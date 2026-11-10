@@ -111,7 +111,7 @@ onMounted(load)
     <div v-if="editing" class="modal-mask" @click.self="editing = null">
       <div class="modal">
         <div class="panel-head"><h2>编辑补贴</h2><button class="sm" @click="editing = null">关闭</button></div>
-        <div class="field"><label>补贴类型</label><select v-model="editForm.subsidyType"><option value="RENT_SUBSIDY">租金补贴</option><option value="CASH_SUBSIDY">现金补贴</option><option value="OTHER">其他</option></select></div>
+        <div class="field"><label>补贴类型</label><select v-model="editForm.subsidyType"><option value="RENT_SUBSIDY">租金补贴</option><option value="OTHER">其他</option></select></div>
         <div class="field"><label>月补贴金额</label><input v-model.number="editForm.amount" type="number" /></div>
         <div class="field"><label>开始</label><input v-model="editForm.startDate" type="date" /></div>
         <div class="field"><label>结束</label><input v-model="editForm.endDate" type="date" /></div>
