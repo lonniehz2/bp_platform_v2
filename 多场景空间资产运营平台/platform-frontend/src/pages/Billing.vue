@@ -15,6 +15,7 @@ const drillRange = ref({ start: '', end: '' })
 const page = ref(1)
 const billQuery = ref('')
 const payOpen = ref(false)
+const paymentsOpen = ref(false)
 const error = ref('')
 const busy = ref(false)
 const payForm = reactive({ billId: '', amount: '', method: 'CASH' })
@@ -161,7 +162,7 @@ onMounted(load)
     <template v-else>
       <div class="panel">
         <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project.orgName }} · 账单列表与收款</p></div>
-          <div class="row"><button v-if="canAction('billing:pay', 'billing')" class="primary" @click="payOpen = true">收款</button></div>
+          <div class="row"><button v-if="canAction('billing:pay', 'billing')" class="primary" @click="payOpen = true">收款</button><button class="sm" @click="paymentsOpen = !paymentsOpen">{{ paymentsOpen ? '隐藏收款记录' : '收款记录' }}</button></div>
         </div>
       </div>
 
@@ -185,7 +186,7 @@ onMounted(load)
         </DataTable>
       </div>
 
-      <div class="panel">
+      <div v-if="paymentsOpen" class="panel">
         <div class="panel-head"><h2>收款记录</h2><span class="small muted">收据随收款自动生成</span></div>
         <div v-if="!payments.length" class="empty">暂无收款</div>
         <div class="table-wrap" v-else>

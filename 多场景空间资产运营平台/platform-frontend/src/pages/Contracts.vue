@@ -12,6 +12,7 @@ const persons = ref([])
 const houses = ref([])
 const error = ref('')
 const busy = ref(false)
+const detailOpen = ref(false)
 const createOpen = ref(false)
 const billOpen = ref(false)
 const page = ref(1)
@@ -120,6 +121,11 @@ async function contractAction(c, action) {
     }
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+async function openDetail(c) {
+  await openFiles(c)
+  detailOpen.value = true
 }
 
 async function openFiles(c) {
@@ -236,7 +242,7 @@ onMounted(load)
           <template #cell-contractStatus="{ row }"><span class="badge" :class="row.contractStatus === 'ACTIVE' ? 'green' : 'orange'">{{ row.contractStatus }}</span></template>
           <template #cell-actions="{ row }">
             <div class="row">
-              <button class="sm" @click="openFiles(row)">附件</button>
+              <button class="sm" @click="openDetail(row)">详情</button>
               <button v-if="canAction('contract:submit', 'contract') && row.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(row, 'submit')">提交</button>
               <button v-if="canAction('contract:activate', 'contract') && row.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(row, 'activate')">直接生效</button>
               <button v-if="canAction('contract:discard', 'contract') && row.contractStatus === 'DRAFT'" class="sm danger" :disabled="busy" @click="contractAction(row, 'discard')">作废</button>
@@ -248,7 +254,10 @@ onMounted(load)
         </DataTable>
       </div>
 
-      <div v-if="selectedContract" class="panel">
+      <div v-if="detailOpen" class="modal-mask" @click.self="detailOpen = false">
+        <div class="modal" style="max-width:900px">
+          <div class="panel-head"><h2>合同详情</h2><button class="sm" @click="detailOpen = false">关闭</button></div>
+      <div v-if="detailOpen && selectedContract" class="panel">
         <div class="panel-head"><h2>合同附件</h2><span class="small muted">{{ selectedContract.contractNo }}</span></div>
         <div class="row" style="margin-bottom:10px">
           <input type="file" @change="uploadFile" :disabled="fileBusy" style="max-width:320px" />
@@ -260,7 +269,7 @@ onMounted(load)
         </div>
       </div>
 
-      <div v-if="selectedContract" class="panel">
+      <div v-if="detailOpen && selectedContract" class="panel">
         <div class="panel-head"><h2>合同同住人</h2><span class="small muted">{{ selectedContract.contractNo }} · {{ cohabitants.length }} 人</span></div>
         <div class="row" style="margin-bottom:10px">
           <div class="field" style="flex:2"><label>人员</label><SearchSelect v-model="cohabForm.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" /></div>
@@ -274,6 +283,9 @@ onMounted(load)
           <div style="flex:1"><div>{{ c.personName }} · {{ c.relationType }}</div><div class="small muted">{{ c.startDate || '' }} ~ {{ c.endDate || '长期' }}</div></div>
           <span class="badge green">{{ c.cohabitantStatus }}</span>
           <button class="sm danger" :disabled="busy" @click="removeCohabitant(c)">移除</button>
+        </div>
+      </div>
+
         </div>
       </div>
 

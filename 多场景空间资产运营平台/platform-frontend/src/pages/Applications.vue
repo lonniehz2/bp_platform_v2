@@ -10,6 +10,7 @@ const applications = ref([])
 const persons = ref([])
 const houses = ref([])
 const waitlist = ref([])
+const detailApp = ref(null)
 const createOpen = ref(false)
 const allocateOpen = ref(false)
 const error = ref('')
@@ -131,6 +132,7 @@ onMounted(load)
                 <td>{{ a.familySize }}</td><td>{{ incomeLabel(a.incomeLevel) }}</td><td>{{ housingLabel(a.housingStatus) }}</td>
                 <td><span class="badge" :class="statusClass(a.applicationStatus)">{{ a.applicationStatus }}</span></td>
                 <td class="row">
+                  <button class="sm" @click="detailApp = a">详情</button>
                   <button class="sm" v-if="canAction('application:submit', 'application') && a.applicationStatus === 'DRAFT'" :disabled="busy" @click="submit(a.id)">提交</button>
                   <button class="sm danger" v-if="canAction('application:discard', 'application') && a.applicationStatus === 'DRAFT'" :disabled="busy" @click="discardApplication(a)">作废</button>
                   <button class="sm" v-if="canAction('application:approve', 'application') && a.applicationStatus === 'SUBMITTED'" :disabled="busy" @click="approve(a.id)">审核通过</button>
@@ -162,6 +164,23 @@ onMounted(load)
         </div>
       </div>
     </template>
+
+    <div v-if="detailApp" class="modal-mask" @click.self="detailApp = null">
+      <div class="modal" style="max-width:720px">
+        <div class="panel-head"><h2>申请详情</h2><button class="sm" @click="detailApp = null">关闭</button></div>
+        <div class="row">
+          <div class="field"><label>申请编号</label><div class="mono">{{ detailApp.applicationNo }}</div></div>
+          <div class="field"><label>申请人</label><div>{{ detailApp.applicantName }}</div></div>
+          <div class="field"><label>状态</label><span class="badge" :class="statusClass(detailApp.applicationStatus)">{{ detailApp.applicationStatus }}</span></div>
+          <div class="field"><label>保障类型</label><div>{{ detailApp.guaranteeType || '-' }}</div></div>
+          <div class="field"><label>家庭结构</label><div>{{ detailApp.familyType || '-' }}</div></div>
+          <div class="field"><label>家庭人数</label><div>{{ detailApp.familySize }}</div></div>
+          <div class="field"><label>收入水平</label><div>{{ incomeLabel(detailApp.incomeLevel) }}</div></div>
+          <div class="field"><label>住房情况</label><div>{{ housingLabel(detailApp.housingStatus) }}</div></div>
+          <div class="field"><label>档案编号</label><div>{{ detailApp.archiveNo || '-' }}</div></div>
+        </div>
+      </div>
+    </div>
 
     <div v-if="createOpen" class="modal-mask" @click.self="createOpen = false">
       <div class="modal" style="max-width:860px">
