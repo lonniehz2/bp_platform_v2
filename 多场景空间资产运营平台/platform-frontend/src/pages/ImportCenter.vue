@@ -27,8 +27,27 @@ const deviceGrantFile = ref(null)
 const deviceGrantBusy = ref(false)
 const deviceGrantResult = ref(null)
 const deviceGrantError = ref('')
+const userFile = ref(null)
+const userBusy = ref(false)
+const userResult = ref(null)
+const userError = ref('')
 
 function pickPerson(e) { personFile.value = e.target.files?.[0] || null; personResult.value = null; personError.value = '' }
+
+function pickUser(e) { userFile.value = e.target.files?.[0] || null; userResult.value = null; userError.value = '' }
+
+function downloadUserTemplate() {
+  const csv = '\ufeff用户名,密码,姓名,角色编码\nzhangsan,123456,张三,ASSET_CLERK\n'
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+  a.download = '用户导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+}
+
+async function importUsers() {
+  if (!userFile.value) { userError.value = '请选择 CSV 文件'; return }
+  userBusy.value = true; userError.value = ''; userResult.value = null
+  try { userResult.value = await api.importUsers(userFile.value) } catch (e) { userError.value = e.message } finally { userBusy.value = false }
+}
 
 function pickDeviceGrant(e) { deviceGrantFile.value = e.target.files?.[0] || null; deviceGrantResult.value = null; deviceGrantError.value = '' }
 
@@ -174,6 +193,17 @@ async function importPersons() {
         <div v-if="grantResult" style="margin-top:12px">
           <div class="alert" :class="grantResult.failed ? 'warn' : 'ok'">共 {{ grantResult.total }} 行，成功 {{ grantResult.success }}，失败 {{ grantResult.failed }}。</div>
           <div v-if="grantResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in grantResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>用户导入</h2><span class="small muted">CSV</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadUserTemplate">下载模板</button><input type="file" accept=".csv" @change="pickUser" /><span class="small muted">{{ userFile?.name || '未选择文件' }}</span></div>
+        <div v-if="userError" class="error">{{ userError }}</div>
+        <button class="primary" :disabled="userBusy || !userFile" @click="importUsers">{{ userBusy ? '导入中…' : '开始导入' }}</button>
+        <div v-if="userResult" style="margin-top:12px">
+          <div class="alert" :class="userResult.failed ? 'warn' : 'ok'">共 {{ userResult.total }} 行，成功 {{ userResult.success }}，失败 {{ userResult.failed }}。</div>
+          <div v-if="userResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in userResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
