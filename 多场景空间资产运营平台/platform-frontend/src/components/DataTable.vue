@@ -11,7 +11,8 @@ const props = defineProps({
   pageSize: { type: Number, default: 10 },
   total: { type: Number, default: 0 },
   emptyText: { type: String, default: '暂无数据' },
-  density: { type: String, default: 'normal' }
+  density: { type: String, default: 'normal' },
+  rowClass: { type: Function, default: null }
 })
 const emit = defineEmits(['update:page', 'update:pageSize', 'selectionChange', 'sortChange', 'rowClick'])
 const selected = ref(new Set())
@@ -73,7 +74,7 @@ function setSize(e) {
           <tr v-if="loading"><td :colspan="columns.length + (selectable ? 1 : 0)" class="dt-state">加载中…</td></tr>
           <tr v-else-if="!rows.length"><td :colspan="columns.length + (selectable ? 1 : 0)" class="dt-state">{{ emptyText }}</td></tr>
           <template v-else>
-            <tr v-for="row in rows" :key="row[rowKey]" @click="$emit('rowClick', row)">
+            <tr v-for="row in rows" :key="row[rowKey]" :class="rowClass ? rowClass(row) : ''" @click="$emit('rowClick', row)">
               <td v-if="selectable" class="dt-check" @click.stop><input type="checkbox" :checked="selected.has(String(row[rowKey]))" @change="toggleRow(row)" /></td>
               <td v-for="c in columns" :key="c.key" :style="{ textAlign: c.align || 'left' }">
                 <slot :name="'cell-' + c.key" :row="row" :value="row[c.key]">{{ cell(row, c) }}</slot>

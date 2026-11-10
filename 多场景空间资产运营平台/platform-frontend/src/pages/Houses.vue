@@ -19,6 +19,7 @@ const filtered = computed(() => {
   if (q) rows = rows.filter(h => (String(h.houseCode) + ' ' + String(h.houseName || '')).toLowerCase().includes(q))
   return rows
 })
+const rowClass = (row) => String(row.id) === String(route.query.id) ? 'highlight-row' : ''
 const houseColumns = [
   { key: 'houseCode', title: '房源编码', width: '150px' },
   { key: 'houseName', title: '名称' },
@@ -89,8 +90,12 @@ onMounted(async () => {
       <div class="row" style="margin-bottom:8px">
         <input v-model="houseQuery" placeholder="搜索房源编码/名称" style="max-width:280px" @input="page = 1" />
       </div>
-      <DataTable :rows="paged" :columns="houseColumns" :page="page" :page-size="10" :total="filtered.length" empty-text="暂无房源" @update:page="page = $event">
+      <DataTable :rows="paged" :columns="houseColumns" :row-class="rowClass" :page="page" :page-size="10" :total="filtered.length" empty-text="暂无房源" @update:page="page = $event">
         <template #cell-floor="{ row }">{{ row.floorNo || '-' }}/{{ row.totalFloors || '-' }}</template>
+
+<style scoped>
+:deep(tr.highlight-row) { background:var(--brand-soft); }
+</style>
         <template #cell-area="{ row }">{{ row.area || '-' }}</template>
         <template #cell-innerArea="{ row }">{{ row.innerArea || '-' }}</template>
         <template #cell-houseStatus="{ row }"><span class="badge" :class="row.houseStatus === 'VACANT' ? 'green' : 'orange'">{{ row.houseStatus }}</span></template>
