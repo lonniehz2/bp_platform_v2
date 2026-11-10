@@ -110,7 +110,7 @@ const title = computed(() => t(titleKey[route.path] || 'nav.dashboard'))
 
 onMounted(async () => {
   try {
-    if (localStorage.getItem('platformToken') && allowedMenus.value.length === 0) {
+    if (localStorage.getItem('platformToken')) {
       try {
         const menus = await api.myMenus('GUARANTEE')
         setMenus(menus)

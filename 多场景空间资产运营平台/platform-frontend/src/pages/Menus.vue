@@ -16,7 +16,7 @@ const flatMenus = computed(() => {
   const out = []
   const walk = (list, prefix = '') => {
     for (const m of list) {
-      out.push({ code: m.menuCode, name: prefix + m.menuName })
+      if (m.menuType !== 'GROUP') out.push({ code: m.menuCode, name: prefix + m.menuName })
       if (m.children?.length) walk(m.children, prefix + m.menuName + ' / ')
     }
   }
