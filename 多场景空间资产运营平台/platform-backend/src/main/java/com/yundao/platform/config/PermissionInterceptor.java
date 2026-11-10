@@ -92,14 +92,21 @@ public class PermissionInterceptor implements HandlerInterceptor {
         if ("GET".equals(m) || "HEAD".equals(m)) return "view";
         if ("OPTIONS".equals(m)) return null;
         String p = path.toLowerCase();
+        if ("DELETE".equals(m) || p.contains("/archive") || p.contains("/delete") || p.contains("/remove")) {
+            return "delete";
+        }
         if (p.contains("/approve") || p.contains("/reject") || p.contains("/resolve")
                 || p.contains("/confirm") || p.contains("/pay") || p.contains("/refund")
                 || p.contains("/terminate") || p.contains("/allocate") || p.contains("/publish")
                 || p.contains("/checkout")) {
             return "approve";
         }
-        if ("DELETE".equals(m)) return "delete";
-        if ("PUT".equals(m) || "PATCH".equals(m) || p.contains("/update") || p.contains("/edit")) return "edit";
+        if ("PUT".equals(m) || "PATCH".equals(m) || p.contains("/update") || p.contains("/edit")
+                || p.contains("/submit") || p.contains("/withdraw") || p.contains("/discard")
+                || p.contains("/activate") || p.contains("/close") || p.contains("/scopes")
+                || p.contains("/menus") || p.contains("/actions")) {
+            return "edit";
+        }
         if ("POST".equals(m)) return "create";
         return "edit";
     }
@@ -131,7 +138,16 @@ public class PermissionInterceptor implements HandlerInterceptor {
         }
         if (path.startsWith("/api/v1/platform/audit-logs")) return "audit";
         if (path.startsWith("/api/v1/platform/imports")) return "batchImport";
-        if (path.startsWith("/api/v1/platform/relations")) return "contracts";
+        if (path.startsWith("/api/v1/platform/relations")) {
+            String rest = path.substring("/api/v1/platform/relations/".length()).toUpperCase();
+            if (rest.startsWith("PERSON")) return "person";
+            if (rest.startsWith("HOUSE")) return "houses";
+            if (rest.startsWith("BILL")) return "billing";
+            if (rest.startsWith("DEVICE")) return "devices";
+            if (rest.startsWith("WORK_ORDER")) return "workOrders";
+            if (rest.startsWith("APPLICATION")) return "applications";
+            return "contracts";
+        }
         if (path.startsWith("/api/v1/platform/messages")) return "message";
         if (path.startsWith("/api/v1/platform/open-apps")) return "sys";
         if (path.startsWith("/api/v1/platform/guarantee/short-rent-orders")) return "shortrent";
