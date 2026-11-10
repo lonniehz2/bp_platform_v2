@@ -1,12 +1,13 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
 import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
 import DataTable from '../components/DataTable.vue'
 
 const route = useRoute()
+const router = useRouter()
 const pageTitle = route.path === '/bills' ? '账单与缴费' : '收款'
 const project = ref(null)
 const bills = ref([])
@@ -161,6 +162,7 @@ onMounted(load)
 <template>
   <div>
     <div v-if="error" class="error">{{ error }}</div>
+    <div v-if="route.query.contractId" class="alert">当前仅显示合同 {{ route.query.contractId }} 的账单 <button class="sm" @click="router.replace('/guarantee/billing')">清除合同筛选</button></div>
     <div v-if="!project" class="empty">请先创建项目</div>
     <template v-else>
       <div class="panel">

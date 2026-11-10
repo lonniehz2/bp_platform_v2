@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { contractStatusLabel, contractStatusTone } from '../contractStatus'
+import { relationLabel, relationStatusLabel } from '../relationLabels'
 import { api } from '../api'
 import { can } from '../permissions'
 import DataTable from '../components/DataTable.vue'
@@ -19,10 +20,6 @@ const contractRelations = ref(null)
 const error = ref('')
 const busy = ref(false)
 const page = ref(1)
-const relationLabels = { TENANT: '承租人', FAMILY: '家庭成员', COHABITANT: '同住人', OWNER: '产权人', SPOUSE: '配偶', CHILD: '子女', PARENT: '父母', OTHER: '其他' }
-const relationLabel = (v) => relationLabels[v] || v || '-'
-const relationStatusLabels = { ACTIVE: '有效', INACTIVE: '已结束', ENDED: '已结束' }
-const relationStatusLabel = (v) => relationStatusLabels[v] || v || '-'
 const route = useRoute()
 const router = useRouter()
 const personQuery = ref('')
@@ -162,6 +159,10 @@ onMounted(async () => {
 <template>
   <div>
     <div v-if="error" class="error">{{ error }}</div>
+    <div v-if="route.query.from === 'contract' && route.query.contractId" class="alert">
+      来自合同 {{ route.query.contractId }} 的人员页
+      <button class="sm" @click="router.push(`/guarantee/contracts/${route.query.contractId}?tab=persons`)">返回合同</button>
+    </div>
     <div class="panel">
       <div class="panel-head"><div><h2>人员档案</h2><p>保障对象、家庭成员、承租人、同住人、访客、服务人员</p></div><div class="row"><span class="badge blue">{{ persons.length }} 人</span><RouterLink class="sm" to="/guarantee/imports">批量导入</RouterLink></div></div>
       <div class="row">

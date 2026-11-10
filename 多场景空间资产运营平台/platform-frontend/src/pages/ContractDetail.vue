@@ -1,9 +1,11 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
 import { can } from '../permissions'
 import { contractStatusLabel, contractStatusTone } from '../contractStatus'
+import { relationLabel, relationStatusLabel } from '../relationLabels'
+import SearchSelect from '../components/SearchSelect.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,6 +21,8 @@ const files = ref([])
 const changes = ref([])
 const loaded = ref({})
 const fileBusy = ref(false)
+const persons = ref([])
+const cohabForm = reactive({ personId: '', relationType: 'FAMILY', startDate: '', endDate: '' })
 
 const tabs = computed(() => [
   { key: 'overview', label: '概览' },
@@ -69,7 +73,11 @@ async function preload() {
 async function loadSection(key) {
   if (!contract.value || loaded.value[key]) return
   try {
-    if (key === 'persons') cohabitants.value = await api.cohabitants(contract.value.id)
+    if (key === 'persons') {
+      cohabitants.value = await api.cohabitants(contract.value.id)
+      if (!persons.value.length) persons.value = await api.persons()
+      if (!cohabForm.personId && persons.value.length) cohabForm.personId = persons.value[0].id
+    }
     if (key === 'bills') bills.value = await api.contractBills(contract.value.id)
     if (key === 'deposit') { deposit.value = await api.deposit(contract.value.id); subsidies.value = await api.subsidies(contract.value.id) }
     if (key === 'files') files.value = await api.files('CONTRACT', contract.value.id)
@@ -81,6 +89,31 @@ async function loadSection(key) {
 async function loadTab() {
   if (!contract.value) return
   await loadSection(tab.value)
+}
+
+
+async function addCohabitant() {
+  if (!cohabForm.personId) { error.value = '请选择同住人'; return }
+  busy.value = true; error.value = ''
+  try {
+    await api.addCohabitant(contract.value.id, {
+      personId: cohabForm.personId,
+      relationType: cohabForm.relationType,
+      startDate: cohabForm.startDate || null,
+      endDate: cohabForm.endDate || null,
+      remark: ''
+    })
+    cohabitants.value = await api.cohabitants(contract.value.id)
+    cohabForm.personId = ''
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
+async function removeCohabitant(c) {
+  busy.value = true; error.value = ''
+  try {
+    await api.removeCohabitant(c.id)
+    cohabitants.value = await api.cohabitants(contract.value.id)
+  } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
 async function uploadFile(event) {
@@ -99,8 +132,8 @@ function switchTab(key) {
   router.replace({ query: { ...route.query, tab: key } })
 }
 
-function openPerson(id) { if (id) router.push(`/guarantee/persons?id=${id}`) }
-function openHouse(id) { if (id) router.push(`/guarantee/houses?id=${id}`) }
+function openPerson(id) { if (id) router.push(`/guarantee/persons?id=${id}&from=contract&contractId=${contract.value.id}`) }
+function openHouse(id) { if (id) router.push(`/guarantee/houses?id=${id}&from=contract&contractId=${contract.value.id}`) }
 
 onMounted(load)
 watch(() => route.params.id, load)
@@ -152,8 +185,15 @@ watch(tab, loadTab)
           <div class="section-title">承租人</div>
           <div class="entity-row"><strong>{{ contract.personName }}</strong><button class="sm" @click="openPerson(contract.personId)">打开人员</button></div>
           <div class="section-title">同住人（{{ cohabitants.length }}）</div>
+          <div class="row" style="margin-bottom:10px;flex-wrap:wrap">
+            <div class="field" style="flex:2;min-width:180px"><label>人员</label><SearchSelect v-model="cohabForm.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" /></div>
+            <div class="field"><label>关系</label><select v-model="cohabForm.relationType"><option value="SPOUSE">配偶</option><option value="CHILD">子女</option><option value="PARENT">父母</option><option value="FAMILY">家庭成员</option><option value="OTHER">其他</option></select></div>
+            <div class="field"><label>开始</label><input v-model="cohabForm.startDate" type="date" /></div>
+            <div class="field"><label>结束</label><input v-model="cohabForm.endDate" type="date" /></div>
+            <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="addCohabitant">新增同住人</button></div>
+          </div>
           <div v-if="!cohabitants.length" class="empty">暂无同住人</div>
-          <div v-for="c in cohabitants" :key="c.id" class="entity-row"><div><strong>{{ c.personName }}</strong><span class="small muted"> · {{ c.relationType }} · {{ c.startDate || '' }} ~ {{ c.endDate || '长期' }}</span></div><span class="badge green">{{ c.cohabitantStatus }}</span></div>
+          <div v-for="c in cohabitants" :key="c.id" class="entity-row"><div><strong>{{ c.personName }}</strong><span class="small muted"> · {{ relationLabel(c.relationType) }} · {{ c.startDate || '' }} ~ {{ c.endDate || '长期' }}</span></div><div class="row"><span class="badge green">{{ relationStatusLabel(c.cohabitantStatus) }}</span><button class="sm danger" :disabled="busy" @click="removeCohabitant(c)">移除</button></div></div>
         </div>
 
         <div v-else-if="tab === 'house'" class="tab-body">
