@@ -28,8 +28,11 @@ public class UserService {
     public List<Map<String, Object>> users() {
         String tenant = UserContext.require().tenantId();
         List<Map<String, Object>> users = jdbc.queryForList(
-                "select id, username, display_name displayName, user_status userStatus, create_time createTime "
-                        + "from bp_user where tenant_id=? and is_deleted=0 order by id",
+                "select u.id, u.username, u.display_name displayName, u.user_status userStatus, u.create_time createTime, "
+                        + "(select count(*) from bp_user_scope_override o where o.tenant_id=u.tenant_id and o.user_id=u.id and o.enabled=1) scopeOverrideEnabled, "
+                        + "(select count(*) from bp_user_project p where p.tenant_id=u.tenant_id and p.user_id=u.id and p.is_deleted=0) scopeProjectCount, "
+                        + "(select count(*) from bp_user_org g where g.tenant_id=u.tenant_id and g.user_id=u.id and g.is_deleted=0) scopeOrgCount "
+                        + "from bp_user u where u.tenant_id=? and u.is_deleted=0 order by u.id",
                 tenant);
         List<Map<String, Object>> links = jdbc.queryForList(
                 "select ur.user_id userId, r.role_code roleCode, r.role_name roleName "

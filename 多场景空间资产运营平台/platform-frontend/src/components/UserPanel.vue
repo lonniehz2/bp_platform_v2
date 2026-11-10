@@ -16,6 +16,8 @@ const createOpen = ref(false)
 const editing = ref(null)
 const createForm = reactive({ username: '', password: '', displayName: '', roleIds: [] })
 const editForm = reactive({ displayName: '', password: '', roleIds: [], userStatus: 'ENABLED' })
+const hasOverride = (u) => Number(u.scopeOverrideEnabled) > 0
+const selectedProjectNames = computed(() => projects.value.filter(p => scopeProjectIds.value.includes(String(p.id))).map(p => p.orgName))
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
   if (!q) return users.value
@@ -129,11 +131,12 @@ onMounted(load)
     <div class="panel">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>用户名</th><th>姓名</th><th>角色</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th>用户名</th><th>姓名</th><th>角色</th><th>数据范围</th><th>状态</th><th>操作</th></tr></thead>
           <tbody>
             <tr v-for="u in filtered" :key="u.id">
               <td class="mono">{{ u.username }}</td><td>{{ u.displayName }}</td>
               <td><span v-for="r in u.roleNames" :key="r" class="badge blue" style="margin-right:4px">{{ r }}</span><span v-if="!u.roleNames?.length" class="muted">未分配</span></td>
+              <td><span v-if="hasOverride(u)" class="badge orange">单独限制 · {{ u.scopeProjectCount || 0 }} 个项目</span><span v-else class="badge">跟随角色</span></td>
               <td><span class="badge" :class="u.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ u.userStatus }}</span></td>
               <td><div class="row"><button class="sm" @click="openEdit(u)">编辑</button><button class="sm" @click="openScope(u)">数据范围</button><button class="sm" :class="u.userStatus === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? '停用' : '启用' }}</button></div></td>
             </tr>
@@ -169,6 +172,10 @@ onMounted(load)
       <div class="modal scope-modal" style="max-width:620px">
         <div class="panel-head"><div><h2>数据范围</h2><p class="small muted">{{ scopeUser.displayName }}（{{ scopeUser.username }}）</p></div><button class="sm" @click="scopeUser = null">关闭</button></div>
         <div v-if="scopeNotice" class="alert success">{{ scopeNotice }}</div>
+        <div class="alert">
+          <div><strong>当前：</strong><span v-if="hasOverride(scopeUser)">单独限制 · {{ scopeUser.scopeProjectCount || 0 }} 个项目</span><span v-else>跟随角色</span></div>
+          <div class="small muted" style="margin-top:4px">角色：{{ scopeUser.roleNames?.join('、') || '未分配角色' }}</div>
+        </div>
         <div class="scope-choice">
           <button class="scope-card" :class="{ active: scopeMode === 'inherit' }" @click="chooseScopeMode('inherit')">
             <strong>跟随角色范围</strong>
@@ -184,6 +191,7 @@ onMounted(load)
             <span class="small">已选 {{ scopeProjectIds.length }} 个项目</span>
             <button class="sm" @click="scopeProjectIds = []">清空</button>
           </div>
+          <div v-if="selectedProjectNames.length" class="small" style="margin-bottom:6px">{{ selectedProjectNames.join('、') }}</div>
           <select v-model="scopeProjectIds" multiple size="7">
             <option v-for="p in projects" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option>
           </select>
