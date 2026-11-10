@@ -80,7 +80,7 @@ onMounted(load)
 
     <div class="grid" style="grid-template-columns: 1.1fr .9fr">
       <div class="panel">
-        <div class="panel-head"><h2>场景菜单</h2><span class="small muted">{{ flatMenus.length }} 个菜单</span></div>
+        <div class="panel-head"><h2>功能权限</h2><span class="small muted">{{ flatMenus.length }} 个菜单</span></div>
         <div v-if="!menus.length" class="empty">暂无菜单</div>
         <div v-for="m in menus" :key="m.menuCode" style="padding:9px 0;border-bottom:1px solid var(--line)">
           <div class="row"><strong>{{ m.menuName }}</strong><span class="mono">{{ m.route }}</span></div>
