@@ -53,6 +53,59 @@ public class MenuService {
         return roots;
     }
 
+
+    public List<Map<String, Object>> userMenuTree(long userId, String tenant, String sceneCode) {
+        List<Map<String, Object>> allowed = jdbc.queryForList(
+                "select distinct m.menu_code menuCode from bp_user_role ur "
+                        + "join bp_role_menu rm on rm.role_id=ur.role_id "
+                        + "join bp_menu m on m.id=rm.menu_id "
+                        + "where ur.tenant_id=? and ur.user_id=? and m.scene_code=? "
+                        + "and m.menu_status='ENABLED' and m.menu_type='PAGE'",
+                tenant, userId, sceneCode);
+        java.util.Set<String> codes = new java.util.HashSet<>();
+        for (Map<String, Object> row : allowed) codes.add(String.valueOf(row.get("menuCode")));
+        List<Map<String, Object>> all = jdbc.queryForList(
+                "select menu_code menuCode, parent_code parentCode, menu_name menuName, menu_type menuType, "
+                        + "route, sort_no sortNo from bp_menu where scene_code=? and menu_status='ENABLED' "
+                        + "order by sort_no, menu_code", sceneCode);
+        Map<String, Map<String, Object>> byCode = new LinkedHashMap<>();
+        for (Map<String, Object> row : all) {
+            String code = String.valueOf(row.get("menuCode"));
+            String type = String.valueOf(row.get("menuType"));
+            if ("PAGE".equals(type) && !codes.contains(code)) continue;
+            Map<String, Object> node = new LinkedHashMap<>();
+            node.put("menuCode", code);
+            node.put("menuName", row.get("menuName"));
+            node.put("menuType", type);
+            node.put("route", row.get("route"));
+            node.put("sortNo", row.get("sortNo"));
+            node.put("children", new ArrayList<Map<String, Object>>());
+            byCode.put(code, node);
+        }
+        List<Map<String, Object>> roots = new ArrayList<>();
+        for (Map<String, Object> row : all) {
+            String code = String.valueOf(row.get("menuCode"));
+            if (!byCode.containsKey(code)) continue;
+            Map<String, Object> node = byCode.get(code);
+            String parent = row.get("parentCode") == null ? null : String.valueOf(row.get("parentCode"));
+            if (parent == null || !byCode.containsKey(parent)) roots.add(node);
+            else {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> children = (List<Map<String, Object>>) byCode.get(parent).get("children");
+                children.add(node);
+            }
+        }
+        // remove empty groups
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (Map<String, Object> root : roots) {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> children = (List<Map<String, Object>>) root.get("children");
+            if ("GROUP".equals(root.get("menuType")) && children.isEmpty()) continue;
+            out.add(root);
+        }
+        return out;
+    }
+
     public List<Map<String, Object>> roles(String sceneCode) {
         return jdbc.queryForList(
                 "select r.id, r.scene_code sceneCode, r.role_code roleCode, r.role_name roleName, "

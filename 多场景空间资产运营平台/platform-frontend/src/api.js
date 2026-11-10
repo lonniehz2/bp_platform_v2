@@ -47,6 +47,7 @@ export const api = {
   login,
   me,
   myPermissions: () => fetch(`${AUTH}/permissions`, { headers: { Authorization: `Bearer ${token()}` } }).then(async r => { const j = await r.json().catch(() => ({})); if (!r.ok || j.code !== 'BP00000') throw new Error(j.message || '获取权限失败'); return j.data || [] }),
+  myMenuTree: (sceneCode = 'GUARANTEE') => fetch(`${AUTH}/menu-tree?sceneCode=${sceneCode}`, { headers: { Authorization: `Bearer ${token()}` } }).then(async r => { const j = await r.json(); if (!r.ok) throw new Error(j.message || '菜单加载失败'); return j.data }),
   myMenus: (sceneCode = 'GUARANTEE') => fetch(`${AUTH}/menus?sceneCode=${sceneCode}`, { headers: { Authorization: `Bearer ${token()}` } }).then(async r => {
     const j = await r.json().catch(() => ({}))
     if (!r.ok || j.code !== 'BP00000') throw new Error(j.message || '获取菜单失败')

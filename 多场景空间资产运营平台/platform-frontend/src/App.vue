@@ -19,6 +19,7 @@ const collapsed = ref(localStorage.getItem('platformSidebar') === '1')
 const projects = ref([])
 const currentProjectId = ref(localStorage.getItem('platformProjectId') || '')
 const allowedMenus = ref(getMenus())
+const menuTree = ref([])
 const pwdOpen = ref(false)
 function toggleSidebar() {
   collapsed.value = !collapsed.value
@@ -41,10 +42,29 @@ const visibleGroups = computed(() => navGroups.map(g => ({
   ...g,
   items: g.items.filter(item => allowedMenus.value.length === 0 || allowedMenus.value.includes(item.menu))
 })).filter(g => g.items.length > 0))
+const groupIconMap = {
+  group_workbench: '◈', group_application: '☷', group_waitlist: '↕', group_contract: '▤',
+  group_finance: '¥', group_asset: '▦', group_service: '⚒', group_access: '⌘',
+  group_risk: '⚠', group_system: '☰'
+}
+const sidebarGroups = computed(() => {
+  if (!menuTree.value.length) return visibleGroups.value
+  return menuTree.value.map(g => ({
+    key: g.menuCode,
+    label: g.menuName,
+    icon: groupIconMap[g.menuCode] || '•',
+    items: (g.children || []).map(p => ({
+      to: p.route,
+      key: p.menuCode,
+      label: p.menuName,
+      icon: '·'
+    }))
+  })).filter(g => g.items.length)
+})
 
 const currentGroupKey = computed(() => {
   const path = route.path
-  const group = navGroups.find(g => g.items.some(item =>
+  const group = sidebarGroups.value.find(g => g.items.some(item =>
     path === item.to || path.startsWith(item.to + '/')))
   return group ? group.key : ''
 })
@@ -106,15 +126,16 @@ const titleKey = {
 for (const item of navItems) {
   if (!titleKey[item.to]) titleKey[item.to] = 'nav.' + item.key
 }
-const title = computed(() => t(titleKey[route.path] || 'nav.dashboard'))
+const title = computed(() => route.meta?.title || t(titleKey[route.path] || 'nav.dashboard'))
 
 onMounted(async () => {
   try {
     if (localStorage.getItem('platformToken')) {
       try {
-        const menus = await api.myMenus('GUARANTEE')
+        const [menus, tree] = await Promise.all([api.myMenus('GUARANTEE'), api.myMenuTree('GUARANTEE')])
         setMenus(menus)
         allowedMenus.value = menus
+        menuTree.value = tree || []
       } catch {}
     }
     projects.value = await api.projects()
@@ -170,16 +191,16 @@ function logout() {
         </div>
       </div>
       <nav class="nav">
-        <div v-for="g in visibleGroups" :key="g.key" class="nav-group" :class="{ active: isCurrentGroup(g) }">
-          <button class="nav-group-head" :class="{ active: isCurrentGroup(g) }" @click="toggleGroup(g.key)" :title="t(g.labelKey)">
+        <div v-for="g in sidebarGroups" :key="g.key" class="nav-group" :class="{ active: isCurrentGroup(g) }">
+          <button class="nav-group-head" :class="{ active: isCurrentGroup(g) }" @click="toggleGroup(g.key)" :title="g.label || t(g.labelKey)">
             <span class="nav-group-icon">{{ g.icon }}</span>
-            <span class="nav-label">{{ t(g.labelKey) }}</span>
+            <span class="nav-label">{{ g.label || t(g.labelKey) }}</span>
             <span class="nav-label nav-group-arrow">{{ isGroupOpen(g.key) ? '⌄' : '›' }}</span>
           </button>
           <div v-show="isGroupOpen(g.key)" class="nav-group-items">
             <RouterLink v-for="item in g.items" :key="item.to" :to="item.to" class="nav-item">
               <span class="nav-icon">{{ item.icon }}</span>
-              <span class="nav-label">{{ t('nav.' + item.key) }}</span>
+              <span class="nav-label">{{ item.label || t('nav.' + item.key) }}</span>
             </RouterLink>
           </div>
         </div>

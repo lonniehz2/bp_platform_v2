@@ -3,6 +3,7 @@ package com.yundao.platform.controller;
 import com.yundao.platform.common.api.R;
 import com.yundao.platform.common.auth.UserContext;
 import com.yundao.platform.service.AuthService;
+import com.yundao.platform.service.MenuService;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,12 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final MenuService menuService;
     private final com.yundao.platform.service.PermissionService permissionService;
 
     public AuthController(AuthService authService,
-                          com.yundao.platform.service.PermissionService permissionService) {
+                          com.yundao.platform.service.PermissionService permissionService,
+                          MenuService menuService) {
         this.authService = authService;
         this.permissionService = permissionService;
+        this.menuService = menuService;
     }
 
     @PostMapping("/login")
@@ -32,6 +36,12 @@ public class AuthController {
     @GetMapping("/permissions")
     public R<java.util.List<String>> permissions() {
         return R.ok(java.util.List.copyOf(permissionService.permissions()));
+    }
+
+    @GetMapping("/menu-tree")
+    public R<java.util.List<java.util.Map<String, Object>>> menuTree(@org.springframework.web.bind.annotation.RequestParam(defaultValue = "GUARANTEE") String sceneCode) {
+        com.yundao.platform.common.auth.UserContext.Principal p = UserContext.require();
+        return R.ok(menuService.userMenuTree(p.userId(), p.tenantId(), sceneCode));
     }
 
     @GetMapping("/menus")
