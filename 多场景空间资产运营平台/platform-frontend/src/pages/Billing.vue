@@ -55,6 +55,8 @@ async function currentProject() {
   const saved = String(localStorage.getItem('platformProjectId') || '')
   const chosen = all.find(p => String(p.id) === saved)
   if (chosen) return chosen
+  const demo = all.find(p => p.orgCode === 'DEMO_PROJECT')
+  if (demo) return demo
   return all.slice().sort((a, b) =>
     ((b.contractCount || 0) + (b.applicationCount || 0) + (b.deviceCount || 0)) -
     ((a.contractCount || 0) + (a.applicationCount || 0) + (a.deviceCount || 0))

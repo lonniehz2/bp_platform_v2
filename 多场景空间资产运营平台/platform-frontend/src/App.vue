@@ -139,13 +139,17 @@ onMounted(async () => {
       } catch {}
     }
     projects.value = await api.projects()
-    if (!currentProjectId.value && projects.value.length) {
-      const best = projects.value.slice().sort((a, b) =>
-        ((b.contractCount || 0) + (b.applicationCount || 0) + (b.deviceCount || 0)) -
-        ((a.contractCount || 0) + (a.applicationCount || 0) + (a.deviceCount || 0))
-      )[0]
-      currentProjectId.value = String(best.id)
-      localStorage.setItem('platformProjectId', currentProjectId.value)
+    if (projects.value.length) {
+      const exists = projects.value.some(p => String(p.id) === String(currentProjectId.value))
+      if (!currentProjectId.value || !exists) {
+        const demo = projects.value.find(p => p.orgCode === 'DEMO_PROJECT')
+        const best = demo || projects.value.slice().sort((a, b) =>
+          ((b.contractCount || 0) + (b.applicationCount || 0) + (b.deviceCount || 0)) -
+          ((a.contractCount || 0) + (a.applicationCount || 0) + (a.deviceCount || 0))
+        )[0]
+        currentProjectId.value = String(best.id)
+        localStorage.setItem('platformProjectId', currentProjectId.value)
+      }
     }
   } catch {}
 })
