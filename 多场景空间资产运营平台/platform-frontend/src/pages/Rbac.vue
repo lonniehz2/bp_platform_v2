@@ -9,8 +9,8 @@ const route = useRoute()
 const router = useRouter()
 const tab = ref(route.params.tab || 'user')
 const tabs = [
-  { key: 'user', label: '用户' },
-  { key: 'role', label: '角色' },
+  { key: 'user', label: '用户管理' },
+  { key: 'role', label: '角色管理' },
   { key: 'perm', label: '权限清单' }
 ]
 
