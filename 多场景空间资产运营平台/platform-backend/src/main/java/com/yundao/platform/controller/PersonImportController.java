@@ -37,6 +37,11 @@ public class PersonImportController {
         return R.ok(service.importCsv(file));
     }
 
+    @PostMapping("/device-grants")
+    public R<Map<String, Object>> deviceGrants(@RequestParam("file") MultipartFile file) {
+        return R.ok(grantImportService.importDeviceGrants(file));
+    }
+
     @PostMapping("/grants")
     public R<Map<String, Object>> grants(@RequestParam("file") MultipartFile file) {
         return R.ok(grantImportService.importSpaceGrants(file));

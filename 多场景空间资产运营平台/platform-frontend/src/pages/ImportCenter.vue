@@ -23,8 +23,27 @@ const grantFile = ref(null)
 const grantBusy = ref(false)
 const grantResult = ref(null)
 const grantError = ref('')
+const deviceGrantFile = ref(null)
+const deviceGrantBusy = ref(false)
+const deviceGrantResult = ref(null)
+const deviceGrantError = ref('')
 
 function pickPerson(e) { personFile.value = e.target.files?.[0] || null; personResult.value = null; personError.value = '' }
+
+function pickDeviceGrant(e) { deviceGrantFile.value = e.target.files?.[0] || null; deviceGrantResult.value = null; deviceGrantError.value = '' }
+
+function downloadDeviceGrantTemplate() {
+  const csv = '\ufeff项目编码,人员编码,设备编码,开始日期,结束日期,权限级别\nZZ0020,P0001,LOCK-001,2026-01-01,2026-12-31,OPEN\n'
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+  a.download = '人员设备授权导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+}
+
+async function importDeviceGrants() {
+  if (!deviceGrantFile.value) { deviceGrantError.value = '请选择 CSV 文件'; return }
+  deviceGrantBusy.value = true; deviceGrantError.value = ''; deviceGrantResult.value = null
+  try { deviceGrantResult.value = await api.importDeviceGrants(deviceGrantFile.value) } catch (e) { deviceGrantError.value = e.message } finally { deviceGrantBusy.value = false }
+}
 
 function pickGrant(e) { grantFile.value = e.target.files?.[0] || null; grantResult.value = null; grantError.value = '' }
 
@@ -155,6 +174,17 @@ async function importPersons() {
         <div v-if="grantResult" style="margin-top:12px">
           <div class="alert" :class="grantResult.failed ? 'warn' : 'ok'">共 {{ grantResult.total }} 行，成功 {{ grantResult.success }}，失败 {{ grantResult.failed }}。</div>
           <div v-if="grantResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in grantResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>人员-设备授权导入</h2><span class="small muted">CSV</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadDeviceGrantTemplate">下载模板</button><input type="file" accept=".csv" @change="pickDeviceGrant" /><span class="small muted">{{ deviceGrantFile?.name || '未选择文件' }}</span></div>
+        <div v-if="deviceGrantError" class="error">{{ deviceGrantError }}</div>
+        <button class="primary" :disabled="deviceGrantBusy || !deviceGrantFile" @click="importDeviceGrants">{{ deviceGrantBusy ? '导入中…' : '开始导入' }}</button>
+        <div v-if="deviceGrantResult" style="margin-top:12px">
+          <div class="alert" :class="deviceGrantResult.failed ? 'warn' : 'ok'">共 {{ deviceGrantResult.total }} 行，成功 {{ deviceGrantResult.success }}，失败 {{ deviceGrantResult.failed }}。</div>
+          <div v-if="deviceGrantResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in deviceGrantResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
