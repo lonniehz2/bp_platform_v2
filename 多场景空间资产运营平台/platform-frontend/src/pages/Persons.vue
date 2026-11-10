@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
 import { can } from '../permissions'
 import DataTable from '../components/DataTable.vue'
@@ -14,10 +14,12 @@ const projects = ref([])
 const houses = ref([])
 const project = ref(null)
 const selected = ref(null)
+const contractRelations = ref(null)
 const error = ref('')
 const busy = ref(false)
 const page = ref(1)
 const route = useRoute()
+const router = useRouter()
 const personQuery = ref('')
 const relForm = reactive({ targetType: 'HOUSE', targetId: '', relationType: 'TENANT', startDate: '', endDate: '' })
 const form = reactive({ personCode: '', personName: '', phone: '', idCardMask: '', personType: 'GUARANTEE_TENANT', gender: '', birthDate: '', address: '', employer: '', emergencyContact: '', remark: '' })
@@ -180,6 +182,30 @@ onMounted(async () => {
             <button class="sm danger" :disabled="busy" @click.stop="archivePerson(row)">归档</button>
           </template>
         </DataTable>
+      </div>
+
+      <div v-if="selected" class="panel">
+        <div class="panel-head"><div><h2>合同关系</h2><p>{{ selected.personName }} · 承租人 / 同住人</p></div></div>
+        <div v-if="!contractRelations" class="empty">暂无合同关系或无查看权限</div>
+        <template v-else>
+          <div class="section-title">当前承租人合同</div>
+          <div v-if="!contractRelations.tenantContracts?.length" class="empty">暂无承租人合同</div>
+          <div v-for="c in contractRelations.tenantContracts" :key="'t'+c.id" class="entity-row">
+            <div><strong>{{ c.contractNo }}</strong><div class="small muted">{{ c.houseName || '房屋不可见' }} · {{ c.startDate || '' }} ~ {{ c.endDate || '' }}</div></div>
+            <div class="row"><span class="badge" :class="c.accessible ? 'green' : 'orange'">{{ c.accessible ? c.contractStatus : '无权限' }}</span><button v-if="c.accessible" class="sm" @click="router.push(c.route)">查看合同</button></div>
+          </div>
+          <div class="section-title">作为同住人的合同</div>
+          <div v-if="!contractRelations.cohabitantContracts?.length" class="empty">暂无同住合同</div>
+          <div v-for="c in contractRelations.cohabitantContracts" :key="'c'+c.id" class="entity-row">
+            <div><strong>{{ c.contractNo }}</strong><div class="small muted">主承租人：{{ c.mainTenantName || '-' }} · {{ c.startDate || '' }} ~ {{ c.endDate || '' }}</div></div>
+            <div class="row"><span class="badge" :class="c.accessible ? 'green' : 'orange'">{{ c.accessible ? c.contractStatus : '无权限' }}</span><button v-if="c.accessible" class="sm" @click="router.push(c.route)">查看合同</button></div>
+          </div>
+          <div class="section-title">同住人</div>
+          <div v-if="!contractRelations.cohabitants?.length" class="empty">暂无同住人</div>
+          <div v-for="c in contractRelations.cohabitants" :key="c.contractId + '-' + c.personId" class="entity-row">
+            <span>{{ c.personName }} · {{ c.relationType }}</span><span class="small muted">合同 {{ c.contractId }}</span>
+          </div>
+        </template>
       </div>
 
       <div class="panel">

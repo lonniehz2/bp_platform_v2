@@ -73,6 +73,7 @@ export const api = {
   archivePerson: (id) => request(`/persons/${id}/archive`, { method: 'POST' }),
   relations: (personId) => request(`/persons/${personId}/relations`),
   entityRelations: (type, id) => request(`/relations/${type}/${id}`),
+  personContractRelations: (id) => request(`/relations/PERSON/${id}`),
   createRelation: (personId, body) => request(`/persons/${personId}/relations`, { method: 'POST', body: JSON.stringify(body) }),
   removePersonRelation: (personId, relationId) => request(`/persons/${personId}/relations/${relationId}/remove`, { method: 'POST' }),
   applications: (projectId) => request(`/guarantee/applications?projectId=${projectId}`),

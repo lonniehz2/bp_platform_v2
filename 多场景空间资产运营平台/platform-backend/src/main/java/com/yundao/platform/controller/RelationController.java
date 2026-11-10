@@ -20,9 +20,8 @@ public class RelationController {
 
     @GetMapping("/{type}/{id}")
     public R<Map<String, Object>> relation(@PathVariable String type, @PathVariable long id) {
-        if (!"CONTRACT".equalsIgnoreCase(type)) {
-            throw new com.yundao.platform.common.exception.BizException("BP40004", "暂不支持该关联类型", 400);
-        }
-        return R.ok(service.contract(id));
+        if ("CONTRACT".equalsIgnoreCase(type)) return R.ok(service.contract(id));
+        if ("PERSON".equalsIgnoreCase(type)) return R.ok(service.person(id));
+        throw new com.yundao.platform.common.exception.BizException("BP40004", "暂不支持该关联类型", 400);
     }
 }
