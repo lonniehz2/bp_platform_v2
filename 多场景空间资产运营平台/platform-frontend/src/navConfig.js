@@ -114,6 +114,7 @@ export const navGroups = [
       { to: '/guarantee/rbac', key: 'rbac', menu: 'config', icon: '♟' },
       { to: '/guarantee/users', key: 'users', menu: 'config', icon: '♟' },
       { to: '/guarantee/menus', key: 'menus', menu: 'config', icon: '☰' },
+      { to: '/guarantee/imports', key: 'batchImport', menu: 'config', icon: '⇪' },
       { to: '/guarantee/sys', key: 'sys', menu: 'config', icon: '☰' },
       { to: '/guarantee/help', key: 'help', menu: 'help', icon: '?' }
     ]

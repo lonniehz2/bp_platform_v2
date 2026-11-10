@@ -133,7 +133,7 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>人员档案</h2><p>保障对象、家庭成员、承租人、同住人、访客、服务人员</p></div><span class="badge blue">{{ persons.length }} 人</span></div>
+      <div class="panel-head"><div><h2>人员档案</h2><p>保障对象、家庭成员、承租人、同住人、访客、服务人员</p></div><div class="row"><span class="badge blue">{{ persons.length }} 人</span><RouterLink class="sm" to="/guarantee/imports">批量导入</RouterLink></div></div>
       <div class="row">
         <div class="field"><label>人员编码</label><input v-model="form.personCode" placeholder="如 P0001" /></div>
         <div class="field"><label>姓名</label><input v-model="form.personName" /></div>
