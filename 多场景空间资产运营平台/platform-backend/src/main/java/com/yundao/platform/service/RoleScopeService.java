@@ -62,6 +62,28 @@ public class RoleScopeService {
         return get(roleId);
     }
 
+
+    public java.util.Map<String, Object> actions(long roleId) {
+        String tenant = TenantContext.require();
+        requireRole(roleId, tenant);
+        return java.util.Map.of("roleId", roleId,
+                "actions", jdbc.queryForList("select action_code from bp_role_action where role_id=?", String.class, roleId));
+    }
+
+    @Transactional
+    public java.util.Map<String, Object> saveActions(long roleId, java.util.List<String> actions) {
+        String tenant = TenantContext.require();
+        requireRole(roleId, tenant);
+        jdbc.update("delete from bp_role_action where role_id=?", roleId);
+        if (actions != null) {
+            for (String code : actions) {
+                if (code == null || code.isBlank()) continue;
+                jdbc.update("insert ignore into bp_role_action(role_id,action_code) values(?,?)", roleId, code);
+            }
+        }
+        return actions(roleId);
+    }
+
     private void requireRole(long roleId, String tenant) {
         Long count = jdbc.queryForObject("select count(*) from bp_role where id=? and tenant_id=? and is_deleted=0", Long.class, roleId, tenant);
         if (count == null || count == 0) throw BizException.notFound("角色不存在");

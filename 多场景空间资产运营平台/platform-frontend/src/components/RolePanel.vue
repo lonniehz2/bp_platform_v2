@@ -4,33 +4,55 @@ import { api } from '../api'
 
 const roles = ref([])
 const projects = ref([])
-const scopeType = ref('NONE')
-const scopeProjectIds = ref([])
 const menus = ref([])
 const selected = ref(null)
 const selectedCodes = ref([])
+const selectedActions = ref([])
+const scopeMode = ref('NONE')
+const scopeProjectIds = ref([])
 const error = ref('')
+const notice = ref('')
 const busy = ref(false)
 const search = ref('')
+const pageSearch = ref('')
+const projectSearch = ref('')
 const createOpen = ref(false)
 const form = reactive({ roleCode: '', roleName: '' })
+const actionOptions = [
+  { code: 'view', label: '查看' },
+  { code: 'create', label: '新增' },
+  { code: 'edit', label: '编辑' },
+  { code: 'delete', label: '删除' },
+  { code: 'approve', label: '审批' }
+]
+
 const filteredRoles = computed(() => {
   const q = search.value.trim().toLowerCase()
   if (!q) return roles.value
   return roles.value.filter(r => (String(r.roleName) + ' ' + String(r.roleCode)).toLowerCase().includes(q))
 })
-const permissionRows = computed(() => {
-  const rows = []
-  const walk = (list, depth = 0) => {
-    for (const m of list) {
-      rows.push({ ...m, depth, group: m.menuType === 'GROUP' })
-      if (m.children?.length) walk(m.children, depth + 1)
-    }
-  }
-  walk(menus.value)
-  return rows
+
+const groups = computed(() => menus.value.filter(m => m.menuType === 'GROUP').map(g => ({
+  ...g,
+  pages: (g.children || []).filter(m => m.menuType !== 'GROUP')
+})))
+
+const filteredGroups = computed(() => {
+  const q = pageSearch.value.trim().toLowerCase()
+  if (!q) return groups.value
+  return groups.value.map(g => ({
+    ...g,
+    pages: g.pages.filter(p => (String(p.menuName) + ' ' + String(p.menuCode)).toLowerCase().includes(q))
+  })).filter(g => g.pages.length)
 })
-const pageCount = computed(() => permissionRows.value.filter(r => !r.group).length)
+
+const pageCount = computed(() => groups.value.reduce((n, g) => n + g.pages.length, 0))
+const selectedPageCount = computed(() => selectedCodes.value.length)
+const selectedProjectNames = computed(() => projects.value.filter(p => scopeProjectIds.value.includes(String(p.id))).map(p => p.orgName))
+const filteredProjects = computed(() => {
+  const q = projectSearch.value.trim().toLowerCase()
+  return projects.value.filter(p => !q || (String(p.orgName) + ' ' + String(p.orgCode)).toLowerCase().includes(q))
+})
 
 async function load() {
   error.value = ''
@@ -44,38 +66,79 @@ async function load() {
 
 async function selectRole(r) {
   selected.value = r || null
-  if (!r) { selectedCodes.value = []; return }
+  notice.value = ''
+  pageSearch.value = ''
+  projectSearch.value = ''
+  if (!r) { selectedCodes.value = []; selectedActions.value = []; return }
   try {
-    const [list, scope] = await Promise.all([api.roleMenus(r.id), api.roleScope(r.id)])
+    const [list, scope, actions] = await Promise.all([api.roleMenus(r.id), api.roleScope(r.id), api.roleActions(r.id)])
     selectedCodes.value = list.map(x => x.menuCode)
-    scopeType.value = scope.scopeType || 'NONE'
+    scopeMode.value = scope.scopeType || 'NONE'
     scopeProjectIds.value = (scope.projectIds || []).map(String)
+    selectedActions.value = actions.actions || []
   } catch (e) { error.value = e.message; selectedCodes.value = [] }
 }
 
-function toggle(code) {
+function pageCodes(g) { return g.pages.map(p => p.menuCode) }
+function groupAll(g) { const codes = pageCodes(g); return codes.length > 0 && codes.every(c => selectedCodes.value.includes(c)) }
+function groupSome(g) { return pageCodes(g).some(c => selectedCodes.value.includes(c)) }
+function toggleGroup(g) {
+  const codes = pageCodes(g)
+  if (groupAll(g)) selectedCodes.value = selectedCodes.value.filter(c => !codes.includes(c))
+  else for (const c of codes) if (!selectedCodes.value.includes(c)) selectedCodes.value.push(c)
+}
+function toggleCode(code) {
   const i = selectedCodes.value.indexOf(code)
   if (i >= 0) selectedCodes.value.splice(i, 1)
   else selectedCodes.value.push(code)
 }
-
-
-async function saveScope() {
-  if (!selected.value) return
-  busy.value = true; error.value = ''
-  try {
-    await api.saveRoleScope(selected.value.id, { scopeType: scopeType.value, projectIds: scopeProjectIds.value.map(Number) })
-    await load()
-  } catch (e) { error.value = e.message } finally { busy.value = false }
+function actionKey(group, action) { return group.menuCode + ':' + action.code }
+function toggleAction(key) {
+  const i = selectedActions.value.indexOf(key)
+  if (i >= 0) selectedActions.value.splice(i, 1)
+  else selectedActions.value.push(key)
 }
+function groupActionCount(g) { return actionOptions.filter(a => selectedActions.value.includes(actionKey(g, a))).length }
 
-async function save() {
+async function savePages() {
   if (!selected.value) return
   busy.value = true; error.value = ''
   try {
     await api.saveRoleMenus(selected.value.id, selectedCodes.value)
+    notice.value = '页面权限已保存'
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+async function saveActions() {
+  if (!selected.value) return
+  busy.value = true; error.value = ''
+  try {
+    await api.saveRoleActions(selected.value.id, selectedActions.value)
+    notice.value = '功能权限已保存'
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+async function saveScope() {
+  if (!selected.value) return
+  busy.value = true; error.value = ''
+  try {
+    const projectIds = scopeMode.value === 'PROJECTS' ? scopeProjectIds.value.map(Number) : []
+    await api.saveRoleScope(selected.value.id, { scopeType: scopeMode.value, projectIds })
+    notice.value = '默认数据范围已保存'
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+function chooseScope(mode) { scopeMode.value = mode; if (mode !== 'PROJECTS') scopeProjectIds.value = [] }
+function toggleProject(id) {
+  const key = String(id)
+  const i = scopeProjectIds.value.indexOf(key)
+  if (i >= 0) scopeProjectIds.value.splice(i, 1)
+  else scopeProjectIds.value.push(key)
+}
+function selectAllProjects() {
+  for (const p of filteredProjects.value) {
+    const key = String(p.id)
+    if (!scopeProjectIds.value.includes(key)) scopeProjectIds.value.push(key)
+  }
 }
 
 async function createRole() {
@@ -95,32 +158,78 @@ onMounted(load)
 <template>
   <div>
     <div v-if="error" class="error">{{ error }}</div>
-    <div class="grid" style="grid-template-columns:300px minmax(0,1fr)">
-      <div class="panel">
+    <div class="grid" style="grid-template-columns:280px minmax(0,1fr)">
+      <div class="panel role-list">
         <div class="panel-head"><div><h2>角色</h2><p>{{ roles.length }} 个角色</p></div><button class="sm" @click="createOpen = true">新增</button></div>
         <input v-model="search" placeholder="搜索角色" style="margin-bottom:8px" />
         <div v-for="r in filteredRoles" :key="r.id" class="role-row" :class="{ active: selected && String(selected.id) === String(r.id) }" @click="selectRole(r)">
-          <div style="flex:1"><div>{{ r.roleName }}</div><div class="mono small muted">{{ r.roleCode }}</div></div>
+          <div style="flex:1;min-width:0"><div class="ellipsis">{{ r.roleName }}</div><div class="mono small muted ellipsis">{{ r.roleCode }}</div></div>
           <span class="badge">{{ r.menuCount }} 项</span>
         </div>
       </div>
 
-      <div v-if="selected" class="panel">
-        <div class="panel-head"><div><h2>{{ selected.roleName }}</h2><p class="mono small muted">{{ selected.roleCode }} · {{ pageCount }} 个可授权页面</p></div><button class="primary" :disabled="busy" @click="save">保存权限</button></div>
-        <div class="alert">勾选页面权限。分组只做展示，不可授权。</div>
-        <div class="perm-list">
-          <div v-for="m in permissionRows" :key="m.menuCode" class="perm-row" :class="{ group: m.group }" :style="{ paddingLeft: (10 + m.depth * 18) + 'px' }">
-            <template v-if="m.group"><strong>{{ m.menuName }}</strong></template>
-            <label v-else class="row" style="gap:6px;cursor:pointer"><input type="checkbox" :checked="selectedCodes.includes(m.menuCode)" @change="toggle(m.menuCode)" /><span>{{ m.menuName }}</span><span class="mono small muted">{{ m.menuCode }}</span></label>
+      <div v-if="selected" class="role-detail">
+        <div class="panel">
+          <div class="panel-head"><div><h2>{{ selected.roleName }}</h2><p class="mono small muted">{{ selected.roleCode }} · {{ selectedPageCount }}/{{ pageCount }} 个页面 · {{ selectedActions.length }} 个功能点</p></div></div>
+          <div v-if="notice" class="alert success">{{ notice }}</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div><h2>页面权限</h2><p>勾选分组会选中该分组下所有页面</p></div><button class="primary" :disabled="busy" @click="savePages">保存页面权限</button></div>
+          <input v-model="pageSearch" placeholder="搜索页面名称或编码" style="margin-bottom:10px" />
+          <div class="group-list">
+            <div v-for="g in filteredGroups" :key="g.menuCode" class="perm-group">
+              <label class="group-head">
+                <input type="checkbox" :checked="groupAll(g)" @change="toggleGroup(g)" />
+                <strong>{{ g.menuName }}</strong>
+                <span class="badge" :class="groupAll(g) ? 'green' : (groupSome(g) ? 'orange' : '')">{{ pageCodes(g).filter(c => selectedCodes.includes(c)).length }}/{{ g.pages.length }}</span>
+                <span class="mono small muted">{{ g.menuCode }}</span>
+              </label>
+              <div class="page-grid">
+                <label v-for="p in g.pages" :key="p.menuCode" class="page-item" :class="{ checked: selectedCodes.includes(p.menuCode) }">
+                  <input type="checkbox" :checked="selectedCodes.includes(p.menuCode)" @change="toggleCode(p.menuCode)" />
+                  <span>{{ p.menuName }}</span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
-        <div style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
-          <div class="row" style="justify-content:space-between"><strong>默认数据范围</strong><button class="sm" :disabled="busy" @click="saveScope">保存范围</button></div>
-          <div class="row" style="margin-top:8px">
-            <div class="field" style="max-width:220px"><label>范围</label><select v-model="scopeType"><option value="NONE">无数据</option><option value="ALL">全部项目</option><option value="PROJECTS">指定项目</option><option value="SELF">仅本人</option></select></div>
-            <div v-if="scopeType === 'PROJECTS'" class="field" style="flex:1"><label>项目（多选）</label><select v-model="scopeProjectIds" multiple size="5"><option v-for="p in projects" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option></select></div>
+
+        <div class="panel">
+          <div class="panel-head"><div><h2>功能权限</h2><p>按模块配置查看、新增、编辑、删除、审批</p></div><button class="primary" :disabled="busy" @click="saveActions">保存功能权限</button></div>
+          <div class="action-grid">
+            <div v-for="g in groups" :key="g.menuCode" class="action-card">
+              <div class="action-head"><strong>{{ g.menuName }}</strong><span class="badge">{{ groupActionCount(g) }}/{{ actionOptions.length }}</span></div>
+              <div class="row" style="flex-wrap:wrap;gap:10px">
+                <label v-for="a in actionOptions" :key="a.code" class="action-item" :class="{ checked: selectedActions.includes(actionKey(g, a)) }">
+                  <input type="checkbox" :checked="selectedActions.includes(actionKey(g, a))" @change="toggleAction(actionKey(g, a))" />{{ a.label }}
+                </label>
+              </div>
+            </div>
           </div>
-          <div class="small muted">用户可继承此范围，也可在用户页面进一步收窄。</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div><h2>默认数据范围</h2><p>用户默认继承此范围，可在用户页面进一步收窄</p></div><button class="primary" :disabled="busy" @click="saveScope">保存数据范围</button></div>
+          <div class="scope-choice">
+            <button class="scope-card" :class="{ active: scopeMode === 'NONE' }" @click="chooseScope('NONE')"><strong>无数据</strong><span>默认不可见任何项目。</span></button>
+            <button class="scope-card" :class="{ active: scopeMode === 'ALL' }" @click="chooseScope('ALL')"><strong>全部项目</strong><span>可见全部项目数据。</span></button>
+            <button class="scope-card" :class="{ active: scopeMode === 'PROJECTS' }" @click="chooseScope('PROJECTS')"><strong>指定项目</strong><span>只允许指定项目。</span></button>
+            <button class="scope-card" :class="{ active: scopeMode === 'SELF' }" @click="chooseScope('SELF')"><strong>仅本人</strong><span>仅本人创建或负责的数据。</span></button>
+          </div>
+          <div v-if="scopeMode === 'PROJECTS'" style="margin-top:12px">
+            <div class="scope-help">勾选项目即可多选，不需要按 Ctrl；可以搜索后全选当前结果。</div>
+            <input v-model="projectSearch" placeholder="搜索项目名称或编码" style="margin:10px 0 8px" />
+            <div class="scope-project-picker">
+              <label v-for="p in filteredProjects" :key="p.id" class="project-option" :class="{ selected: scopeProjectIds.includes(String(p.id)) }">
+                <input type="checkbox" :checked="scopeProjectIds.includes(String(p.id))" @change="toggleProject(p.id)" />
+                <span>{{ p.orgName }}</span><span class="mono small muted">{{ p.orgCode }}</span>
+              </label>
+              <div v-if="!filteredProjects.length" class="empty">没有匹配的项目</div>
+            </div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small">已选 {{ scopeProjectIds.length }} 个项目</span><div class="row"><button class="sm" @click="selectAllProjects">全选当前</button><button class="sm" @click="scopeProjectIds = []">清空</button></div></div>
+            <div v-if="selectedProjectNames.length" class="small muted" style="margin-top:6px">已选：{{ selectedProjectNames.join('、') }}</div>
+          </div>
         </div>
       </div>
       <div v-else class="panel"><div class="empty">请选择角色</div></div>
@@ -138,10 +247,36 @@ onMounted(load)
 </template>
 
 <style scoped>
-.role-row { display:flex; align-items:center; gap:8px; padding:10px 8px; border-bottom:1px solid var(--line); cursor:pointer; border-radius:5px; }
+.role-list { align-self:start; }
+.role-row { display:flex; align-items:center; gap:8px; padding:10px 8px; border-bottom:1px solid var(--line); cursor:pointer; border-radius:6px; }
 .role-row:hover, .role-row.active { background:var(--brand-soft); color:var(--brand); }
-.perm-list { max-height:520px; overflow:auto; border:1px solid var(--line); border-radius:6px; padding:6px; }
-.perm-row { min-height:32px; display:flex; align-items:center; border-radius:4px; }
-.perm-row.group { margin-top:6px; color:var(--muted); font-size:12px; }
-.perm-row:not(.group):hover { background:var(--bg); }
+.ellipsis { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.role-detail { display:flex; flex-direction:column; gap:12px; min-width:0; }
+.group-list { display:flex; flex-direction:column; gap:8px; max-height:430px; overflow:auto; padding-right:4px; }
+.perm-group { border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+.group-head { display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--bg); cursor:pointer; }
+.group-head input { width:auto; }
+.page-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:4px; padding:8px 12px 12px; }
+.page-item { display:flex; align-items:center; gap:6px; padding:7px 8px; border-radius:5px; cursor:pointer; font-size:13px; }
+.page-item:hover, .page-item.checked { background:var(--brand-soft); color:var(--brand); }
+.page-item input { width:auto; }
+.action-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:8px; max-height:340px; overflow:auto; }
+.action-card { border:1px solid var(--line); border-radius:8px; padding:10px; }
+.action-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.action-item { display:flex; align-items:center; gap:4px; font-size:12px; padding:4px 6px; border-radius:4px; cursor:pointer; background:var(--bg); }
+.action-item.checked { background:var(--brand-soft); color:var(--brand); }
+.action-item input { width:auto; }
+.scope-choice { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.scope-card { text-align:left; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); cursor:pointer; display:flex; flex-direction:column; gap:4px; }
+.scope-card strong { font-size:13px; }
+.scope-card span { font-size:11px; color:var(--muted); line-height:1.5; }
+.scope-card.active { border-color:var(--brand); background:var(--brand-soft); }
+.scope-help { padding:9px 11px; background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; border-radius:6px; font-size:12px; line-height:1.6; }
+.scope-project-picker { width:100%; box-sizing:border-box; max-height:230px; overflow:auto; border:1px solid var(--line); border-radius:6px; padding:4px; }
+.project-option { display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:4px; cursor:pointer; }
+.project-option:hover, .project-option.selected { background:var(--brand-soft); }
+.project-option input { width:auto; }
+.project-option .mono { margin-left:auto; }
+.alert.success { background:#ecfdf5; color:#047857; border-color:#a7f3d0; }
+@media (max-width:1100px) { .scope-choice { grid-template-columns:repeat(2,1fr); } }
 </style>

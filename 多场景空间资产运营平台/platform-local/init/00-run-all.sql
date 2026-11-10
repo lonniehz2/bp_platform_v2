@@ -9,5 +9,6 @@ source /sql/016_listing_order.sql;
 source /sql/017_audit_log.sql;
 source /sql/018_menu_unify.sql;
 source /sql/019_role_data_scope.sql;
+source /sql/020_role_action.sql;
 source /compat/01_local_compat.sql;
 source /seed/001_local_seed.sql;

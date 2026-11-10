@@ -218,5 +218,7 @@ export const api = {
   createRole: (body) => request('/roles', { method: 'POST', body: JSON.stringify(body) }),
   saveRoleMenus: (roleId, menuCodes) => request(`/roles/${roleId}/menus`, { method: 'POST', body: JSON.stringify({ menuCodes }) }),
   roleScope: (roleId) => request(`/roles/${roleId}/scope`),
+  roleActions: (roleId) => request(`/roles/${roleId}/actions`),
+  saveRoleActions: (roleId, actions) => request(`/roles/${roleId}/actions`, { method: 'POST', body: JSON.stringify({ actions }) }),
   saveRoleScope: (roleId, body) => request(`/roles/${roleId}/scope`, { method: 'POST', body: JSON.stringify(body) })
 }
