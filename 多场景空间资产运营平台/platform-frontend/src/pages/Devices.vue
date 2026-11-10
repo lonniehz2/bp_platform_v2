@@ -6,6 +6,7 @@ import TreeSelect from '../components/TreeSelect.vue'
 import { confirmAction } from '../confirm'
 import { can, canAction } from '../permissions'
 import DataTable from '../components/DataTable.vue'
+import EntityRelationPanel from '../components/EntityRelationPanel.vue'
 
 const project = ref(null)
 const devices = ref([])
@@ -19,6 +20,7 @@ const form = reactive({ deviceCode: '', deviceName: '', deviceType: 'LOCK', spac
 const grantForm = reactive({ personId: '', targetId: '', validStart: '2026-11-08', validEnd: '2027-11-07' })
 const grants = ref([])
 const editingDevice = ref(null)
+const detailDevice = ref(null)
 const deviceEditForm = reactive({ deviceName: '', deviceType: 'LOCK', deviceModel: '', installTime: '', warrantyEnd: '', remark: '' })
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN')
@@ -186,6 +188,7 @@ onMounted(load)
           <template #cell-assetStatus="{ row }"><span class="badge green">{{ row.assetStatus }}</span></template>
           <template #cell-actions="{ row }">
             <button class="sm" @click="openDeviceEdit(row)">编辑</button>
+            <button class="sm" @click="detailDevice = row">关联</button>
             <button v-if="canAction('device:archive', 'device')" class="sm danger" :disabled="busy" @click="archiveDevice(row)">报废</button>
             <button v-if="canAction('device:repair', 'device') && row.businessStatus !== 'FAULT'" class="sm" :disabled="busy" @click="repairDevice(row)">报修</button>
             <button v-if="canAction('device:enable', 'device') && ['FAULT','DISABLED'].includes(row.businessStatus)" class="sm primary" :disabled="busy" @click="enableDevice(row)">启用</button>
@@ -222,6 +225,13 @@ onMounted(load)
         <div v-else class="empty">暂无授权</div>
       </div>
     </template>
+
+    <div v-if="detailDevice" class="modal-mask" @click.self="detailDevice = null">
+      <div class="modal" style="max-width:720px">
+        <div class="panel-head"><div><h2>{{ detailDevice.deviceName }}</h2><p class="small muted">{{ detailDevice.deviceCode }}</p></div><button class="sm" @click="detailDevice = null">关闭</button></div>
+        <EntityRelationPanel type="DEVICE" :entity-id="detailDevice.id" />
+      </div>
+    </div>
 
     <div v-if="editingDevice" class="modal-mask" @click.self="editingDevice = null">
       <div class="modal">

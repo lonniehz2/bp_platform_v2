@@ -127,6 +127,81 @@ public class RelationService {
         return scope == null || scope.contains(projectId);
     }
 
+    public Map<String, Object> device(long deviceId) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select d.id, d.device_code deviceCode, d.device_name deviceName, d.project_id projectId, d.space_id spaceId "
+                        + "from bp_dev_device d where d.id=? and d.tenant_id=? and d.is_deleted=0", deviceId, tenant);
+        if (rows.isEmpty()) throw BizException.notFound("设备不存在");
+        Map<String, Object> d = rows.get(0);
+        long projectId = ((Number) d.get("projectId")).longValue();
+        if (!canView("devices", projectId)) throw new BizException("BP40300", "无权查看该设备", 403);
+        List<Map<String, Object>> houseRows = jdbc.queryForList(
+                "select h.id, h.house_name houseName from bp_house h where h.tenant_id=? and h.space_id=? and h.is_deleted=0 limit 1",
+                tenant, d.get("spaceId"));
+        List<Map<String, Object>> links = new ArrayList<>();
+        if (!houseRows.isEmpty()) {
+            Map<String, Object> h = houseRows.get(0);
+            links.add(link("HOUSE", String.valueOf(h.get("id")), "所在房屋", String.valueOf(h.get("houseName")), null,
+                    "/guarantee/houses?id=" + h.get("id"), canView("houses", projectId)));
+        }
+        long grants = count("select count(*) from bp_grant_entitlement where tenant_id=? and target_type='DEVICE' and target_id=? and is_deleted=0", tenant, deviceId);
+        links.add(link("GRANTS", null, "通行授权", canView("grants", projectId) ? grants + " 条" : "无授权查看权限",
+                canView("grants", projectId) ? null : "无授权查看权限", "/guarantee/grants", canView("grants", projectId)));
+        long alerts = count("select count(*) from guarantee_alert where tenant_id=? and project_id=? and is_deleted=0", tenant, projectId);
+        links.add(link("ALERTS", null, "设备告警", canView("alertCenter", projectId) ? alerts + " 条" : "无告警查看权限",
+                canView("alertCenter", projectId) ? null : "无告警查看权限", "/guarantee/alerts", canView("alertCenter", projectId)));
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("entity", Map.of("type", "DEVICE", "id", String.valueOf(deviceId), "title", d.get("deviceName")));
+        out.put("links", links);
+        return out;
+    }
+
+    public Map<String, Object> workOrder(long orderId) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select o.id, o.order_no orderNo, o.project_id projectId, o.house_id houseId, o.person_id personId "
+                        + "from guarantee_work_order o where o.id=? and o.tenant_id=? and o.is_deleted=0", orderId, tenant);
+        if (rows.isEmpty()) throw BizException.notFound("工单不存在");
+        Map<String, Object> o = rows.get(0);
+        long projectId = ((Number) o.get("projectId")).longValue();
+        if (!canView("workOrders", projectId)) throw new BizException("BP40300", "无权查看该工单", 403);
+        List<Map<String, Object>> links = new ArrayList<>();
+        if (o.get("personId") != null) links.add(link("PERSON", String.valueOf(o.get("personId")), "人员", "查看人员", null, "/guarantee/persons?id=" + o.get("personId"), canView("person", projectId)));
+        if (o.get("houseId") != null) links.add(link("HOUSE", String.valueOf(o.get("houseId")), "房屋", "查看房源", null, "/guarantee/houses?id=" + o.get("houseId"), canView("houses", projectId)));
+        if (o.get("houseId") != null) {
+            List<Map<String, Object>> contracts = jdbc.queryForList(
+                    "select id, contract_no contractNo from guarantee_contract where tenant_id=? and house_id=? and is_deleted=0 order by id desc limit 1",
+                    tenant, o.get("houseId"));
+            if (!contracts.isEmpty()) links.add(link("CONTRACT", String.valueOf(contracts.get(0).get("id")), "合同", String.valueOf(contracts.get(0).get("contractNo")), null, "/guarantee/contracts/" + contracts.get(0).get("id"), canView("contracts", projectId)));
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("entity", Map.of("type", "WORK_ORDER", "id", String.valueOf(orderId), "title", o.get("orderNo")));
+        out.put("links", links);
+        return out;
+    }
+
+    public Map<String, Object> application(long applicationId) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select a.id, a.application_no applicationNo, a.project_id projectId, a.applicant_person_id personId "
+                        + "from guarantee_application a where a.id=? and a.tenant_id=? and a.is_deleted=0", applicationId, tenant);
+        if (rows.isEmpty()) throw BizException.notFound("申请不存在");
+        Map<String, Object> a = rows.get(0);
+        long projectId = ((Number) a.get("projectId")).longValue();
+        if (!canView("applications", projectId)) throw new BizException("BP40300", "无权查看该申请", 403);
+        List<Map<String, Object>> links = new ArrayList<>();
+        if (a.get("personId") != null) links.add(link("PERSON", String.valueOf(a.get("personId")), "申请人", "查看人员", null, "/guarantee/persons?id=" + a.get("personId"), canView("person", projectId)));
+        long waitlists = count("select count(*) from guarantee_waitlist where tenant_id=? and application_id=? and is_deleted=0", tenant, applicationId);
+        links.add(link("WAITLIST", null, "轮候记录", waitlists + " 条", null, "/guarantee/waitlist", canView("waitlist", projectId)));
+        long allocations = count("select count(*) from guarantee_allocation where tenant_id=? and application_id=? and is_deleted=0", tenant, applicationId);
+        links.add(link("ALLOCATION", null, "配租记录", allocations + " 条", null, "/guarantee/allocations", canView("allocations", projectId)));
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("entity", Map.of("type", "APPLICATION", "id", String.valueOf(applicationId), "title", a.get("applicationNo")));
+        out.put("links", links);
+        return out;
+    }
+
     public Map<String, Object> house(long houseId) {
         String tenant = TenantContext.require();
         List<Map<String, Object>> rows = jdbc.queryForList(

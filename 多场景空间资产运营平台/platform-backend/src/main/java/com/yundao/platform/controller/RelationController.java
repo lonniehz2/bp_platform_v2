@@ -24,6 +24,9 @@ public class RelationController {
         if ("PERSON".equalsIgnoreCase(type)) return R.ok(service.person(id));
         if ("HOUSE".equalsIgnoreCase(type)) return R.ok(service.house(id));
         if ("BILL".equalsIgnoreCase(type)) return R.ok(service.bill(id));
+        if ("DEVICE".equalsIgnoreCase(type)) return R.ok(service.device(id));
+        if ("WORK_ORDER".equalsIgnoreCase(type)) return R.ok(service.workOrder(id));
+        if ("APPLICATION".equalsIgnoreCase(type)) return R.ok(service.application(id));
         throw new com.yundao.platform.common.exception.BizException("BP40004", "暂不支持该关联类型", 400);
     }
 }

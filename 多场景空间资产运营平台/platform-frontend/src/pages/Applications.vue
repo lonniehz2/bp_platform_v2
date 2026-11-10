@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
+import EntityRelationPanel from '../components/EntityRelationPanel.vue'
 import { confirmAction } from '../confirm'
 
 const project = ref(null)
@@ -170,6 +171,7 @@ onMounted(load)
     <div v-if="detailApp" class="modal-mask" @click.self="detailApp = null">
       <div class="modal" style="max-width:720px">
         <div class="panel-head"><h2>申请详情</h2><button class="sm" @click="detailApp = null">关闭</button></div>
+        <EntityRelationPanel type="APPLICATION" :entity-id="detailApp.id" />
         <div class="row">
           <div class="field"><label>申请编号</label><div class="mono">{{ detailApp.applicationNo }}</div></div>
           <div class="field"><label>申请人</label><div>{{ detailApp.applicantName }}</div></div>
