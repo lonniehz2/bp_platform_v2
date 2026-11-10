@@ -2,7 +2,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
-import EntityRelationPanel from '../components/EntityRelationPanel.vue'
+import EntityDetailTabs from '../components/EntityDetailTabs.vue'
 import { can } from '../permissions'
 
 const project = ref(null)
@@ -101,7 +101,7 @@ onMounted(load)
     <div v-if="detailOrder" class="modal-mask" @click.self="detailOrder = null">
       <div class="modal" style="max-width:720px">
         <div class="panel-head"><div><h2>{{ detailOrder.orderNo }}</h2><p class="small muted">工单关联信息</p></div><button class="sm" @click="detailOrder = null">关闭</button></div>
-        <EntityRelationPanel type="WORK_ORDER" :entity-id="detailOrder.id" />
+        <EntityDetailTabs type="WORK_ORDER" :entity-id="detailOrder.id" />
       </div>
     </div>
   </div>

@@ -127,6 +127,73 @@ public class RelationService {
         return scope == null || scope.contains(projectId);
     }
 
+
+    public Map<String, Object> sections(String type, long id) {
+        Map<String, Object> root;
+        if ("CONTRACT".equalsIgnoreCase(type)) root = contract(id);
+        else if ("PERSON".equalsIgnoreCase(type)) root = person(id);
+        else if ("HOUSE".equalsIgnoreCase(type)) root = house(id);
+        else if ("BILL".equalsIgnoreCase(type)) root = bill(id);
+        else if ("DEVICE".equalsIgnoreCase(type)) root = device(id);
+        else if ("WORK_ORDER".equalsIgnoreCase(type)) root = workOrder(id);
+        else if ("APPLICATION".equalsIgnoreCase(type)) root = application(id);
+        else throw new BizException("BP40004", "暂不支持该关联类型", 400);
+
+        Map<String, Object> entity = new LinkedHashMap<>();
+        if (root.get("entity") instanceof Map<?, ?> e) {
+            entity.putAll((Map<String, Object>) e);
+        } else if (root.get("person") instanceof Map<?, ?> p) {
+            entity.put("type", "PERSON");
+            entity.put("id", String.valueOf(id));
+            entity.put("title", p.get("personName"));
+            entity.put("subtitle", p.get("personCode"));
+        } else {
+            entity.put("type", type.toUpperCase());
+            entity.put("id", String.valueOf(id));
+            entity.put("title", "详情 #" + id);
+        }
+
+        List<Map<String, Object>> sections = new ArrayList<>();
+        List<Map<String, Object>> links = new ArrayList<>();
+        Object rawLinks = root.get("links");
+        if (rawLinks instanceof List<?> list) {
+            for (Object x : list) if (x instanceof Map<?, ?> m) links.add((Map<String, Object>) m);
+        }
+        Map<String, Object> overview = new LinkedHashMap<>();
+        overview.put("key", "overview");
+        overview.put("label", "概览");
+        overview.put("accessible", true);
+        overview.put("reason", null);
+        overview.put("items", List.of(entity));
+        sections.add(overview);
+
+        int idx = 0;
+        for (Map<String, Object> link : links) {
+            Map<String, Object> sec = new LinkedHashMap<>();
+            String key = String.valueOf(link.getOrDefault("type", "link")) + "_" + (++idx);
+            sec.put("key", key);
+            sec.put("label", link.getOrDefault("label", "关联"));
+            sec.put("accessible", Boolean.TRUE.equals(link.get("accessible")));
+            sec.put("reason", link.get("reason"));
+            List<Map<String, Object>> items = new ArrayList<>();
+            if (link.get("id") != null) {
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("id", link.get("id"));
+                item.put("title", link.getOrDefault("title", link.get("label")));
+                item.put("subtitle", link.get("type"));
+                item.put("status", Boolean.TRUE.equals(link.get("accessible")) ? null : "LOCKED");
+                item.put("route", link.get("route"));
+                items.add(item);
+            }
+            sec.put("items", items);
+            sections.add(sec);
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("entity", entity);
+        out.put("sections", sections);
+        return out;
+    }
+
     public Map<String, Object> device(long deviceId) {
         String tenant = TenantContext.require();
         List<Map<String, Object>> rows = jdbc.queryForList(

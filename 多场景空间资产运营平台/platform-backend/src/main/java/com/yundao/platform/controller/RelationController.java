@@ -18,6 +18,11 @@ public class RelationController {
         this.service = service;
     }
 
+    @GetMapping("/{type}/{id}/sections")
+    public R<Map<String, Object>> sections(@PathVariable String type, @PathVariable long id) {
+        return R.ok(service.sections(type, id));
+    }
+
     @GetMapping("/{type}/{id}")
     public R<Map<String, Object>> relation(@PathVariable String type, @PathVariable long id) {
         if ("CONTRACT".equalsIgnoreCase(type)) return R.ok(service.contract(id));

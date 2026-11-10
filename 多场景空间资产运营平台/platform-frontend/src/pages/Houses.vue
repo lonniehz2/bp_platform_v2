@@ -3,7 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
 import DataTable from '../components/DataTable.vue'
-import EntityRelationPanel from '../components/EntityRelationPanel.vue'
+import EntityDetailTabs from '../components/EntityDetailTabs.vue'
 
 const project = ref(null)
 const houses = ref([])
@@ -123,7 +123,7 @@ onMounted(async () => {
     <div v-if="detailHouse" class="modal-mask" @click.self="detailHouse = null">
       <div class="modal" style="max-width:760px">
         <div class="panel-head"><div><h2>{{ detailHouse.houseCode }} · {{ detailHouse.houseName }}</h2><p class="small muted">房源关联信息</p></div><button class="sm" @click="detailHouse = null">关闭</button></div>
-        <EntityRelationPanel type="HOUSE" :entity-id="detailHouse.id" />
+        <EntityDetailTabs type="HOUSE" :entity-id="detailHouse.id" />
       </div>
     </div>
   </div>

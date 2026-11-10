@@ -5,7 +5,7 @@ import { api } from '../api'
 import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
 import DataTable from '../components/DataTable.vue'
-import EntityRelationPanel from '../components/EntityRelationPanel.vue'
+import EntityDetailTabs from '../components/EntityDetailTabs.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -256,7 +256,7 @@ onMounted(load)
     <div v-if="detailBill" class="modal-mask" @click.self="detailBill = null">
       <div class="modal" style="max-width:760px">
         <div class="panel-head"><div><h2>{{ detailBill.billNo }}</h2><p class="small muted">账单关联信息</p></div><button class="sm" @click="detailBill = null">关闭</button></div>
-        <EntityRelationPanel type="BILL" :entity-id="detailBill.id" />
+        <EntityDetailTabs type="BILL" :entity-id="detailBill.id" />
       </div>
     </div>
 

@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
+import EntityDetailTabs from '../components/EntityDetailTabs.vue'
 import { can } from '../permissions'
 import { contractStatusLabel, contractStatusTone } from '../contractStatus'
 import { relationLabel, relationStatusLabel } from '../relationLabels'
@@ -219,6 +220,9 @@ watch(tab, loadTab)
           <div v-for="f in files" :key="f.id" class="entity-row"><div>{{ f.fileName }}<div class="small muted">{{ f.fileSize }} bytes · {{ f.createTime }}</div></div><button class="sm" @click="api.downloadFile(f.id, f.fileName)">下载</button></div>
         </div>
 
+        <div v-else-if="tab === 'relations'" class="tab-body">
+          <EntityDetailTabs type="CONTRACT" :entity-id="contract.id" />
+        </div>
         <div v-else-if="tab === 'changes'" class="tab-body">
           <div v-if="!changes.length" class="empty">暂无变更记录</div>
           <div v-for="c in changes" :key="c.id" class="entity-row"><div><strong>{{ c.changeType }}</strong><div class="small muted">{{ c.changeReason || c.reason || '' }}</div></div><span class="badge">{{ c.changeStatus || c.status }}</span></div>

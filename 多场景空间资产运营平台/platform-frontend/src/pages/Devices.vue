@@ -6,7 +6,7 @@ import TreeSelect from '../components/TreeSelect.vue'
 import { confirmAction } from '../confirm'
 import { can, canAction } from '../permissions'
 import DataTable from '../components/DataTable.vue'
-import EntityRelationPanel from '../components/EntityRelationPanel.vue'
+import EntityDetailTabs from '../components/EntityDetailTabs.vue'
 
 const project = ref(null)
 const devices = ref([])
@@ -229,7 +229,7 @@ onMounted(load)
     <div v-if="detailDevice" class="modal-mask" @click.self="detailDevice = null">
       <div class="modal" style="max-width:720px">
         <div class="panel-head"><div><h2>{{ detailDevice.deviceName }}</h2><p class="small muted">{{ detailDevice.deviceCode }}</p></div><button class="sm" @click="detailDevice = null">关闭</button></div>
-        <EntityRelationPanel type="DEVICE" :entity-id="detailDevice.id" />
+        <EntityDetailTabs type="DEVICE" :entity-id="detailDevice.id" />
       </div>
     </div>
 
