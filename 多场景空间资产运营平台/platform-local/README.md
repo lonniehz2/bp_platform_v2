@@ -84,7 +84,7 @@ platform-local/scripts/db-local-reset.ps1
 如果本机已有独立 MySQL，可指定端口和密码启动后端：
 
 ```powershell
-platform-local/scripts/dev-backend.ps1 -DbPort 3307 -DbPassword ''
+platform-local/scripts/dev-backend.ps1 -DbPort 3307 -DbPassword 'local123'
 ```
 
 当前本机验证实例：
