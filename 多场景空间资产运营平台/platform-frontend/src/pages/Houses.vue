@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
 import DataTable from '../components/DataTable.vue'
+import EntityRelationPanel from '../components/EntityRelationPanel.vue'
 
 const project = ref(null)
 const houses = ref([])
@@ -12,6 +13,7 @@ const route = useRoute()
 const houseQuery = ref('')
 const error = ref('')
 const editing = ref(null)
+const detailHouse = ref(null)
 const editForm = reactive({ area: 0, innerArea: 0, houseStatus: 'VACANT', assetTypeCode: '', layoutType: '', orientation: '', floorNo: 1, totalFloors: 1 })
 const filtered = computed(() => {
   let rows = status.value ? houses.value.filter(h => h.houseStatus === status.value) : houses.value
@@ -93,13 +95,10 @@ onMounted(async () => {
       <DataTable :rows="paged" :columns="houseColumns" :row-class="rowClass" :page="page" :page-size="10" :total="filtered.length" empty-text="暂无房源" @update:page="page = $event">
         <template #cell-floor="{ row }">{{ row.floorNo || '-' }}/{{ row.totalFloors || '-' }}</template>
 
-<style scoped>
-:deep(tr.highlight-row) { background:var(--brand-soft); }
-</style>
         <template #cell-area="{ row }">{{ row.area || '-' }}</template>
         <template #cell-innerArea="{ row }">{{ row.innerArea || '-' }}</template>
         <template #cell-houseStatus="{ row }"><span class="badge" :class="row.houseStatus === 'VACANT' ? 'green' : 'orange'">{{ row.houseStatus }}</span></template>
-        <template #cell-actions="{ row }"><button class="sm" @click="openEdit(row)">编辑</button></template>
+        <template #cell-actions="{ row }"><button class="sm" @click="openEdit(row)">编辑</button><button class="sm" @click="detailHouse = row">关联</button></template>
       </DataTable>
     </div>
 
@@ -120,5 +119,16 @@ onMounted(async () => {
         <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" @click="saveEdit">保存</button></div>
       </div>
     </div>
+
+    <div v-if="detailHouse" class="modal-mask" @click.self="detailHouse = null">
+      <div class="modal" style="max-width:760px">
+        <div class="panel-head"><div><h2>{{ detailHouse.houseCode }} · {{ detailHouse.houseName }}</h2><p class="small muted">房源关联信息</p></div><button class="sm" @click="detailHouse = null">关闭</button></div>
+        <EntityRelationPanel type="HOUSE" :entity-id="detailHouse.id" />
+      </div>
+    </div>
   </div>
 </template>
+
+<style scoped>
+:deep(tr.highlight-row) { background:var(--brand-soft); }
+</style>

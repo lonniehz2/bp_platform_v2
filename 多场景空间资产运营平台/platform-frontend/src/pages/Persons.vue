@@ -7,6 +7,7 @@ import { api } from '../api'
 import { can } from '../permissions'
 import DataTable from '../components/DataTable.vue'
 import SearchSelect from '../components/SearchSelect.vue'
+import EntityRelationPanel from '../components/EntityRelationPanel.vue'
 import { confirmAction } from '../confirm'
 
 const persons = ref([])
@@ -230,6 +231,8 @@ onMounted(async () => {
           </div>
         </template>
       </div>
+
+      <EntityRelationPanel v-if="selected" type="PERSON" :entity-id="selected.id" />
 
       <div class="panel">
         <div class="panel-head"><h2>人员钥匙包</h2><span class="small muted">{{ selected?.personName || '未选择' }}</span></div>

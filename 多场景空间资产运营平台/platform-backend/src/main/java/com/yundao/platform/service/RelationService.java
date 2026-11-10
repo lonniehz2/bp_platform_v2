@@ -72,11 +72,31 @@ public class RelationService {
                         + "where cc.tenant_id=? and cc.is_deleted=0 and cc.contract_id in "
                         + "(select id from guarantee_contract where tenant_id=? and person_id=? and is_deleted=0)",
                 tenant, tenant, personId);
+        List<Map<String, Object>> links = new ArrayList<>();
+        long personProject = orgId == null ? 0 : orgId;
+        long contractCount = tenantContracts.size() + cohabitantContracts.size();
+        boolean contractOk = canView("contracts", personProject) && personProject > 0;
+        links.add(link("CONTRACTS", null, "合同", contractOk ? contractCount + " 份" : "无合同查看权限",
+                contractOk ? null : "无合同查看权限", "/guarantee/contracts", contractOk));
+        long billCount = count("select count(*) from bp_bill where tenant_id=? and person_id=? and is_deleted=0", tenant, personId);
+        boolean billOk = canView("billing", personProject) && personProject > 0;
+        links.add(link("BILLS", null, "账单", billOk ? billCount + " 笔" : "无账单查看权限",
+                billOk ? null : "无账单查看权限", "/guarantee/billing", billOk));
+        long workOrderCount = count("select count(*) from guarantee_work_order where tenant_id=? and person_id=? and is_deleted=0", tenant, personId);
+        boolean workOk = canView("workOrders", personProject) && personProject > 0;
+        links.add(link("WORK_ORDERS", null, "工单", workOk ? workOrderCount + " 个" : "无工单查看权限",
+                workOk ? null : "无工单查看权限", "/guarantee/work-orders", workOk));
+        long accessCount = count("select count(*) from guarantee_access_record where tenant_id=? and person_id=? and is_deleted=0", tenant, personId);
+        boolean accessOk = canView("accessRecords", personProject) && personProject > 0;
+        links.add(link("ACCESS_RECORDS", null, "通行记录", accessOk ? accessCount + " 条" : "无通行查看权限",
+                accessOk ? null : "无通行查看权限", "/guarantee/access", accessOk));
+
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("person", person);
         out.put("tenantContracts", tenantContracts);
         out.put("cohabitantContracts", cohabitantContracts);
         out.put("cohabitants", cohabitants);
+        out.put("links", links);
         return out;
     }
 
@@ -105,6 +125,56 @@ public class RelationService {
     private boolean inScope(long projectId) {
         Set<Long> scope = dataScope.projectIds();
         return scope == null || scope.contains(projectId);
+    }
+
+    public Map<String, Object> house(long houseId) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select h.id, h.house_name houseName, h.house_code houseCode, h.org_id projectId, h.house_status houseStatus "
+                        + "from bp_house h where h.id=? and h.tenant_id=? and h.is_deleted=0", houseId, tenant);
+        if (rows.isEmpty()) throw BizException.notFound("房源不存在");
+        Map<String, Object> h = rows.get(0);
+        long projectId = ((Number) h.get("projectId")).longValue();
+        if (!canView("houses", projectId)) throw new BizException("BP40300", "无权查看该房源", 403);
+        long contracts = count("select count(*) from guarantee_contract where tenant_id=? and house_id=? and is_deleted=0", tenant, houseId);
+        long bills = count("select count(*) from bp_bill where tenant_id=? and house_id=? and is_deleted=0", tenant, houseId);
+        long devices = count("select count(*) from bp_dev_device where tenant_id=? and space_id in (select id from bp_space where tenant_id=? and org_id=?) and is_deleted=0", tenant, tenant, projectId);
+        long workOrders = count("select count(*) from guarantee_work_order where tenant_id=? and house_id=? and is_deleted=0", tenant, houseId);
+        List<Map<String, Object>> links = new ArrayList<>();
+        links.add(link("CONTRACTS", null, "合同", canView("contracts", projectId) ? contracts + " 份" : "无合同查看权限", canView("contracts", projectId) ? null : "无合同查看权限", "/guarantee/contracts", canView("contracts", projectId)));
+        links.add(link("BILLS", null, "账单", canView("billing", projectId) ? bills + " 笔" : "无账单查看权限", canView("billing", projectId) ? null : "无账单查看权限", "/guarantee/billing", canView("billing", projectId)));
+        links.add(link("DEVICES", null, "设备", canView("devices", projectId) ? devices + " 台" : "无设备查看权限", canView("devices", projectId) ? null : "无设备查看权限", "/guarantee/devices", canView("devices", projectId)));
+        links.add(link("WORK_ORDERS", null, "工单", canView("workOrders", projectId) ? workOrders + " 个" : "无工单查看权限", canView("workOrders", projectId) ? null : "无工单查看权限", "/guarantee/work-orders", canView("workOrders", projectId)));
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("entity", Map.of("type", "HOUSE", "id", String.valueOf(houseId), "title", h.get("houseName")));
+        out.put("links", links);
+        return out;
+    }
+
+    public Map<String, Object> bill(long billId) {
+        String tenant = TenantContext.require();
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select b.id, b.bill_no billNo, b.project_id projectId, b.contract_id contractId, b.house_id houseId, b.person_id personId "
+                        + "from bp_bill b where b.id=? and b.tenant_id=? and b.is_deleted=0", billId, tenant);
+        if (rows.isEmpty()) throw BizException.notFound("账单不存在");
+        Map<String, Object> b = rows.get(0);
+        long projectId = ((Number) b.get("projectId")).longValue();
+        if (!canView("billing", projectId)) throw new BizException("BP40300", "无权查看该账单", 403);
+        List<Map<String, Object>> links = new ArrayList<>();
+        if (b.get("contractId") != null) links.add(link("CONTRACT", String.valueOf(b.get("contractId")), "合同", "查看合同", null, "/guarantee/contracts/" + b.get("contractId"), canView("contracts", projectId)));
+        if (b.get("personId") != null) links.add(link("PERSON", String.valueOf(b.get("personId")), "人员", "查看人员", null, "/guarantee/persons?id=" + b.get("personId"), canView("person", projectId)));
+        if (b.get("houseId") != null) links.add(link("HOUSE", String.valueOf(b.get("houseId")), "房屋", "查看房源", null, "/guarantee/houses?id=" + b.get("houseId"), canView("houses", projectId)));
+        long payments = count("select count(*) from bp_payment_allocation pa join bp_payment p on p.id=pa.payment_id where pa.bill_id=? and p.tenant_id=? and p.is_deleted=0", billId, tenant);
+        links.add(link("PAYMENTS", null, "收款记录", canView("billing", projectId) ? payments + " 笔" : "无收款查看权限", canView("billing", projectId) ? null : "无收款查看权限", "/guarantee/cashflow", canView("billing", projectId)));
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("entity", Map.of("type", "BILL", "id", String.valueOf(billId), "title", b.get("billNo")));
+        out.put("links", links);
+        return out;
+    }
+
+    private long count(String sql, Object... args) {
+        Long n = jdbc.queryForObject(sql, Long.class, args);
+        return n == null ? 0 : n;
     }
 
     public Map<String, Object> contract(long contractId) {

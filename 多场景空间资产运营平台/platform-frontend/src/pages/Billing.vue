@@ -5,6 +5,7 @@ import { api } from '../api'
 import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
 import DataTable from '../components/DataTable.vue'
+import EntityRelationPanel from '../components/EntityRelationPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,6 +22,7 @@ const error = ref('')
 const busy = ref(false)
 const payForm = reactive({ billId: '', amount: '', method: 'CASH' })
 const receipt = ref(null)
+const detailBill = ref(null)
 const adjusting = ref(null)
 const adjustForm = reactive({ discountAmount: 0, remark: '' })
 const refunding = ref(null)
@@ -189,6 +191,7 @@ onMounted(load)
             <button v-if="canAction('billing:adjust', 'billing') && row.billStatus !== 'PAID'" class="sm" :disabled="busy" @click="openAdjust(row)">调整</button>
             <button v-if="canAction('billing:discard', 'billing') && row.billStatus === 'DRAFT'" class="sm danger" @click="discardBill(row)">作废</button>
             <button v-if="canAction('billing:close', 'billing') && row.billStatus === 'WAIVED'" class="sm" @click="closeBill(row)">关闭</button>
+            <button class="sm" @click="detailBill = row">关联</button>
           </template>
         </DataTable>
       </div>
@@ -247,6 +250,13 @@ onMounted(load)
         <div class="field"><label>新增减免</label><input v-model.number="adjustForm.discountAmount" type="number" /></div>
         <div class="field"><label>调整原因</label><input v-model="adjustForm.remark" /></div>
         <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="adjust">保存</button></div>
+      </div>
+    </div>
+
+    <div v-if="detailBill" class="modal-mask" @click.self="detailBill = null">
+      <div class="modal" style="max-width:760px">
+        <div class="panel-head"><div><h2>{{ detailBill.billNo }}</h2><p class="small muted">账单关联信息</p></div><button class="sm" @click="detailBill = null">关闭</button></div>
+        <EntityRelationPanel type="BILL" :entity-id="detailBill.id" />
       </div>
     </div>
 
