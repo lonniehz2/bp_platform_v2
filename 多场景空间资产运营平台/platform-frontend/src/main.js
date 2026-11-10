@@ -11,6 +11,7 @@ import Projects from './pages/Projects.vue'
 import Persons from './pages/Persons.vue'
 import Applications from './pages/Applications.vue'
 import Contracts from './pages/Contracts.vue'
+import ContractDetail from './pages/ContractDetail.vue'
 import Billing from './pages/Billing.vue'
 import Deposits from './pages/Deposits.vue'
 import Arrears from './pages/Arrears.vue'
@@ -69,6 +70,7 @@ const router = createRouter({
     { path: '/projects', component: Projects, meta: { title: '项目与资产' } },
     { path: '/persons', component: Persons, meta: { title: '客户与人员' } },
     { path: '/applications', component: Applications, meta: { title: '申请与轮候' } },
+    { path: '/contracts/:id', component: ContractDetail, meta: { title: '合同详情' } },
     { path: '/contracts', component: Contracts, meta: { title: '合同与租赁' } },
     { path: '/guarantee/dashboard', component: Dashboard, meta: { title: '运营驾驶舱' } },
     { path: '/guarantee/assets', component: Projects, meta: { title: '项目与资产' } },
@@ -76,6 +78,7 @@ const router = createRouter({
     { path: '/guarantee/applications', component: Applications, meta: { title: '申请管理' } },
     { path: '/guarantee/waitlist', component: Waitlist, meta: { title: '轮候配租' } },
     { path: '/guarantee/allocations', component: Allocations, meta: { title: '配租摇号' } },
+    { path: '/guarantee/contracts/:id', component: ContractDetail, meta: { title: '合同详情' } },
     { path: '/guarantee/contracts', component: Contracts, meta: { title: '合同与租赁' } },
     { path: '/guarantee/billing', component: Billing, meta: { title: '收费与账务' } },
     { path: '/guarantee/devices', component: Devices, meta: { title: '设备与授权' } },

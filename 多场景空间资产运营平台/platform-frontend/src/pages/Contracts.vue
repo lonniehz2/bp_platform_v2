@@ -16,6 +16,7 @@ const busy = ref(false)
 const detailOpen = ref(false)
 const createOpen = ref(false)
 const billOpen = ref(false)
+const router = useRouter()
 const page = ref(1)
 const contractQuery = ref('')
 const form = reactive({
@@ -125,8 +126,7 @@ async function contractAction(c, action) {
 }
 
 async function openDetail(c) {
-  await openFiles(c)
-  detailOpen.value = true
+  router.push(`/guarantee/contracts/${c.id}`)
 }
 
 async function openFiles(c) {
