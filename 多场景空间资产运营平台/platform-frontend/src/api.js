@@ -203,6 +203,7 @@ export const api = {
   importSpaceGrants: (file) => { const fd = new FormData(); fd.append('file', file); return request('/imports/grants', { method: 'POST', body: fd }) },
   importDeviceGrants: (file) => { const fd = new FormData(); fd.append('file', file); return request('/imports/device-grants', { method: 'POST', body: fd }) },
   importUsers: (file) => { const fd = new FormData(); fd.append('file', file); return request('/imports/users', { method: 'POST', body: fd }) },
+  importContracts: (file) => { const fd = new FormData(); fd.append('file', file); return request('/imports/contracts', { method: 'POST', body: fd }) },
   createDevice: (body) => request('/devices', { method: 'POST', body: JSON.stringify(body) }),
   updateDevice: (id, body) => request(`/devices/${id}/update`, { method: 'POST', body: JSON.stringify(body) }),
   archiveDevice: (id) => request(`/devices/${id}/archive`, { method: 'POST' }),

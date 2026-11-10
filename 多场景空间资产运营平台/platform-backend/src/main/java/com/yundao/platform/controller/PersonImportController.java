@@ -7,6 +7,7 @@ import com.yundao.platform.service.RelationImportService;
 import com.yundao.platform.service.BindingImportService;
 import com.yundao.platform.service.GrantImportService;
 import com.yundao.platform.service.UserImportService;
+import com.yundao.platform.service.ContractImportService;
 import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,20 +25,27 @@ public class PersonImportController {
     private final BindingImportService bindingService;
     private final GrantImportService grantImportService;
     private final UserImportService userImportService;
+    private final ContractImportService contractImportService;
 
     public PersonImportController(PersonImportService service, SpaceImportService spaceService,
-                                  RelationImportService relationService, BindingImportService bindingService, GrantImportService grantImportService, UserImportService userImportService) {
+                                  RelationImportService relationService, BindingImportService bindingService, GrantImportService grantImportService, UserImportService userImportService, ContractImportService contractImportService) {
         this.service = service;
         this.spaceService = spaceService;
         this.relationService = relationService;
         this.bindingService = bindingService;
         this.grantImportService = grantImportService;
         this.userImportService = userImportService;
+        this.contractImportService = contractImportService;
     }
 
     @PostMapping("/persons")
     public R<Map<String, Object>> persons(@RequestParam("file") MultipartFile file) {
         return R.ok(service.importCsv(file));
+    }
+
+    @PostMapping("/contracts")
+    public R<Map<String, Object>> contracts(@RequestParam("file") MultipartFile file) {
+        return R.ok(contractImportService.importCsv(file));
     }
 
     @PostMapping("/users")

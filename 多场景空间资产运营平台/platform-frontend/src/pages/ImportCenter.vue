@@ -31,8 +31,27 @@ const userFile = ref(null)
 const userBusy = ref(false)
 const userResult = ref(null)
 const userError = ref('')
+const contractFile = ref(null)
+const contractBusy = ref(false)
+const contractResult = ref(null)
+const contractError = ref('')
 
 function pickPerson(e) { personFile.value = e.target.files?.[0] || null; personResult.value = null; personError.value = '' }
+
+function pickContract(e) { contractFile.value = e.target.files?.[0] || null; contractResult.value = null; contractError.value = '' }
+
+function downloadContractTemplate() {
+  const csv = '\ufeff项目编码,合同编号,房屋编码,人员编码,开始日期,结束日期,月租金,押金,账单周期,账单日,草稿\nZZ0020,HT-001,101,P0001,2026-01-01,2026-12-31,1200,1200,MONTH,1,是\n'
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+  a.download = '合同导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+}
+
+async function importContracts() {
+  if (!contractFile.value) { contractError.value = '请选择 CSV 文件'; return }
+  contractBusy.value = true; contractError.value = ''; contractResult.value = null
+  try { contractResult.value = await api.importContracts(contractFile.value) } catch (e) { contractError.value = e.message } finally { contractBusy.value = false }
+}
 
 function pickUser(e) { userFile.value = e.target.files?.[0] || null; userResult.value = null; userError.value = '' }
 
@@ -193,6 +212,17 @@ async function importPersons() {
         <div v-if="grantResult" style="margin-top:12px">
           <div class="alert" :class="grantResult.failed ? 'warn' : 'ok'">共 {{ grantResult.total }} 行，成功 {{ grantResult.success }}，失败 {{ grantResult.failed }}。</div>
           <div v-if="grantResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in grantResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>合同导入</h2><span class="small muted">CSV</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadContractTemplate">下载模板</button><input type="file" accept=".csv" @change="pickContract" /><span class="small muted">{{ contractFile?.name || '未选择文件' }}</span></div>
+        <div v-if="contractError" class="error">{{ contractError }}</div>
+        <button class="primary" :disabled="contractBusy || !contractFile" @click="importContracts">{{ contractBusy ? '导入中…' : '开始导入' }}</button>
+        <div v-if="contractResult" style="margin-top:12px">
+          <div class="alert" :class="contractResult.failed ? 'warn' : 'ok'">共 {{ contractResult.total }} 行，成功 {{ contractResult.success }}，失败 {{ contractResult.failed }}。</div>
+          <div v-if="contractResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in contractResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
