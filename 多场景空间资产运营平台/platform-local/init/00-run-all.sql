@@ -14,3 +14,4 @@ source /sql/021_role_action_menu.sql;
 source /sql/022_backfill_role_actions.sql;
 source /compat/01_local_compat.sql;
 source /seed/001_local_seed.sql;
+source /seed/002_demo_full.sql;
