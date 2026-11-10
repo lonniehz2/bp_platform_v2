@@ -12,6 +12,8 @@ const persons = ref([])
 const houses = ref([])
 const error = ref('')
 const busy = ref(false)
+const createOpen = ref(false)
+const billOpen = ref(false)
 const page = ref(1)
 const contractQuery = ref('')
 const form = reactive({
@@ -218,23 +220,8 @@ onMounted(load)
     <div v-if="!project" class="empty">请先创建项目</div>
     <template v-else>
       <div class="panel">
-        <div class="panel-head"><div><h2>保障房合同</h2><p>{{ project.orgName }} · 合同创建与账单生成</p></div><span class="pill">CONTRACT</span></div>
-        <div class="row">
-          <div class="field"><label>合同编号</label><input v-model="form.contractNo" placeholder="如 HT2026001" /></div>
-          <div class="field"><label>房屋</label>
-            <SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋编码/名称" />
-          </div>
-          <div class="field"><label>承租人</label>
-            <SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索承租人" />
-          </div>
-          <div class="field"><label>开始日期</label><input v-model="form.startDate" type="date" /></div>
-          <div class="field"><label>结束日期</label><input v-model="form.endDate" type="date" /></div>
-          <div class="field"><label>月租金</label><input v-model.number="form.rentAmount" type="number" /></div>
-          <div class="field"><label>押金</label><input v-model.number="form.depositAmount" type="number" /></div>
-          <div class="field"><label>账单周期</label><select v-model="form.billingCycle"><option value="MONTH">按月</option><option value="QUARTER">按季</option><option value="YEAR">按年</option></select></div>
-          <div class="field"><label>账单日</label><input v-model.number="form.billDay" type="number" min="1" max="28" /></div>
-          <div class="field" style="flex:0 0 auto"><label><input type="checkbox" v-model="form.draft" /> 保存草稿</label></div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('contract:create', 'contract')" class="primary" :disabled="busy" @click="create">创建合同</button></div>
+        <div class="panel-head"><div><h2>保障房合同</h2><p>{{ project.orgName }} · 合同列表与生命周期</p></div>
+          <div class="row"><button v-if="canAction('contract:create', 'contract')" class="primary" @click="createOpen = true">新建合同</button><button class="sm" @click="billOpen = true">生成租金账单</button></div>
         </div>
       </div>
 
@@ -290,16 +277,35 @@ onMounted(load)
         </div>
       </div>
 
-      <div class="panel">
-        <div class="panel-head"><h2>生成租金账单</h2><span class="small muted">补贴会在账单生成时自动抵扣</span></div>
-        <div class="row">
-          <div class="field"><label>合同</label>
-            <SearchSelect v-model="billForm.contractId" :options="contracts" label-key="contractNo" sublabel-key="personName" value-key="id" placeholder="搜索合同号/承租人" />
+      <div v-if="createOpen" class="modal-mask" @click.self="createOpen = false">
+        <div class="modal" style="max-width:860px">
+          <div class="panel-head"><h2>新建合同</h2><button class="sm" @click="createOpen = false">关闭</button></div>
+          <div class="row">
+            <div class="field"><label>合同编号</label><input v-model="form.contractNo" placeholder="如 HT2026001" /></div>
+            <div class="field"><label>房屋</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋编码/名称" /></div>
+            <div class="field"><label>承租人</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索承租人" /></div>
+            <div class="field"><label>开始日期</label><input v-model="form.startDate" type="date" /></div>
+            <div class="field"><label>结束日期</label><input v-model="form.endDate" type="date" /></div>
+            <div class="field"><label>月租金</label><input v-model.number="form.rentAmount" type="number" /></div>
+            <div class="field"><label>押金</label><input v-model.number="form.depositAmount" type="number" /></div>
+            <div class="field"><label>账单周期</label><select v-model="form.billingCycle"><option value="MONTH">按月</option><option value="QUARTER">按季</option><option value="YEAR">按年</option></select></div>
+            <div class="field"><label>账单日</label><input v-model.number="form.billDay" type="number" min="1" max="28" /></div>
+            <div class="field" style="flex:0 0 auto"><label><input type="checkbox" v-model="form.draft" /> 保存草稿</label></div>
           </div>
-          <div class="field"><label>周期开始</label><input v-model="billForm.periodStart" type="date" /></div>
-          <div class="field"><label>周期结束</label><input v-model="billForm.periodEnd" type="date" /></div>
-          <div class="field"><label>金额</label><input v-model.number="billForm.amount" type="number" /></div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button :disabled="busy" @click="generateBill">生成账单</button></div>
+          <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="create">创建合同</button></div>
+        </div>
+      </div>
+
+      <div v-if="billOpen" class="modal-mask" @click.self="billOpen = false">
+        <div class="modal" style="max-width:640px">
+          <div class="panel-head"><h2>生成租金账单</h2><button class="sm" @click="billOpen = false">关闭</button></div>
+          <div class="row">
+            <div class="field"><label>合同</label><SearchSelect v-model="billForm.contractId" :options="contracts" label-key="contractNo" sublabel-key="personName" value-key="id" placeholder="搜索合同号/承租人" /></div>
+            <div class="field"><label>周期开始</label><input v-model="billForm.periodStart" type="date" /></div>
+            <div class="field"><label>周期结束</label><input v-model="billForm.periodEnd" type="date" /></div>
+            <div class="field"><label>金额</label><input v-model.number="billForm.amount" type="number" /></div>
+          </div>
+          <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="generateBill(); billOpen = false">生成账单</button></div>
         </div>
       </div>
 

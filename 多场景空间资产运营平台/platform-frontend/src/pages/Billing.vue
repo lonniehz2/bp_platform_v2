@@ -14,6 +14,7 @@ const payments = ref([])
 const drillRange = ref({ start: '', end: '' })
 const page = ref(1)
 const billQuery = ref('')
+const payOpen = ref(false)
 const error = ref('')
 const busy = ref(false)
 const payForm = reactive({ billId: '', amount: '', method: 'CASH' })
@@ -145,6 +146,7 @@ async function pay() {
     await api.pay(payForm.billId, { amount: Number(payForm.amount), paymentMethod: payForm.method })
     payForm.billId = ''
     payForm.amount = ''
+    payOpen.value = false
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -158,16 +160,8 @@ onMounted(load)
     <div v-if="!project" class="empty">请先创建项目</div>
     <template v-else>
       <div class="panel">
-        <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project.orgName }} · 按应付金额收款，自动生成收据</p></div><span class="pill">BILLING</span></div>
-        <div class="row">
-          <div class="field"><label>账单</label>
-            <SearchSelect v-model="payForm.billId" :options="bills.filter(x => x.billStatus !== 'PAID')" label-key="billNo" sublabel-key="personName" value-key="id" placeholder="搜索账单号/承租人" @change="selectBill" />
-          </div>
-          <div class="field"><label>收款金额</label><input v-model.number="payForm.amount" type="number" /></div>
-          <div class="field"><label>方式</label>
-            <select v-model="payForm.method"><option value="CASH">现金</option><option value="WECHAT">微信</option><option value="ALIPAY">支付宝</option><option value="BANK">银行</option></select>
-          </div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="canAction('billing:pay', 'billing')" class="primary" :disabled="busy" @click="pay">确认收款</button></div>
+        <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project.orgName }} · 账单列表与收款</p></div>
+          <div class="row"><button v-if="canAction('billing:pay', 'billing')" class="primary" @click="payOpen = true">收款</button></div>
         </div>
       </div>
 
@@ -208,6 +202,18 @@ onMounted(load)
         </div>
       </div>
     </template>
+
+    <div v-if="payOpen" class="modal-mask" @click.self="payOpen = false">
+      <div class="modal" style="max-width:640px">
+        <div class="panel-head"><h2>收款</h2><button class="sm" @click="payOpen = false">关闭</button></div>
+        <div class="row">
+          <div class="field"><label>账单</label><SearchSelect v-model="payForm.billId" :options="bills.filter(x => x.billStatus !== 'PAID')" label-key="billNo" sublabel-key="personName" value-key="id" placeholder="搜索账单号/承租人" @change="selectBill" /></div>
+          <div class="field"><label>收款金额</label><input v-model.number="payForm.amount" type="number" /></div>
+          <div class="field"><label>方式</label><select v-model="payForm.method"><option value="CASH">现金</option><option value="WECHAT">微信</option><option value="ALIPAY">支付宝</option><option value="BANK">银行</option></select></div>
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="pay">确认收款</button></div>
+      </div>
+    </div>
 
     <div v-if="refunding" class="modal-mask" @click.self="refunding = null">
       <div class="modal">
