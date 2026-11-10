@@ -19,8 +19,27 @@ const bindingFile = ref(null)
 const bindingBusy = ref(false)
 const bindingResult = ref(null)
 const bindingError = ref('')
+const grantFile = ref(null)
+const grantBusy = ref(false)
+const grantResult = ref(null)
+const grantError = ref('')
 
 function pickPerson(e) { personFile.value = e.target.files?.[0] || null; personResult.value = null; personError.value = '' }
+
+function pickGrant(e) { grantFile.value = e.target.files?.[0] || null; grantResult.value = null; grantError.value = '' }
+
+function downloadGrantTemplate() {
+  const csv = '\ufeff项目编码,人员编码,空间编码,权限级别,开始日期,结束日期\nZZ0020,P0001,101,OPEN,2026-01-01,2026-12-31\n'
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+  a.download = '人员空间授权导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+}
+
+async function importGrants() {
+  if (!grantFile.value) { grantError.value = '请选择 CSV 文件'; return }
+  grantBusy.value = true; grantError.value = ''; grantResult.value = null
+  try { grantResult.value = await api.importSpaceGrants(grantFile.value) } catch (e) { grantError.value = e.message } finally { grantBusy.value = false }
+}
 
 function pickBinding(e) { bindingFile.value = e.target.files?.[0] || null; bindingResult.value = null; bindingError.value = '' }
 
@@ -125,6 +144,17 @@ async function importPersons() {
         <div v-if="relationResult" style="margin-top:12px">
           <div class="alert" :class="relationResult.failed ? 'warn' : 'ok'">共 {{ relationResult.total }} 行，成功 {{ relationResult.success }}，失败 {{ relationResult.failed }}。</div>
           <div v-if="relationResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in relationResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>人员-空间授权导入</h2><span class="small muted">CSV</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadGrantTemplate">下载模板</button><input type="file" accept=".csv" @change="pickGrant" /><span class="small muted">{{ grantFile?.name || '未选择文件' }}</span></div>
+        <div v-if="grantError" class="error">{{ grantError }}</div>
+        <button class="primary" :disabled="grantBusy || !grantFile" @click="importGrants">{{ grantBusy ? '导入中…' : '开始导入' }}</button>
+        <div v-if="grantResult" style="margin-top:12px">
+          <div class="alert" :class="grantResult.failed ? 'warn' : 'ok'">共 {{ grantResult.total }} 行，成功 {{ grantResult.success }}，失败 {{ grantResult.failed }}。</div>
+          <div v-if="grantResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in grantResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
