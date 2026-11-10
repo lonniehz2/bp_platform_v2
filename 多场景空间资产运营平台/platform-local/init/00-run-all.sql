@@ -1,0 +1,20 @@
+-- 本地数据库初始化：按顺序执行平台 SQL 与本地种子
+source /sql/001_platform_core.sql;
+source /sql/002_menu_seed.sql;
+source /sql/003_person_field_extensions.sql;
+source /sql/004_project_field_extensions.sql;
+source /sql/005_application_field_extensions.sql;
+source /sql/006_house_attribute_extensions.sql;
+source /sql/007_project_area_extensions.sql;
+source /sql/008_guarantee_archive_extensions.sql;
+source /sql/010_device_import_extensions.sql;
+source /sql/011_user_project_scope.sql;
+source /sql/012_user_org_scope.sql;
+source /sql/013_refund.sql;
+source /sql/014_workflow_org_scope.sql;
+source /sql/015_listing_booking.sql;
+source /sql/016_listing_order.sql;
+source /sql/017_audit_log.sql;
+source /sql/018_menu_unify.sql;
+source /sql/019_role_data_scope.sql;
+source /seed/001_local_seed.sql;
