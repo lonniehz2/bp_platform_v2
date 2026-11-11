@@ -153,7 +153,7 @@ const messages = {
       logout: '退出',
       light: '浅色',
       dark: '深色',
-      language: '语言', action: '操作', open: '打开', loading: '加载中…', noRelation: '暂无关联记录', noPermission: '无权限查看该关联信息'
+      language: '语言', action: '操作', open: '打开', loading: '加载中…', noRelation: '暂无关联记录', noPermission: '无权限查看该关联信息', unassigned: '未分配'
     }
   },
   'en-US': {
@@ -309,7 +309,7 @@ const messages = {
       logout: 'Sign out',
       light: 'Light',
       dark: 'Dark',
-      language: 'Language', action: 'Actions', open: 'Open', loading: 'Loading…', noRelation: 'No related records', noPermission: 'No permission to view this relation'
+      language: 'Language', action: 'Actions', open: 'Open', loading: 'Loading…', noRelation: 'No related records', noPermission: 'No permission to view this relation', unassigned: 'Unassigned'
     }
   }
 }

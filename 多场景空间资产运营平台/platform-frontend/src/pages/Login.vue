@@ -34,7 +34,9 @@ async function submit() {
     } catch {}
     const roles = result.roles || []
     const root = sceneRoot()
-    const defaultPath = roles.some(r => ['GUARANTEE_ADMIN','GUARANTEE_MANAGER','ADMIN'].includes(r)) ? `${root}/cockpit` : `${root}/workbench`
+    const scene = currentScene()
+    const manager = roles.some(r => ['ADMIN', `${scene}_ADMIN`, `${scene}_MANAGER`].includes(r))
+    const defaultPath = manager ? `${root}/cockpit` : `${root}/workbench`
     await router.replace(defaultPath)
   } catch (e) {
     error.value = e.message

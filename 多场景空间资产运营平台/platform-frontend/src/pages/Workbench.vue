@@ -62,7 +62,7 @@ onMounted(load)
       </div>
       <div class="panel"><div class="panel-head"><h2>{{ t('workbench.pendingOrders') }}</h2><RouterLink :to="sceneRoot() + '/work-orders'">{{ t('workbench.all') }}</RouterLink></div>
         <div v-if="!pendingWorkOrders.length" class="empty">{{ t('workbench.noOrders') }}</div>
-        <div v-for="w in pendingWorkOrders" :key="w.id" class="entity-row"><div><strong>{{ w.title }}</strong><div class="small muted">{{ w.orderNo }} · {{ w.assigneeName || '未分配' }}</div></div><span class="badge orange">{{ w.orderStatus }}</span></div>
+        <div v-for="w in pendingWorkOrders" :key="w.id" class="entity-row"><div><strong>{{ w.title }}</strong><div class="small muted">{{ w.orderNo }} · {{ w.assigneeName || t('common.unassigned') }}</div></div><span class="badge orange">{{ w.orderStatus }}</span></div>
       </div>
     </div>
     <div class="panel"><div class="panel-head"><h2>{{ t('workbench.collection') }}</h2><RouterLink :to="sceneRoot() + '/billing'">{{ t('workbench.goCollect') }}</RouterLink></div>

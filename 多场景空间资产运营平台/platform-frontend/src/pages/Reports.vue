@@ -124,7 +124,7 @@ function exportCsv() {
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
-  link.download = `报表_${title.value}.csv`
+  link.download = `${t('reports.title')}_${title.value}.csv`
   link.click(); URL.revokeObjectURL(link.href)
 }
 
