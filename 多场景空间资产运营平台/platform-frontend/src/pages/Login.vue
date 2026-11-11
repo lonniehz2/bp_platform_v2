@@ -53,7 +53,7 @@ function switchLocale() {
 <template>
   <div class="login-page">
     <div class="login-controls">
-      <button class="ghost sm" @click="switchLocale">{{ locale === 'zh-CN' ? 'EN' : '中' }}</button>
+      <button class="ghost sm" @click="switchLocale">{{ locale === 'zh-CN' ? 'EN' : t('login.zhShort') }}</button>
       <button class="ghost sm" @click="toggleMode">{{ mode === 'dark' ? '☀' : '☾' }}</button>
     </div>
 
