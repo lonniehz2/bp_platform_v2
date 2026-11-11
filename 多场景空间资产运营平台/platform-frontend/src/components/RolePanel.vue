@@ -1,7 +1,10 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
+import { currentScene } from '../scene'
 
+const { t } = useI18n()
 const roles = ref([])
 const projects = ref([])
 const menus = ref([])
@@ -23,11 +26,11 @@ const editOpen = ref(false)
 const editForm = reactive({ roleName: '', roleStatus: 'ENABLED' })
 const form = reactive({ roleCode: '', roleName: '' })
 const actionOptions = [
-  { code: 'view', label: '查看' },
-  { code: 'create', label: '新增' },
-  { code: 'edit', label: '编辑' },
-  { code: 'delete', label: '删除' },
-  { code: 'approve', label: '审批' }
+  { code: 'view', label: t('rp.view') },
+  { code: 'create', label: t('rp.createAction') },
+  { code: 'edit', label: t('rp.editAction') },
+  { code: 'delete', label: t('rp.deleteAction') },
+  { code: 'approve', label: t('rp.approve') }
 ]
 
 const filteredRoles = computed(() => {
@@ -61,7 +64,7 @@ const filteredProjects = computed(() => {
 async function load() {
   error.value = ''
   try {
-    const [m, r, p] = await Promise.all([api.menus('GUARANTEE'), api.roles('GUARANTEE'), api.projects()])
+    const [m, r, p] = await Promise.all([api.menus(currentScene()), api.roles(currentScene()), api.projects()])
     menus.value = m; roles.value = r; projects.value = p
     const keep = selected.value && r.find(x => String(x.id) === String(selected.value.id))
     await selectRole(keep || r[0] || null)
@@ -141,7 +144,7 @@ async function savePages() {
   try {
     await api.saveRoleMenus(selected.value.id, selectedCodes.value)
     await api.saveRoleActions(selected.value.id, selectedActions.value)
-    notice.value = '页面权限和操作权限已保存'
+    notice.value = t('rp.savedPages')
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -150,7 +153,7 @@ async function saveActions() {
   busy.value = true; error.value = ''
   try {
     await api.saveRoleActions(selected.value.id, selectedActions.value)
-    notice.value = '功能权限已保存'
+    notice.value = t('rp.savedActions')
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 async function saveScope() {
@@ -161,7 +164,7 @@ async function saveScope() {
     const saved = await api.saveRoleScope(selected.value.id, { scopeType: scopeMode.value, projectIds })
     scopeMode.value = saved.scopeType || 'NONE'
     scopeProjectIds.value = (saved.projectIds || []).map(String)
-    notice.value = '默认数据范围已保存；页面/功能权限的未保存修改不会丢失' 
+    notice.value = t('rp.savedScope') 
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 function chooseScope(mode) { scopeMode.value = mode; if (mode !== 'PROJECTS') scopeProjectIds.value = [] }
@@ -191,7 +194,7 @@ async function saveRoleEdit() {
   try {
     await api.updateRole(selected.value.id, { roleName: editForm.roleName.trim(), roleStatus: editForm.roleStatus })
     editOpen.value = false
-    notice.value = '角色信息已更新'
+    notice.value = t('rp.roleUpdated')
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -212,8 +215,8 @@ async function confirmDelete() {
 async function createRole() {
   busy.value = true; error.value = ''
   try {
-    if (!form.roleCode.trim() || !form.roleName.trim()) throw new Error('请填写角色编码和名称')
-    await api.createRole({ sceneCode: 'GUARANTEE', roleCode: form.roleCode.trim(), roleName: form.roleName.trim(), menuCodes: [] })
+    if (!form.roleCode.trim() || !form.roleName.trim()) throw new Error(t('rp.required'))
+    await api.createRole({ sceneCode: currentScene(), roleCode: form.roleCode.trim(), roleName: form.roleName.trim(), menuCodes: [] })
     form.roleCode = ''; form.roleName = ''
     createOpen.value = false
     await load()
@@ -228,26 +231,26 @@ onMounted(load)
     <div v-if="error" class="error">{{ error }}</div>
     <div class="grid" style="grid-template-columns:280px minmax(0,1fr)">
       <div class="panel role-list">
-        <div class="panel-head"><div><h2>角色</h2><p>{{ roles.length }} 个角色</p></div><button class="sm" @click="createOpen = true">新增</button></div>
-        <input v-model="search" placeholder="搜索角色" style="margin-bottom:8px" />
+        <div class="panel-head"><div><h2>{{ t('rp.role') }}</h2><p>{{ roles.length }} {{ t('rp.roleCount') }}</p></div><button class="sm" @click="createOpen = true">{{ t('rp.add') }}</button></div>
+        <input v-model="search" :placeholder="t('rp.searchRole')" style="margin-bottom:8px" />
         <div v-for="r in filteredRoles" :key="r.id" class="role-row" :class="{ active: selected && String(selected.id) === String(r.id) }" @click="selectRole(r)">
           <div style="flex:1;min-width:0"><div class="ellipsis">{{ r.roleName }}</div><div class="mono small muted ellipsis">{{ r.roleCode }}</div></div>
-          <span class="badge">{{ r.menuCount }} 项</span>
+          <span class="badge">{{ r.menuCount }} {{ t('rp.itemUnit') }}</span>
         </div>
       </div>
 
       <div v-if="selected" class="role-detail">
         <div class="panel">
-          <div class="panel-head"><div><h2>{{ selected.roleName }}</h2><p class="mono small muted">{{ selected.roleCode }} · {{ selectedPageCount }}/{{ pageCount }} 个页面 · {{ selectedActions.length }} 个功能点</p></div><div class="row"><button class="sm" @click="openRoleEdit">编辑角色</button><button class="sm danger" @click="askDelete">删除角色</button></div></div>
+          <div class="panel-head"><div><h2>{{ selected.roleName }}</h2><p class="mono small muted">{{ selected.roleCode }} · {{ selectedPageCount }}/{{ pageCount }} {{ t('rp.pageCount') }} · {{ selectedActions.length }} {{ t('rp.funcCount') }}</p></div><div class="row"><button class="sm" @click="openRoleEdit">{{ t('rp.editTitle') }}</button><button class="sm danger" @click="askDelete">{{ t('rp.deleteTitle') }}</button></div></div>
           <div v-if="notice" class="alert success">{{ notice }}</div>
         </div>
 
         <div class="panel">
-          <div class="panel-head"><div><h2>页面权限</h2><p>分组行用于批量设置，页面行配置该页面的操作权限</p></div><button class="primary" :disabled="busy" @click="savePages">保存权限</button></div>
-          <input v-model="pageSearch" placeholder="搜索页面名称或编码" style="margin-bottom:10px" />
+          <div class="panel-head"><div><h2>{{ t('rp.pagePerm') }}</h2><p>{{ t('rp.pagePermHint') }}</p></div><button class="primary" :disabled="busy" @click="savePages">{{ t('rp.savePerm') }}</button></div>
+          <input v-model="pageSearch" :placeholder="t('rp.searchPage')" style="margin-bottom:10px" />
           <div class="perm-table">
             <div class="perm-head">
-              <span>页面 / 菜单</span>
+              <span>{{ t('rp.pageMenu') }}</span>
               <span v-for="a in actionOptions" :key="a.code" class="center">{{ a.label }}</span>
             </div>
             <div v-for="g in filteredGroups" :key="g.menuCode" class="perm-group">
@@ -278,61 +281,61 @@ onMounted(load)
           </div>
         </div>
         <div class="panel">
-          <div class="panel-head"><div><h2>角色成员</h2><p>当前使用该角色的用户</p></div><span class="badge">{{ members.length }} 人</span></div>
-          <div v-if="!members.length" class="empty">暂无成员</div>
+          <div class="panel-head"><div><h2>{{ t('rp.members') }}</h2><p>{{ t('rp.membersHint') }}</p></div><span class="badge">{{ members.length }} {{ t('rp.memberUnit') }}</span></div>
+          <div v-if="!members.length" class="empty">{{ t('rp.noMembers') }}</div>
           <div v-for="m in members" :key="m.id" class="entity-row"><div><strong>{{ m.displayName }}</strong><span class="small muted"> · {{ m.username }}</span></div><span class="badge" :class="m.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ m.userStatus }}</span></div>
         </div>
 
         <div class="panel">
-          <div class="panel-head"><div><h2>默认数据范围</h2><p>用户默认继承此范围，可在用户页面进一步收窄</p></div><button class="primary" :disabled="busy" @click="saveScope">保存数据范围</button></div>
+          <div class="panel-head"><div><h2>{{ t('rp.scopeTitle') }}</h2><p>{{ t('rp.scopeHint') }}</p></div><button class="primary" :disabled="busy" @click="saveScope">{{ t('rp.saveScope') }}</button></div>
           <div class="scope-choice">
-            <button class="scope-card" :class="{ active: scopeMode === 'NONE' }" @click="chooseScope('NONE')"><strong>无数据</strong><span>默认不可见任何项目。</span></button>
-            <button class="scope-card" :class="{ active: scopeMode === 'ALL' }" @click="chooseScope('ALL')"><strong>全部项目</strong><span>可见全部项目数据。</span></button>
-            <button class="scope-card" :class="{ active: scopeMode === 'PROJECTS' }" @click="chooseScope('PROJECTS')"><strong>指定项目</strong><span>只允许指定项目。</span></button>
-            <button class="scope-card" :class="{ active: scopeMode === 'SELF' }" @click="chooseScope('SELF')"><strong>仅本人</strong><span>仅本人创建或负责的数据。</span></button>
+            <button class="scope-card" :class="{ active: scopeMode === 'NONE' }" @click="chooseScope('NONE')"><strong>{{ t('rp.none') }}</strong><span>{{ t('rp.noneHint') }}</span></button>
+            <button class="scope-card" :class="{ active: scopeMode === 'ALL' }" @click="chooseScope('ALL')"><strong>{{ t('rp.all') }}</strong><span>{{ t('rp.allHint') }}</span></button>
+            <button class="scope-card" :class="{ active: scopeMode === 'PROJECTS' }" @click="chooseScope('PROJECTS')"><strong>{{ t('rp.projects') }}</strong><span>{{ t('rp.projectsHint') }}</span></button>
+            <button class="scope-card" :class="{ active: scopeMode === 'SELF' }" @click="chooseScope('SELF')"><strong>{{ t('rp.self') }}</strong><span>{{ t('rp.selfHint') }}</span></button>
           </div>
           <div v-if="scopeMode === 'PROJECTS'" style="margin-top:12px">
-            <div class="scope-help">勾选项目即可多选，不需要按 Ctrl；可以搜索后全选当前结果。</div>
-            <input v-model="projectSearch" placeholder="搜索项目名称或编码" style="margin:10px 0 8px" />
+            <div class="scope-help">{{ t('rp.scopeHelp') }}</div>
+            <input v-model="projectSearch" :placeholder="t('rp.searchProject')" style="margin:10px 0 8px" />
             <div class="scope-project-picker">
               <label v-for="p in filteredProjects" :key="p.id" class="project-option" :class="{ selected: scopeProjectIds.includes(String(p.id)) }">
                 <input type="checkbox" :checked="scopeProjectIds.includes(String(p.id))" @change="toggleProject(p.id)" />
                 <span>{{ p.orgName }}</span><span class="mono small muted">{{ p.orgCode }}</span>
               </label>
-              <div v-if="!filteredProjects.length" class="empty">没有匹配的项目</div>
+              <div v-if="!filteredProjects.length" class="empty">{{ t('rp.noMatchProject') }}</div>
             </div>
-            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small">已选 {{ scopeProjectIds.length }} 个项目</span><div class="row"><button class="sm" @click="selectAllProjects">全选当前</button><button class="sm" @click="scopeProjectIds = []">清空</button></div></div>
-            <div v-if="selectedProjectNames.length" class="small muted" style="margin-top:6px">已选：{{ selectedProjectNames.join('、') }}</div>
+            <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small">{{ t('rp.selectedCount', { n: scopeProjectIds.length }) }}</span><div class="row"><button class="sm" @click="selectAllProjects">{{ t('rp.selectAll') }}</button><button class="sm" @click="scopeProjectIds = []">{{ t('rp.clear') }}</button></div></div>
+            <div v-if="selectedProjectNames.length" class="small muted" style="margin-top:6px">{{ t('rp.selected') }}: {{ selectedProjectNames.join(', ') }}</div>
           </div>
         </div>
       </div>
-      <div v-else class="panel"><div class="empty">请选择角色</div></div>
+      <div v-else class="panel"><div class="empty">{{ t('rp.selectRole') }}</div></div>
     </div>
 
     <div v-if="editOpen" class="modal-mask" @click.self="editOpen = false">
       <div class="modal" style="max-width:480px">
-        <div class="panel-head"><h2>编辑角色</h2><button class="sm" @click="editOpen = false">关闭</button></div>
-        <div class="field"><label>角色编码</label><input :value="selected?.roleCode" disabled /></div>
-        <div class="field"><label>角色名称</label><input v-model="editForm.roleName" /></div>
-        <div class="field"><label>状态</label><select v-model="editForm.roleStatus"><option value="ENABLED">启用</option><option value="DISABLED">停用</option></select></div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveRoleEdit">保存</button></div>
+        <div class="panel-head"><h2>{{ t('rp.editTitle') }}</h2><button class="sm" @click="editOpen = false">{{ t('rp.close') }}</button></div>
+        <div class="field"><label>{{ t('rp.roleCode') }}</label><input :value="selected?.roleCode" disabled /></div>
+        <div class="field"><label>{{ t('rp.roleName') }}</label><input v-model="editForm.roleName" /></div>
+        <div class="field"><label>{{ t('rp.status') }}</label><select v-model="editForm.roleStatus"><option value="ENABLED">{{ t('rp.enable') }}</option><option value="DISABLED">{{ t('rp.disable') }}</option></select></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveRoleEdit">{{ t('rp.save') }}</button></div>
       </div>
     </div>
 
     <div v-if="deleteTarget" class="modal-mask" @click.self="deleteTarget = null">
       <div class="modal" style="max-width:480px">
-        <div class="panel-head"><h2>删除角色</h2><button class="sm" @click="deleteTarget = null">关闭</button></div>
-        <div class="alert">确认删除角色“{{ deleteTarget.roleName }}（{{ deleteTarget.roleCode }}）”？页面权限、操作权限和数据范围将一并删除。有用户使用该角色时不能删除。</div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="sm" @click="deleteTarget = null">取消</button><button class="danger" :disabled="busy" @click="confirmDelete">{{ busy ? '删除中…' : '确认删除' }}</button></div>
+        <div class="panel-head"><h2>{{ t('rp.deleteTitle') }}</h2><button class="sm" @click="deleteTarget = null">{{ t('rp.close') }}</button></div>
+        <div class="alert">{{ t('rp.deleteMessage', { name: deleteTarget.roleName, code: deleteTarget.roleCode }) }}</div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="sm" @click="deleteTarget = null">{{ t('rp.cancel') }}</button><button class="danger" :disabled="busy" @click="confirmDelete">{{ busy ? t('rp.deleting') : t('rp.confirmDelete') }}</button></div>
       </div>
     </div>
 
     <div v-if="createOpen" class="modal-mask" @click.self="createOpen = false">
       <div class="modal" style="max-width:480px">
-        <div class="panel-head"><h2>新增角色</h2><button class="sm" @click="createOpen = false">关闭</button></div>
-        <div class="field"><label>角色编码</label><input v-model="form.roleCode" placeholder="如 GUARANTEE_AUDITOR" /></div>
-        <div class="field"><label>角色名称</label><input v-model="form.roleName" placeholder="稽核员" /></div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="createRole">创建</button></div>
+        <div class="panel-head"><h2>{{ t('rp.createTitle') }}</h2><button class="sm" @click="createOpen = false">{{ t('rp.close') }}</button></div>
+        <div class="field"><label>{{ t('rp.roleCode') }}</label><input v-model="form.roleCode" :placeholder="t('rp.codePlaceholder')" /></div>
+        <div class="field"><label>{{ t('rp.roleName') }}</label><input v-model="form.roleName" :placeholder="t('rp.namePlaceholder')" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="createRole">{{ t('rp.create') }}</button></div>
       </div>
     </div>
   </div>
