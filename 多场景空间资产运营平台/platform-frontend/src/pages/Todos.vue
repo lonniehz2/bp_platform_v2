@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const tasks = ref([])
 const status = ref('')
 const error = ref('')
@@ -19,19 +21,19 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>我的待办</h2><p>待受理、待审批、待处理任务</p></div><span class="badge blue">{{ filtered.length }} 个任务</span></div>
+      <div class="panel-head"><div><h2>{{ t('todos.title') }}</h2><p>{{ t('todos.subtitle') }}</p></div><span class="badge blue">{{ filtered.length }} {{ t('todos.count') }}</span></div>
       <div class="row">
-        <div class="field"><label>状态</label><select v-model="status" @change="load"><option value="">全部</option><option value="APPROVING">审批中</option><option value="APPROVED">已通过</option><option value="REJECTED">已驳回</option></select></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><RouterLink to="/audit">进入审批中心</RouterLink></div>
+        <div class="field"><label>{{ t('todos.status') }}</label><select v-model="status" @change="load"><option value="">{{ t('todos.all') }}</option><option value="APPROVING">{{ t('todos.approving') }}</option><option value="APPROVED">{{ t('todos.approved') }}</option><option value="REJECTED">{{ t('todos.rejected') }}</option></select></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><RouterLink to="/audit">{{ t('todos.audit') }}</RouterLink></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>待办列表</h2><span class="small muted">按业务提交时间倒序</span></div>
-      <div v-if="!filtered.length" class="empty">暂无待办</div>
+      <div class="panel-head"><h2>{{ t('todos.list') }}</h2><span class="small muted">{{ t('todos.hint') }}</span></div>
+      <div v-if="!filtered.length" class="empty">{{ t('todos.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>业务类型</th><th>摘要</th><th>提交人</th><th>当前节点</th><th>状态</th><th>提交时间</th></tr></thead>
+          <thead><tr><th>{{ t('todos.bizType') }}</th><th>{{ t('todos.summary') }}</th><th>{{ t('todos.submitter') }}</th><th>{{ t('todos.currentNode') }}</th><th>{{ t('todos.status') }}</th><th>{{ t('todos.submitTime') }}</th></tr></thead>
           <tbody>
             <tr v-for="t in filtered" :key="t.id">
               <td>{{ t.bizType }}</td><td>{{ t.summary }}</td><td>{{ t.submitterName }}</td>

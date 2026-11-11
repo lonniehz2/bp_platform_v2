@@ -77,6 +77,7 @@ const messages = {
     arrears: { unpaid: '未结清账单', totalBills: '共', billsUnit: '笔', amount: '欠费金额', byPayable: '按应付减已收', overdue: '逾期账单', statusOverdue: '状态 OVERDUE', title: '欠费清单', subtitle: '未结清账单', collect: '去收款', empty: '暂无欠费', billNo: '账单号', tenant: '承租人', period: '周期', payable: '应付', paid: '已收', arrears: '欠费', status: '状态', noProject: '未选择项目' },
     accessRecords: { title: '通行记录', subtitle: '访客通行登记和审批', count: '条', register: '登记访客', list: '通行列表', hint: '审批后生效', empty: '暂无通行记录', visitor: '访客', phone: '手机号', house: '被访房屋', person: '被访人', validity: '有效期', status: '状态', action: '操作', approve: '通过', reject: '拒绝', noProject: '未选择项目' },
     search: { title: '统一查询', subtitle: '项目、人员、当前项目合同', projects: '项目', persons: '人员', keyword: '关键字', placeholder: '项目名称/编码、人员姓名/手机号、合同号', refresh: '刷新数据', start: '输入关键字开始查询', noResult: '没有匹配结果', project: '项目', person: '人员', contract: '合同', records: '条', view: '查看' },
+    todos: { title: '我的待办', subtitle: '待受理、待审批、待处理任务', count: '个任务', status: '状态', all: '全部', approving: '审批中', approved: '已通过', rejected: '已驳回', audit: '进入审批中心', list: '待办列表', hint: '按业务提交时间倒序', empty: '暂无待办', bizType: '业务类型', summary: '摘要', submitter: '提交人', currentNode: '当前节点', submitTime: '提交时间' },
     nav: {
       dashboard: '工作台',
       workbench: '我的工作台',
@@ -259,6 +260,7 @@ const messages = {
     arrears: { unpaid: 'Unpaid Bills', totalBills: 'Total', billsUnit: 'bills', amount: 'Arrears Amount', byPayable: 'Payable minus collected', overdue: 'Overdue Bills', statusOverdue: 'Status OVERDUE', title: 'Arrears', subtitle: 'Unpaid bills', collect: 'Collect', empty: 'No arrears', billNo: 'Bill No.', tenant: 'Tenant', period: 'Period', payable: 'Payable', paid: 'Paid', arrears: 'Arrears', status: 'Status', noProject: 'No project selected' },
     accessRecords: { title: 'Access Records', subtitle: 'Visitor registration and approval', count: 'records', register: 'Register Visitor', list: 'Access List', hint: 'Effective after approval', empty: 'No access records', visitor: 'Visitor', phone: 'Phone', house: 'Visited House', person: 'Visited Person', validity: 'Validity', status: 'Status', action: 'Actions', approve: 'Approve', reject: 'Reject', noProject: 'No project selected' },
     search: { title: 'Search', subtitle: 'Projects, persons and contracts in current project', projects: 'Projects', persons: 'Persons', keyword: 'Keyword', placeholder: 'Project name/code, person name/phone, contract no.', refresh: 'Refresh Data', start: 'Enter a keyword to search', noResult: 'No matches', project: 'Projects', person: 'Persons', contract: 'Contracts', records: 'records', view: 'View' },
+    todos: { title: 'My Tasks', subtitle: 'Tasks to accept, approve or handle', count: 'tasks', status: 'Status', all: 'All', approving: 'Approving', approved: 'Approved', rejected: 'Rejected', audit: 'Open Approvals', list: 'Task List', hint: 'Ordered by submission time desc', empty: 'No tasks', bizType: 'Business Type', summary: 'Summary', submitter: 'Submitter', currentNode: 'Current Node', submitTime: 'Submitted At' },
     nav: {
       dashboard: 'Workspace',
       workbench: 'My Workspace',
