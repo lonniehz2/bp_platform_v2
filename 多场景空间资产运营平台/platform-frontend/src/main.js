@@ -61,6 +61,7 @@ import Translations from './pages/Translations.vue'
 import Patrol from './pages/Patrol.vue'
 import HouseAccess from './pages/HouseAccess.vue'
 import Rbac from './pages/Rbac.vue'
+import EntityDetailPage from './pages/EntityDetailPage.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -70,6 +71,8 @@ const router = createRouter({
     { path: '/projects', component: Projects, meta: { title: '项目与资产' } },
     { path: '/persons', component: Persons, meta: { title: '客户与人员' } },
     { path: '/applications', component: Applications, meta: { title: '申请与轮候' } },
+    { path: '/detail/:type/:id', component: EntityDetailPage, meta: { title: '关联详情' } },
+    { path: '/guarantee/detail/:type/:id', component: EntityDetailPage, meta: { title: '关联详情' } },
     { path: '/contracts/:id', component: ContractDetail, meta: { title: '合同详情' } },
     { path: '/contracts', component: Contracts, meta: { title: '合同与租赁' } },
     { path: '/guarantee/dashboard', component: Dashboard, meta: { title: '运营驾驶舱' } },

@@ -188,7 +188,7 @@ onMounted(load)
           <template #cell-assetStatus="{ row }"><span class="badge green">{{ row.assetStatus }}</span></template>
           <template #cell-actions="{ row }">
             <button class="sm" @click="openDeviceEdit(row)">编辑</button>
-            <button class="sm" @click="detailDevice = row">关联</button>
+            <RouterLink class="sm" :to="`/guarantee/detail/DEVICE/${row.id}`">详情</RouterLink>
             <button v-if="canAction('device:archive', 'device')" class="sm danger" :disabled="busy" @click="archiveDevice(row)">报废</button>
             <button v-if="canAction('device:repair', 'device') && row.businessStatus !== 'FAULT'" class="sm" :disabled="busy" @click="repairDevice(row)">报修</button>
             <button v-if="canAction('device:enable', 'device') && ['FAULT','DISABLED'].includes(row.businessStatus)" class="sm primary" :disabled="busy" @click="enableDevice(row)">启用</button>

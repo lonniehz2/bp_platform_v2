@@ -171,6 +171,7 @@ onMounted(load)
     <div v-if="detailApp" class="modal-mask" @click.self="detailApp = null">
       <div class="modal" style="max-width:720px">
         <div class="panel-head"><h2>申请详情</h2><button class="sm" @click="detailApp = null">关闭</button></div>
+        <div class="row" style="justify-content:flex-end;margin-bottom:8px"><RouterLink class="sm" :to="`/guarantee/detail/APPLICATION/${detailApp.id}`">打开 Tab 详情页</RouterLink></div>
         <EntityDetailTabs type="APPLICATION" :entity-id="detailApp.id" />
         <div class="row">
           <div class="field"><label>申请编号</label><div class="mono">{{ detailApp.applicationNo }}</div></div>

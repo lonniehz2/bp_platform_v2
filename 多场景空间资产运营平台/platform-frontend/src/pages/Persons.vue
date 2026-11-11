@@ -208,30 +208,7 @@ onMounted(async () => {
         </DataTable>
       </div>
 
-      <div v-if="selected" id="person-detail" class="panel">
-        <div class="panel-head"><div><h2>合同关系</h2><p>{{ selected.personName }} · 承租人 / 同住人</p></div></div>
-        <div v-if="!contractRelations" class="empty">暂无合同关系或无查看权限</div>
-        <template v-else>
-          <div class="section-title">当前承租人合同</div>
-          <div v-if="!contractRelations.tenantContracts?.length" class="empty">暂无承租人合同</div>
-          <div v-for="c in contractRelations.tenantContracts" :key="'t'+c.id" class="entity-row">
-            <div><strong>{{ c.contractNo }}</strong><div class="small muted">{{ c.houseName || '房屋不可见' }} · {{ c.startDate || '' }} ~ {{ c.endDate || '' }}</div></div>
-            <div class="row"><span class="badge" :class="c.accessible ? contractStatusTone(c.contractStatus) : 'orange'">{{ c.accessible ? contractStatusLabel(c.contractStatus) : '无权限' }}</span><button v-if="c.accessible" class="sm" @click="router.push(c.route)">查看合同</button></div>
-          </div>
-          <div class="section-title">作为同住人的合同</div>
-          <div v-if="!contractRelations.cohabitantContracts?.length" class="empty">暂无同住合同</div>
-          <div v-for="c in contractRelations.cohabitantContracts" :key="'c'+c.id" class="entity-row">
-            <div><strong>{{ c.contractNo }}</strong><div class="small muted">主承租人：{{ c.mainTenantName || '-' }} · {{ c.startDate || '' }} ~ {{ c.endDate || '' }}</div></div>
-            <div class="row"><span class="badge" :class="c.accessible ? contractStatusTone(c.contractStatus) : 'orange'">{{ c.accessible ? contractStatusLabel(c.contractStatus) : '无权限' }}</span><button v-if="c.accessible" class="sm" @click="router.push(c.route)">查看合同</button></div>
-          </div>
-          <div class="section-title">同住人</div>
-          <div v-if="!contractRelations.cohabitants?.length" class="empty">暂无同住人</div>
-          <div v-for="c in contractRelations.cohabitants" :key="c.contractId + '-' + c.personId" class="entity-row">
-            <span>{{ c.personName }} · {{ relationLabel(c.relationType) }}</span><span class="small muted">合同 {{ c.contractId }}</span>
-          </div>
-        </template>
-      </div>
-
+      <div v-if="selected" id="person-detail" class="row" style="justify-content:flex-end;margin-bottom:8px"><RouterLink class="sm" :to="`/guarantee/detail/PERSON/${selected.id}`">打开 Tab 详情页</RouterLink></div>
       <EntityDetailTabs v-if="selected" type="PERSON" :entity-id="selected.id" />
 
       <div class="panel">

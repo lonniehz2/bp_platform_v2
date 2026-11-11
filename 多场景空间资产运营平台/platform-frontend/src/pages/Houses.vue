@@ -98,7 +98,7 @@ onMounted(async () => {
         <template #cell-area="{ row }">{{ row.area || '-' }}</template>
         <template #cell-innerArea="{ row }">{{ row.innerArea || '-' }}</template>
         <template #cell-houseStatus="{ row }"><span class="badge" :class="row.houseStatus === 'VACANT' ? 'green' : 'orange'">{{ row.houseStatus }}</span></template>
-        <template #cell-actions="{ row }"><button class="sm" @click="openEdit(row)">编辑</button><button class="sm" @click="detailHouse = row">关联</button></template>
+        <template #cell-actions="{ row }"><button class="sm" @click="openEdit(row)">编辑</button><RouterLink class="sm" :to="`/guarantee/detail/HOUSE/${row.id}`">详情</RouterLink></template>
       </DataTable>
     </div>
 

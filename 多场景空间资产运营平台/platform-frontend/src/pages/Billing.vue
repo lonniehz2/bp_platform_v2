@@ -191,7 +191,7 @@ onMounted(load)
             <button v-if="canAction('billing:adjust', 'billing') && row.billStatus !== 'PAID'" class="sm" :disabled="busy" @click="openAdjust(row)">调整</button>
             <button v-if="canAction('billing:discard', 'billing') && row.billStatus === 'DRAFT'" class="sm danger" @click="discardBill(row)">作废</button>
             <button v-if="canAction('billing:close', 'billing') && row.billStatus === 'WAIVED'" class="sm" @click="closeBill(row)">关闭</button>
-            <button class="sm" @click="detailBill = row">关联</button>
+            <RouterLink class="sm" :to="`/guarantee/detail/BILL/${row.id}`">详情</RouterLink>
           </template>
         </DataTable>
       </div>
