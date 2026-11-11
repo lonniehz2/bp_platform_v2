@@ -56,7 +56,6 @@
   "src/pages/Reports.vue",
   "src/pages/Search.vue",
   "src/pages/ShortRent.vue",
-  "src/pages/Spaces.vue",
   "src/pages/Subsidies.vue",
   "src/pages/Sys.vue",
   "src/pages/Todos.vue",
