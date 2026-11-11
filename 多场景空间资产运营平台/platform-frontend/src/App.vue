@@ -134,7 +134,7 @@ onMounted(async () => {
   try {
     if (localStorage.getItem('platformToken')) {
       try {
-        const [menus, tree] = await Promise.all([api.myMenus('GUARANTEE'), api.myMenuTree(sceneCode.value)])
+        const [menus, tree] = await Promise.all([api.myMenus(sceneCode.value), api.myMenuTree(sceneCode.value)])
         setMenus(menus)
         allowedMenus.value = menus
         menuTree.value = tree || []
