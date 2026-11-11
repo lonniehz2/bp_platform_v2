@@ -1,5 +1,4 @@
 [
-  "src/components/UserPanel.vue",
   "src/pages/Applications.vue",
   "src/pages/Contracts.vue",
   "src/pages/ImportCenter.vue",

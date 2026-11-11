@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const users = ref([])
 const roles = ref([])
 const projects = ref([])
@@ -56,7 +58,7 @@ function openCreate() {
 async function createUser() {
   busy.value = true; error.value = ''
   try {
-    if (!createForm.username.trim() || !createForm.displayName.trim() || createForm.password.length < 6) throw new Error('用户名、姓名必填，密码至少 6 位')
+    if (!createForm.username.trim() || !createForm.displayName.trim() || createForm.password.length < 6) throw new Error(t('up.required'))
     await api.createUser({ username: createForm.username.trim(), password: createForm.password, displayName: createForm.displayName.trim(), roleIds: createForm.roleIds })
     createOpen.value = false
     await load()
@@ -128,7 +130,7 @@ async function saveScope() {
     })
     scopeMode.value = saved.overrideEnabled ? 'limit' : 'inherit'
     scopeProjectIds.value = (saved.projectIds || []).map(String)
-    scopeNotice.value = limit ? `已保存：单独限制 ${scopeProjectIds.value.length} 个项目` : '已保存：跟随角色范围'
+    scopeNotice.value = limit ? t('up.savedLimit', { n: scopeProjectIds.value.length }) : t('up.savedInherit')
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -170,113 +172,113 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>用户管理</h2><p>账号、角色、启用/停用</p></div><span class="badge blue">{{ users.length }} 个用户</span></div>
+      <div class="panel-head"><div><h2>{{ t('up.title') }}</h2><p>{{ t('up.subtitle') }}</p></div><span class="badge blue">{{ users.length }} {{ t('up.count') }}</span></div>
       <div class="row">
-        <input v-model="search" placeholder="搜索用户名/姓名" style="max-width:260px" />
-        <button class="primary" @click="openCreate">新增用户</button>
+        <input v-model="search" :placeholder="t('up.search')" style="max-width:260px" />
+        <button class="primary" @click="openCreate">{{ t('up.createTitle') }}</button>
       </div>
     </div>
 
     <div class="panel">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>用户名</th><th>姓名</th><th>角色</th><th>数据范围</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('up.username') }}</th><th>{{ t('up.name') }}</th><th>{{ t('up.roles') }}</th><th>{{ t('up.scope') }}</th><th>{{ t('up.status') }}</th><th>{{ t('up.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="u in pagedUsers" :key="u.id">
               <td class="mono">{{ u.username }}</td><td>{{ u.displayName }}</td>
-              <td><span v-for="r in u.roleNames" :key="r" class="badge blue" style="margin-right:4px">{{ r }}</span><span v-if="!u.roleNames?.length" class="muted">未分配</span></td>
-              <td><span v-if="hasOverride(u)" class="badge orange">单独限制 · {{ u.scopeProjectCount || 0 }} 个项目</span><span v-else class="badge">跟随角色</span></td>
+              <td><span v-for="r in u.roleNames" :key="r" class="badge blue" style="margin-right:4px">{{ r }}</span><span v-if="!u.roleNames?.length" class="muted">{{ t('up.unassigned') }}</span></td>
+              <td><span v-if="hasOverride(u)" class="badge orange">{{ t('up.override', { n: u.scopeProjectCount || 0 }) }}</span><span v-else class="badge">{{ t('up.follow') }}</span></td>
               <td><span class="badge" :class="u.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ u.userStatus }}</span></td>
-              <td><div class="row"><button class="sm" @click="openEdit(u)">编辑</button><button class="sm" @click="openScope(u)">数据范围</button><button class="sm" @click="openPreview(u)">权限预览</button><button class="sm danger" @click="askArchive(u)">删除</button><button class="sm" :class="u.userStatus === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? '停用' : '启用' }}</button></div></td>
+              <td><div class="row"><button class="sm" @click="openEdit(u)">{{ t('up.edit') }}</button><button class="sm" @click="openScope(u)">{{ t('up.scope') }}</button><button class="sm" @click="openPreview(u)">{{ t('up.previewBtn') }}</button><button class="sm danger" @click="askArchive(u)">{{ t('up.delete') }}</button><button class="sm" :class="u.userStatus === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? t('up.disable') : t('up.enable') }}</button></div></td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="sm" :disabled="page <= 1" @click="page--">上一页</button><span class="small muted">{{ page }} / {{ pageCount }} · {{ filtered.length }} 人</span><button class="sm" :disabled="page >= pageCount" @click="page++">下一页</button></div>
+    <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="sm" :disabled="page <= 1" @click="page--">{{ t('up.prev') }}</button><span class="small muted">{{ page }} / {{ pageCount }} · {{ filtered.length }} {{ t('up.people') }}</span><button class="sm" :disabled="page >= pageCount" @click="page++">{{ t('up.next') }}</button></div>
 
     <div v-if="previewUser" class="modal-mask" @click.self="previewUser = null">
       <div class="modal" style="max-width:620px">
-        <div class="panel-head"><div><h2>最终权限预览</h2><p class="small muted">{{ previewUser.displayName }}（{{ previewUser.username }}）</p></div><button class="sm" @click="previewUser = null">关闭</button></div>
-        <div v-if="!preview" class="empty">加载中…</div>
+        <div class="panel-head"><div><h2>{{ t('up.previewTitle') }}</h2><p class="small muted">{{ previewUser.displayName }}（{{ previewUser.username }}）</p></div><button class="sm" @click="previewUser = null">{{ t('up.close') }}</button></div>
+        <div v-if="!preview" class="empty">{{ t('up.loading') }}</div>
         <template v-else>
-          <div class="alert"><strong>角色：</strong>{{ preview.roles?.join('、') || '未分配' }}</div>
-          <div class="alert"><strong>页面权限：</strong>{{ preview.pageCodes?.length || 0 }} 个</div>
-          <div class="small muted" style="margin:6px 0 12px">{{ preview.pageCodes?.join('、') || '无' }}</div>
-          <div class="alert"><strong>操作权限：</strong>{{ preview.actionCodes?.length || 0 }} 个</div>
-          <div class="alert"><strong>数据范围：</strong><span v-if="preview.allProjects">全部项目</span><span v-else>{{ preview.effectiveProjectIds?.length || 0 }} 个项目</span><span v-if="preview.overrideEnabled" class="badge orange">用户例外</span></div>
+          <div class="alert"><strong>{{ t('up.roleLabel') }}:</strong>{{ preview.roles?.join(', ') || t('up.unassigned') }}</div>
+          <div class="alert"><strong>{{ t('up.pagePerm')+': ' }}</strong>{{ preview.pageCodes?.length || 0 }} {{ t('up.itemUnit') }}</div>
+          <div class="small muted" style="margin:6px 0 12px">{{ preview.pageCodes?.join(', ') || '-' }}</div>
+          <div class="alert"><strong>{{ t('up.actionPerm')+': ' }}</strong>{{ preview.actionCodes?.length || 0 }} {{ t('up.itemUnit') }}</div>
+          <div class="alert"><strong>{{ t('up.scopeLabel')+': ' }}</strong><span v-if="preview.allProjects">{{ t('up.allProjects') }}</span><span v-else>{{ t('up.projectsCount', { n: preview.effectiveProjectIds?.length || 0 }) }}</span><span v-if="preview.overrideEnabled" class="badge orange">{{ t('up.exception') }}</span></div>
         </template>
       </div>
     </div>
 
     <div v-if="createOpen" class="modal-mask" @click.self="createOpen = false">
       <div class="modal" style="max-width:560px">
-        <div class="panel-head"><h2>新增用户</h2><button class="sm" @click="createOpen = false">关闭</button></div>
-        <div class="field"><label>用户名</label><input v-model="createForm.username" /></div>
-        <div class="field"><label>姓名</label><input v-model="createForm.displayName" /></div>
-        <div class="field"><label>初始密码</label><input v-model="createForm.password" type="password" /></div>
-        <div class="field"><label>角色</label><select v-model="createForm.roleIds" multiple size="5"><option v-for="r in roles" :key="r.id" :value="r.id">{{ r.roleName }}（{{ r.roleCode }}）</option></select></div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="createUser">创建</button></div>
+        <div class="panel-head"><h2>{{ t('up.createTitle') }}</h2><button class="sm" @click="createOpen = false">{{ t('up.close') }}</button></div>
+        <div class="field"><label>{{ t('up.username') }}</label><input v-model="createForm.username" /></div>
+        <div class="field"><label>{{ t('up.name') }}</label><input v-model="createForm.displayName" /></div>
+        <div class="field"><label>{{ t('up.initialPassword') }}</label><input v-model="createForm.password" type="password" /></div>
+        <div class="field"><label>{{ t('up.roles') }}</label><select v-model="createForm.roleIds" multiple size="5"><option v-for="r in roles" :key="r.id" :value="r.id">{{ r.roleName }}（{{ r.roleCode }}）</option></select></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="createUser">{{ t('up.create') }}</button></div>
       </div>
     </div>
 
     <div v-if="editing" class="modal-mask" @click.self="editing = null">
       <div class="modal" style="max-width:560px">
-        <div class="panel-head"><h2>编辑用户</h2><button class="sm" @click="editing = null">关闭</button></div>
-        <div class="field"><label>用户名</label><input :value="editing.username" disabled /></div>
-        <div class="field"><label>姓名</label><input v-model="editForm.displayName" /></div>
-        <div class="field"><label>新密码（留空不改）</label><input v-model="editForm.password" type="password" /></div>
-        <div class="field"><label>角色</label><select v-model="editForm.roleIds" multiple size="5"><option v-for="r in roles" :key="r.id" :value="r.id">{{ r.roleName }}（{{ r.roleCode }}）</option></select></div>
-        <div class="field"><label>状态</label><select v-model="editForm.userStatus"><option value="ENABLED">启用</option><option value="DISABLED">停用</option></select></div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveEdit">保存</button></div>
+        <div class="panel-head"><h2>{{ t('up.editTitle') }}</h2><button class="sm" @click="editing = null">{{ t('up.close') }}</button></div>
+        <div class="field"><label>{{ t('up.username') }}</label><input :value="editing.username" disabled /></div>
+        <div class="field"><label>{{ t('up.name') }}</label><input v-model="editForm.displayName" /></div>
+        <div class="field"><label>{{ t('up.newPassword') }}</label><input v-model="editForm.password" type="password" /></div>
+        <div class="field"><label>{{ t('up.roles') }}</label><select v-model="editForm.roleIds" multiple size="5"><option v-for="r in roles" :key="r.id" :value="r.id">{{ r.roleName }}（{{ r.roleCode }}）</option></select></div>
+        <div class="field"><label>{{ t('up.status') }}</label><select v-model="editForm.userStatus"><option value="ENABLED">{{ t('up.enable') }}</option><option value="DISABLED">{{ t('up.disable') }}</option></select></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveEdit">{{ t('up.save') }}</button></div>
       </div>
     </div>
 
     <div v-if="archiveTarget" class="modal-mask" @click.self="archiveTarget = null">
       <div class="modal" style="max-width:460px">
-        <div class="panel-head"><h2>删除用户</h2><button class="sm" @click="archiveTarget = null">关闭</button></div>
-        <div class="alert">用户“{{ archiveTarget.displayName }}（{{ archiveTarget.username }}）”将无法登录，历史业务记录保留。此操作不可在页面恢复。</div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="sm" @click="archiveTarget = null">取消</button><button class="danger" :disabled="busy" @click="confirmArchive">{{ busy ? '删除中…' : '确认删除' }}</button></div>
+        <div class="panel-head"><h2>{{ t('up.deleteTitle') }}</h2><button class="sm" @click="archiveTarget = null">{{ t('up.close') }}</button></div>
+        <div class="alert">{{ t('up.deleteMessage', { name: archiveTarget.displayName, username: archiveTarget.username }) }}</div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="sm" @click="archiveTarget = null">{{ t('up.cancel') }}</button><button class="danger" :disabled="busy" @click="confirmArchive">{{ busy ? t('up.deleting') : t('up.confirmDelete') }}</button></div>
       </div>
     </div>
 
     <div v-if="scopeUser" class="modal-mask" @click.self="scopeUser = null">
       <div class="modal scope-modal" style="max-width:620px">
-        <div class="panel-head"><div><h2>数据范围</h2><p class="small muted">{{ scopeUser.displayName }}（{{ scopeUser.username }}）</p></div><button class="sm" @click="scopeUser = null">关闭</button></div>
+        <div class="panel-head"><div><h2>{{ t('up.scope') }}</h2><p class="small muted">{{ scopeUser.displayName }}（{{ scopeUser.username }}）</p></div><button class="sm" @click="scopeUser = null">{{ t('up.close') }}</button></div>
         <div v-if="scopeNotice" class="alert success">{{ scopeNotice }}</div>
         <div class="alert">
-          <div><strong>当前：</strong><span v-if="hasOverride(scopeUser)">单独限制 · {{ scopeUser.scopeProjectCount || 0 }} 个项目</span><span v-else>跟随角色</span></div>
-          <div class="small muted" style="margin-top:4px">角色：{{ scopeUser.roleNames?.join('、') || '未分配角色' }}</div>
+          <div><strong>{{ t('up.current')+': ' }}</strong><span v-if="hasOverride(scopeUser)">{{ t('up.singleLimit', { n: scopeUser.scopeProjectCount || 0 }) }}</span><span v-else>{{ t('up.follow') }}</span></div>
+          <div class="small muted" style="margin-top:4px">{{ t('up.roleLabel') }}: {{ scopeUser.roleNames?.join(', ') || t('up.noRole') }}</div>
         </div>
         <div class="scope-choice">
           <button class="scope-card" :class="{ active: scopeMode === 'inherit' }" @click="chooseScopeMode('inherit')">
-            <strong>跟随角色范围</strong>
-            <span>用户可见范围由角色决定，不单独限制。</span>
+            <strong>{{ t('up.inherit') }}</strong>
+            <span>{{ t('up.inheritHint') }}</span>
           </button>
           <button class="scope-card" :class="{ active: scopeMode === 'limit' }" @click="chooseScopeMode('limit')">
-            <strong>单独限制</strong>
-            <span>只允许缩小角色范围，不能扩大。</span>
+            <strong>{{ t('up.limit') }}</strong>
+            <span>{{ t('up.limitHint') }}</span>
           </button>
         </div>
         <div v-if="scopeMode === 'limit'">
-          <div class="scope-help">勾选项目即可多选，不需要按 Ctrl；可以搜索后全选当前结果。不勾选任何项目表示该用户没有项目数据。</div>
-          <input v-model="projectSearch" placeholder="搜索项目名称或编码" style="margin:10px 0 8px" />
+          <div class="scope-help">{{ t('up.scopeHelp') }}</div>
+          <input v-model="projectSearch" :placeholder="t('up.searchProject')" style="margin:10px 0 8px" />
           <div class="project-picker">
             <label v-for="p in filteredProjects" :key="p.id" class="project-option" :class="{ selected: scopeProjectIds.includes(String(p.id)) }">
               <input type="checkbox" :checked="scopeProjectIds.includes(String(p.id))" @change="toggleProject(p.id)" />
               <span>{{ p.orgName }}</span><span class="mono small muted">{{ p.orgCode }}</span>
             </label>
-            <div v-if="!filteredProjects.length" class="empty">没有匹配的项目</div>
+            <div v-if="!filteredProjects.length" class="empty">{{ t('up.noMatch') }}</div>
           </div>
           <div class="row" style="justify-content:space-between;margin-top:8px">
-            <span class="small">已选 <strong>{{ scopeProjectIds.length }}</strong> 个项目</span>
-            <div class="row"><button class="sm" @click="selectAllFiltered">全选当前</button><button class="sm" @click="scopeProjectIds = []">清空</button></div>
+            <span class="small">{{ t('up.selectedN', { n: scopeProjectIds.length }) }}</span>
+            <div class="row"><button class="sm" @click="selectAllFiltered">{{ t('up.selectAll') }}</button><button class="sm" @click="scopeProjectIds = []">{{ t('up.clear') }}</button></div>
           </div>
-          <div v-if="selectedProjectNames.length" class="small muted" style="margin-top:6px">已选：{{ selectedProjectNames.join('、') }}</div>
+          <div v-if="selectedProjectNames.length" class="small muted" style="margin-top:6px">{{ t('up.selected') }}: {{ selectedProjectNames.join(', ') }}</div>
         </div>
-        <div v-else class="alert">保存后清除该用户的单独范围，恢复为角色默认范围。</div>
-        <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="sm" @click="scopeUser = null">取消</button><button class="primary" :disabled="busy" @click="saveScope">{{ busy ? '保存中…' : '保存' }}</button></div>
+        <div v-else class="alert">{{ t('up.inheritHint2') }}</div>
+        <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="sm" @click="scopeUser = null">{{ t('up.cancel') }}</button><button class="primary" :disabled="busy" @click="saveScope">{{ busy ? t('up.saving') : t('up.save') }}</button></div>
       </div>
     </div>
   </div>
