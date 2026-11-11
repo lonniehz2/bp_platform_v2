@@ -751,6 +751,10 @@ Assert-True ($roleSaved.menuCount -eq 2) "role menus saved"
 $roleMenus = Api "GET" "/api/v1/platform/roles/$($role.id)/menus" $null
 Assert-True (@($roleMenus).Count -eq 2) "role menus loaded"
 
+# 清理验证角色和验证用户，避免污染演示数据
+Api "POST" "/api/v1/platform/roles/$($role.id)/delete" $null | Out-Null
+Api "POST" "/api/v1/platform/users/$($verifyUser.id)/archive" $null | Out-Null
+
 
 $cohab = Api "POST" "/api/v1/platform/guarantee/contracts/$($contract.id)/cohabitants" @{
     personId = $person.id
