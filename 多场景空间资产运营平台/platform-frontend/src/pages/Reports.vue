@@ -144,36 +144,36 @@ onMounted(() => { try { savedViews.value = JSON.parse(localStorage.getItem('plat
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>报表中心</h2><p>{{ project?.orgName || '未选择项目' }} · 经营明细与监管数据</p></div><button class="primary" @click="exportCsv">导出当前报表</button></div>
+      <div class="panel-head"><div><h2>{{ t('reports.title') }}</h2><p>{{ project?.orgName || t('common.project') }} · {{ t('reports.subtitle') }}</p></div><button class="primary" @click="exportCsv">{{ t('reports.export') }}</button></div>
       <div class="tab-strip">
         <button v-for="r in reports" :key="r.key" class="tab-btn" :class="{ active: active === r.key }" @click="active = r.key">{{ te(`report.${r.key}`) ? t(`report.${r.key}`) : r.label }}</button>
       </div>
       <div class="row" style="justify-content:space-between;align-items:center;margin:8px 0">
-        <strong>{{ te(`report.${active}`) ? t(`report.${active}`) : title }}</strong><span class="small muted">共 {{ filteredRows.length }} 条</span>
+        <strong>{{ te(`report.${active}`) ? t(`report.${active}`) : title }}</strong><span class="small muted">{{ filteredRows.length }} {{ t('reports.records') }}</span>
       </div>
       <div v-if="active === 'regulatory'" class="alert">监管口径：房源总数、已出租、空置、出租率、在租合同、应收、实收、欠费；按项目汇总。</div>
       <div class="row" style="margin-bottom:8px">
-        <input v-model="search" placeholder="搜索当前报表" style="max-width:260px" />
-        <select v-if="statusOptions.length" v-model="statusFilter" style="max-width:160px"><option value="">全部状态</option><option v-for="s in statusOptions" :key="s" :value="s">{{ s }}</option></select>
-        <button class="sm" @click="saveView">保存筛选</button>
-        <button class="sm" @click="resetFilters">重置</button>
+        <input v-model="search" :placeholder="t('reports.search')" style="max-width:260px" />
+        <select v-if="statusOptions.length" v-model="statusFilter" style="max-width:160px"><option value="">{{ t('reports.allStatus') }}</option><option v-for="s in statusOptions" :key="s" :value="s">{{ s }}</option></select>
+        <button class="sm" @click="saveView">{{ t('reports.save') }}</button>
+        <button class="sm" @click="resetFilters">{{ t('reports.reset') }}</button>
       </div>
-      <div v-if="!filteredRows.length" class="empty">暂无数据</div>
+      <div v-if="!filteredRows.length" class="empty">{{ t('reports.noData') }}</div>
       <div v-else class="table-wrap">
         <table><thead><tr><th v-for="c in cols" :key="c[0]">{{ te(`field.${c[0]}`) ? t(`field.${c[0]}`) : c[1] }}</th><th v-if="active === 'projects'">操作</th></tr></thead><tbody>
-          <tr v-for="(row, i) in filteredRows" :key="i"><td v-for="c in cols" :key="c[0]">{{ display(row, c[0]) }}</td><td v-if="active === 'projects'"><button class="sm" @click="openProject(row)">下钻</button></td></tr>
+          <tr v-for="(row, i) in filteredRows" :key="i"><td v-for="c in cols" :key="c[0]">{{ display(row, c[0]) }}</td><td v-if="active === 'projects'"><button class="sm" @click="openProject(row)">{{ t('reports.drill') }}</button></td></tr>
         </tbody></table>
       </div>
     </div>
     <div class="panel">
-      <div class="panel-head"><div><h2>报表订阅</h2><p>本地保存订阅配置，后续接入定时发送</p></div></div>
+      <div class="panel-head"><div><h2>{{ t('reports.subscription') }}</h2><p>{{ t('reports.subscriptionHint') }}</p></div></div>
       <div class="row">
-        <div class="field"><label>频率</label><select v-model="subscription.frequency"><option value="DAILY">每日</option><option value="WEEKLY">每周</option><option value="MONTHLY">每月</option></select></div>
-        <div class="field" style="flex:2"><label>接收人</label><input v-model="subscription.recipients" placeholder="用户名或邮箱" /></div>
-        <div class="field"><label>启用</label><input v-model="subscription.enabled" type="checkbox" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" @click="saveSubscription">保存订阅</button></div>
+        <div class="field"><label>{{ t('reports.frequency') }}</label><select v-model="subscription.frequency"><option value="DAILY">{{ t('reports.daily') }}</option><option value="WEEKLY">{{ t('reports.weekly') }}</option><option value="MONTHLY">{{ t('reports.monthly') }}</option></select></div>
+        <div class="field" style="flex:2"><label>{{ t('reports.recipients') }}</label><input v-model="subscription.recipients" placeholder="用户名或邮箱" /></div>
+        <div class="field"><label>{{ t('reports.enabled') }}</label><input v-model="subscription.enabled" type="checkbox" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" @click="saveSubscription">{{ t('reports.saveSubscription') }}</button></div>
       </div>
-      <div v-if="subscriptions.length" class="table-wrap"><table><thead><tr><th>报表</th><th>频率</th><th>接收人</th><th>状态</th></tr></thead><tbody><tr v-for="(s, i) in subscriptions" :key="i"><td>{{ s.report }}</td><td>{{ s.frequency }}</td><td>{{ s.recipients }}</td><td>{{ s.enabled ? '启用' : '停用' }}</td></tr></tbody></table></div>
+      <div v-if="subscriptions.length" class="table-wrap"><table><thead><tr><th>报表</th><th>{{ t('reports.frequency') }}</th><th>{{ t('reports.recipients') }}</th><th>状态</th></tr></thead><tbody><tr v-for="(s, i) in subscriptions" :key="i"><td>{{ s.report }}</td><td>{{ s.frequency }}</td><td>{{ s.recipients }}</td><td>{{ s.enabled ? '启用' : '停用' }}</td></tr></tbody></table></div>
       <div v-else class="empty">暂无订阅</div>
     </div>
   </div>

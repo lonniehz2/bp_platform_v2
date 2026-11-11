@@ -1,11 +1,13 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import * as echarts from 'echarts'
 import { api } from '../api'
 import { mode } from '../ui'
 
 const router = useRouter()
+const { t } = useI18n()
 const loading = ref(true)
 const error = ref('')
 const projects = ref([])
@@ -250,26 +252,26 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>组织经营总览</h2><p>{{ orgSummary.projects }} 个项目 · 数据范围由当前角色决定</p></div><div class="row"><button class="sm" :class="{ primary: cockpitView === 'org' }" @click="cockpitView = 'org'">组织视角</button><button class="sm" :class="{ primary: cockpitView === 'project' }" @click="cockpitView = 'project'">项目视角</button><RouterLink to="/guarantee/reports">报表中心</RouterLink></div></div>
+      <div class="panel-head"><div><h2>{{ t('cockpit.org') }}</h2><p>{{ orgSummary.projects }} {{ t('cockpit.projects') }} · {{ t('cockpit.currentScope') }}</p></div><div class="row"><button class="sm" :class="{ primary: cockpitView === 'org' }" @click="cockpitView = 'org'">{{ t('cockpit.orgView') }}</button><button class="sm" :class="{ primary: cockpitView === 'project' }" @click="cockpitView = 'project'">{{ t('cockpit.projectView') }}</button><RouterLink to="/guarantee/reports">{{ t('cockpit.reports') }}</RouterLink></div></div>
       <template v-if="cockpitView === 'org'">
       <div class="grid cards" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
-        <div class="card"><div class="label">项目数</div><div class="value">{{ orgSummary.projects }}</div><div class="hint">当前数据范围</div></div>
-        <div class="card"><div class="label">房源总数</div><div class="value">{{ orgSummary.houses }}</div><div class="hint">已出租 {{ orgSummary.rented }}</div></div>
-        <div class="card"><div class="label">整体出租率</div><div class="value">{{ orgSummary.occupancy }}%</div><div class="hint">按项目汇总</div></div>
-        <div class="card"><div class="label">应收</div><div class="value">¥{{ money(orgSummary.receivable) }}</div><div class="hint">全部项目</div></div>
-        <div class="card"><div class="label">实收</div><div class="value">¥{{ money(orgSummary.received) }}</div><div class="hint">收缴率 {{ orgSummary.collection }}%</div></div>
-        <div class="card"><div class="label">欠费</div><div class="value">¥{{ money(orgSummary.outstanding) }}</div><div class="hint">全部项目</div></div>
+        <div class="card"><div class="label">{{ t('cockpit.projects') }}</div><div class="value">{{ orgSummary.projects }}</div><div class="hint">{{ t('cockpit.currentScope') }}</div></div>
+        <div class="card"><div class="label">{{ t('cockpit.houses') }}</div><div class="value">{{ orgSummary.houses }}</div><div class="hint">{{ t('cockpit.rented') }} {{ orgSummary.rented }}</div></div>
+        <div class="card"><div class="label">{{ t('cockpit.occupancy') }}</div><div class="value">{{ orgSummary.occupancy }}%</div><div class="hint">{{ t('cockpit.byProject') }}</div></div>
+        <div class="card"><div class="label">{{ t('cockpit.receivable') }}</div><div class="value">¥{{ money(orgSummary.receivable) }}</div><div class="hint">{{ t('cockpit.allProjects') }}</div></div>
+        <div class="card"><div class="label">{{ t('cockpit.received') }}</div><div class="value">¥{{ money(orgSummary.received) }}</div><div class="hint">{{ t('cockpit.collection') }} {{ orgSummary.collection }}%</div></div>
+        <div class="card"><div class="label">{{ t('cockpit.outstanding') }}</div><div class="value">¥{{ money(orgSummary.outstanding) }}</div><div class="hint">{{ t('cockpit.allProjects') }}</div></div>
       </div>
       <div v-if="!rankedCompare.length" class="empty">暂无项目经营数据</div>
-      <div v-else class="table-wrap" style="margin-top:12px"><table><thead><tr><th>项目</th><th>房源</th><th>出租率</th><th>应收</th><th>实收</th><th>收缴率</th><th>欠费</th><th>工单</th><th>操作</th></tr></thead><tbody>
-        <tr v-for="p in rankedCompare" :key="p.projectId"><td><strong>{{ p.orgName }}</strong><div class="small muted">{{ p.orgCode }}</div></td><td>{{ p.houses }}</td><td>{{ p.occupancyRate }}%</td><td>¥{{ money(p.receivable) }}</td><td>¥{{ money(p.received) }}</td><td>{{ p.collectionRate }}%</td><td>¥{{ money(p.outstanding) }}</td><td>{{ p.workOrders }}</td><td><button class="sm" @click="focusProject(p.projectId)">查看</button></td></tr>
+      <div v-else class="table-wrap" style="margin-top:12px"><table><thead><tr><th>项目</th><th>房源</th><th>出租率</th><th>{{ t('cockpit.receivable') }}</th><th>{{ t('cockpit.received') }}</th><th>{{ t('cockpit.collection') }}</th><th>{{ t('cockpit.outstanding') }}</th><th>工单</th><th>操作</th></tr></thead><tbody>
+        <tr v-for="p in rankedCompare" :key="p.projectId"><td><strong>{{ p.orgName }}</strong><div class="small muted">{{ p.orgCode }}</div></td><td>{{ p.houses }}</td><td>{{ p.occupancyRate }}%</td><td>¥{{ money(p.receivable) }}</td><td>¥{{ money(p.received) }}</td><td>{{ p.collectionRate }}%</td><td>¥{{ money(p.outstanding) }}</td><td>{{ p.workOrders }}</td><td><button class="sm" @click="focusProject(p.projectId)">{{ t('cockpit.view') }}</button></td></tr>
       </tbody></table></div>
       </template>
     </div>
 
     <div class="panel">
       <div class="panel-head">
-        <div><h2>运营驾驶舱</h2><p>{{ project?.orgName || '未选择项目' }} · 房源、合同、收费、设备概览</p></div>
+        <div><h2>{{ t('cockpit.projectCockpit') }}</h2><p>{{ project?.orgName || '未选择项目' }} · {{ t('cockpit.projectHint') }}</p></div>
         <div class="row">
           <select id="periodMode" v-model="periodMode" class="sm" style="padding:6px">
             <option value="month">本月账期</option>
@@ -285,7 +287,7 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
         </div>
       </div>
       <div class="grid cards" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
-        <div class="card"><div class="label">项目数</div><div class="value">{{ projects.length }}</div><div class="hint">当前租户</div></div>
+        <div class="card"><div class="label">{{ t('cockpit.projects') }}</div><div class="value">{{ projects.length }}</div><div class="hint">当前租户</div></div>
         <div class="card"><div class="label">保障房申请</div><div class="value">{{ applications.length }}</div><div class="hint">待审 {{ count(applications, 'SUBMITTED', 'applicationStatus') }}</div></div>
         <div class="card"><div class="label">生效合同</div><div class="value">{{ contracts.filter(c => c.contractStatus === 'ACTIVE').length }}</div><div class="hint">合同总数 {{ contracts.length }}</div></div>
         <div class="card clickable" @click="drillBilling"><div class="label">本期应收</div><div class="value">¥{{ money(billStats().total) }}</div><div class="hint">账期 {{ currentBills.length }} 笔</div></div>
