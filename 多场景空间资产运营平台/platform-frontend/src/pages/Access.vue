@@ -3,14 +3,16 @@ import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const houses = ref([])
 const persons = ref([])
 const records = ref([])
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ visitorName: '', visitorPhone: '', purpose: '探访', houseId: '', personId: '', validStart: '', validEnd: '' })
+const form = reactive({ visitorName: '', visitorPhone: '', purpose: t('access.visitPurpose'), houseId: '', personId: '', validStart: '', validEnd: '' })
 
 const statusClass = (s) => ({ APPROVED: 'green', REJECTED: 'red' }[s] || 'orange')
 
@@ -36,7 +38,7 @@ async function load() {
 async function create() {
   busy.value = true; error.value = ''
   try {
-    if (!form.visitorName.trim()) throw new Error('请填写访客姓名')
+    if (!form.visitorName.trim()) throw new Error(t('access.required'))
     await api.createAccessRecord({
       projectId: project.value.id, houseId: form.houseId || null, personId: form.personId || null,
       visitorName: form.visitorName.trim(), visitorPhone: form.visitorPhone, purpose: form.purpose,
@@ -62,25 +64,25 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>访客通行</h2><p>{{ project?.orgName || '未选择项目' }} · 访客登记与审批</p></div><span class="badge blue">{{ records.length }} 条</span></div>
+      <div class="panel-head"><div><h2>{{ t('access.title') }}</h2><p>{{ project?.orgName || t('access.noProject') }} · {{ t('access.subtitle') }}</p></div><span class="badge blue">{{ records.length }} {{ t('access.count') }}</span></div>
       <div class="row">
-        <div class="field"><label>访客姓名</label><input v-model="form.visitorName" /></div>
-        <div class="field"><label>手机号</label><input v-model="form.visitorPhone" /></div>
-        <div class="field"><label>事由</label><input v-model="form.purpose" /></div>
-        <div class="field"><label>被访房屋</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" clearable /></div>
-        <div class="field"><label>被访人</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" clearable /></div>
-        <div class="field"><label>开始</label><input v-model="form.validStart" type="datetime-local" /></div>
-        <div class="field"><label>结束</label><input v-model="form.validEnd" type="datetime-local" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('access')" class="primary" :disabled="busy" @click="create">登记访客</button></div>
+        <div class="field"><label>{{ t('access.visitor') }}</label><input v-model="form.visitorName" /></div>
+        <div class="field"><label>{{ t('access.phone') }}</label><input v-model="form.visitorPhone" /></div>
+        <div class="field"><label>{{ t('access.purpose') }}</label><input v-model="form.purpose" /></div>
+        <div class="field"><label>{{ t('access.house') }}</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" :placeholder="t('access.searchHouse')" clearable /></div>
+        <div class="field"><label>{{ t('access.person') }}</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" :placeholder="t('access.searchPerson')" clearable /></div>
+        <div class="field"><label>{{ t('access.start') }}</label><input v-model="form.validStart" type="datetime-local" /></div>
+        <div class="field"><label>{{ t('access.end') }}</label><input v-model="form.validEnd" type="datetime-local" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('access')" class="primary" :disabled="busy" @click="create">{{ t('access.register') }}</button></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>通行记录</h2><span class="small muted">审批后生效</span></div>
-      <div v-if="!records.length" class="empty">暂无访客记录</div>
+      <div class="panel-head"><h2>{{ t('access.records') }}</h2><span class="small muted">{{ t('access.hint') }}</span></div>
+      <div v-if="!records.length" class="empty">{{ t('access.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>访客</th><th>手机号</th><th>被访房屋</th><th>被访人</th><th>事由</th><th>有效期</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('access.visitor') }}</th><th>{{ t('access.phone') }}</th><th>{{ t('access.house') }}</th><th>{{ t('access.person') }}</th><th>{{ t('access.purpose') }}</th><th>{{ t('access.validity') }}</th><th>{{ t('access.status') }}</th><th>{{ t('access.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="r in records" :key="r.id">
               <td>{{ r.visitorName }}</td><td>{{ r.visitorPhone || '-' }}</td>
@@ -88,8 +90,8 @@ onMounted(load)
               <td class="small">{{ r.validStart || '-' }} ~ {{ r.validEnd || '-' }}</td>
               <td><span class="badge" :class="statusClass(r.accessStatus)">{{ r.accessStatus }}</span></td>
               <td class="row">
-                <button v-if="can('access') && r.accessStatus === 'PENDING'" class="sm" @click="approve(r, 'APPROVED')">通过</button>
-                <button v-if="can('access') && r.accessStatus === 'PENDING'" class="sm danger" @click="approve(r, 'REJECTED')">拒绝</button>
+                <button v-if="can('access') && r.accessStatus === 'PENDING'" class="sm" @click="approve(r, 'APPROVED')">{{ t('access.approve') }}</button>
+                <button v-if="can('access') && r.accessStatus === 'PENDING'" class="sm danger" @click="approve(r, 'REJECTED')">{{ t('access.reject') }}</button>
               </td>
             </tr>
           </tbody>
