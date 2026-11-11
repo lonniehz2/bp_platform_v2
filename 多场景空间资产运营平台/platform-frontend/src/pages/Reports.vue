@@ -123,7 +123,8 @@ function exportRow(row) {
   const link = document.createElement('a')
   link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
   link.download = `${t('reports.title')}_${title.value}_${row.orgName || row.contractNo || 'row'}.csv`
-  link.click(); URL.revokeObjectURL(link.href)
+  document.body.appendChild(link); link.click(); link.remove()
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000)
 }
 
 function exportCsv() {
@@ -134,7 +135,8 @@ function exportCsv() {
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
   link.download = `${t('reports.title')}_${title.value}.csv`
-  link.click(); URL.revokeObjectURL(link.href)
+  document.body.appendChild(link); link.click(); link.remove()
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000)
 }
 
 watch(active, key => { statusFilter.value = ''; applySaved(key) })
