@@ -2,18 +2,21 @@
 import { onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
+import { sceneRoot } from '../scene'
 
 const project = ref(null)
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const contracts = ref([])
 const selectedContractId = ref('')
 const deposit = ref(null)
 const subsidies = ref([])
 const error = ref('')
 const busy = ref(false)
-const payForm = reactive({ amount: '', operatorName: '收费员A' })
-const refundForm = reactive({ amount: '', operatorName: '收费员A', reason: '退租退押' })
+const payForm = reactive({ amount: '', operatorName: t('deposits.operator') })
+const refundForm = reactive({ amount: '', operatorName: t('deposits.operator'), reason: t('deposits.refundReason') })
 const subsidyForm = reactive({ subsidyType: 'RENT_SUBSIDY', amount: 300, startDate: '2026-11-01', endDate: '2026-11-30' })
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
@@ -50,7 +53,7 @@ async function loadContract() {
     payForm.amount = Number(d.amount) - Number(d.paidAmount)
     refundForm.amount = Number(d.paidAmount) - Number(d.refundedAmount)
   } catch (e) {
-    if (!String(e.message).includes('不存在')) error.value = e.message
+    if (e.message) error.value = e.message
   }
 }
 
@@ -58,7 +61,7 @@ async function pay() {
   busy.value = true; error.value = ''
   try {
     await api.payDeposit(selectedContractId.value, {
-      amount: Number(payForm.amount), operatorName: payForm.operatorName, remark: '收取押金'
+      amount: Number(payForm.amount), operatorName: payForm.operatorName, remark: t('deposits.payRemark')
     })
     await loadContract()
   } catch (e) { error.value = e.message } finally { busy.value = false }
@@ -79,7 +82,7 @@ async function addSubsidy() {
   try {
     await api.createSubsidy(selectedContractId.value, {
       subsidyType: subsidyForm.subsidyType, amount: Number(subsidyForm.amount),
-      startDate: subsidyForm.startDate, endDate: subsidyForm.endDate, remark: '页面新增补贴'
+      startDate: subsidyForm.startDate, endDate: subsidyForm.endDate, remark: t('deposits.subsidyRemark')
     })
     await loadContract()
   } catch (e) { error.value = e.message } finally { busy.value = false }
@@ -92,13 +95,13 @@ onMounted(load)
 <template>
   <div>
     <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="route.query.contractId" class="alert">来自合同 {{ route.query.contractId }} 的押金/补贴 <button class="sm" @click="router.replace('/guarantee/deposits')">清除合同筛选</button></div>
-    <div v-if="!project" class="empty">请先创建项目</div>
+    <div v-if="route.query.contractId" class="alert">{{ t('deposits.fromContract') }} {{ route.query.contractId }} <button class="sm" @click="router.replace(sceneRoot() + '/deposits')">{{ t('deposits.clear') }}</button></div>
+    <div v-if="!project" class="empty">{{ t('deposits.createProject') }}</div>
     <template v-else>
       <div class="panel">
-        <div class="panel-head"><div><h2>押金与补贴</h2><p>{{ project.orgName }} · 按合同管理押金和租金补贴</p></div>
+        <div class="panel-head"><div><h2>{{ t('deposits.title') }}</h2><p>{{ project.orgName }} · {{ t('deposits.subtitle') }}</p></div>
           <select v-model="selectedContractId" style="max-width:320px">
-            <option value="">选择合同</option>
+            <option value="">{{ t('deposits.selectContract') }}</option>
             <option v-for="c in contracts" :key="c.id" :value="c.id">{{ c.contractNo }} · {{ c.personName }}</option>
           </select>
         </div>
@@ -106,37 +109,37 @@ onMounted(load)
 
       <div class="grid" style="grid-template-columns: 1fr 1fr">
         <div class="panel">
-          <div class="panel-head"><h2>押金</h2><span class="badge" :class="deposit?.depositStatus === 'HELD' ? 'green' : 'orange'">{{ deposit?.depositStatus || '无' }}</span></div>
-          <div v-if="!deposit" class="empty">暂无押金记录</div>
+          <div class="panel-head"><h2>{{ t('deposits.deposit') }}</h2><span class="badge" :class="deposit?.depositStatus === 'HELD' ? 'green' : 'orange'">{{ deposit?.depositStatus || t('deposits.none') }}</span></div>
+          <div v-if="!deposit" class="empty">{{ t('deposits.noDeposit') }}</div>
           <template v-else>
             <div class="row" style="margin-bottom:12px">
-              <div class="field"><label>应收</label><div>¥{{ money(deposit.amount) }}</div></div>
-              <div class="field"><label>已收</label><div>¥{{ money(deposit.paidAmount) }}</div></div>
-              <div class="field"><label>已退</label><div>¥{{ money(deposit.refundedAmount) }}</div></div>
+              <div class="field"><label>{{ t('deposits.receivable') }}</label><div>¥{{ money(deposit.amount) }}</div></div>
+              <div class="field"><label>{{ t('deposits.received') }}</label><div>¥{{ money(deposit.paidAmount) }}</div></div>
+              <div class="field"><label>{{ t('deposits.refunded') }}</label><div>¥{{ money(deposit.refundedAmount) }}</div></div>
             </div>
             <div class="row" style="margin-bottom:8px">
-              <div class="field"><label>收取金额</label><input v-model.number="payForm.amount" type="number" /></div>
-              <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="pay">收取押金</button></div>
+              <div class="field"><label>{{ t('deposits.payAmount') }}</label><input v-model.number="payForm.amount" type="number" /></div>
+              <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="pay">{{ t('deposits.payDeposit') }}</button></div>
             </div>
             <div class="row">
-              <div class="field"><label>退还金额</label><input v-model.number="refundForm.amount" type="number" /></div>
-              <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button :disabled="busy" @click="refund">退还押金</button></div>
+              <div class="field"><label>{{ t('deposits.refundAmount') }}</label><input v-model.number="refundForm.amount" type="number" /></div>
+              <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button :disabled="busy" @click="refund">{{ t('deposits.refundDeposit') }}</button></div>
             </div>
-            <div class="small muted" style="margin-top:10px">流水 {{ deposit.transactions?.length || 0 }} 条</div>
+            <div class="small muted" style="margin-top:10px">{{ t('deposits.transactions') }} {{ deposit.transactions?.length || 0 }} {{ t('deposits.records') }}</div>
           </template>
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h2>租金补贴</h2><span class="small muted">{{ subsidies.length }} 条</span></div>
+          <div class="panel-head"><h2>{{ t('deposits.subsidy') }}</h2><span class="small muted">{{ subsidies.length }} {{ t('deposits.records') }}</span></div>
           <div class="row" style="margin-bottom:10px">
-            <div class="field"><label>金额/月</label><input v-model.number="subsidyForm.amount" type="number" /></div>
-            <div class="field"><label>开始</label><input v-model="subsidyForm.startDate" type="date" /></div>
-            <div class="field"><label>结束</label><input v-model="subsidyForm.endDate" type="date" /></div>
-            <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="addSubsidy">新增补贴</button></div>
+            <div class="field"><label>{{ t('deposits.amountPerMonth') }}</label><input v-model.number="subsidyForm.amount" type="number" /></div>
+            <div class="field"><label>{{ t('deposits.start') }}</label><input v-model="subsidyForm.startDate" type="date" /></div>
+            <div class="field"><label>{{ t('deposits.end') }}</label><input v-model="subsidyForm.endDate" type="date" /></div>
+            <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="addSubsidy">{{ t('deposits.addSubsidy') }}</button></div>
           </div>
-          <div v-if="!subsidies.length" class="empty">暂无补贴</div>
+          <div v-if="!subsidies.length" class="empty">{{ t('deposits.noSubsidy') }}</div>
           <div class="table-wrap" v-else>
-            <table><thead><tr><th>类型</th><th>金额</th><th>期间</th><th>状态</th></tr></thead>
+            <table><thead><tr><th>{{ t('deposits.type') }}</th><th>{{ t('deposits.amount') }}</th><th>{{ t('deposits.period') }}</th><th>{{ t('deposits.status') }}</th></tr></thead>
               <tbody><tr v-for="s in subsidies" :key="s.id"><td>{{ s.subsidyType }}</td><td>¥{{ money(s.subsidyAmount) }}</td><td class="small">{{ s.startDate }} ~ {{ s.endDate }}</td><td><span class="badge green">{{ s.subsidyStatus }}</span></td></tr></tbody>
             </table>
           </div>

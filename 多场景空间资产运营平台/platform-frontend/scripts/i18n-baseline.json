@@ -24,7 +24,6 @@
   "src/pages/Contracts.vue",
   "src/pages/Credit.vue",
   "src/pages/Dashboard.vue",
-  "src/pages/Deposits.vue",
   "src/pages/DeviceBinding.vue",
   "src/pages/DeviceEvents.vue",
   "src/pages/Devices.vue",
