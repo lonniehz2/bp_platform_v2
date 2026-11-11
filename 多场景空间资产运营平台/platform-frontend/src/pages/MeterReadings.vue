@@ -2,14 +2,16 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can } from '../permissions'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const meters = ref([])
 const selected = ref(null)
 const readings = ref([])
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ readingDate: '', readingValue: '', readerName: '抄表员' })
+const form = reactive({ readingDate: '', readingValue: '', readerName: t('readings.reader') })
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 
 async function currentProject() {
@@ -36,8 +38,8 @@ async function selectMeter(m) {
 async function read() {
   busy.value = true; error.value = ''
   try {
-    if (!selected.value) throw new Error('请选择表计')
-    if (form.readingValue === '') throw new Error('请填写本次读数')
+    if (!selected.value) throw new Error(t('readings.requiredMeter'))
+    if (form.readingValue === '') throw new Error(t('readings.requiredReading'))
     await api.readMeter(selected.value.id, {
       readingDate: form.readingDate || null, readingValue: Number(form.readingValue), readerName: form.readerName
     })
@@ -55,11 +57,11 @@ onMounted(load)
     <div v-if="error" class="error">{{ error }}</div>
     <div class="grid" style="grid-template-columns:1fr 1fr">
       <div class="panel">
-        <div class="panel-head"><div><h2>抄表管理</h2><p>{{ project?.orgName || '未选择项目' }} · 水/电/燃气读数录入</p></div><span class="badge blue">{{ meters.length }} 只表</span></div>
-        <div v-if="!meters.length" class="empty">暂无表计，请先到计量与能耗新增</div>
+        <div class="panel-head"><div><h2>{{ t('readings.title') }}</h2><p>{{ project?.orgName || t('readings.noProject') }} · {{ t('readings.subtitle') }}</p></div><span class="badge blue">{{ meters.length }} {{ t('readings.count') }}</span></div>
+        <div v-if="!meters.length" class="empty">{{ t('readings.emptyMeters') }}</div>
         <div v-else class="table-wrap">
           <table>
-            <thead><tr><th>表号</th><th>类型</th><th>房屋</th><th>当前读数</th></tr></thead>
+            <thead><tr><th>{{ t('readings.meterNo') }}</th><th>{{ t('readings.type') }}</th><th>{{ t('readings.house') }}</th><th>{{ t('readings.current') }}</th></tr></thead>
             <tbody>
               <tr v-for="m in meters" :key="m.id" @click="selectMeter(m)" style="cursor:pointer">
                 <td class="mono">{{ m.meterNo }}</td><td>{{ m.meterType }}</td><td>{{ m.houseName }}</td><td>{{ money(m.currentReading) }}</td>
@@ -70,16 +72,16 @@ onMounted(load)
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>抄表记录</h2><span class="small muted">{{ selected?.meterNo || '未选择' }}</span></div>
+        <div class="panel-head"><h2>{{ t('readings.records') }}</h2><span class="small muted">{{ selected?.meterNo || t('readings.noSelected') }}</span></div>
         <div v-if="selected" class="row" style="margin-bottom:10px">
-          <div class="field"><label>本次读数</label><input v-model="form.readingValue" type="number" /></div>
-          <div class="field"><label>日期</label><input v-model="form.readingDate" type="date" /></div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('asset')" class="primary" :disabled="busy" @click="read">保存抄表</button></div>
+          <div class="field"><label>{{ t('readings.currentReading') }}</label><input v-model="form.readingValue" type="number" /></div>
+          <div class="field"><label>{{ t('readings.date') }}</label><input v-model="form.readingDate" type="date" /></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('asset')" class="primary" :disabled="busy" @click="read">{{ t('readings.save') }}</button></div>
         </div>
-        <div v-if="!readings.length" class="empty">暂无抄表记录</div>
+        <div v-if="!readings.length" class="empty">{{ t('readings.empty') }}</div>
         <div v-for="r in readings" :key="r.id" class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div>{{ r.readingDate }}</div><div class="small muted">{{ r.previousValue }} → {{ r.readingValue }}</div></div>
-          <span class="badge blue">用量 {{ money(r.usageAmount) }}</span>
+          <span class="badge blue">{{ t('readings.usage') }} {{ money(r.usageAmount) }}</span>
         </div>
       </div>
     </div>
