@@ -3,7 +3,6 @@
   "src/components/UserPanel.vue",
   "src/pages/Applications.vue",
   "src/pages/Contracts.vue",
-  "src/pages/Devices.vue",
   "src/pages/ImportCenter.vue",
   "src/pages/Persons.vue",
   "src/pages/Projects.vue"
