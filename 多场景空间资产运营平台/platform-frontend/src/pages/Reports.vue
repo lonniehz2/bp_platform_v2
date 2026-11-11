@@ -7,6 +7,7 @@ const applications = ref([])
 const contracts = ref([])
 const bills = ref([])
 const payments = ref([])
+const compare = ref([])
 const devices = ref([])
 const error = ref('')
 
@@ -32,6 +33,7 @@ async function load() {
       api.applications(id), api.contracts(id), api.bills(id), api.payments(id), api.devices(id)
     ])
     applications.value = a; contracts.value = c; bills.value = b; payments.value = p; devices.value = d
+    compare.value = await api.reportCompare()
   } catch (e) { error.value = e.message }
 }
 
@@ -64,6 +66,13 @@ onMounted(load)
       </div>
     </div>
 
+    <div class="panel">
+      <div class="panel-head"><h2>项目经营对比</h2><span class="small muted">出租率 / 收缴率 / 欠费</span></div>
+      <div v-if="!compare.length" class="empty">暂无项目经营数据</div>
+      <div v-else class="table-wrap"><table><thead><tr><th>项目</th><th>房源</th><th>出租率</th><th>应收</th><th>实收</th><th>收缴率</th><th>欠费</th><th>工单</th></tr></thead><tbody>
+        <tr v-for="p in compare" :key="p.projectId"><td><strong>{{ p.orgName }}</strong></td><td>{{ p.houses }}</td><td>{{ p.occupancyRate }}%</td><td>¥{{ money(p.receivable) }}</td><td>¥{{ money(p.received) }}</td><td>{{ p.collectionRate }}%</td><td>¥{{ money(p.outstanding) }}</td><td>{{ p.workOrders }}</td></tr>
+      </tbody></table></div>
+    </div>
     <div class="panel">
       <div class="panel-head"><h2>账单状态分布</h2></div>
       <div class="table-wrap">

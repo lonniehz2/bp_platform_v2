@@ -39,7 +39,7 @@ update bp_menu set menu_name='组织机构', route='/guarantee/orgs', parent_cod
 insert into bp_menu(id, scene_code, menu_code, parent_code, menu_name, menu_type, route, sort_no, menu_status)
 values (922000000000000049, 'GUARANTEE', 'cockpit', 'group_workbench', '运营驾驶舱', 'PAGE', '/guarantee/cockpit', 20, 'ENABLED')
 on duplicate key update parent_code='group_workbench', menu_name='运营驾驶舱', route='/guarantee/cockpit', sort_no=20, menu_status='ENABLED';
-update bp_menu set sort_no=10 where menu_code='dashboard';
+update bp_menu set sort_no=10, route='/guarantee/workbench' where menu_code='dashboard';
 update bp_menu set sort_no=30 where menu_code='search';
 update bp_menu set sort_no=40 where menu_code='todos';
 update bp_menu set parent_code='group_workbench', sort_no=50 where menu_code='audit';

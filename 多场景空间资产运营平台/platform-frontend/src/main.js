@@ -7,6 +7,7 @@ import './styles.css'
 
 import Login from './pages/Login.vue'
 import Dashboard from './pages/Dashboard.vue'
+import Workbench from './pages/Workbench.vue'
 import Projects from './pages/Projects.vue'
 import Persons from './pages/Persons.vue'
 import Applications from './pages/Applications.vue'
@@ -67,7 +68,8 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     { path: '/login', component: Login, meta: { title: '登录', public: true } },
-    { path: '/', component: Dashboard, meta: { title: '工作台' } },
+    { path: '/', component: Workbench, meta: { title: '工作台' } },
+    { path: '/guarantee/workbench', component: Workbench, meta: { title: '工作台' } },
     { path: '/guarantee/cockpit', component: Dashboard, meta: { title: '运营驾驶舱' } },
     { path: '/projects', component: Projects, meta: { title: '项目与资产' } },
     { path: '/persons', component: Persons, meta: { title: '客户与人员' } },

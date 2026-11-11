@@ -18,3 +18,4 @@ source /sql/023_menu_reorg.sql;
 source /compat/01_local_compat.sql;
 source /seed/001_local_seed.sql;
 source /seed/002_demo_full.sql;
+source /seed/003_demo_projects.sql;
