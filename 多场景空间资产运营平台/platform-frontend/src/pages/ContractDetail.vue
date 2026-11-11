@@ -7,8 +7,10 @@ import { can } from '../permissions'
 import { contractStatusLabel, contractStatusTone } from '../contractStatus'
 import { relationLabel, relationStatusLabel } from '../relationLabels'
 import SearchSelect from '../components/SearchSelect.vue'
+import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
+const { t } = useI18n()
 const router = useRouter()
 const contract = ref(null)
 const error = ref('')
@@ -26,13 +28,13 @@ const persons = ref([])
 const cohabForm = reactive({ personId: '', relationType: 'FAMILY', startDate: '', endDate: '' })
 
 const tabs = computed(() => [
-  { key: 'overview', label: '概览' },
-  { key: 'persons', label: '人员' },
-  { key: 'house', label: '房屋' },
-  can('billing') ? { key: 'bills', label: '账单与收款' } : null,
-  can('deposits') ? { key: 'deposit', label: '押金/补贴' } : null,
-  { key: 'files', label: '附件' },
-  { key: 'changes', label: '变更记录' }
+  { key: 'overview', label: t('cd.overview') },
+  { key: 'persons', label: t('cd.persons') },
+  { key: 'house', label: t('cd.house') },
+  can('billing') ? { key: 'bills', label: t('cd.bills') } : null,
+  can('deposits') ? { key: 'deposit', label: t('cd.deposit') } : null,
+  { key: 'files', label: t('cd.files') },
+  { key: 'changes', label: t('cd.changes') }
 ].filter(Boolean))
 
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
@@ -54,7 +56,7 @@ async function load() {
       const found = list.find(c => String(c.id) === String(route.params.id))
       if (found) { contract.value = found; break }
     }
-    if (!contract.value) throw new Error('合同不存在或不在当前项目')
+    if (!contract.value) throw new Error(t('cd.missing'))
     await preload()
   } catch (e) { error.value = e.message }
 }
@@ -83,7 +85,7 @@ async function loadSection(key) {
     if (key === 'deposit') { deposit.value = await api.deposit(contract.value.id); subsidies.value = await api.subsidies(contract.value.id) }
     if (key === 'files') files.value = await api.files('CONTRACT', contract.value.id)
     if (key === 'changes') changes.value = await api.changes(contract.value.id)
-  } catch (e) { /* 权限不足的 Tab 保持空，不阻断其他 Tab */ }
+  } catch (e) { /* Keep unauthorized tabs empty without blocking others */ }
   loaded.value[key] = true
 }
 
@@ -94,7 +96,7 @@ async function loadTab() {
 
 
 async function addCohabitant() {
-  if (!cohabForm.personId) { error.value = '请选择同住人'; return }
+  if (!cohabForm.personId) { error.value = t('cd.required'); return }
   busy.value = true; error.value = ''
   try {
     await api.addCohabitant(contract.value.id, {
@@ -144,7 +146,7 @@ watch(tab, loadTab)
 <template>
   <div>
     <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="!contract" class="panel"><div class="empty">加载合同…</div></div>
+    <div v-if="!contract" class="panel"><div class="empty">{{ t('cd.loading') }}</div></div>
     <template v-else>
       <div class="panel contract-head">
         <div class="panel-head">
@@ -152,13 +154,13 @@ watch(tab, loadTab)
             <h2>{{ contract.contractNo }}</h2>
             <p>{{ contract.personName }} · {{ contract.houseName }} · {{ contract.startDate }} ~ {{ contract.endDate }}</p>
           </div>
-          <div class="row"><span class="badge" :class="contractStatusTone(contract.contractStatus)">{{ contractStatusLabel(contract.contractStatus) }}</span><button class="sm" @click="router.push('/guarantee/contracts')">返回列表</button></div>
+          <div class="row"><span class="badge" :class="contractStatusTone(contract.contractStatus)">{{ contractStatusLabel(contract.contractStatus) }}</span><button class="sm" @click="router.push('/guarantee/contracts')">{{ t('cd.back') }}</button></div>
         </div>
         <div class="summary">
-          <div><span>租金</span><strong>{{ money(contract.rentAmount) }}</strong></div>
-          <div><span>押金</span><strong>{{ money(contract.depositAmount) }}</strong></div>
-          <div><span>账单周期</span><strong>{{ contract.billingCycle }}</strong></div>
-          <div><span>账单日</span><strong>{{ contract.billDay }}</strong></div>
+          <div><span>{{ t('cd.rent') }}</span><strong>{{ money(contract.rentAmount) }}</strong></div>
+          <div><span>{{ t('cd.depositAmount') }}</span><strong>{{ money(contract.depositAmount) }}</strong></div>
+          <div><span>{{ t('cd.cycle') }}</span><strong>{{ contract.billingCycle }}</strong></div>
+          <div><span>{{ t('cd.billDay') }}</span><strong>{{ contract.billDay }}</strong></div>
         </div>
       </div>
 
@@ -169,62 +171,62 @@ watch(tab, loadTab)
 
         <div v-if="tab === 'overview'" class="tab-body">
           <div class="kv-grid">
-            <div><span>合同编号</span><strong>{{ contract.contractNo }}</strong></div>
-            <div><span>状态</span><strong>{{ contractStatusLabel(contract.contractStatus) }}</strong></div>
-            <div><span>承租人</span><a v-if="contract.personId" @click="openPerson(contract.personId)">{{ contract.personName }} →</a><span v-else>—</span></div>
-            <div><span>房屋</span><a v-if="contract.houseId" @click="openHouse(contract.houseId)">{{ contract.houseName }} →</a><span v-else>—</span></div>
-            <div><span>开始日期</span><strong>{{ contract.startDate }}</strong></div>
-            <div><span>结束日期</span><strong>{{ contract.endDate }}</strong></div>
-            <div><span>月租金</span><strong>{{ money(contract.rentAmount) }}</strong></div>
-            <div><span>押金</span><strong>{{ money(contract.depositAmount) }}</strong></div>
-            <div><span>账单周期</span><strong>{{ contract.billingCycle }}</strong></div>
-            <div><span>账单日</span><strong>{{ contract.billDay }}</strong></div>
+            <div><span>{{ t('cd.contractNo') }}</span><strong>{{ contract.contractNo }}</strong></div>
+            <div><span>{{ t('cd.status') }}</span><strong>{{ contractStatusLabel(contract.contractStatus) }}</strong></div>
+            <div><span>{{ t('cd.tenant') }}</span><a v-if="contract.personId" @click="openPerson(contract.personId)">{{ contract.personName }} →</a><span v-else>—</span></div>
+            <div><span>{{ t('cd.house') }}</span><a v-if="contract.houseId" @click="openHouse(contract.houseId)">{{ contract.houseName }} →</a><span v-else>—</span></div>
+            <div><span>{{ t('cd.start') }}</span><strong>{{ contract.startDate }}</strong></div>
+            <div><span>{{ t('cd.end') }}</span><strong>{{ contract.endDate }}</strong></div>
+            <div><span>{{ t('cd.monthlyRent') }}</span><strong>{{ money(contract.rentAmount) }}</strong></div>
+            <div><span>{{ t('cd.depositAmount') }}</span><strong>{{ money(contract.depositAmount) }}</strong></div>
+            <div><span>{{ t('cd.cycle') }}</span><strong>{{ contract.billingCycle }}</strong></div>
+            <div><span>{{ t('cd.billDay') }}</span><strong>{{ contract.billDay }}</strong></div>
           </div>
         </div>
 
         <div v-else-if="tab === 'persons'" class="tab-body">
-          <div class="section-title">承租人</div>
-          <div class="entity-row"><strong>{{ contract.personName }}</strong><button class="sm" @click="openPerson(contract.personId)">打开人员</button></div>
-          <div class="section-title">同住人（{{ cohabitants.length }}）</div>
+          <div class="section-title">{{ t('cd.tenant') }}</div>
+          <div class="entity-row"><strong>{{ contract.personName }}</strong><button class="sm" @click="openPerson(contract.personId)">{{ t('cd.openPerson') }}</button></div>
+          <div class="section-title">{{ t('cd.cohabitants', { n: cohabitants.length }) }}</div>
           <div class="row" style="margin-bottom:10px;flex-wrap:wrap">
-            <div class="field" style="flex:2;min-width:180px"><label>人员</label><SearchSelect v-model="cohabForm.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" /></div>
-            <div class="field"><label>关系</label><select v-model="cohabForm.relationType"><option value="SPOUSE">配偶</option><option value="CHILD">子女</option><option value="PARENT">父母</option><option value="FAMILY">家庭成员</option><option value="OTHER">其他</option></select></div>
-            <div class="field"><label>开始</label><input v-model="cohabForm.startDate" type="date" /></div>
-            <div class="field"><label>结束</label><input v-model="cohabForm.endDate" type="date" /></div>
-            <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="addCohabitant">新增同住人</button></div>
+            <div class="field" style="flex:2;min-width:180px"><label>{{ t('cd.persons') }}</label><SearchSelect v-model="cohabForm.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" :placeholder="t('cd.searchPerson')" /></div>
+            <div class="field"><label>{{ t('cd.relation') }}</label><select v-model="cohabForm.relationType"><option value="SPOUSE">{{ t('cd.spouse') }}</option><option value="CHILD">{{ t('cd.child') }}</option><option value="PARENT">{{ t('cd.parent') }}</option><option value="FAMILY">{{ t('cd.family') }}</option><option value="OTHER">{{ t('cd.other') }}</option></select></div>
+            <div class="field"><label>{{ t('cd.startShort') }}</label><input v-model="cohabForm.startDate" type="date" /></div>
+            <div class="field"><label>{{ t('cd.endShort') }}</label><input v-model="cohabForm.endDate" type="date" /></div>
+            <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="addCohabitant">{{ t('cd.addCohabitant') }}</button></div>
           </div>
-          <div v-if="!cohabitants.length" class="empty">暂无同住人</div>
-          <div v-for="c in cohabitants" :key="c.id" class="entity-row"><div><strong>{{ c.personName }}</strong><span class="small muted"> · {{ relationLabel(c.relationType) }} · {{ c.startDate || '' }} ~ {{ c.endDate || '长期' }}</span></div><div class="row"><span class="badge green">{{ relationStatusLabel(c.cohabitantStatus) }}</span><button class="sm danger" :disabled="busy" @click="removeCohabitant(c)">移除</button></div></div>
+          <div v-if="!cohabitants.length" class="empty">{{ t('cd.noCohabitants') }}</div>
+          <div v-for="c in cohabitants" :key="c.id" class="entity-row"><div><strong>{{ c.personName }}</strong><span class="small muted"> · {{ relationLabel(c.relationType) }} · {{ c.startDate || '' }} ~ {{ c.endDate || t('cd.longTerm') }}</span></div><div class="row"><span class="badge green">{{ relationStatusLabel(c.cohabitantStatus) }}</span><button class="sm danger" :disabled="busy" @click="removeCohabitant(c)">{{ t('cd.remove') }}</button></div></div>
         </div>
 
         <div v-else-if="tab === 'house'" class="tab-body">
-          <div class="entity-row"><div><strong>{{ contract.houseName }}</strong><div class="small muted">房屋 ID：{{ contract.houseId }}</div></div><button class="sm" @click="openHouse(contract.houseId)">打开房源</button></div>
+          <div class="entity-row"><div><strong>{{ contract.houseName }}</strong><div class="small muted">{{ t('cd.houseId') }}: {{ contract.houseId }}</div></div><button class="sm" @click="openHouse(contract.houseId)">{{ t('cd.openHouse') }}</button></div>
         </div>
 
         <div v-else-if="tab === 'bills'" class="tab-body">
-          <div v-if="!bills.length" class="empty">暂无账单</div>
-          <div v-else class="table-wrap"><table><thead><tr><th>账单号</th><th>账期</th><th>应付</th><th>已收</th><th>状态</th></tr></thead><tbody><tr v-for="b in bills" :key="b.id"><td class="mono">{{ b.billNo }}</td><td>{{ b.periodStart }} ~ {{ b.periodEnd }}</td><td>{{ money(b.payableAmount) }}</td><td>{{ money(b.paidAmount) }}</td><td><span class="badge" :class="b.billStatus === 'PAID' ? 'green' : 'orange'">{{ b.billStatus }}</span></td></tr></tbody></table></div>
+          <div v-if="!bills.length" class="empty">{{ t('cd.noBills') }}</div>
+          <div v-else class="table-wrap"><table><thead><tr><th>{{ t('cd.billNo') }}</th><th>{{ t('cd.period') }}</th><th>{{ t('cd.payable') }}</th><th>{{ t('cd.paid') }}</th><th>{{ t('cd.status') }}</th></tr></thead><tbody><tr v-for="b in bills" :key="b.id"><td class="mono">{{ b.billNo }}</td><td>{{ b.periodStart }} ~ {{ b.periodEnd }}</td><td>{{ money(b.payableAmount) }}</td><td>{{ money(b.paidAmount) }}</td><td><span class="badge" :class="b.billStatus === 'PAID' ? 'green' : 'orange'">{{ b.billStatus }}</span></td></tr></tbody></table></div>
         </div>
 
         <div v-else-if="tab === 'deposit'" class="tab-body">
-          <div v-if="deposit" class="kv-grid"><div><span>押金金额</span><strong>{{ money(deposit.amount) }}</strong></div><div><span>已退</span><strong>{{ money(deposit.refundedAmount) }}</strong></div><div><span>状态</span><strong>{{ deposit.depositStatus }}</strong></div></div>
-          <div v-else class="empty">暂无押金记录</div>
-          <div class="section-title">补贴（{{ subsidies.length }}）</div>
-          <div v-if="!subsidies.length" class="empty">暂无补贴</div>
+          <div v-if="deposit" class="kv-grid"><div><span>{{ t('cd.depositLabel') }}</span><strong>{{ money(deposit.amount) }}</strong></div><div><span>{{ t('cd.refunded') }}</span><strong>{{ money(deposit.refundedAmount) }}</strong></div><div><span>{{ t('cd.status') }}</span><strong>{{ deposit.depositStatus }}</strong></div></div>
+          <div v-else class="empty">{{ t('cd.noDeposit') }}</div>
+          <div class="section-title">{{ t('cd.subsidies', { n: subsidies.length }) }}</div>
+          <div v-if="!subsidies.length" class="empty">{{ t('cd.noSubsidy') }}</div>
           <div v-for="s in subsidies" :key="s.id" class="entity-row"><span>{{ s.subsidyType }} · {{ money(s.amount) }}</span><span class="badge">{{ s.subsidyStatus }}</span></div>
         </div>
 
         <div v-else-if="tab === 'files'" class="tab-body">
-          <div class="row" style="margin-bottom:10px"><input type="file" :disabled="fileBusy" @change="uploadFile" /><span v-if="fileBusy" class="small muted">上传中…</span></div>
-          <div v-if="!files.length" class="empty">暂无附件</div>
-          <div v-for="f in files" :key="f.id" class="entity-row"><div>{{ f.fileName }}<div class="small muted">{{ f.fileSize }} bytes · {{ f.createTime }}</div></div><button class="sm" @click="api.downloadFile(f.id, f.fileName)">下载</button></div>
+          <div class="row" style="margin-bottom:10px"><input type="file" :disabled="fileBusy" @change="uploadFile" /><span v-if="fileBusy" class="small muted">{{ t('cd.uploading') }}</span></div>
+          <div v-if="!files.length" class="empty">{{ t('cd.noFiles') }}</div>
+          <div v-for="f in files" :key="f.id" class="entity-row"><div>{{ f.fileName }}<div class="small muted">{{ f.fileSize }} bytes · {{ f.createTime }}</div></div><button class="sm" @click="api.downloadFile(f.id, f.fileName)">{{ t('cd.download') }}</button></div>
         </div>
 
         <div v-else-if="tab === 'relations'" class="tab-body">
           <EntityDetailTabs type="CONTRACT" :entity-id="contract.id" />
         </div>
         <div v-else-if="tab === 'changes'" class="tab-body">
-          <div v-if="!changes.length" class="empty">暂无变更记录</div>
+          <div v-if="!changes.length" class="empty">{{ t('cd.noChanges') }}</div>
           <div v-for="c in changes" :key="c.id" class="entity-row"><div><strong>{{ c.changeType }}</strong><div class="small muted">{{ c.changeReason || c.reason || '' }}</div></div><span class="badge">{{ c.changeStatus || c.status }}</span></div>
         </div>
       </div>
