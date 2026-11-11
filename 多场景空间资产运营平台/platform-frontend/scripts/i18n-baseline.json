@@ -16,7 +16,6 @@
   "src/pages/Grants.vue",
   "src/pages/Help.vue",
   "src/pages/ImportCenter.vue",
-  "src/pages/Keyring.vue",
   "src/pages/MeterReadings.vue",
   "src/pages/OpenApps.vue",
   "src/pages/Patrol.vue",
