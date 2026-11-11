@@ -117,6 +117,16 @@ function display(row, key) {
   return v
 }
 
+function exportRow(row) {
+  const header = cols.value.map(c => c[1])
+  const data = [cols.value.map(([key]) => row[key] ?? '')]
+  const csv = '\ufeff' + [header, ...data].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+  link.download = `${t('reports.title')}_${title.value}_${row.orgName || row.contractNo || 'row'}.csv`
+  link.click(); URL.revokeObjectURL(link.href)
+}
+
 function exportCsv() {
   const header = cols.value.map(c => c[1])
   const data = filteredRows.value.map(row => cols.value.map(([key]) => row[key] ?? ''))
@@ -163,7 +173,7 @@ onMounted(() => { try { savedViews.value = JSON.parse(localStorage.getItem('plat
       <div v-if="!filteredRows.length" class="empty">{{ t('reports.noData') }}</div>
       <div v-else class="table-wrap">
         <table><thead><tr><th v-for="c in cols" :key="c[0]">{{ te(`field.${c[0]}`) ? t(`field.${c[0]}`) : c[1] }}</th><th v-if="active === 'projects'">{{ t('common.action') }}</th></tr></thead><tbody>
-          <tr v-for="(row, i) in filteredRows" :key="i"><td v-for="c in cols" :key="c[0]">{{ display(row, c[0]) }}</td><td v-if="active === 'projects'"><button class="sm" @click="openProject(row)">{{ t('reports.drill') }}</button></td></tr>
+          <tr v-for="(row, i) in filteredRows" :key="i"><td v-for="c in cols" :key="c[0]">{{ display(row, c[0]) }}</td><td v-if="active === 'projects'"><button class="sm" @click="exportRow(row)">{{ t('reports.download') }}</button></td></tr>
         </tbody></table>
       </div>
     </div>

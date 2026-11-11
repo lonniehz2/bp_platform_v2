@@ -117,7 +117,7 @@ onMounted(load)
         <div class="field"><label>{{ t('spaces.code') }}</label><input :value="editingSpace.spaceCode" disabled /></div>
         <div class="field"><label>{{ t('spaces.name') }}</label><input v-model="spaceEditForm.spaceName" /></div>
         <div class="field"><label>{{ t('spaces.spaceType') }}</label><select v-model="spaceEditForm.spaceType"><option v-for="t in types" :key="t" :value="t">{{ enumLabel(t) }}</option></select></div>
-        <div class="field"><label>{{ t('spaces.assetType') }}</label><input v-model="spaceEditForm.assetTypeCode" /></div>
+        <div class="field"><label>{{ t('spaces.assetType') }}</label><select v-model="spaceEditForm.assetTypeCode"><option v-for="t in assetTypes" :key="t.typeCode" :value="t.typeCode">{{ t.typeName }}</option></select></div>
         <div class="field"><label>{{ t('spaces.area') }}</label><input v-model.number="spaceEditForm.area" type="number" /></div>
         <div class="field"><label>{{ t('spaces.innerArea') }}</label><input v-model.number="spaceEditForm.innerArea" type="number" /></div>
         <div class="field"><label><input type="checkbox" v-model="spaceEditForm.rentable" /> {{ t('spaces.rentable') }}</label></div>
