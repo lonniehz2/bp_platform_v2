@@ -3,7 +3,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const houses = ref([])
 const orders = ref([])
@@ -32,7 +34,7 @@ async function load() {
 async function create() {
   busy.value = true; error.value = ''
   try {
-    if (!form.guestName.trim() || !form.startDate || !form.endDate) throw new Error('请填写入住人和起止日期')
+    if (!form.guestName.trim() || !form.startDate || !form.endDate) throw new Error(t('shortRent.required'))
     await api.createShortRentOrder({
       projectId: project.value.id, houseId: form.houseId || null, guestName: form.guestName.trim(),
       guestPhone: form.guestPhone, startDate: form.startDate, endDate: form.endDate,
@@ -55,34 +57,34 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>短租订单</h2><p>{{ project?.orgName || '未选择项目' }} · 短租、日房态</p></div><span class="badge blue">{{ orders.length }} 单</span></div>
+      <div class="panel-head"><div><h2>{{ t('shortRent.title') }}</h2><p>{{ project?.orgName || t('shortRent.noProject') }} · {{ t('shortRent.subtitle') }}</p></div><span class="badge blue">{{ orders.length }} {{ t('shortRent.count') }}</span></div>
       <div class="row">
-        <div class="field"><label>房屋</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" /></div>
-        <div class="field"><label>入住人</label><input v-model="form.guestName" /></div>
-        <div class="field"><label>手机号</label><input v-model="form.guestPhone" /></div>
-        <div class="field"><label>入住</label><input v-model="form.startDate" type="date" /></div>
-        <div class="field"><label>离店</label><input v-model="form.endDate" type="date" /></div>
-        <div class="field"><label>金额</label><input v-model.number="form.amount" type="number" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('shortrent')" class="primary" :disabled="busy" @click="create">新建订单</button></div>
+        <div class="field"><label>{{ t('shortRent.house') }}</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" :placeholder="t('shortRent.searchHouse')" /></div>
+        <div class="field"><label>{{ t('shortRent.guest') }}</label><input v-model="form.guestName" /></div>
+        <div class="field"><label>{{ t('shortRent.phone') }}</label><input v-model="form.guestPhone" /></div>
+        <div class="field"><label>{{ t('shortRent.checkin') }}</label><input v-model="form.startDate" type="date" /></div>
+        <div class="field"><label>{{ t('shortRent.checkout') }}</label><input v-model="form.endDate" type="date" /></div>
+        <div class="field"><label>{{ t('shortRent.amount') }}</label><input v-model.number="form.amount" type="number" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('shortrent')" class="primary" :disabled="busy" @click="create">{{ t('shortRent.add') }}</button></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>订单列表</h2><span class="small muted">待确认 → 已确认 → 入住 → 完成 / 取消</span></div>
-      <div v-if="!orders.length" class="empty">暂无短租订单</div>
+      <div class="panel-head"><h2>{{ t('shortRent.list') }}</h2><span class="small muted">{{ t('shortRent.hint') }}</span></div>
+      <div v-if="!orders.length" class="empty">{{ t('shortRent.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>订单号</th><th>房屋</th><th>入住人</th><th>入住/离店</th><th>晚数</th><th>金额</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('shortRent.orderNo') }}</th><th>{{ t('shortRent.house') }}</th><th>{{ t('shortRent.guest') }}</th><th>{{ t('shortRent.stay') }}</th><th>{{ t('shortRent.nights') }}</th><th>{{ t('shortRent.amount') }}</th><th>{{ t('shortRent.status') }}</th><th>{{ t('shortRent.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="o in orders" :key="o.id">
               <td class="mono">{{ o.orderNo }}</td><td>{{ o.houseName || '-' }}</td><td>{{ o.guestName }}</td>
               <td class="small">{{ o.startDate }} ~ {{ o.endDate }}</td><td>{{ o.nights }}</td><td>¥{{ Number(o.amount || 0).toFixed(2) }}</td>
               <td><span class="badge" :class="statusClass(o.orderStatus)">{{ o.orderStatus }}</span></td>
               <td class="row">
-                <button v-if="can('shortrent') && o.orderStatus === 'PENDING'" class="sm" @click="update(o, 'CONFIRMED')">确认</button>
-                <button v-if="can('shortrent') && o.orderStatus === 'CONFIRMED'" class="sm" @click="update(o, 'CHECKED_IN')">入住</button>
-                <button v-if="can('shortrent') && o.orderStatus === 'CHECKED_IN'" class="sm" @click="update(o, 'COMPLETED')">完成</button>
-                <button v-if="can('shortrent') && ['PENDING','CONFIRMED'].includes(o.orderStatus)" class="sm danger" @click="update(o, 'CANCELLED')">取消</button>
+                <button v-if="can('shortrent') && o.orderStatus === 'PENDING'" class="sm" @click="update(o, 'CONFIRMED')">{{ t('shortRent.confirm') }}</button>
+                <button v-if="can('shortrent') && o.orderStatus === 'CONFIRMED'" class="sm" @click="update(o, 'CHECKED_IN')">{{ t('shortRent.checkin') }}</button>
+                <button v-if="can('shortrent') && o.orderStatus === 'CHECKED_IN'" class="sm" @click="update(o, 'COMPLETED')">{{ t('shortRent.complete') }}</button>
+                <button v-if="can('shortrent') && ['PENDING','CONFIRMED'].includes(o.orderStatus)" class="sm danger" @click="update(o, 'CANCELLED')">{{ t('shortRent.cancel') }}</button>
               </td>
             </tr>
           </tbody>
