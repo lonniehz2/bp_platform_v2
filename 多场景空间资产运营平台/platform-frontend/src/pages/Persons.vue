@@ -204,7 +204,7 @@ onMounted(async () => {
         <div v-if="selected" class="alert">{{ t('pp.current')+'：' }}<strong>{{ selected.personName }}</strong>（{{ selected.personCode }}）<span v-if="contractRelations" class="small muted"> · {{ t('pp.tenantContracts') }} {{ contractRelations.tenantContracts?.length || 0 }} · {{ t('pp.cohabContracts') }} {{ contractRelations.cohabitantContracts?.length || 0 }}</span></div>
         <DataTable :rows="paged" :columns="personColumns" :page="page" :page-size="10" :total="filteredPersons.length" :empty-text="t('pp.empty')" @update:page="page = $event" @row-click="selectPerson">
           <template #cell-gender="{ row }">{{ row.gender === 'MALE' ? t('pp.male') : row.gender === 'FEMALE' ? t('pp.female') : '-' }}</template>
-          <template #cell-status="{ row }"><span class="badge" :class="row.status === 'ENABLED' ? 'green' : 'orange'">{{ row.status }}</span></template>
+          <template #cell-status="{ row }"><span class="badge" :class="row.status === 'ENABLED' ? 'green' : 'orange'">{{ enumLabel(row.status) }}</span></template>
           <template #cell-actions="{ row }">
             <button class="sm" @click.stop="openPersonEdit(row)">{{ t('pp.edit') }}</button>
             <button class="sm" :class="row.status === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click.stop="togglePersonStatus(row)">{{ row.status === 'ENABLED' ? t('pp.disable') : t('pp.enable') }}</button>
