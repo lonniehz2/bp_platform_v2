@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { sceneRoot } from '../scene'
+import { enumLabel } from '../enumLabels'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 
@@ -111,7 +112,8 @@ async function load() {
 function display(row, key) {
   const v = row[key]
   if (v === null || v === undefined || v === '') return '-'
-  if (key.toLowerCase().includes('status')) { const code = String(v).toUpperCase(); return te(`status.${code}`) ? t(`status.${code}`) : v }
+  if (key.toLowerCase().includes('status')) { const code = String(v).toUpperCase(); return te(`status.${code}`) ? t(`status.${code}`) : enumLabel(v) }
+  if (/(type|method|level|priority|cycle|mode|gender|urgency|category)$/i.test(key)) return enumLabel(v)
   if (['receivable','received','outstanding','amount','payableAmount','paidAmount','rentAmount'].includes(key)) return '¥' + money(v)
   if (['occupancyRate','collectionRate'].includes(key)) return v + '%'
   return v
