@@ -160,18 +160,51 @@ public class RelationService {
         else if (root.get("person") instanceof Map<?, ?> p) {
             entity.put("type", "PERSON"); entity.put("id", String.valueOf(id));
             entity.put("title", p.get("personName")); entity.put("subtitle", p.get("personCode"));
+            entity.put("phone", p.get("phone")); entity.put("personType", p.get("personType")); entity.put("status", p.get("status"));
         } else {
             entity.put("type", type.toUpperCase()); entity.put("id", String.valueOf(id));
             entity.put("title", root.getOrDefault("contractNo", "详情 #" + id));
             entity.put("subtitle", root.getOrDefault("contractStatus", null));
+            for (String k : List.of("contractNo", "houseName", "startDate", "endDate", "rentAmount", "depositAmount", "contractStatus")) {
+                if (root.get(k) != null) entity.put(k, root.get(k));
+            }
+            if (entity.get("contractStatus") != null) entity.put("status", entity.get("contractStatus"));
         }
         return entity;
+    }
+
+    private List<Map<String, Object>> columns(String key) {
+        java.util.function.BiFunction<String, String, Map<String, Object>> c = (k, l) -> {
+            Map<String, Object> m = new LinkedHashMap<>(); m.put("key", k); m.put("label", l); return m;
+        };
+        List<Map<String, Object>> list = new ArrayList<>();
+        switch (key) {
+            case "contracts" -> { list.add(c.apply("contractNo", "合同号")); list.add(c.apply("houseName", "房屋")); list.add(c.apply("startDate", "开始日期")); list.add(c.apply("endDate", "结束日期")); list.add(c.apply("status", "状态")); }
+            case "bills" -> { list.add(c.apply("billNo", "账单号")); list.add(c.apply("periodStart", "账期起")); list.add(c.apply("periodEnd", "账期止")); list.add(c.apply("payableAmount", "应付")); list.add(c.apply("paidAmount", "已收")); list.add(c.apply("status", "状态")); }
+            case "workOrders" -> { list.add(c.apply("orderNo", "工单号")); list.add(c.apply("title", "标题")); list.add(c.apply("assigneeName", "处理人")); list.add(c.apply("status", "状态")); }
+            case "access" -> { list.add(c.apply("validStart", "通行时间")); list.add(c.apply("visitorName", "访客")); list.add(c.apply("purpose", "事由")); list.add(c.apply("status", "状态")); }
+            case "devices" -> { list.add(c.apply("deviceCode", "设备编码")); list.add(c.apply("deviceName", "设备名称")); list.add(c.apply("deviceType", "类型")); list.add(c.apply("status", "状态")); }
+            case "persons", "person" -> { list.add(c.apply("personName", "姓名")); list.add(c.apply("phone", "电话")); list.add(c.apply("personType", "人员类型")); list.add(c.apply("status", "状态")); }
+            case "house" -> { list.add(c.apply("houseCode", "房源编码")); list.add(c.apply("houseName", "名称")); list.add(c.apply("houseStatus", "房态")); }
+            case "contract" -> { list.add(c.apply("contractNo", "合同号")); list.add(c.apply("contractStatus", "合同状态")); }
+            case "waitlist" -> { list.add(c.apply("queueNo", "轮候号")); list.add(c.apply("waitlistStatus", "状态")); }
+            case "allocation" -> { list.add(c.apply("allocationNo", "配租单号")); list.add(c.apply("allocationStatus", "状态")); }
+            case "payments" -> { list.add(c.apply("paymentNo", "收款单号")); list.add(c.apply("paymentMethod", "方式")); list.add(c.apply("amount", "金额")); list.add(c.apply("paidTime", "收款时间")); list.add(c.apply("status", "状态")); }
+            case "grants" -> { list.add(c.apply("personName", "人员")); list.add(c.apply("grantLevel", "级别")); list.add(c.apply("validStart", "开始")); list.add(c.apply("validEnd", "结束")); list.add(c.apply("status", "状态")); }
+            case "alerts" -> { list.add(c.apply("title", "告警")); list.add(c.apply("alertLevel", "级别")); list.add(c.apply("alertStatus", "状态")); }
+            case "deposit" -> { list.add(c.apply("amount", "押金金额")); list.add(c.apply("refundedAmount", "已退")); list.add(c.apply("status", "状态")); }
+            case "changes" -> { list.add(c.apply("changeType", "变更类型")); list.add(c.apply("effectiveDate", "生效日期")); list.add(c.apply("reason", "原因")); list.add(c.apply("status", "状态")); }
+            case "files" -> { list.add(c.apply("fileName", "文件名")); list.add(c.apply("fileSize", "大小")); list.add(c.apply("createTime", "上传时间")); }
+            case "subsidies" -> { list.add(c.apply("subsidyType", "补贴类型")); list.add(c.apply("amount", "金额")); list.add(c.apply("startDate", "开始")); list.add(c.apply("endDate", "结束")); list.add(c.apply("status", "状态")); }
+            default -> { list.add(c.apply("title", "名称")); list.add(c.apply("subtitle", "说明")); list.add(c.apply("status", "状态")); }
+        }
+        return list;
     }
 
     private Map<String, Object> section(String key, String label, boolean accessible, String reason, List<Map<String, Object>> items) {
         Map<String, Object> sec = new LinkedHashMap<>();
         sec.put("key", key); sec.put("label", label); sec.put("accessible", accessible);
-        sec.put("reason", reason); sec.put("items", items); return sec;
+        sec.put("reason", reason); sec.put("items", items); sec.put("columns", columns(key)); return sec;
     }
 
     private Map<String, Object> sectionSql(String key, String label, String menu, long projectId, String sql, Object... args) {
@@ -185,13 +218,13 @@ public class RelationService {
         long projectId = org instanceof Number n ? n.longValue() : 0;
         List<Map<String, Object>> out = new ArrayList<>();
         out.add(sectionSql("contracts", "合同", "contracts", projectId,
-                "select c.id id, c.contract_no title, concat(h.house_name, ' · ', c.contract_status) subtitle, c.contract_status status, concat('/guarantee/contracts/', c.id) route from guarantee_contract c left join bp_house h on h.id=c.house_id where c.tenant_id=? and c.person_id=? and c.is_deleted=0 union all select c.id, c.contract_no, concat(h.house_name, ' · 同住人'), c.contract_status, concat('/guarantee/contracts/', c.id) from guarantee_contract_cohabitant cc join guarantee_contract c on c.id=cc.contract_id left join bp_house h on h.id=c.house_id where cc.tenant_id=? and cc.person_id=? and cc.is_deleted=0 and c.is_deleted=0", tenant, id, tenant, id));
+                "select c.id id, c.contract_no contractNo, h.house_name houseName, c.start_date startDate, c.end_date endDate, c.contract_status status, concat('/guarantee/contracts/', c.id) route from guarantee_contract c left join bp_house h on h.id=c.house_id where c.tenant_id=? and c.person_id=? and c.is_deleted=0 union all select c.id, c.contract_no, h.house_name, c.start_date, c.end_date, c.contract_status, concat('/guarantee/contracts/', c.id) from guarantee_contract_cohabitant cc join guarantee_contract c on c.id=cc.contract_id left join bp_house h on h.id=c.house_id where cc.tenant_id=? and cc.person_id=? and cc.is_deleted=0 and c.is_deleted=0", tenant, id, tenant, id));
         out.add(sectionSql("bills", "账单", "billing", projectId,
-                "select b.id id, b.bill_no title, concat(b.period_start, ' ~ ', b.period_end) subtitle, b.bill_status status, '/guarantee/billing' route from bp_bill b where b.tenant_id=? and b.person_id=? and b.is_deleted=0 order by b.period_start desc", tenant, id));
+                "select b.id id, b.bill_no billNo, b.period_start periodStart, b.period_end periodEnd, b.payable_amount payableAmount, b.paid_amount paidAmount, b.bill_status status, '/guarantee/billing' route from bp_bill b where b.tenant_id=? and b.person_id=? and b.is_deleted=0 order by b.period_start desc", tenant, id));
         out.add(sectionSql("workOrders", "工单", "workOrders", projectId,
-                "select o.id id, o.title title, o.order_no subtitle, o.order_status status, '/guarantee/work-orders' route from guarantee_work_order o where o.tenant_id=? and o.person_id=? and o.is_deleted=0 order by o.id desc", tenant, id));
+                "select o.id id, o.order_no orderNo, o.title title, o.assignee_name assigneeName, o.order_status status, '/guarantee/work-orders' route from guarantee_work_order o where o.tenant_id=? and o.person_id=? and o.is_deleted=0 order by o.id desc", tenant, id));
         out.add(sectionSql("access", "通行记录", "accessRecords", projectId,
-                "select a.id id, coalesce(a.visitor_name, '通行记录') title, concat(a.valid_start, ' · ', a.access_status) subtitle, a.access_status status, '/guarantee/access' route from guarantee_access_record a where a.tenant_id=? and a.person_id=? and a.is_deleted=0 order by a.id desc", tenant, id));
+                "select a.id id, a.valid_start validStart, a.visitor_name visitorName, a.purpose purpose, a.access_status status, '/guarantee/access' route from guarantee_access_record a where a.tenant_id=? and a.person_id=? and a.is_deleted=0 order by a.id desc", tenant, id));
         return out;
     }
 
@@ -199,13 +232,13 @@ public class RelationService {
         long projectId = number(jdbc.queryForList("select org_id from bp_house where tenant_id=? and id=? and is_deleted=0", tenant, id));
         List<Map<String, Object>> out = new ArrayList<>();
         out.add(sectionSql("contracts", "合同", "contracts", projectId,
-                "select c.id id, c.contract_no title, concat(c.start_date, ' ~ ', c.end_date) subtitle, c.contract_status status, concat('/guarantee/contracts/', c.id) route from guarantee_contract c where c.tenant_id=? and c.house_id=? and c.is_deleted=0 order by c.id desc", tenant, id));
+                "select c.id id, c.contract_no contractNo, h.house_name houseName, c.start_date startDate, c.end_date endDate, c.contract_status status, concat('/guarantee/contracts/', c.id) route from guarantee_contract c join bp_house h on h.id=c.house_id where c.tenant_id=? and c.house_id=? and c.is_deleted=0 order by c.id desc", tenant, id));
         out.add(sectionSql("bills", "账单", "billing", projectId,
-                "select b.id id, b.bill_no title, concat(b.period_start, ' ~ ', b.period_end) subtitle, b.bill_status status, '/guarantee/billing' route from bp_bill b where b.tenant_id=? and b.house_id=? and b.is_deleted=0 order by b.period_start desc", tenant, id));
+                "select b.id id, b.bill_no billNo, b.period_start periodStart, b.period_end periodEnd, b.payable_amount payableAmount, b.paid_amount paidAmount, b.bill_status status, '/guarantee/billing' route from bp_bill b where b.tenant_id=? and b.house_id=? and b.is_deleted=0 order by b.period_start desc", tenant, id));
         out.add(sectionSql("devices", "设备", "devices", projectId,
-                "select d.id id, d.device_name title, d.device_code subtitle, d.business_status status, '/guarantee/devices' route from bp_dev_device d join bp_house h on h.space_id=d.space_id where d.tenant_id=? and h.id=? and d.is_deleted=0", tenant, id));
+                "select d.id id, d.device_code deviceCode, d.device_name deviceName, d.device_type deviceType, d.business_status status, '/guarantee/devices' route from bp_dev_device d join bp_house h on h.space_id=d.space_id where d.tenant_id=? and h.id=? and d.is_deleted=0", tenant, id));
         out.add(sectionSql("workOrders", "工单", "workOrders", projectId,
-                "select o.id id, o.title title, o.order_no subtitle, o.order_status status, '/guarantee/work-orders' route from guarantee_work_order o where o.tenant_id=? and o.house_id=? and o.is_deleted=0 order by o.id desc", tenant, id));
+                "select o.id id, o.order_no orderNo, o.title title, o.assignee_name assigneeName, o.order_status status, '/guarantee/work-orders' route from guarantee_work_order o where o.tenant_id=? and o.house_id=? and o.is_deleted=0 order by o.id desc", tenant, id));
         return out;
     }
 
@@ -213,13 +246,13 @@ public class RelationService {
         long projectId = number(jdbc.queryForList("select project_id from bp_bill where tenant_id=? and id=? and is_deleted=0", tenant, id));
         List<Map<String, Object>> out = new ArrayList<>();
         out.add(sectionSql("contract", "合同", "contracts", projectId,
-                "select c.id id, c.contract_no title, c.contract_status subtitle, c.contract_status status, concat('/guarantee/contracts/', c.id) route from bp_bill b join guarantee_contract c on c.id=b.contract_id where b.tenant_id=? and b.id=?", tenant, id));
+                "select c.id id, c.contract_no contractNo, c.contract_status contractStatus, c.start_date startDate, c.end_date endDate, concat('/guarantee/contracts/', c.id) route from bp_bill b join guarantee_contract c on c.id=b.contract_id where b.tenant_id=? and b.id=?", tenant, id));
         out.add(sectionSql("person", "人员", "person", projectId,
-                "select p.id id, p.person_name title, p.person_code subtitle, p.status status, concat('/guarantee/persons?id=', p.id) route from bp_bill b join bp_person p on p.id=b.person_id where b.tenant_id=? and b.id=?", tenant, id));
+                "select p.id id, p.person_name personName, p.phone phone, p.person_type personType, p.status status, concat('/guarantee/persons?id=', p.id) route from bp_bill b join bp_person p on p.id=b.person_id where b.tenant_id=? and b.id=?", tenant, id));
         out.add(sectionSql("house", "房屋", "houses", projectId,
-                "select h.id id, h.house_name title, h.house_code subtitle, h.house_status status, concat('/guarantee/houses?id=', h.id) route from bp_bill b join bp_house h on h.id=b.house_id where b.tenant_id=? and b.id=?", tenant, id));
+                "select h.id id, h.house_code houseCode, h.house_name houseName, h.house_status houseStatus, concat('/guarantee/houses?id=', h.id) route from bp_bill b join bp_house h on h.id=b.house_id where b.tenant_id=? and b.id=?", tenant, id));
         out.add(sectionSql("payments", "收款记录", "billing", projectId,
-                "select p.id id, p.payment_no title, concat(p.payment_method, ' · ', p.amount) subtitle, p.payment_status status, '/guarantee/cashflow' route from bp_payment_allocation pa join bp_payment p on p.id=pa.payment_id where pa.tenant_id=? and pa.bill_id=? and p.is_deleted=0", tenant, id));
+                "select p.id id, p.payment_no paymentNo, p.payment_method paymentMethod, p.amount amount, p.paid_time paidTime, p.payment_status status, '/guarantee/cashflow' route from bp_payment_allocation pa join bp_payment p on p.id=pa.payment_id where pa.tenant_id=? and pa.bill_id=? and p.is_deleted=0", tenant, id));
         return out;
     }
 
@@ -227,11 +260,11 @@ public class RelationService {
         long projectId = number(jdbc.queryForList("select project_id from bp_dev_device where tenant_id=? and id=? and is_deleted=0", tenant, id));
         List<Map<String, Object>> out = new ArrayList<>();
         out.add(sectionSql("house", "所在房屋", "houses", projectId,
-                "select h.id id, h.house_name title, h.house_code subtitle, h.house_status status, concat('/guarantee/houses?id=', h.id) route from bp_dev_device d join bp_house h on h.space_id=d.space_id where d.tenant_id=? and d.id=?", tenant, id));
+                "select h.id id, h.house_code houseCode, h.house_name houseName, h.house_status houseStatus, concat('/guarantee/houses?id=', h.id) route from bp_dev_device d join bp_house h on h.space_id=d.space_id where d.tenant_id=? and d.id=?", tenant, id));
         out.add(sectionSql("grants", "通行授权", "grants", projectId,
-                "select g.id id, coalesce(p.person_name, '授权记录') title, concat(g.grant_level, ' · ', g.grant_status) subtitle, g.grant_status status, '/guarantee/grants' route from bp_grant_entitlement g left join bp_person p on p.id=g.person_id where g.tenant_id=? and g.target_type='DEVICE' and g.target_id=? and g.is_deleted=0", tenant, id));
+                "select g.id id, p.person_name personName, g.grant_level grantLevel, g.valid_start validStart, g.valid_end validEnd, g.grant_status status, '/guarantee/grants' route from bp_grant_entitlement g left join bp_person p on p.id=g.person_id where g.tenant_id=? and g.target_type='DEVICE' and g.target_id=? and g.is_deleted=0", tenant, id));
         out.add(sectionSql("alerts", "设备告警", "alertCenter", projectId,
-                "select a.id id, a.title title, a.alert_level subtitle, a.alert_status status, '/guarantee/alerts' route from guarantee_alert a where a.tenant_id=? and a.project_id=? and a.is_deleted=0 order by a.id desc", tenant, projectId));
+                "select a.id id, a.title title, a.alert_level alertLevel, a.alert_status alertStatus, '/guarantee/alerts' route from guarantee_alert a where a.tenant_id=? and a.project_id=? and a.is_deleted=0 order by a.id desc", tenant, projectId));
         return out;
     }
 
@@ -239,11 +272,11 @@ public class RelationService {
         long projectId = number(jdbc.queryForList("select project_id from guarantee_work_order where tenant_id=? and id=? and is_deleted=0", tenant, id));
         List<Map<String, Object>> out = new ArrayList<>();
         out.add(sectionSql("person", "人员", "person", projectId,
-                "select p.id id, p.person_name title, p.person_code subtitle, p.status status, concat('/guarantee/persons?id=', p.id) route from guarantee_work_order o join bp_person p on p.id=o.person_id where o.tenant_id=? and o.id=?", tenant, id));
+                "select p.id id, p.person_name personName, p.phone phone, p.person_type personType, p.status status, concat('/guarantee/persons?id=', p.id) route from guarantee_work_order o join bp_person p on p.id=o.person_id where o.tenant_id=? and o.id=?", tenant, id));
         out.add(sectionSql("house", "房屋", "houses", projectId,
-                "select h.id id, h.house_name title, h.house_code subtitle, h.house_status status, concat('/guarantee/houses?id=', h.id) route from guarantee_work_order o join bp_house h on h.id=o.house_id where o.tenant_id=? and o.id=?", tenant, id));
+                "select h.id id, h.house_code houseCode, h.house_name houseName, h.house_status houseStatus, concat('/guarantee/houses?id=', h.id) route from guarantee_work_order o join bp_house h on h.id=o.house_id where o.tenant_id=? and o.id=?", tenant, id));
         out.add(sectionSql("contract", "合同", "contracts", projectId,
-                "select c.id id, c.contract_no title, c.contract_status subtitle, c.contract_status status, concat('/guarantee/contracts/', c.id) route from guarantee_work_order o join guarantee_contract c on c.house_id=o.house_id where o.tenant_id=? and o.id=? and c.is_deleted=0 order by c.id desc limit 1", tenant, id));
+                "select c.id id, c.contract_no contractNo, c.contract_status contractStatus, c.start_date startDate, c.end_date endDate, concat('/guarantee/contracts/', c.id) route from guarantee_work_order o join guarantee_contract c on c.house_id=o.house_id where o.tenant_id=? and o.id=? and c.is_deleted=0 order by c.id desc limit 1", tenant, id));
         return out;
     }
 
@@ -251,13 +284,13 @@ public class RelationService {
         long projectId = number(jdbc.queryForList("select project_id from guarantee_application where tenant_id=? and id=? and is_deleted=0", tenant, id));
         List<Map<String, Object>> out = new ArrayList<>();
         out.add(sectionSql("person", "申请人", "person", projectId,
-                "select p.id id, p.person_name title, p.person_code subtitle, p.status status, concat('/guarantee/persons?id=', p.id) route from guarantee_application a join bp_person p on p.id=a.applicant_person_id where a.tenant_id=? and a.id=?", tenant, id));
+                "select p.id id, p.person_name personName, p.phone phone, p.person_type personType, p.status status, concat('/guarantee/persons?id=', p.id) route from guarantee_application a join bp_person p on p.id=a.applicant_person_id where a.tenant_id=? and a.id=?", tenant, id));
         out.add(sectionSql("waitlist", "轮候记录", "waitlist", projectId,
-                "select w.id id, w.queue_no title, w.waitlist_status subtitle, w.waitlist_status status, '/guarantee/waitlist' route from guarantee_waitlist w where w.tenant_id=? and w.application_id=? and w.is_deleted=0", tenant, id));
+                "select w.id id, w.queue_no queueNo, w.waitlist_status waitlistStatus, '/guarantee/waitlist' route from guarantee_waitlist w where w.tenant_id=? and w.application_id=? and w.is_deleted=0", tenant, id));
         out.add(sectionSql("allocation", "配租记录", "allocations", projectId,
-                "select a.id id, a.allocation_no title, a.allocation_status subtitle, a.allocation_status status, '/guarantee/allocations' route from guarantee_allocation a where a.tenant_id=? and a.application_id=? and a.is_deleted=0", tenant, id));
+                "select a.id id, a.allocation_no allocationNo, a.allocation_status allocationStatus, '/guarantee/allocations' route from guarantee_allocation a where a.tenant_id=? and a.application_id=? and a.is_deleted=0", tenant, id));
         out.add(sectionSql("contract", "合同", "contracts", projectId,
-                "select c.id id, c.contract_no title, c.contract_status subtitle, c.contract_status status, concat('/guarantee/contracts/', c.id) route from guarantee_allocation a join guarantee_contract c on c.id=a.contract_id where a.tenant_id=? and a.application_id=? and c.is_deleted=0", tenant, id));
+                "select c.id id, c.contract_no contractNo, c.contract_status contractStatus, c.start_date startDate, c.end_date endDate, concat('/guarantee/contracts/', c.id) route from guarantee_allocation a join guarantee_contract c on c.id=a.contract_id where a.tenant_id=? and a.application_id=? and c.is_deleted=0", tenant, id));
         return out;
     }
 
@@ -265,13 +298,19 @@ public class RelationService {
         long projectId = number(jdbc.queryForList("select project_id from guarantee_contract where tenant_id=? and id=? and is_deleted=0", tenant, id));
         List<Map<String, Object>> out = new ArrayList<>();
         out.add(sectionSql("persons", "人员", "contracts", projectId,
-                "select p.id id, p.person_name title, concat('承租人 · ', p.phone) subtitle, p.status status, concat('/guarantee/persons?id=', p.id) route from guarantee_contract c join bp_person p on p.id=c.person_id where c.tenant_id=? and c.id=? union all select p.id, p.person_name, concat(cc.relation_type, ' · 同住人'), p.status, concat('/guarantee/persons?id=', p.id) from guarantee_contract_cohabitant cc join bp_person p on p.id=cc.person_id where cc.tenant_id=? and cc.contract_id=? and cc.is_deleted=0", tenant, id, tenant, id));
+                "select p.id id, p.person_name personName, p.phone phone, concat('承租人') personType, p.status status, concat('/guarantee/persons?id=', p.id) route from guarantee_contract c join bp_person p on p.id=c.person_id where c.tenant_id=? and c.id=? union all select p.id, p.person_name, p.phone, concat(cc.relation_type, ' · 同住人'), p.status, concat('/guarantee/persons?id=', p.id) from guarantee_contract_cohabitant cc join bp_person p on p.id=cc.person_id where cc.tenant_id=? and cc.contract_id=? and cc.is_deleted=0", tenant, id, tenant, id));
+        out.add(sectionSql("house", "房屋", "houses", projectId,
+                "select h.id id, h.house_code houseCode, h.house_name houseName, h.house_status houseStatus, concat('/guarantee/houses?id=', h.id) route from guarantee_contract c join bp_house h on h.id=c.house_id where c.tenant_id=? and c.id=?", tenant, id));
         out.add(sectionSql("bills", "账单", "billing", projectId,
-                "select b.id id, b.bill_no title, concat(b.period_start, ' ~ ', b.period_end) subtitle, b.bill_status status, '/guarantee/billing' route from bp_bill b where b.tenant_id=? and b.contract_id=? and b.is_deleted=0 order by b.period_start desc", tenant, id));
+                "select b.id id, b.bill_no billNo, b.period_start periodStart, b.period_end periodEnd, b.payable_amount payableAmount, b.paid_amount paidAmount, b.bill_status status, '/guarantee/billing' route from bp_bill b where b.tenant_id=? and b.contract_id=? and b.is_deleted=0 order by b.period_start desc", tenant, id));
         out.add(sectionSql("deposit", "押金", "deposits", projectId,
-                "select d.id id, concat('押金 ', d.amount) title, d.deposit_status subtitle, d.deposit_status status, '/guarantee/deposits' route from guarantee_deposit d where d.tenant_id=? and d.contract_id=? and d.is_deleted=0", tenant, id));
+                "select d.id id, d.amount amount, d.refunded_amount refundedAmount, d.deposit_status status, '/guarantee/deposits' route from guarantee_deposit d where d.tenant_id=? and d.contract_id=? and d.is_deleted=0", tenant, id));
+        out.add(sectionSql("files", "附件", "contracts", projectId,
+                "select f.id id, f.file_name fileName, f.file_size fileSize, f.create_time createTime, '/guarantee/contracts/' route from bp_file f where f.tenant_id=? and f.biz_type='CONTRACT' and f.biz_id=? and f.is_deleted=0", tenant, id));
+        out.add(sectionSql("subsidies", "补贴", "subsidies", projectId,
+                "select s.id id, s.subsidy_type subsidyType, s.subsidy_amount amount, s.start_date startDate, s.end_date endDate, s.subsidy_status status, '/guarantee/subsidies' route from guarantee_subsidy s where s.tenant_id=? and s.contract_id=? and s.is_deleted=0", tenant, id));
         out.add(sectionSql("changes", "变更", "contractChanges", projectId,
-                "select c.id id, c.change_type title, c.change_status subtitle, c.change_status status, '/guarantee/changes' route from guarantee_contract_change c where c.tenant_id=? and c.contract_id=? and c.is_deleted=0", tenant, id));
+                "select c.id id, c.change_type changeType, c.effective_date effectiveDate, c.reason reason, c.change_status status, '/guarantee/changes' route from guarantee_contract_change c where c.tenant_id=? and c.contract_id=? and c.is_deleted=0", tenant, id));
         return out;
     }
 
