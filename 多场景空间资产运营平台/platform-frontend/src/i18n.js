@@ -49,7 +49,7 @@ const messages = {
       houseStructure: '房源结构', totalHouses: '共', units: '套', billTrend: '账单趋势', byMonth: '按账期月份',
       billStatus: '账单状态', deviceTypes: '设备类型', recentContracts: '最近合同', viewAll: '查看全部', noContracts: '暂无合同',
       pendingBills: '待处理账单', collect: '去收款', noBills: '暂无账单', emptyProjects: '暂无项目经营数据',
-      thisMonth: '本月账期', thisQuarter: '本季账期', thisYear: '本年账期', customPeriod: '自定义账期', vacant: '空置', allocated: '已配租', other: '其他', receivable: '应收', received: '已收', project: '项目', house: '房源', occupancy: '出租率', workOrders: '工单'
+      thisMonth: '本月账期', noProject: '未选择项目', billsUnit: '笔', houseUnit: '套', deviceUnit: '台', tenThousand: '万', caliber: '口径：本期应收/实收/收缴率按账期只算当期账单；期初欠费单独展示；总欠费 = 期初 + 当期。', thisQuarter: '本季账期', thisYear: '本年账期', customPeriod: '自定义账期', vacant: '空置', allocated: '已配租', other: '其他', receivable: '应收', received: '已收', project: '项目', house: '房源', occupancy: '出租率', workOrders: '工单'
     },
     nav: {
       dashboard: '工作台',
@@ -205,7 +205,7 @@ const messages = {
       houseStructure: 'House Structure', totalHouses: 'Total', units: 'units', billTrend: 'Billing Trend', byMonth: 'By billing month',
       billStatus: 'Bill Status', deviceTypes: 'Device Types', recentContracts: 'Recent Contracts', viewAll: 'View All', noContracts: 'No contracts',
       pendingBills: 'Pending Bills', collect: 'Collect', noBills: 'No bills', emptyProjects: 'No project data',
-      thisMonth: 'This Month', thisQuarter: 'This Quarter', thisYear: 'This Year', customPeriod: 'Custom Period', vacant: 'Vacant', allocated: 'Allocated', other: 'Other', receivable: 'Receivable', received: 'Collected', project: 'Project', house: 'House', occupancy: 'Occupancy', workOrders: 'Work Orders'
+      thisMonth: 'This Month', noProject: 'No project selected', billsUnit: 'bills', houseUnit: 'units', deviceUnit: 'devices', tenThousand: '0k', caliber: 'Scope: current receivable/collected/collection rate use bills of the selected period; opening arrears are shown separately; total arrears = opening + current.', thisQuarter: 'This Quarter', thisYear: 'This Year', customPeriod: 'Custom Period', vacant: 'Vacant', allocated: 'Allocated', other: 'Other', receivable: 'Receivable', received: 'Collected', project: 'Project', house: 'House', occupancy: 'Occupancy', workOrders: 'Work Orders'
     },
     nav: {
       dashboard: 'Workspace',

@@ -139,7 +139,7 @@ const monthlyBills = () => {
 }
 const deviceStats = () => {
   const map = new Map()
-  const labels = { LOCK: '门锁', METER: '水电表', WATER_METER: '水表', ELEC_METER: '电表', ELECTRICITY_METER: '电表', GAS_METER: '燃气表', ELEVATOR: '电梯', GATE: '门禁' }
+  const labels = { LOCK: t('field.deviceType'), METER: t('field.deviceType'), WATER_METER: t('field.deviceType'), ELEC_METER: t('field.deviceType'), ELECTRICITY_METER: t('field.deviceType'), GAS_METER: t('field.deviceType'), ELEVATOR: t('field.deviceType'), GATE: t('field.deviceType') }
   for (const d of devices.value) {
     const key = d.deviceType || 'OTHER'
     map.set(key, (map.get(key) || 0) + 1)
@@ -196,7 +196,7 @@ function renderCharts() {
       legend: { textStyle: { color: c.text } },
       grid: { left: 72, right: 18, top: 30, bottom: 30 },
       xAxis: { type: 'category', data: rows.map(r => r.key.slice(5)), axisLabel: { color: c.text }, axisLine: { lineStyle: { color: c.line } } },
-      yAxis: { type: 'value', axisLabel: { color: c.text, formatter: v => Math.abs(v) >= 10000 ? (v / 10000).toFixed(1) + '万' : v }, splitLine: { lineStyle: { color: c.line } } },
+      yAxis: { type: 'value', axisLabel: { color: c.text, formatter: v => Math.abs(v) >= 10000 ? (v / 10000).toFixed(1) + t('ops.tenThousand') : v }, splitLine: { lineStyle: { color: c.line } } },
       series: [
         { name: t('ops.receivable'), type: 'bar', barMaxWidth: 18, itemStyle: { color: c.blue }, data: rows.map(r => Number(r.amount.toFixed(2))) },
         { name: t('ops.received'), type: 'line', smooth: true, itemStyle: { color: c.green }, data: rows.map(r => Number(r.paid.toFixed(2))) }
@@ -273,7 +273,7 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
 
     <div class="panel">
       <div class="panel-head">
-        <div><h2>{{ t('cockpit.projectCockpit') }}</h2><p>{{ project?.orgName || '未选择项目' }} · {{ t('cockpit.projectHint') }}</p></div>
+        <div><h2>{{ t('cockpit.projectCockpit') }}</h2><p>{{ project?.orgName || t('ops.noProject') }} · {{ t('cockpit.projectHint') }}</p></div>
         <div class="row">
           <select id="periodMode" v-model="periodMode" class="sm" style="padding:6px">
             <option value="month">{{ t('ops.thisMonth') }}</option>
@@ -292,7 +292,7 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
         <div class="card"><div class="label">{{ t('cockpit.projects') }}</div><div class="value">{{ projects.length }}</div><div class="hint">{{ t('ops.tenant') }}</div></div>
         <div class="card"><div class="label">{{ t('ops.applications') }}</div><div class="value">{{ applications.length }}</div><div class="hint">{{ t('ops.pendingReview') }} {{ count(applications, 'SUBMITTED', 'applicationStatus') }}</div></div>
         <div class="card"><div class="label">{{ t('ops.activeContracts') }}</div><div class="value">{{ contracts.filter(c => c.contractStatus === 'ACTIVE').length }}</div><div class="hint">{{ t('ops.totalContracts') }} {{ contracts.length }}</div></div>
-        <div class="card clickable" @click="drillBilling"><div class="label">{{ t('ops.currentReceivable') }}</div><div class="value">¥{{ money(billStats().total) }}</div><div class="hint">{{ t('ops.periodBills') }} {{ currentBills.length }} 笔</div></div>
+        <div class="card clickable" @click="drillBilling"><div class="label">{{ t('ops.currentReceivable') }}</div><div class="value">¥{{ money(billStats().total) }}</div><div class="hint">{{ t('ops.periodBills') }} {{ currentBills.length }} {{ t('ops.billsUnit') }}</div></div>
         <div class="card clickable" @click="drillBilling"><div class="label">{{ t('ops.currentReceived') }}</div><div class="value">¥{{ money(billStats().paid) }}</div><div class="hint">{{ t('ops.byPeriod') }}</div></div>
         <div class="card clickable" @click="drillBilling"><div class="label">{{ t('ops.currentCollection') }}</div><div class="value">{{ billStats().rate }}%</div><div class="hint">{{ t('ops.currentArrears') }} ¥{{ money(billStats().outstanding) }}</div></div>
         <div class="card"><div class="label">{{ t('ops.openingArrears') }}</div><div class="value">¥{{ money(billStats().opening) }}</div><div class="hint">{{ t('ops.openingRecovery') }} ¥{{ money(billStats().openingRecovery) }}</div></div>
@@ -301,10 +301,10 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
       </div>
     </div>
 
-    <div class="alert" style="margin-top:10px">口径：本期应收/实收/收缴率按账期只算当期账单；期初欠费单独展示；总欠费 = 期初 + 当期。</div>
+    <div class="alert" style="margin-top:10px">{{ t('ops.caliber') }}</div>
     <div class="grid" style="grid-template-columns:1.1fr 1.4fr">
       <div class="panel">
-        <div class="panel-head"><h2>{{ t('ops.houseStructure') }}</h2><span class="small muted">{{ t('ops.totalHouses') }} {{ houses.length }} 套</span></div>
+        <div class="panel-head"><h2>{{ t('ops.houseStructure') }}</h2><span class="small muted">{{ t('ops.totalHouses') }} {{ houses.length }} {{ t('ops.houseUnit') }}</span></div>
         <div ref="houseChart" class="chart" />
       </div>
       <div class="panel">
@@ -315,11 +315,11 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
 
     <div class="grid" style="grid-template-columns:1fr 1fr">
       <div class="panel">
-        <div class="panel-head"><h2>{{ t('ops.billStatus') }}</h2><span class="small muted">{{ bills.length }} 笔</span></div>
+        <div class="panel-head"><h2>{{ t('ops.billStatus') }}</h2><span class="small muted">{{ bills.length }} {{ t('ops.billsUnit') }}</span></div>
         <div ref="statusChart" class="chart" />
       </div>
       <div class="panel">
-        <div class="panel-head"><h2>{{ t('ops.deviceTypes') }}</h2><span class="small muted">{{ devices.length }} 台</span></div>
+        <div class="panel-head"><h2>{{ t('ops.deviceTypes') }}</h2><span class="small muted">{{ devices.length }} {{ t('ops.deviceUnit') }}</span></div>
         <div ref="deviceChart" class="chart" />
       </div>
     </div>
