@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { api } from '../api'
 
 const project = ref(null)
@@ -13,6 +13,9 @@ const houses = ref([])
 const workOrders = ref([])
 const alerts = ref([])
 const active = ref('projects')
+const search = ref('')
+const statusFilter = ref('')
+const savedViews = ref({})
 const error = ref('')
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 
@@ -53,6 +56,27 @@ const rows = computed(() => ({
   regulatory: compare.value
 }[active.value] || []))
 const cols = computed(() => columns[active.value] || [])
+const statusKeys = { applications: 'applicationStatus', contracts: 'contractStatus', bills: 'billStatus', arrears: 'billStatus', houses: 'houseStatus', workOrders: 'orderStatus', devices: 'businessStatus', payments: 'paymentStatus' }
+const statusOptions = computed(() => {
+  const key = statusKeys[active.value]
+  if (!key) return []
+  return [...new Set((rows.value || []).map(r => r[key]).filter(Boolean))].sort()
+})
+const filteredRows = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  const key = statusKeys[active.value]
+  return rows.value.filter(r => {
+    if (statusFilter.value && key && String(r[key] || '') !== statusFilter.value) return false
+    if (!q) return true
+    return Object.values(r).some(v => String(v ?? '').toLowerCase().includes(q))
+  })
+})
+function saveView() {
+  const next = { ...savedViews.value, [active.value]: { search: search.value, status: statusFilter.value } }
+  savedViews.value = next; localStorage.setItem('platformReportViews', JSON.stringify(next))
+}
+function applySaved(key) { const v = savedViews.value[key]; if (!v) return; search.value = v.search || ''; statusFilter.value = v.status || '' }
+function resetFilters() { search.value = ''; statusFilter.value = '' }
 const title = computed(() => reports.find(r => r.key === active.value)?.label || '报表')
 
 async function currentProject() {
@@ -87,7 +111,7 @@ function display(row, key) {
 
 function exportCsv() {
   const header = cols.value.map(c => c[1])
-  const data = rows.value.map(row => cols.value.map(([key]) => row[key] ?? ''))
+  const data = filteredRows.value.map(row => cols.value.map(([key]) => row[key] ?? ''))
   const csv = '\ufeff' + [header, ...data].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
   const link = document.createElement('a')
@@ -96,7 +120,8 @@ function exportCsv() {
   link.click(); URL.revokeObjectURL(link.href)
 }
 
-onMounted(load)
+watch(active, key => { statusFilter.value = ''; applySaved(key) })
+onMounted(() => { try { savedViews.value = JSON.parse(localStorage.getItem('platformReportViews') || '{}') } catch {}; load() })
 </script>
 
 <template>
@@ -108,12 +133,18 @@ onMounted(load)
         <button v-for="r in reports" :key="r.key" class="tab-btn" :class="{ active: active === r.key }" @click="active = r.key">{{ r.label }}</button>
       </div>
       <div class="row" style="justify-content:space-between;align-items:center;margin:8px 0">
-        <strong>{{ title }}</strong><span class="small muted">共 {{ rows.length }} 条</span>
+        <strong>{{ title }}</strong><span class="small muted">共 {{ filteredRows.length }} 条</span>
       </div>
-      <div v-if="!rows.length" class="empty">暂无数据</div>
+      <div class="row" style="margin-bottom:8px">
+        <input v-model="search" placeholder="搜索当前报表" style="max-width:260px" />
+        <select v-if="statusOptions.length" v-model="statusFilter" style="max-width:160px"><option value="">全部状态</option><option v-for="s in statusOptions" :key="s" :value="s">{{ s }}</option></select>
+        <button class="sm" @click="saveView">保存筛选</button>
+        <button class="sm" @click="resetFilters">重置</button>
+      </div>
+      <div v-if="!filteredRows.length" class="empty">暂无数据</div>
       <div v-else class="table-wrap">
         <table><thead><tr><th v-for="c in cols" :key="c[0]">{{ c[1] }}</th></tr></thead><tbody>
-          <tr v-for="(row, i) in rows" :key="i"><td v-for="c in cols" :key="c[0]">{{ display(row, c[0]) }}</td></tr>
+          <tr v-for="(row, i) in filteredRows" :key="i"><td v-for="c in cols" :key="c[0]">{{ display(row, c[0]) }}</td></tr>
         </tbody></table>
       </div>
     </div>
