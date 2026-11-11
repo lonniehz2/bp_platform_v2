@@ -31,7 +31,9 @@ async function submit() {
       const actions = await api.myPermissions()
       localStorage.setItem('platformPermissions', JSON.stringify(actions))
     } catch {}
-    await router.replace('/')
+    const roles = result.roles || []
+    const defaultPath = roles.some(r => ['GUARANTEE_ADMIN','GUARANTEE_MANAGER','ADMIN'].includes(r)) ? '/guarantee/cockpit' : '/guarantee/workbench'
+    await router.replace(defaultPath)
   } catch (e) {
     error.value = e.message
   } finally {

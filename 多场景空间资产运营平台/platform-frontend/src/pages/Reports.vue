@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { api } from '../api'
 
+const router = useRouter()
 const project = ref(null)
 const compare = ref([])
 const applications = ref([])
@@ -16,6 +18,8 @@ const active = ref('projects')
 const search = ref('')
 const statusFilter = ref('')
 const savedViews = ref({})
+const subscription = ref({ frequency: 'MONTHLY', recipients: '', enabled: false })
+const subscriptions = ref([])
 const error = ref('')
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 
@@ -121,7 +125,17 @@ function exportCsv() {
 }
 
 watch(active, key => { statusFilter.value = ''; applySaved(key) })
-onMounted(() => { try { savedViews.value = JSON.parse(localStorage.getItem('platformReportViews') || '{}') } catch {}; load() })
+function openProject(row) { localStorage.setItem('platformProjectId', String(row.projectId)); router.push('/guarantee/cockpit') }
+function saveSubscription() {
+  if (!subscription.value.recipients.trim()) { error.value = '请填写订阅接收人'; return }
+  subscriptions.value = [...subscriptions.value, { report: title.value, frequency: subscription.value.frequency, recipients: subscription.value.recipients.trim(), enabled: subscription.value.enabled }]
+  localStorage.setItem('platformReportSubscriptions', JSON.stringify(subscriptions.value))
+  subscription.value = { frequency: 'MONTHLY', recipients: '', enabled: false }
+}
+
+onMounted(() => { try { savedViews.value = JSON.parse(localStorage.getItem('platformReportViews') || '{}') } catch {}
+  try { subscriptions.value = JSON.parse(localStorage.getItem('platformReportSubscriptions') || '[]') } catch {}
+  load() })
 </script>
 
 <template>
@@ -143,10 +157,21 @@ onMounted(() => { try { savedViews.value = JSON.parse(localStorage.getItem('plat
       </div>
       <div v-if="!filteredRows.length" class="empty">暂无数据</div>
       <div v-else class="table-wrap">
-        <table><thead><tr><th v-for="c in cols" :key="c[0]">{{ c[1] }}</th></tr></thead><tbody>
-          <tr v-for="(row, i) in filteredRows" :key="i"><td v-for="c in cols" :key="c[0]">{{ display(row, c[0]) }}</td></tr>
+        <table><thead><tr><th v-for="c in cols" :key="c[0]">{{ c[1] }}</th><th v-if="active === 'projects'">操作</th></tr></thead><tbody>
+          <tr v-for="(row, i) in filteredRows" :key="i"><td v-for="c in cols" :key="c[0]">{{ display(row, c[0]) }}</td><td v-if="active === 'projects'"><button class="sm" @click="openProject(row)">下钻</button></td></tr>
         </tbody></table>
       </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div><h2>报表订阅</h2><p>本地保存订阅配置，后续接入定时发送</p></div></div>
+      <div class="row">
+        <div class="field"><label>频率</label><select v-model="subscription.frequency"><option value="DAILY">每日</option><option value="WEEKLY">每周</option><option value="MONTHLY">每月</option></select></div>
+        <div class="field" style="flex:2"><label>接收人</label><input v-model="subscription.recipients" placeholder="用户名或邮箱" /></div>
+        <div class="field"><label>启用</label><input v-model="subscription.enabled" type="checkbox" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" @click="saveSubscription">保存订阅</button></div>
+      </div>
+      <div v-if="subscriptions.length" class="table-wrap"><table><thead><tr><th>报表</th><th>频率</th><th>接收人</th><th>状态</th></tr></thead><tbody><tr v-for="(s, i) in subscriptions" :key="i"><td>{{ s.report }}</td><td>{{ s.frequency }}</td><td>{{ s.recipients }}</td><td>{{ s.enabled ? '启用' : '停用' }}</td></tr></tbody></table></div>
+      <div v-else class="empty">暂无订阅</div>
     </div>
   </div>
 </template>
