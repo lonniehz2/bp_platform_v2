@@ -72,7 +72,7 @@ watch(() => [props.type, props.entityId], load, { immediate: true })
         <div v-if="!current.accessible" class="empty">🔒 {{ current.reason || '无权限查看该关联信息' }}</div>
         <div v-else-if="!current.items?.length" class="empty">暂无关联记录</div>
         <div v-else-if="current.key === 'overview'" class="kv-grid">
-          <div v-for="([label, value], i) in overviewEntries(current.items[0])" :key="i"><span>{{ label }}</span><strong>{{ formatOverviewValue(labelToKey(label), value) }}</strong></div>
+          <div v-for="(entry, i) in overviewEntries(current.items[0])" :key="i"><span>{{ entry.label }}</span><strong>{{ formatOverviewValue(entry.key, entry.value) }}</strong></div>
         </div>
         <div v-else class="table-wrap">
           <table>
