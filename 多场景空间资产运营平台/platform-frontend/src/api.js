@@ -230,5 +230,7 @@ export const api = {
   roleScope: (roleId) => request(`/roles/${roleId}/scope`),
   roleActions: (roleId) => request(`/roles/${roleId}/actions`),
   saveRoleActions: (roleId, actions) => request(`/roles/${roleId}/actions`, { method: 'POST', body: JSON.stringify({ actions }) }),
-  saveRoleScope: (roleId, body) => request(`/roles/${roleId}/scope`, { method: 'POST', body: JSON.stringify(body) })
+  saveRoleScope: (roleId, body) => request(`/roles/${roleId}/scope`, { method: 'POST', body: JSON.stringify(body) }),
+  reportCompare: () => request('/reports/projects/compare'),
+  reportCockpit: (id) => request(`/reports/projects/${id}/cockpit`),
 }

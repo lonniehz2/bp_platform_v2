@@ -22,6 +22,7 @@ const periodMode = ref('month')
 const customStart = ref('')
 const customEnd = ref('')
 const summary = ref(null)
+const compare = ref([])
 const houseChart = ref(null)
 const trendChart = ref(null)
 const statusChart = ref(null)
@@ -31,11 +32,22 @@ let charts = []
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 const count = (list, status, field) => list.filter(x => x[field] === status).length
 const rate = (a, b) => b ? Math.round(a / b * 1000) / 10 : 0
+const orgSummary = computed(() => {
+  const rows = compare.value || []
+  const houses = rows.reduce((n, p) => n + Number(p.houses || 0), 0)
+  const rented = rows.reduce((n, p) => n + Number(p.rentedHouses || 0), 0)
+  const receivable = rows.reduce((n, p) => n + Number(p.receivable || 0), 0)
+  const received = rows.reduce((n, p) => n + Number(p.received || 0), 0)
+  return { projects: rows.length, houses, rented, occupancy: rate(rented, houses), receivable, received, collection: rate(received, receivable), outstanding: rows.reduce((n, p) => n + Number(p.outstanding || 0), 0) }
+})
+const rankedCompare = computed(() => (compare.value || []).slice().sort((a, b) => Number(b.occupancyRate || 0) - Number(a.occupancyRate || 0)))
+function focusProject(id) { localStorage.setItem('platformProjectId', String(id)); load() }
 
 async function load() {
   loading.value = true; error.value = ''
   try {
     projects.value = await api.projects()
+    compare.value = await api.reportCompare()
     const saved = String(localStorage.getItem('platformProjectId') || '')
     project.value = projects.value.find(p => String(p.id) === saved)
       || projects.value.slice().sort((a, b) => ((b.contractCount || 0) + (b.applicationCount || 0) + (b.deviceCount || 0)) - ((a.contractCount || 0) + (a.applicationCount || 0) + (a.deviceCount || 0)))[0]
@@ -234,6 +246,22 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
 <template>
   <div>
     <div v-if="error" class="error">{{ error }}</div>
+    <div class="panel">
+      <div class="panel-head"><div><h2>组织经营总览</h2><p>{{ orgSummary.projects }} 个项目 · 数据范围由当前角色决定</p></div><RouterLink to="/guarantee/reports">进入报表中心</RouterLink></div>
+      <div class="grid cards" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+        <div class="card"><div class="label">项目数</div><div class="value">{{ orgSummary.projects }}</div><div class="hint">当前数据范围</div></div>
+        <div class="card"><div class="label">房源总数</div><div class="value">{{ orgSummary.houses }}</div><div class="hint">已出租 {{ orgSummary.rented }}</div></div>
+        <div class="card"><div class="label">整体出租率</div><div class="value">{{ orgSummary.occupancy }}%</div><div class="hint">按项目汇总</div></div>
+        <div class="card"><div class="label">应收</div><div class="value">¥{{ money(orgSummary.receivable) }}</div><div class="hint">全部项目</div></div>
+        <div class="card"><div class="label">实收</div><div class="value">¥{{ money(orgSummary.received) }}</div><div class="hint">收缴率 {{ orgSummary.collection }}%</div></div>
+        <div class="card"><div class="label">欠费</div><div class="value">¥{{ money(orgSummary.outstanding) }}</div><div class="hint">全部项目</div></div>
+      </div>
+      <div v-if="!rankedCompare.length" class="empty">暂无项目经营数据</div>
+      <div v-else class="table-wrap" style="margin-top:12px"><table><thead><tr><th>项目</th><th>房源</th><th>出租率</th><th>应收</th><th>实收</th><th>收缴率</th><th>欠费</th><th>工单</th><th>操作</th></tr></thead><tbody>
+        <tr v-for="p in rankedCompare" :key="p.projectId"><td><strong>{{ p.orgName }}</strong><div class="small muted">{{ p.orgCode }}</div></td><td>{{ p.houses }}</td><td>{{ p.occupancyRate }}%</td><td>¥{{ money(p.receivable) }}</td><td>¥{{ money(p.received) }}</td><td>{{ p.collectionRate }}%</td><td>¥{{ money(p.outstanding) }}</td><td>{{ p.workOrders }}</td><td><button class="sm" @click="focusProject(p.projectId)">查看</button></td></tr>
+      </tbody></table></div>
+    </div>
+
     <div class="panel">
       <div class="panel-head">
         <div><h2>运营驾驶舱</h2><p>{{ project?.orgName || '未选择项目' }} · 房源、合同、收费、设备概览</p></div>
