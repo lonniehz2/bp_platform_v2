@@ -178,9 +178,9 @@ function renderCharts() {
         type: 'pie', radius: ['45%', '68%'], center: ['50%', '44%'],
         label: { color: c.text, formatter: '{b}\n{c}' },
         data: [
-          { name: '空置', value: s.vacant },
-          { name: '已配租', value: s.occupied },
-          { name: '其他', value: Math.max(0, s.total - s.vacant - s.occupied) }
+          { name: t('ops.vacant'), value: s.vacant },
+          { name: t('ops.allocated'), value: s.occupied },
+          { name: t('ops.other'), value: Math.max(0, s.total - s.vacant - s.occupied) }
         ]
       }]
     })
@@ -196,15 +196,15 @@ function renderCharts() {
       xAxis: { type: 'category', data: rows.map(r => r.key.slice(5)), axisLabel: { color: c.text }, axisLine: { lineStyle: { color: c.line } } },
       yAxis: { type: 'value', axisLabel: { color: c.text, formatter: v => Math.abs(v) >= 10000 ? (v / 10000).toFixed(1) + '万' : v }, splitLine: { lineStyle: { color: c.line } } },
       series: [
-        { name: '应收', type: 'bar', barMaxWidth: 18, itemStyle: { color: c.blue }, data: rows.map(r => Number(r.amount.toFixed(2))) },
-        { name: '已收', type: 'line', smooth: true, itemStyle: { color: c.green }, data: rows.map(r => Number(r.paid.toFixed(2))) }
+        { name: t('ops.receivable'), type: 'bar', barMaxWidth: 18, itemStyle: { color: c.blue }, data: rows.map(r => Number(r.amount.toFixed(2))) },
+        { name: t('ops.received'), type: 'line', smooth: true, itemStyle: { color: c.green }, data: rows.map(r => Number(r.paid.toFixed(2))) }
       ]
     })
     charts.push(chart)
   }
   if (statusChart.value) {
     const statuses = ['UNPAID', 'PARTIAL', 'PAID', 'OVERDUE', 'WAIVED']
-    const statusLabels = { UNPAID: '未缴', PARTIAL: '部分缴', PAID: '已付', OVERDUE: '逾期', WAIVED: '已减免' }
+    const statusLabels = { UNPAID: t('status.UNPAID'), PARTIAL: t('status.PARTIAL'), PAID: t('status.PAID'), OVERDUE: t('status.EXPIRED'), WAIVED: t('status.WAIVED') }
     const chart = echarts.init(statusChart.value)
     chart.setOption({
       tooltip: { trigger: 'item' },
@@ -262,8 +262,8 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
         <div class="card"><div class="label">{{ t('cockpit.received') }}</div><div class="value">¥{{ money(orgSummary.received) }}</div><div class="hint">{{ t('cockpit.collection') }} {{ orgSummary.collection }}%</div></div>
         <div class="card"><div class="label">{{ t('cockpit.outstanding') }}</div><div class="value">¥{{ money(orgSummary.outstanding) }}</div><div class="hint">{{ t('cockpit.allProjects') }}</div></div>
       </div>
-      <div v-if="!rankedCompare.length" class="empty">暂无项目经营数据</div>
-      <div v-else class="table-wrap" style="margin-top:12px"><table><thead><tr><th>项目</th><th>房源</th><th>出租率</th><th>{{ t('cockpit.receivable') }}</th><th>{{ t('cockpit.received') }}</th><th>{{ t('cockpit.collection') }}</th><th>{{ t('cockpit.outstanding') }}</th><th>工单</th><th>操作</th></tr></thead><tbody>
+      <div v-if="!rankedCompare.length" class="empty">{{ t('ops.emptyProjects') }}</div>
+      <div v-else class="table-wrap" style="margin-top:12px"><table><thead><tr><th>{{ t('ops.project') }}</th><th>{{ t('ops.house') }}</th><th>{{ t('ops.occupancy') }}</th><th>{{ t('cockpit.receivable') }}</th><th>{{ t('cockpit.received') }}</th><th>{{ t('cockpit.collection') }}</th><th>{{ t('cockpit.outstanding') }}</th><th>{{ t('ops.workOrders') }}</th><th>{{ t('common.action') }}</th></tr></thead><tbody>
         <tr v-for="p in rankedCompare" :key="p.projectId"><td><strong>{{ p.orgName }}</strong><div class="small muted">{{ p.orgCode }}</div></td><td>{{ p.houses }}</td><td>{{ p.occupancyRate }}%</td><td>¥{{ money(p.receivable) }}</td><td>¥{{ money(p.received) }}</td><td>{{ p.collectionRate }}%</td><td>¥{{ money(p.outstanding) }}</td><td>{{ p.workOrders }}</td><td><button class="sm" @click="focusProject(p.projectId)">{{ t('cockpit.view') }}</button></td></tr>
       </tbody></table></div>
       </template>
@@ -288,44 +288,44 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
       </div>
       <div class="grid cards" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
         <div class="card"><div class="label">{{ t('cockpit.projects') }}</div><div class="value">{{ projects.length }}</div><div class="hint">当前租户</div></div>
-        <div class="card"><div class="label">保障房申请</div><div class="value">{{ applications.length }}</div><div class="hint">待审 {{ count(applications, 'SUBMITTED', 'applicationStatus') }}</div></div>
-        <div class="card"><div class="label">生效合同</div><div class="value">{{ contracts.filter(c => c.contractStatus === 'ACTIVE').length }}</div><div class="hint">合同总数 {{ contracts.length }}</div></div>
-        <div class="card clickable" @click="drillBilling"><div class="label">本期应收</div><div class="value">¥{{ money(billStats().total) }}</div><div class="hint">账期 {{ currentBills.length }} 笔</div></div>
-        <div class="card clickable" @click="drillBilling"><div class="label">本期实收</div><div class="value">¥{{ money(billStats().paid) }}</div><div class="hint">按账单归属期</div></div>
-        <div class="card clickable" @click="drillBilling"><div class="label">本期收缴率</div><div class="value">{{ billStats().rate }}%</div><div class="hint">当期欠费 ¥{{ money(billStats().outstanding) }}</div></div>
-        <div class="card"><div class="label">期初欠费</div><div class="value">¥{{ money(billStats().opening) }}</div><div class="hint">期初回款 ¥{{ money(billStats().openingRecovery) }}</div></div>
-        <div class="card clickable" @click="drillBilling"><div class="label">总欠费</div><div class="value">¥{{ money(billStats().totalOutstanding) }}</div><div class="hint">期初 + 当期</div></div>
-        <div class="card"><div class="label">设备资产</div><div class="value">{{ devices.length }}</div><div class="hint">待处理告警 {{ alerts.filter(a => a.alertStatus === 'PENDING').length }} · 工单 {{ workOrders.filter(w => w.orderStatus === 'PENDING').length }}</div></div>
+        <div class="card"><div class="label">{{ t('ops.applications') }}</div><div class="value">{{ applications.length }}</div><div class="hint">{{ t('ops.pendingReview') }} {{ count(applications, 'SUBMITTED', 'applicationStatus') }}</div></div>
+        <div class="card"><div class="label">{{ t('ops.activeContracts') }}</div><div class="value">{{ contracts.filter(c => c.contractStatus === 'ACTIVE').length }}</div><div class="hint">{{ t('ops.totalContracts') }} {{ contracts.length }}</div></div>
+        <div class="card clickable" @click="drillBilling"><div class="label">{{ t('ops.currentReceivable') }}</div><div class="value">¥{{ money(billStats().total) }}</div><div class="hint">{{ t('ops.periodBills') }} {{ currentBills.length }} 笔</div></div>
+        <div class="card clickable" @click="drillBilling"><div class="label">{{ t('ops.currentReceived') }}</div><div class="value">¥{{ money(billStats().paid) }}</div><div class="hint">{{ t('ops.byPeriod') }}</div></div>
+        <div class="card clickable" @click="drillBilling"><div class="label">{{ t('ops.currentCollection') }}</div><div class="value">{{ billStats().rate }}%</div><div class="hint">{{ t('ops.currentArrears') }} ¥{{ money(billStats().outstanding) }}</div></div>
+        <div class="card"><div class="label">{{ t('ops.openingArrears') }}</div><div class="value">¥{{ money(billStats().opening) }}</div><div class="hint">{{ t('ops.openingRecovery') }} ¥{{ money(billStats().openingRecovery) }}</div></div>
+        <div class="card clickable" @click="drillBilling"><div class="label">{{ t('ops.totalArrears') }}</div><div class="value">¥{{ money(billStats().totalOutstanding) }}</div><div class="hint">{{ t('ops.openingPlusCurrent') }}</div></div>
+        <div class="card"><div class="label">{{ t('ops.devices') }}</div><div class="value">{{ devices.length }}</div><div class="hint">{{ t('ops.pendingAlerts') }} {{ alerts.filter(a => a.alertStatus === 'PENDING').length }} · {{ t('ops.workOrders') }} {{ workOrders.filter(w => w.orderStatus === 'PENDING').length }}</div></div>
       </div>
     </div>
 
     <div class="alert" style="margin-top:10px">口径：本期应收/实收/收缴率按账期只算当期账单；期初欠费单独展示；总欠费 = 期初 + 当期。</div>
     <div class="grid" style="grid-template-columns:1.1fr 1.4fr">
       <div class="panel">
-        <div class="panel-head"><h2>房源结构</h2><span class="small muted">共 {{ houses.length }} 套</span></div>
+        <div class="panel-head"><h2>{{ t('ops.houseStructure') }}</h2><span class="small muted">{{ t('ops.totalHouses') }} {{ houses.length }} 套</span></div>
         <div ref="houseChart" class="chart" />
       </div>
       <div class="panel">
-        <div class="panel-head"><h2>账单趋势</h2><span class="small muted">按账期月份</span></div>
+        <div class="panel-head"><h2>{{ t('ops.billTrend') }}</h2><span class="small muted">{{ t('ops.byMonth') }}</span></div>
         <div ref="trendChart" class="chart" />
       </div>
     </div>
 
     <div class="grid" style="grid-template-columns:1fr 1fr">
       <div class="panel">
-        <div class="panel-head"><h2>账单状态</h2><span class="small muted">{{ bills.length }} 笔</span></div>
+        <div class="panel-head"><h2>{{ t('ops.billStatus') }}</h2><span class="small muted">{{ bills.length }} 笔</span></div>
         <div ref="statusChart" class="chart" />
       </div>
       <div class="panel">
-        <div class="panel-head"><h2>设备类型</h2><span class="small muted">{{ devices.length }} 台</span></div>
+        <div class="panel-head"><h2>{{ t('ops.deviceTypes') }}</h2><span class="small muted">{{ devices.length }} 台</span></div>
         <div ref="deviceChart" class="chart" />
       </div>
     </div>
 
     <div class="grid" style="grid-template-columns:1.2fr .8fr">
       <div class="panel">
-        <div class="panel-head"><h2>最近合同</h2><RouterLink to="/contracts">查看全部</RouterLink></div>
-        <div v-if="!contracts.length" class="empty">暂无合同</div>
+        <div class="panel-head"><h2>{{ t('ops.recentContracts') }}</h2><RouterLink to="/contracts">{{ t('ops.viewAll') }}</RouterLink></div>
+        <div v-if="!contracts.length" class="empty">{{ t('ops.noContracts') }}</div>
         <div v-for="c in contracts.slice(0, 5)" :key="c.id" class="row" style="border-bottom:1px solid var(--line);padding:9px 0">
           <div style="flex:1"><div>{{ c.contractNo }}</div><div class="small muted">{{ c.personName }} · {{ c.houseName }}</div></div>
           <span class="badge" :class="c.contractStatus === 'ACTIVE' ? 'green' : 'orange'">{{ c.contractStatus }}</span>
@@ -333,8 +333,8 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
         </div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h2>待处理账单</h2><RouterLink to="/billing">去收款</RouterLink></div>
-        <div v-if="!bills.length" class="empty">暂无账单</div>
+        <div class="panel-head"><h2>{{ t('ops.pendingBills') }}</h2><RouterLink to="/billing">{{ t('ops.collect') }}</RouterLink></div>
+        <div v-if="!bills.length" class="empty">{{ t('ops.noBills') }}</div>
         <div v-for="b in bills.filter(x => x.billStatus !== 'PAID').slice(0, 5)" :key="b.id" class="row" style="border-bottom:1px solid var(--line);padding:9px 0">
           <div style="flex:1"><div>{{ b.billNo }}</div><div class="small muted">{{ b.periodStart }} ~ {{ b.periodEnd }}</div></div>
           <span class="badge orange">{{ b.billStatus }}</span>

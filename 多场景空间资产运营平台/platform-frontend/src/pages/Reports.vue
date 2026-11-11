@@ -110,6 +110,7 @@ async function load() {
 function display(row, key) {
   const v = row[key]
   if (v === null || v === undefined || v === '') return '-'
+  if (key.toLowerCase().includes('status')) { const code = String(v).toUpperCase(); return te(`status.${code}`) ? t(`status.${code}`) : v }
   if (['receivable','received','outstanding','amount','payableAmount','paidAmount','rentAmount'].includes(key)) return '¥' + money(v)
   if (['occupancyRate','collectionRate'].includes(key)) return v + '%'
   return v
@@ -151,7 +152,7 @@ onMounted(() => { try { savedViews.value = JSON.parse(localStorage.getItem('plat
       <div class="row" style="justify-content:space-between;align-items:center;margin:8px 0">
         <strong>{{ te(`report.${active}`) ? t(`report.${active}`) : title }}</strong><span class="small muted">{{ filteredRows.length }} {{ t('reports.records') }}</span>
       </div>
-      <div v-if="active === 'regulatory'" class="alert">监管口径：房源总数、已出租、空置、出租率、在租合同、应收、实收、欠费；按项目汇总。</div>
+      <div v-if="active === 'regulatory'" class="alert">{{ t('reports.regulatoryNote') }}</div>
       <div class="row" style="margin-bottom:8px">
         <input v-model="search" :placeholder="t('reports.search')" style="max-width:260px" />
         <select v-if="statusOptions.length" v-model="statusFilter" style="max-width:160px"><option value="">{{ t('reports.allStatus') }}</option><option v-for="s in statusOptions" :key="s" :value="s">{{ s }}</option></select>

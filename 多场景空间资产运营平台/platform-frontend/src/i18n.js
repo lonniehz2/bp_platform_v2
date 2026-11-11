@@ -39,8 +39,18 @@ const messages = {
       houses: '房源台账', workOrders: '工单统计', devices: '设备台账', payments: '资金流水', regulatory: '监管报送'
     },
     workbench: { title: '我的工作台', subtitle: '今日待办和个人经营提醒', cockpit: '进入运营驾驶舱', pendingWork: '待处理工单', unpaid: '未结清账单', pendingApps: '待审申请', alerts: '风险提醒', activeContracts: '在租合同', handle: '去处理', viewAlerts: '查看预警', contracts: '合同台账', recentContracts: '最近合同', all: '全部', noContracts: '暂无合同', pendingOrders: '待处理工单', noOrders: '暂无工单', collection: '待收款提醒', goCollect: '去收款', noUnpaid: '暂无未结账单' },
-    reports: { title: '报表中心', subtitle: '经营明细与监管数据', export: '导出当前报表', search: '搜索当前报表', save: '保存筛选', reset: '重置', allStatus: '全部状态', records: '条', noData: '暂无数据', drill: '下钻', subscription: '报表订阅', subscriptionHint: '本地保存订阅配置，后续接入定时发送', frequency: '频率', daily: '每日', weekly: '每周', monthly: '每月', recipients: '接收人', enabled: '启用', saveSubscription: '保存订阅', report: '报表', status: '状态' },
+    reports: { title: '报表中心', subtitle: '经营明细与监管数据', export: '导出当前报表', search: '搜索当前报表', save: '保存筛选', reset: '重置', allStatus: '全部状态', records: '条', noData: '暂无数据', drill: '下钻', subscription: '报表订阅', subscriptionHint: '本地保存订阅配置，后续接入定时发送', frequency: '频率', daily: '每日', weekly: '每周', monthly: '每月', recipients: '接收人', enabled: '启用', saveSubscription: '保存订阅', report: '报表', status: '状态', regulatoryNote: '监管口径：房源总数、已出租、空置、出租率、在租合同、应收、实收、欠费；按项目汇总。' },
     cockpit: { org: '组织经营总览', orgHint: '个项目 · 数据范围由当前角色决定', orgView: '组织视角', projectView: '项目视角', reports: '报表中心', projects: '项目数', houses: '房源总数', rented: '已出租房源', occupancy: '整体出租率', receivable: '应收', received: '实收', collection: '收缴率', outstanding: '欠费', currentScope: '当前数据范围', allProjects: '全部项目', byProject: '按项目汇总', view: '查看', projectCockpit: '运营驾驶舱', projectHint: '房源、合同、收费、设备概览' },
+    ops: {
+      tenant: '当前租户', applications: '保障房申请', pendingReview: '待审', activeContracts: '生效合同', totalContracts: '合同总数',
+      currentReceivable: '本期应收', currentReceived: '本期实收', currentCollection: '本期收缴率', periodBills: '账期', bills: '笔',
+      byPeriod: '按账单归属期', currentArrears: '当期欠费', openingArrears: '期初欠费', openingRecovery: '期初回款',
+      totalArrears: '总欠费', openingPlusCurrent: '期初 + 当期', devices: '设备资产', pendingAlerts: '待处理告警', workOrders: '工单',
+      houseStructure: '房源结构', totalHouses: '共', units: '套', billTrend: '账单趋势', byMonth: '按账期月份',
+      billStatus: '账单状态', deviceTypes: '设备类型', recentContracts: '最近合同', viewAll: '查看全部', noContracts: '暂无合同',
+      pendingBills: '待处理账单', collect: '去收款', noBills: '暂无账单', emptyProjects: '暂无项目经营数据',
+      vacant: '空置', allocated: '已配租', other: '其他', receivable: '应收', received: '已收', project: '项目', house: '房源', occupancy: '出租率', workOrders: '工单'
+    },
     nav: {
       dashboard: '工作台',
       workbench: '我的工作台',
@@ -185,8 +195,18 @@ const messages = {
       regulatory: 'Regulatory Report'
     },
     workbench: { title: 'My Workspace', subtitle: 'Today\'s tasks and operational reminders', cockpit: 'Open Operations Cockpit', pendingWork: 'Pending Work Orders', unpaid: 'Unpaid Bills', pendingApps: 'Pending Applications', alerts: 'Risk Alerts', activeContracts: 'Active Contracts', handle: 'Handle', viewAlerts: 'View Alerts', contracts: 'Contracts', recentContracts: 'Recent Contracts', all: 'All', noContracts: 'No contracts', pendingOrders: 'Pending Work Orders', noOrders: 'No work orders', collection: 'Collection Reminders', goCollect: 'Collect', noUnpaid: 'No unpaid bills' },
-    reports: { title: 'Report Center', subtitle: 'Operational details and regulatory data', export: 'Export Current Report', search: 'Search current report', save: 'Save Filter', reset: 'Reset', allStatus: 'All Statuses', records: 'records', noData: 'No data', drill: 'Drill Down', subscription: 'Report Subscription', subscriptionHint: 'Saved locally; scheduled delivery is not connected yet', frequency: 'Frequency', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', recipients: 'Recipients', enabled: 'Enabled', saveSubscription: 'Save Subscription', report: 'Report', status: 'Status' },
+    reports: { title: 'Report Center', subtitle: 'Operational details and regulatory data', export: 'Export Current Report', search: 'Search current report', save: 'Save Filter', reset: 'Reset', allStatus: 'All Statuses', records: 'records', noData: 'No data', drill: 'Drill Down', subscription: 'Report Subscription', subscriptionHint: 'Saved locally; scheduled delivery is not connected yet', frequency: 'Frequency', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', recipients: 'Recipients', enabled: 'Enabled', saveSubscription: 'Save Subscription', report: 'Report', status: 'Status', regulatoryNote: 'Regulatory scope: houses, rented, vacant, occupancy, active contracts, receivable, collected and outstanding, by project.' },
     cockpit: { org: 'Organization Overview', orgHint: 'projects · scoped by current role', orgView: 'Organization', projectView: 'Project', reports: 'Report Center', projects: 'Projects', houses: 'Houses', rented: 'Rented', occupancy: 'Occupancy', receivable: 'Receivable', received: 'Collected', collection: 'Collection Rate', outstanding: 'Outstanding', currentScope: 'Current scope', allProjects: 'All projects', byProject: 'By project', view: 'View', projectCockpit: 'Operations Cockpit', projectHint: 'Houses, contracts, billing and devices' },
+    ops: {
+      tenant: 'Current tenant', applications: 'Guarantee Applications', pendingReview: 'Pending', activeContracts: 'Active Contracts', totalContracts: 'Total Contracts',
+      currentReceivable: 'Current Receivable', currentReceived: 'Current Collected', currentCollection: 'Current Collection Rate', periodBills: 'Period Bills', bills: 'bills',
+      byPeriod: 'By billing period', currentArrears: 'Current Arrears', openingArrears: 'Opening Arrears', openingRecovery: 'Opening Recovery',
+      totalArrears: 'Total Arrears', openingPlusCurrent: 'Opening + Current', devices: 'Device Assets', pendingAlerts: 'Pending Alerts', workOrders: 'Work Orders',
+      houseStructure: 'House Structure', totalHouses: 'Total', units: 'units', billTrend: 'Billing Trend', byMonth: 'By billing month',
+      billStatus: 'Bill Status', deviceTypes: 'Device Types', recentContracts: 'Recent Contracts', viewAll: 'View All', noContracts: 'No contracts',
+      pendingBills: 'Pending Bills', collect: 'Collect', noBills: 'No bills', emptyProjects: 'No project data',
+      vacant: 'Vacant', allocated: 'Allocated', other: 'Other', receivable: 'Receivable', received: 'Collected', project: 'Project', house: 'House', occupancy: 'Occupancy', workOrders: 'Work Orders'
+    },
     nav: {
       dashboard: 'Workspace',
       workbench: 'My Workspace',
