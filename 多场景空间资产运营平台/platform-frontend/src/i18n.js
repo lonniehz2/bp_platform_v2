@@ -218,7 +218,7 @@ area: '建筑面积', innerArea: '套内面积', layoutType: '户型', orientati
       password: '密码',
       submit: '登录',
       demo: '演示账号',
-      demoAccount: 'demo_manager / admin123',
+      demoAccount: 'admin / admin123',
       platform: '运营平台'
     },
     common: {
@@ -449,7 +449,7 @@ area: 'Floor Area', innerArea: 'Inner Area', layoutType: 'Layout', orientation: 
       password: 'Password',
       submit: 'Sign in',
       demo: 'Demo account',
-      demoAccount: 'demo_manager / admin123',
+      demoAccount: 'admin / admin123',
       platform: 'Platform'
     },
     common: {
