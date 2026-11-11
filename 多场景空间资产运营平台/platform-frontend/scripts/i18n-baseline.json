@@ -31,7 +31,6 @@
   "src/pages/Keyring.vue",
   "src/pages/Menus.vue",
   "src/pages/MeterReadings.vue",
-  "src/pages/MigrationExceptions.vue",
   "src/pages/OpenApps.vue",
   "src/pages/Orgs.vue",
   "src/pages/Patrol.vue",
