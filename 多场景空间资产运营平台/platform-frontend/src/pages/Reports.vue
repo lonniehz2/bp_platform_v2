@@ -33,7 +33,7 @@ const reports = [
   { key: 'workOrders', label: '工单统计' },
   { key: 'devices', label: '设备台账' },
   { key: 'payments', label: '资金流水' },
-  { key: 'regulatory', label: '监管报送' }
+  { key: 'regulatory', label: '监管报送（项目口径）' }
 ]
 
 const columns = {
@@ -45,7 +45,7 @@ const columns = {
   workOrders: [['orderNo','工单号'],['title','标题'],['orderType','类型'],['assigneeName','处理人'],['orderStatus','状态']],
   devices: [['deviceCode','设备编码'],['deviceName','名称'],['deviceType','类型'],['businessStatus','业务状态']],
   payments: [['paymentNo','收款单号'],['paymentMethod','方式'],['amount','金额'],['paidTime','时间'],['paymentStatus','状态']],
-  regulatory: [['orgName','项目'],['houses','房源'],['occupancyRate','出租率'],['receivable','应收'],['received','实收'],['outstanding','欠费']]
+  regulatory: [['orgName','项目'],['houses','房源总数'],['rentedHouses','已出租'],['vacantHouses','空置'],['occupancyRate','出租率'],['activeContracts','在租合同'],['receivable','应收'],['received','实收'],['outstanding','欠费']]
 }
 const rows = computed(() => ({
   projects: compare.value,
@@ -149,6 +149,7 @@ onMounted(() => { try { savedViews.value = JSON.parse(localStorage.getItem('plat
       <div class="row" style="justify-content:space-between;align-items:center;margin:8px 0">
         <strong>{{ title }}</strong><span class="small muted">共 {{ filteredRows.length }} 条</span>
       </div>
+      <div v-if="active === 'regulatory'" class="alert">监管口径：房源总数、已出租、空置、出租率、在租合同、应收、实收、欠费；按项目汇总。</div>
       <div class="row" style="margin-bottom:8px">
         <input v-model="search" placeholder="搜索当前报表" style="max-width:260px" />
         <select v-if="statusOptions.length" v-model="statusFilter" style="max-width:160px"><option value="">全部状态</option><option v-for="s in statusOptions" :key="s" :value="s">{{ s }}</option></select>
