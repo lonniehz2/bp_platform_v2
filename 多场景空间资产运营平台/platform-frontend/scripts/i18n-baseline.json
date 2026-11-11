@@ -40,7 +40,6 @@
   "src/pages/Menus.vue",
   "src/pages/Messages.vue",
   "src/pages/MeterReadings.vue",
-  "src/pages/Meters.vue",
   "src/pages/MigrationExceptions.vue",
   "src/pages/OpenApps.vue",
   "src/pages/Orgs.vue",
