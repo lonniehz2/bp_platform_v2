@@ -1,10 +1,12 @@
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
-const pageTitle = route.path === '/annual-reviews' ? '年审复核' : '资格复核'
+const { t } = useI18n()
+const pageTitle = computed(() => route.path === '/annual-reviews' ? t('qualification.annual') : t('qualification.title'))
 const project = ref(null)
 const contracts = ref([])
 const selectedContractId = ref('')
@@ -12,7 +14,7 @@ const reviews = ref([])
 const error = ref('')
 const busy = ref(false)
 const form = reactive({ reviewYear: new Date().getFullYear(), reviewType: 'ANNUAL' })
-const completeForm = reactive({ reviewId: '', result: 'PASSED', reviewerName: '复核员A', comment: '资格仍符合', nextReviewDate: '' })
+const completeForm = reactive({ reviewId: '', result: 'PASSED', reviewerName: t('qualification.reviewerName'), comment: t('qualification.commentText'), nextReviewDate: '' })
 
 async function currentProject() {
   const all = await api.projects()
@@ -68,34 +70,34 @@ onMounted(load)
 <template>
   <div>
     <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="!project" class="empty">请先创建项目</div>
+    <div v-if="!project" class="empty">{{ t('qualification.createProject') }}</div>
     <template v-else>
       <div class="panel">
-        <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project.orgName }} · 合同年度资格复核</p></div>
+        <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project.orgName }} · {{ t('qualification.subtitle') }}</p></div>
           <select v-model="selectedContractId" style="max-width:340px">
-            <option value="">选择合同</option>
+            <option value="">{{ t('qualification.selectContract') }}</option>
             <option v-for="c in contracts" :key="c.id" :value="c.id">{{ c.contractNo }} · {{ c.personName }}</option>
           </select>
         </div>
         <div class="row">
-          <div class="field"><label>复核年度</label><input v-model.number="form.reviewYear" type="number" /></div>
-          <div class="field"><label>类型</label><select v-model="form.reviewType"><option value="ANNUAL">年度复核</option><option value="CHANGE">变更复核</option></select></div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="create">创建复核</button></div>
+          <div class="field"><label>{{ t('qualification.year') }}</label><input v-model.number="form.reviewYear" type="number" /></div>
+          <div class="field"><label>{{ t('qualification.type') }}</label><select v-model="form.reviewType"><option value="ANNUAL">{{ t('qualification.annualType') }}</option><option value="CHANGE">{{ t('qualification.changeType') }}</option></select></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="create">{{ t('qualification.create') }}</button></div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>复核记录</h2><span class="small muted">{{ reviews.length }} 条</span></div>
-        <div v-if="!reviews.length" class="empty">暂无复核记录</div>
+        <div class="panel-head"><h2>{{ t('qualification.records') }}</h2><span class="small muted">{{ reviews.length }} {{ t('qualification.count') }}</span></div>
+        <div v-if="!reviews.length" class="empty">{{ t('qualification.empty') }}</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>年度</th><th>类型</th><th>状态</th><th>复核人</th><th>意见</th><th>复核日期</th><th>操作</th></tr></thead>
+            <thead><tr><th>{{ t('qualification.yearCol') }}</th><th>{{ t('qualification.type') }}</th><th>{{ t('qualification.status') }}</th><th>{{ t('qualification.reviewer') }}</th><th>{{ t('qualification.comment') }}</th><th>{{ t('qualification.date') }}</th><th>{{ t('qualification.action') }}</th></tr></thead>
             <tbody>
               <tr v-for="r in reviews" :key="r.id">
                 <td>{{ r.reviewYear }}</td><td>{{ r.reviewType }}</td>
                 <td><span class="badge" :class="r.reviewStatus === 'PASSED' ? 'green' : r.reviewStatus === 'FAILED' ? 'red' : 'orange'">{{ r.reviewStatus }}</span></td>
                 <td>{{ r.reviewerName || '-' }}</td><td>{{ r.reviewComment || '-' }}</td><td>{{ r.reviewDate || '-' }}</td>
-                <td><button class="sm" v-if="r.reviewStatus === 'PENDING'" :disabled="busy" @click="complete(r)">通过复核</button></td>
+                <td><button class="sm" v-if="r.reviewStatus === 'PENDING'" :disabled="busy" @click="complete(r)">{{ t('qualification.approve') }}</button></td>
               </tr>
             </tbody>
           </table>
