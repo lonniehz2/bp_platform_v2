@@ -13,7 +13,6 @@
   "src/pages/AccessRecords.vue",
   "src/pages/Allocations.vue",
   "src/pages/Applications.vue",
-  "src/pages/Arrears.vue",
   "src/pages/Audit.vue",
   "src/pages/Billing.vue",
   "src/pages/Complaints.vue",

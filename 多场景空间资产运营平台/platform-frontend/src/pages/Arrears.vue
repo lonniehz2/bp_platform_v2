@@ -2,7 +2,9 @@
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
 import Pager from '../components/Pager.vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const bills = ref([])
 const page = ref(1)
@@ -35,17 +37,17 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="grid cards">
-      <div class="card"><div class="label">未结清账单</div><div class="value">{{ unpaid.length }}</div><div class="hint">共 {{ bills.length }} 笔</div></div>
-      <div class="card"><div class="label">欠费金额</div><div class="value">¥{{ money(totalOutstanding) }}</div><div class="hint">按应付减已收</div></div>
-      <div class="card"><div class="label">逾期账单</div><div class="value">{{ unpaid.filter(b => b.billStatus === 'OVERDUE').length }}</div><div class="hint">状态 OVERDUE</div></div>
+      <div class="card"><div class="label">{{ t('arrears.unpaid') }}</div><div class="value">{{ unpaid.length }}</div><div class="hint">{{ t('arrears.totalBills') }} {{ bills.length }} {{ t('arrears.billsUnit') }}</div></div>
+      <div class="card"><div class="label">{{ t('arrears.amount') }}</div><div class="value">¥{{ money(totalOutstanding) }}</div><div class="hint">{{ t('arrears.byPayable') }}</div></div>
+      <div class="card"><div class="label">{{ t('arrears.overdue') }}</div><div class="value">{{ unpaid.filter(b => b.billStatus === 'OVERDUE').length }}</div><div class="hint">{{ t('arrears.statusOverdue') }}</div></div>
     </div>
 
     <div class="panel" style="margin-top:16px">
-      <div class="panel-head"><div><h2>欠费清单</h2><p>{{ project?.orgName || '未选择项目' }} · 未结清账单</p></div><RouterLink to="/billing">去收款</RouterLink></div>
-      <div v-if="!unpaid.length" class="empty">暂无欠费</div>
+      <div class="panel-head"><div><h2>{{ t('arrears.title') }}</h2><p>{{ project?.orgName || t('arrears.noProject') }} · {{ t('arrears.subtitle') }}</p></div><RouterLink to="/billing">{{ t('arrears.collect') }}</RouterLink></div>
+      <div v-if="!unpaid.length" class="empty">{{ t('arrears.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>账单号</th><th>承租人</th><th>周期</th><th>应付</th><th>已收</th><th>欠费</th><th>状态</th></tr></thead>
+          <thead><tr><th>{{ t('arrears.billNo') }}</th><th>{{ t('arrears.tenant') }}</th><th>{{ t('arrears.period') }}</th><th>{{ t('arrears.payable') }}</th><th>{{ t('arrears.paid') }}</th><th>{{ t('arrears.arrears') }}</th><th>{{ t('arrears.status') }}</th></tr></thead>
           <tbody>
             <tr v-for="b in paged" :key="b.id">
               <td class="mono">{{ b.billNo }}</td><td>{{ b.personName || '-' }}</td>
