@@ -26,6 +26,12 @@ for (const dir of ['src/pages', 'src/components']) {
       if (/enumLabel|statusLabel|Label\(|typeName|cycleName|===|\?|t\(/.test(expr)) continue
       fail(`${file} 直接输出枚举字段：{{ ${expr} }}，请使用 enumLabel`)
     }
+    for (const m of text.matchAll(/:(?:placeholder|title|aria-label|label|alt)="([^"]+)"/g)) {
+      const expr = m[1]
+      if (!suffix.test(expr)) continue
+      if (/enumLabel|statusLabel|Label\(|typeName|cycleName|===|\?|t\(/.test(expr)) continue
+      fail(`${file} 属性直接输出枚举字段：${expr}，请使用 enumLabel`)
+    }
   }
 }
 

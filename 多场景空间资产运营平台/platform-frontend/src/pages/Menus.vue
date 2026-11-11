@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
-import { currentScene } from '../scene'
+import { currentScene, scenePath } from '../scene'
 
 const { t } = useI18n()
 const props = defineProps({ embedded: Boolean })
@@ -86,7 +86,7 @@ onMounted(load)
         <div class="panel-head"><h2>{{ t('menus.permissions') }}</h2><span class="small muted">{{ flatMenus.length }} {{ t('menus.menuCount') }}</span></div>
         <div v-if="!menus.length" class="empty">{{ t('menus.emptyMenus') }}</div>
         <div v-for="m in menus" :key="m.menuCode" style="padding:9px 0;border-bottom:1px solid var(--line)">
-          <div class="row"><strong>{{ m.menuName }}</strong><span class="mono">{{ m.route }}</span></div>
+          <div class="row"><strong>{{ m.menuName }}</strong><span class="mono">{{ m.route ? scenePath(m.route) : '' }}</span></div>
           <div v-if="m.children?.length" class="row" style="margin:6px 0 0 18px">
             <span v-for="c in m.children" :key="c.menuCode" class="badge blue">{{ c.menuName }}</span>
           </div>

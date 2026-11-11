@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
-import { currentScene } from '../scene'
+import { currentScene, scenePath } from '../scene'
 
 const menus = ref([])
 const error = ref('')
@@ -41,7 +41,7 @@ onMounted(async () => {
             <tr v-for="m in rows" :key="m.menuCode">
               <td :style="{ paddingLeft: (12 + m.depth * 18) + 'px' }">{{ m.menuName }}</td>
               <td class="mono">{{ m.menuCode }}</td>
-              <td class="mono small">{{ m.route || '-' }}</td>
+              <td class="mono small">{{ m.route ? scenePath(m.route) : '-' }}</td>
             </tr>
           </tbody>
         </table>
