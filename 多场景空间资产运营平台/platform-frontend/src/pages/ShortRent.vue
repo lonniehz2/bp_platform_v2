@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
@@ -79,7 +80,7 @@ onMounted(load)
             <tr v-for="o in orders" :key="o.id">
               <td class="mono">{{ o.orderNo }}</td><td>{{ o.houseName || '-' }}</td><td>{{ o.guestName }}</td>
               <td class="small">{{ o.startDate }} ~ {{ o.endDate }}</td><td>{{ o.nights }}</td><td>¥{{ Number(o.amount || 0).toFixed(2) }}</td>
-              <td><span class="badge" :class="statusClass(o.orderStatus)">{{ o.orderStatus }}</span></td>
+              <td><span class="badge" :class="statusClass(o.orderStatus)">{{ enumLabel(o.orderStatus) }}</span></td>
               <td class="row">
                 <button v-if="can('shortrent') && o.orderStatus === 'PENDING'" class="sm" @click="update(o, 'CONFIRMED')">{{ t('shortRent.confirm') }}</button>
                 <button v-if="can('shortrent') && o.orderStatus === 'CONFIRMED'" class="sm" @click="update(o, 'CHECKED_IN')">{{ t('shortRent.checkin') }}</button>

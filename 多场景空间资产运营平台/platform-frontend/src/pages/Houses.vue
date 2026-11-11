@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { sceneRoot } from '../scene'
@@ -100,7 +101,7 @@ onMounted(async () => {
 
         <template #cell-area="{ row }">{{ row.area || '-' }}</template>
         <template #cell-innerArea="{ row }">{{ row.innerArea || '-' }}</template>
-        <template #cell-houseStatus="{ row }"><span class="badge" :class="row.houseStatus === 'VACANT' ? 'green' : 'orange'">{{ row.houseStatus }}</span></template>
+        <template #cell-houseStatus="{ row }"><span class="badge" :class="row.houseStatus === 'VACANT' ? 'green' : 'orange'">{{ enumLabel(row.houseStatus) }}</span></template>
         <template #cell-actions="{ row }"><button class="sm" @click="openEdit(row)">{{ t('houses.edit') }}</button><RouterLink class="sm" :to="`${sceneRoot()}/detail/HOUSE/${row.id}`">{{ t('houses.detail') }}</RouterLink></template>
       </DataTable>
     </div>

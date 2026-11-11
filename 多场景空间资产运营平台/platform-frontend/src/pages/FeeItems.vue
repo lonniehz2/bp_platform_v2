@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { can } from '../permissions'
 import { useI18n } from 'vue-i18n'
@@ -99,7 +100,7 @@ onMounted(load)
               <td class="mono">{{ f.feeCode }}</td><td>{{ f.feeName }}</td><td>{{ typeName(f.feeType) }}</td>
               <td>{{ cycleName(f.billingCycle) }}</td><td>¥{{ money(f.unitPrice) }}</td><td>{{ f.unitName || '-' }}</td>
               <td>{{ f.taxRate }}</td>
-              <td><span class="badge" :class="f.feeStatus === 'ENABLED' ? 'green' : 'orange'">{{ f.feeStatus }}</span></td>
+              <td><span class="badge" :class="f.feeStatus === 'ENABLED' ? 'green' : 'orange'">{{ enumLabel(f.feeStatus) }}</span></td>
               <td><button v-if="can('billing')" class="sm" @click="openEdit(f)">{{ t('fee.edit') }}</button> <button v-if="can('billing')" class="sm" @click="toggle(f)">{{ f.feeStatus === 'ENABLED' ? t('fee.disable') : t('fee.enable') }}</button></td>
             </tr>
           </tbody>

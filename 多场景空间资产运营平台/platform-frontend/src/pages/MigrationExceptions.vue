@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { can } from '../permissions'
 import { useI18n } from 'vue-i18n'
@@ -40,7 +41,7 @@ onMounted(load)
             <tr v-for="r in rows" :key="r.id">
               <td>{{ r.sourceTable }}</td><td class="mono">{{ r.sourceId }}</td>
               <td>{{ r.reason }}</td><td class="small">{{ r.payload }}</td>
-              <td><span class="badge" :class="statusClass(r.resolveStatus)">{{ r.resolveStatus }}</span></td>
+              <td><span class="badge" :class="statusClass(r.resolveStatus)">{{ enumLabel(r.resolveStatus) }}</span></td>
               <td>{{ r.resolution || '-' }}</td>
               <td><button v-if="can('system') && r.resolveStatus === 'PENDING'" class="sm" :disabled="busy" @click="resolve(r)">{{ t('migration.resolve') }}</button></td>
             </tr>

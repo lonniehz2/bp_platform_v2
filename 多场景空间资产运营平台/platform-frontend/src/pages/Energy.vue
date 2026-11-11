@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
 
@@ -48,7 +49,7 @@ onMounted(load)
     <div class="grid cards">
       <div class="card"><div class="label">{{ t('energy.count') }}</div><div class="value">{{ meters.length }}</div><div class="hint">{{ project?.orgName || t('energy.noProject') }}</div></div>
       <div v-for="s in summary" :key="s.meterType" class="card">
-        <div class="label">{{ s.meterType }}</div><div class="value">{{ Number(s.usageAmount || 0).toLocaleString('zh-CN') }}</div><div class="hint">{{ s.meterCount }} {{ t('energy.meterCount') }}</div>
+        <div class="label">{{ enumLabel(s.meterType) }}</div><div class="value">{{ Number(s.usageAmount || 0).toLocaleString('zh-CN') }}</div><div class="hint">{{ s.meterCount }} {{ t('energy.meterCount') }}</div>
       </div>
       <div class="card"><div class="label">{{ t('energy.total') }}</div><div class="value">{{ totalUsage.toLocaleString('zh-CN') }}</div><div class="hint">{{ t('energy.hint') }}</div></div>
     </div>
@@ -61,11 +62,11 @@ onMounted(load)
           <thead><tr><th>{{ t('energy.meterNo') }}</th><th>{{ t('energy.type') }}</th><th>{{ t('energy.house') }}</th><th>{{ t('energy.current') }}</th><th>{{ t('energy.lastUsage') }}</th><th>{{ t('energy.date') }}</th><th>{{ t('energy.status') }}</th></tr></thead>
           <tbody>
             <tr v-for="m in detail" :key="m.id">
-              <td class="mono">{{ m.meterNo }}</td><td>{{ m.meterType }}</td><td>{{ m.houseName }}</td>
+              <td class="mono">{{ m.meterNo }}</td><td>{{ enumLabel(m.meterType) }}</td><td>{{ m.houseName }}</td>
               <td>{{ Number(m.currentReading || 0).toLocaleString('zh-CN') }}</td>
               <td><strong>{{ m.lastUsage.toLocaleString('zh-CN') }}</strong></td>
               <td class="small">{{ m.lastDate }}</td>
-              <td><span class="badge green">{{ m.meterStatus }}</span></td>
+              <td><span class="badge green">{{ enumLabel(m.meterStatus) }}</span></td>
             </tr>
           </tbody>
         </table>

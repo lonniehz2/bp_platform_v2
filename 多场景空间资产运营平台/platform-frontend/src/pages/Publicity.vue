@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { can } from '../permissions'
 import { useI18n } from 'vue-i18n'
@@ -76,7 +77,7 @@ onMounted(load)
             <tr v-for="r in records" :key="r.id">
               <td>{{ typeName(r.publicityType) }}</td><td>{{ r.title }}</td>
               <td class="small">{{ r.startDate || '-' }} ~ {{ r.endDate || '-' }}</td>
-              <td><span class="badge" :class="statusClass(r.publicityStatus)">{{ r.publicityStatus }}</span></td>
+              <td><span class="badge" :class="statusClass(r.publicityStatus)">{{ enumLabel(r.publicityStatus) }}</span></td>
               <td class="row">
                 <button v-if="can('publicity') && r.publicityStatus === 'DRAFT'" class="sm" @click="update(r, 'PUBLISHED')">{{ t('publicity.publish') }}</button>
                 <button v-if="can('publicity') && r.publicityStatus === 'PUBLISHED'" class="sm" @click="update(r, 'CLOSED')">{{ t('publicity.close') }}</button>

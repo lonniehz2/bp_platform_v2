@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
@@ -121,9 +122,9 @@ onMounted(load)
             <thead><tr><th>{{ t('changes.type') }}</th><th>{{ t('changes.effectiveDate') }}</th><th>{{ t('changes.status') }}</th><th>{{ t('changes.reason') }}</th><th>{{ t('changes.action') }}</th></tr></thead>
             <tbody>
               <tr v-for="c in visibleChanges" :key="c.id">
-                <td>{{ c.changeType }}</td><td>{{ c.effectiveDate }}</td>
+                <td>{{ enumLabel(c.changeType) }}</td><td>{{ c.effectiveDate }}</td>
                 <td>
-                  <span class="badge" :class="statusClass(c.changeStatus)">{{ c.changeStatus }}</span>
+                  <span class="badge" :class="statusClass(c.changeStatus)">{{ enumLabel(c.changeStatus) }}</span>
                   <div v-if="c.changeStatus === 'APPROVING' && c.currentNode" class="small muted">{{ t('changes.currentNode') }}：{{ c.currentNode }}</div>
                 </td>
                 <td>{{ c.reason }}</td>

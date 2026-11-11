@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { can } from '../permissions'
 import { useI18n } from 'vue-i18n'
@@ -114,7 +115,7 @@ onMounted(load)
             <tr v-for="u in users" :key="u.id">
               <td class="mono">{{ u.username }}</td><td>{{ u.displayName }}</td>
               <td><span v-for="r in u.roleNames" :key="r" class="badge blue" style="margin-right:4px">{{ r }}</span></td>
-              <td><span class="badge" :class="u.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ u.userStatus }}</span></td>
+              <td><span class="badge" :class="u.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ enumLabel(u.userStatus) }}</span></td>
               <td class="small">{{ u.createTime }}</td>
               <td class="row">
                 <button v-if="can('config')" class="sm" @click="openScopes(u)">{{ t('users.scopes') }}</button>

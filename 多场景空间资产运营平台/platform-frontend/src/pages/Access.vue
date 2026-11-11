@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
@@ -88,7 +89,7 @@ onMounted(load)
               <td>{{ r.visitorName }}</td><td>{{ r.visitorPhone || '-' }}</td>
               <td>{{ r.houseName || '-' }}</td><td>{{ r.personName || '-' }}</td><td>{{ r.purpose || '-' }}</td>
               <td class="small">{{ r.validStart || '-' }} ~ {{ r.validEnd || '-' }}</td>
-              <td><span class="badge" :class="statusClass(r.accessStatus)">{{ r.accessStatus }}</span></td>
+              <td><span class="badge" :class="statusClass(r.accessStatus)">{{ enumLabel(r.accessStatus) }}</span></td>
               <td class="row">
                 <button v-if="can('access') && r.accessStatus === 'PENDING'" class="sm" @click="approve(r, 'APPROVED')">{{ t('access.approve') }}</button>
                 <button v-if="can('access') && r.accessStatus === 'PENDING'" class="sm danger" @click="approve(r, 'REJECTED')">{{ t('access.reject') }}</button>

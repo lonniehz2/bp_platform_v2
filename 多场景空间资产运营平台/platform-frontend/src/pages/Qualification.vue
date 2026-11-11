@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
@@ -94,8 +95,8 @@ onMounted(load)
             <thead><tr><th>{{ t('qualification.yearCol') }}</th><th>{{ t('qualification.type') }}</th><th>{{ t('qualification.status') }}</th><th>{{ t('qualification.reviewer') }}</th><th>{{ t('qualification.comment') }}</th><th>{{ t('qualification.date') }}</th><th>{{ t('qualification.action') }}</th></tr></thead>
             <tbody>
               <tr v-for="r in reviews" :key="r.id">
-                <td>{{ r.reviewYear }}</td><td>{{ r.reviewType }}</td>
-                <td><span class="badge" :class="r.reviewStatus === 'PASSED' ? 'green' : r.reviewStatus === 'FAILED' ? 'red' : 'orange'">{{ r.reviewStatus }}</span></td>
+                <td>{{ r.reviewYear }}</td><td>{{ enumLabel(r.reviewType) }}</td>
+                <td><span class="badge" :class="r.reviewStatus === 'PASSED' ? 'green' : r.reviewStatus === 'FAILED' ? 'red' : 'orange'">{{ enumLabel(r.reviewStatus) }}</span></td>
                 <td>{{ r.reviewerName || '-' }}</td><td>{{ r.reviewComment || '-' }}</td><td>{{ r.reviewDate || '-' }}</td>
                 <td><button class="sm" v-if="r.reviewStatus === 'PENDING'" :disabled="busy" @click="complete(r)">{{ t('qualification.approve') }}</button></td>
               </tr>

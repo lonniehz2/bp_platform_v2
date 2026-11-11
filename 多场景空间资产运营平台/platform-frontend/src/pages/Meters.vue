@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
@@ -132,7 +133,7 @@ onMounted(load)
             <tbody>
               <tr v-for="m in paged" :key="m.id" @click="selectMeter(m)" style="cursor:pointer">
                 <td class="mono">{{ m.meterNo }}</td><td>{{ t('meters.' + String(m.meterType).toLowerCase()) }}</td><td>{{ m.houseName }}</td>
-                <td>{{ money(m.currentReading) }}</td><td><span class="badge" :class="m.meterStatus === 'ACTIVE' ? 'green' : 'orange'">{{ m.meterStatus }}</span></td>
+                <td>{{ money(m.currentReading) }}</td><td><span class="badge" :class="m.meterStatus === 'ACTIVE' ? 'green' : 'orange'">{{ enumLabel(m.meterStatus) }}</span></td>
                 <td><button v-if="can('asset')" class="sm" @click.stop="openEdit(m)">{{ t('meters.edit') }}</button> <button v-if="can('asset')" class="sm" :class="m.meterStatus === 'ACTIVE' ? 'danger' : ''" @click.stop="toggleStatus(m)">{{ m.meterStatus === 'ACTIVE' ? t('meters.disable') : t('meters.enable') }}</button></td>
               </tr>
             </tbody>

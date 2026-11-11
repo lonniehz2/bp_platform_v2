@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import TreeSelect from '../components/TreeSelect.vue'
 import { can } from '../permissions'
@@ -170,7 +171,7 @@ onMounted(load)
             <tr v-for="p in pagedProjects" :key="p.id" :class="{ active: currentProject && String(currentProject.id) === String(p.id) }">
               <td class="mono">{{ p.orgCode }}</td><td>{{ p.orgName }}</td><td>{{ p.address || '-' }}</td>
               <td>{{ p.contactName || '-' }} {{ p.contactPhone || '' }}</td><td>{{ p.totalArea || '-' }}</td>
-              <td>{{ p.propertyType || '-' }}</td><td>{{ p.businessMode }}</td>
+              <td>{{ enumLabel(p.propertyType || '-') }}</td><td>{{ enumLabel(p.businessMode) }}</td>
               <td>{{ p.templateName || p.spaceTemplateId }}</td>
               <td><span class="badge green">{{ p.status }}</span></td>
               <td><button class="sm" @click="selectProject(p)">{{ t('proj.setCurrent') }}</button> <button class="sm" @click="openProjectEdit(p)">{{ t('proj.edit') }}</button> <button class="sm danger" :disabled="busy" @click="archiveProject(p)">{{ t('proj.archive') }}</button></td>
@@ -210,7 +211,7 @@ onMounted(load)
             <thead><tr><th>{{ t('proj.spaceCode') }}</th><th>{{ t('proj.nameCol2') }}</th><th>{{ t('proj.type') }}</th><th>{{ t('proj.level') }}</th><th>{{ t('proj.assetType') }}</th><th>{{ t('proj.path') }}</th></tr></thead>
             <tbody>
               <tr v-for="s in spaces" :key="s.id">
-                <td class="mono">{{ s.spaceCode }}</td><td>{{ s.spaceName }}</td><td>{{ s.spaceType }}</td>
+                <td class="mono">{{ s.spaceCode }}</td><td>{{ s.spaceName }}</td><td>{{ enumLabel(s.spaceType) }}</td>
                 <td>{{ s.levelNo }}</td><td>{{ s.assetTypeCode || '-' }}</td><td class="small">{{ s.spacePath }}</td>
               </tr>
             </tbody>
@@ -228,7 +229,7 @@ onMounted(load)
               <tr v-for="h in houses" :key="h.id">
                 <td class="mono">{{ h.houseCode }}</td><td>{{ h.houseName }}</td>
                 <td>{{ h.assetTypeCode || '-' }}</td><td>{{ h.area || '-' }}</td>
-                <td><span class="badge" :class="h.houseStatus === 'VACANT' ? 'green' : 'orange'">{{ h.houseStatus }}</span></td>
+                <td><span class="badge" :class="h.houseStatus === 'VACANT' ? 'green' : 'orange'">{{ enumLabel(h.houseStatus) }}</span></td>
               </tr>
             </tbody>
           </table>

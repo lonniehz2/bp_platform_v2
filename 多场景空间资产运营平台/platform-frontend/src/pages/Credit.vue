@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
@@ -80,7 +81,7 @@ onMounted(load)
               <td>{{ r.personName }}</td><td>{{ typeName(r.creditType) }}</td>
               <td><span :class="r.scoreChange < 0 ? 'badge red' : 'badge green'">{{ r.scoreChange }}</span></td>
               <td>{{ r.reason || '-' }}</td><td class="small">{{ r.effectiveDate || '-' }} ~ {{ r.expireDate || '-' }}</td>
-              <td><span class="badge" :class="r.recordStatus === 'ACTIVE' ? 'orange' : 'blue'">{{ r.recordStatus }}</span></td>
+              <td><span class="badge" :class="r.recordStatus === 'ACTIVE' ? 'orange' : 'blue'">{{ enumLabel(r.recordStatus) }}</span></td>
               <td><button v-if="can('credit') && r.recordStatus === 'ACTIVE'" class="sm danger" @click="revoke(r)">{{ t('credit.revoke') }}</button></td>
             </tr>
           </tbody>

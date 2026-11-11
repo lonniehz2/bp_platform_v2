@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
 import { sceneRoot } from '../scene'
@@ -160,7 +161,7 @@ watch(tab, loadTab)
         <div class="summary">
           <div><span>{{ t('cd.rent') }}</span><strong>{{ money(contract.rentAmount) }}</strong></div>
           <div><span>{{ t('cd.depositAmount') }}</span><strong>{{ money(contract.depositAmount) }}</strong></div>
-          <div><span>{{ t('cd.cycle') }}</span><strong>{{ contract.billingCycle }}</strong></div>
+          <div><span>{{ t('cd.cycle') }}</span><strong>{{ enumLabel(contract.billingCycle) }}</strong></div>
           <div><span>{{ t('cd.billDay') }}</span><strong>{{ contract.billDay }}</strong></div>
         </div>
       </div>
@@ -180,7 +181,7 @@ watch(tab, loadTab)
             <div><span>{{ t('cd.end') }}</span><strong>{{ contract.endDate }}</strong></div>
             <div><span>{{ t('cd.monthlyRent') }}</span><strong>{{ money(contract.rentAmount) }}</strong></div>
             <div><span>{{ t('cd.depositAmount') }}</span><strong>{{ money(contract.depositAmount) }}</strong></div>
-            <div><span>{{ t('cd.cycle') }}</span><strong>{{ contract.billingCycle }}</strong></div>
+            <div><span>{{ t('cd.cycle') }}</span><strong>{{ enumLabel(contract.billingCycle) }}</strong></div>
             <div><span>{{ t('cd.billDay') }}</span><strong>{{ contract.billDay }}</strong></div>
           </div>
         </div>
@@ -206,15 +207,15 @@ watch(tab, loadTab)
 
         <div v-else-if="tab === 'bills'" class="tab-body">
           <div v-if="!bills.length" class="empty">{{ t('cd.noBills') }}</div>
-          <div v-else class="table-wrap"><table><thead><tr><th>{{ t('cd.billNo') }}</th><th>{{ t('cd.period') }}</th><th>{{ t('cd.payable') }}</th><th>{{ t('cd.paid') }}</th><th>{{ t('cd.status') }}</th></tr></thead><tbody><tr v-for="b in bills" :key="b.id"><td class="mono">{{ b.billNo }}</td><td>{{ b.periodStart }} ~ {{ b.periodEnd }}</td><td>{{ money(b.payableAmount) }}</td><td>{{ money(b.paidAmount) }}</td><td><span class="badge" :class="b.billStatus === 'PAID' ? 'green' : 'orange'">{{ b.billStatus }}</span></td></tr></tbody></table></div>
+          <div v-else class="table-wrap"><table><thead><tr><th>{{ t('cd.billNo') }}</th><th>{{ t('cd.period') }}</th><th>{{ t('cd.payable') }}</th><th>{{ t('cd.paid') }}</th><th>{{ t('cd.status') }}</th></tr></thead><tbody><tr v-for="b in bills" :key="b.id"><td class="mono">{{ b.billNo }}</td><td>{{ b.periodStart }} ~ {{ b.periodEnd }}</td><td>{{ money(b.payableAmount) }}</td><td>{{ money(b.paidAmount) }}</td><td><span class="badge" :class="b.billStatus === 'PAID' ? 'green' : 'orange'">{{ enumLabel(b.billStatus) }}</span></td></tr></tbody></table></div>
         </div>
 
         <div v-else-if="tab === 'deposit'" class="tab-body">
-          <div v-if="deposit" class="kv-grid"><div><span>{{ t('cd.depositLabel') }}</span><strong>{{ money(deposit.amount) }}</strong></div><div><span>{{ t('cd.refunded') }}</span><strong>{{ money(deposit.refundedAmount) }}</strong></div><div><span>{{ t('cd.status') }}</span><strong>{{ deposit.depositStatus }}</strong></div></div>
+          <div v-if="deposit" class="kv-grid"><div><span>{{ t('cd.depositLabel') }}</span><strong>{{ money(deposit.amount) }}</strong></div><div><span>{{ t('cd.refunded') }}</span><strong>{{ money(deposit.refundedAmount) }}</strong></div><div><span>{{ t('cd.status') }}</span><strong>{{ enumLabel(deposit.depositStatus) }}</strong></div></div>
           <div v-else class="empty">{{ t('cd.noDeposit') }}</div>
           <div class="section-title">{{ t('cd.subsidies', { n: subsidies.length }) }}</div>
           <div v-if="!subsidies.length" class="empty">{{ t('cd.noSubsidy') }}</div>
-          <div v-for="s in subsidies" :key="s.id" class="entity-row"><span>{{ s.subsidyType }} · {{ money(s.amount) }}</span><span class="badge">{{ s.subsidyStatus }}</span></div>
+          <div v-for="s in subsidies" :key="s.id" class="entity-row"><span>{{ enumLabel(s.subsidyType) }} · {{ money(s.amount) }}</span><span class="badge">{{ enumLabel(s.subsidyStatus) }}</span></div>
         </div>
 
         <div v-else-if="tab === 'files'" class="tab-body">
@@ -228,7 +229,7 @@ watch(tab, loadTab)
         </div>
         <div v-else-if="tab === 'changes'" class="tab-body">
           <div v-if="!changes.length" class="empty">{{ t('cd.noChanges') }}</div>
-          <div v-for="c in changes" :key="c.id" class="entity-row"><div><strong>{{ c.changeType }}</strong><div class="small muted">{{ c.changeReason || c.reason || '' }}</div></div><span class="badge">{{ c.changeStatus || c.status }}</span></div>
+          <div v-for="c in changes" :key="c.id" class="entity-row"><div><strong>{{ enumLabel(c.changeType) }}</strong><div class="small muted">{{ c.changeReason || c.reason || '' }}</div></div><span class="badge">{{ enumLabel(c.changeStatus || c.status) }}</span></div>
         </div>
       </div>
     </template>

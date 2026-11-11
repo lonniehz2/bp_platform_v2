@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
@@ -21,7 +22,7 @@ const busy = ref(false)
 const form = reactive({ complaintType: forcedType.value || 'COMPLAINT', title: '', content: '', houseId: '', personId: '' })
 const handleForm = reactive({ id: '', complaintStatus: 'PROCESSING', handlerName: t('complaints.defaultHandler'), handleResult: '' })
 
-const typeName = (v) => ({ COMPLAINT: t('complaints.complaint'), APPEAL: t('complaints.appeal'), VISIT: t('complaints.visit') }[v] || v)
+const typeName = (v) => ({ COMPLAINT: t('complaints.complaint'), APPEAL: t('complaints.appeal'), VISIT: t('complaints.visit') }[v] || enumLabel(v))
 const statusClass = (s) => ({ RESOLVED: 'green', CLOSED: 'blue', PROCESSING: 'orange' }[s] || '')
 
 async function currentProject() {
@@ -107,7 +108,7 @@ onMounted(load)
             <tr v-for="r in visibleRecords" :key="r.id">
               <td>{{ typeName(r.complaintType) }}</td><td>{{ r.title }}</td>
               <td>{{ r.houseName || '-' }}</td><td>{{ r.personName || '-' }}</td>
-              <td><span class="badge" :class="statusClass(r.complaintStatus)">{{ r.complaintStatus }}</span></td>
+              <td><span class="badge" :class="statusClass(r.complaintStatus)">{{ enumLabel(r.complaintStatus) }}</span></td>
               <td>{{ r.handlerName || '-' }}</td><td class="small">{{ r.handleResult || '-' }}</td>
               <td><button v-if="can('complaint') && r.complaintStatus !== 'CLOSED'" class="sm" @click="openHandle(r)">{{ t('complaints.handle') }}</button></td>
             </tr>

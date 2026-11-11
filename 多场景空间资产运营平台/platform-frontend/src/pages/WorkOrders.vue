@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { sceneRoot } from '../scene'
 import SearchSelect from '../components/SearchSelect.vue'
@@ -87,9 +88,9 @@ onMounted(load)
           <thead><tr><th>{{ t('workOrders.orderNo') }}</th><th>{{ t('workOrders.type') }}</th><th>{{ t('workOrders.titleCol') }}</th><th>{{ t('workOrders.house') }}</th><th>{{ t('workOrders.person') }}</th><th>{{ t('workOrders.assignee') }}</th><th>{{ t('workOrders.status') }}</th><th>{{ t('workOrders.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="o in orders" :key="o.id">
-              <td class="mono">{{ o.orderNo }}</td><td>{{ o.orderType }}</td><td>{{ o.title }}</td>
+              <td class="mono">{{ o.orderNo }}</td><td>{{ enumLabel(o.orderType) }}</td><td>{{ o.title }}</td>
               <td>{{ o.houseName || '-' }}</td><td>{{ o.personName || '-' }}</td><td>{{ o.assigneeName || '-' }}</td>
-              <td><span class="badge" :class="statusClass(o.orderStatus)">{{ o.orderStatus }}</span></td>
+              <td><span class="badge" :class="statusClass(o.orderStatus)">{{ enumLabel(o.orderStatus) }}</span></td>
               <td class="row">
                 <RouterLink class="sm" :to="`${sceneRoot()}/detail/WORK_ORDER/${o.id}`">{{ t('workOrders.detail') }}</RouterLink>
                 <button v-if="can('service') && o.orderStatus === 'PENDING'" class="sm" :disabled="busy" @click="update(o, 'PROCESSING')">{{ t('workOrders.accept') }}</button>

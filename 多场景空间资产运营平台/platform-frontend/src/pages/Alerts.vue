@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
@@ -92,9 +93,9 @@ onMounted(load)
           <thead><tr><th>{{ t('alerts.type') }}</th><th>{{ t('alerts.level') }}</th><th>{{ t('alerts.titleCol') }}</th><th>{{ t('alerts.house') }}</th><th>{{ t('alerts.person') }}</th><th>{{ t('alerts.status') }}</th><th>{{ t('alerts.handler') }}</th><th>{{ t('alerts.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="r in records" :key="r.id">
-              <td>{{ r.alertType }}</td><td><span class="badge" :class="levelClass(r.alertLevel)">{{ r.alertLevel }}</span></td>
+              <td>{{ enumLabel(r.alertType) }}</td><td><span class="badge" :class="levelClass(r.alertLevel)">{{ enumLabel(r.alertLevel) }}</span></td>
               <td>{{ r.title }}</td><td>{{ r.houseName || '-' }}</td><td>{{ r.personName || '-' }}</td>
-              <td><span class="badge" :class="statusClass(r.alertStatus)">{{ r.alertStatus }}</span></td>
+              <td><span class="badge" :class="statusClass(r.alertStatus)">{{ enumLabel(r.alertStatus) }}</span></td>
               <td>{{ r.handlerName || '-' }}</td>
               <td><button v-if="can('alert') && r.alertStatus !== 'RESOLVED' && r.alertStatus !== 'IGNORED'" class="sm" @click="openHandle(r)">{{ t('alerts.handle') }}</button></td>
             </tr>

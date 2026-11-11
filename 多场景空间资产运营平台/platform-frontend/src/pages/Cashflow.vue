@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import DataTable from '../components/DataTable.vue'
 import { useI18n } from 'vue-i18n'
@@ -50,7 +51,7 @@ onMounted(load)
       <div class="panel-head"><div><h2>{{ t('cashflow.title') }}</h2><p>{{ project?.orgName || t('cashflow.noProject') }} · {{ t('cashflow.subtitle') }}</p></div></div>
       <DataTable :rows="paged" :columns="columns" :page="page" :page-size="10" :total="payments.length" @update:page="page = $event">
         <template #cell-amount="{ row }">¥{{ money(row.amount) }}</template>
-        <template #cell-paymentStatus="{ row }"><span class="badge green">{{ row.paymentStatus }}</span></template>
+        <template #cell-paymentStatus="{ row }"><span class="badge green">{{ enumLabel(row.paymentStatus) }}</span></template>
         <template #cell-paidTime="{ row }"><span class="small">{{ row.paidTime }}</span></template>
       </DataTable>
 

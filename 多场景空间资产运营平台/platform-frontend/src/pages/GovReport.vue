@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
 import { govReportHeader } from '../importTemplates'
@@ -85,7 +86,7 @@ onMounted(load)
             <tr v-for="c in filteredContracts" :key="c.id">
               <td class="mono">{{ c.contractNo }}</td><td>{{ c.personName }}</td><td>{{ c.houseName }}</td>
               <td class="small">{{ c.startDate }}</td><td class="small">{{ c.endDate }}</td>
-              <td>¥{{ Number(c.rentAmount || 0).toFixed(2) }}</td><td>{{ c.contractStatus }}</td>
+              <td>¥{{ Number(c.rentAmount || 0).toFixed(2) }}</td><td>{{ enumLabel(c.contractStatus) }}</td>
             </tr>
           </tbody>
         </table>

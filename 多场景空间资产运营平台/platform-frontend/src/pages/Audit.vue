@@ -1,10 +1,14 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { enumLabel, enumText } from '../enumLabels'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
 import { currentScene } from '../scene'
 
 const { t } = useI18n()
+function nodeLabel(value) {
+  return enumText(value)
+}
 const tasks = ref([])
 const records = ref([])
 const selectedTask = ref(null)
@@ -76,9 +80,9 @@ onMounted(load)
           <thead><tr><th>{{ t('audit.bizType') }}</th><th>{{ t('audit.summary') }}</th><th>{{ t('audit.submitter') }}</th><th>{{ t('audit.currentNode') }}</th><th>{{ t('audit.status') }}</th><th>{{ t('audit.submitTime') }}</th><th>{{ t('audit.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="t in tasks" :key="t.id" @click="selectTask(t)" style="cursor:pointer">
-              <td>{{ t.bizType }}</td><td>{{ t.summary }}</td><td>{{ t.submitterName }}</td>
-              <td>{{ t.currentNode || '-' }}</td>
-              <td><span class="badge" :class="statusClass(t.taskStatus)">{{ t.taskStatus }}</span></td>
+              <td>{{ enumLabel(t.bizType) }}</td><td>{{ enumText(t.summary) }}</td><td>{{ t.submitterName }}</td>
+              <td>{{ t.currentNode ? enumText(t.currentNode) : '-' }}</td>
+              <td><span class="badge" :class="statusClass(t.taskStatus)">{{ enumLabel(t.taskStatus) }}</span></td>
               <td class="small">{{ t.submitTime }}</td>
               <td class="row">
                 <button class="sm" v-if="t.taskStatus === 'APPROVING'" @click.stop="approve(t)">{{ t('audit.approve') }}</button>
@@ -102,17 +106,17 @@ onMounted(load)
       </div>
       <div v-if="!workflows.length" class="empty">{{ t('audit.noTemplates') }}</div>
       <div v-for="w in workflows" :key="w.id" class="row" style="border-bottom:1px solid var(--line);padding:8px 0">
-        <div style="flex:1"><div>{{ w.flowName }} · {{ w.bizType }}</div><div class="small muted">{{ t('audit.org') }}: {{ w.orgId || t('audit.defaultOrg') }} · {{ t('audit.nodes') }} {{ w.nodeCount }}</div></div>
-        <span class="badge" :class="w.flowStatus === 'ENABLED' ? 'green' : 'orange'">{{ w.flowStatus }}</span>
+        <div style="flex:1"><div>{{ enumText(w.flowName) }} · {{ enumLabel(w.bizType) }}</div><div class="small muted">{{ t('audit.org') }}: {{ w.orgId || t('audit.defaultOrg') }} · {{ t('audit.nodes') }} {{ w.nodeCount }}</div></div>
+        <span class="badge" :class="w.flowStatus === 'ENABLED' ? 'green' : 'orange'">{{ enumLabel(w.flowStatus) }}</span>
       </div>
     </div>
 
     <div class="panel" v-if="selectedTask">
-      <div class="panel-head"><h2>{{ t('audit.records') }}</h2><span class="small muted">{{ selectedTask.bizType }} · {{ selectedTask.bizId }}</span></div>
+      <div class="panel-head"><h2>{{ t('audit.records') }}</h2><span class="small muted">{{ enumLabel(selectedTask.bizType) }} · {{ selectedTask.bizId }}</span></div>
       <div v-if="!records.length" class="empty">{{ t('audit.noRecords') }}</div>
       <div v-for="r in records" :key="r.id" class="row" style="border-bottom:1px solid var(--line);padding:9px 0">
         <div style="flex:1">
-          <div>{{ r.nodeName }} · {{ r.action }}</div>
+          <div>{{ nodeLabel(r.nodeName) }} · {{ enumLabel(r.action) }}</div>
           <div class="small muted">{{ r.approverName }} · {{ r.comment || t('audit.noComment') }}</div>
         </div>
         <span class="mono">{{ r.actionTime }}</span>

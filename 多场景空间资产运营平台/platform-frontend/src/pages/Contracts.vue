@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { sceneRoot } from '../scene'
 import { can, canAction } from '../permissions'
@@ -289,8 +290,8 @@ onMounted(load)
         </div>
         <div v-if="!cohabitants.length" class="empty">{{ t('ct.noCohabitants') }}</div>
         <div v-for="c in cohabitants" :key="c.id" class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
-          <div style="flex:1"><div>{{ c.personName }} · {{ c.relationType }}</div><div class="small muted">{{ c.startDate || '' }} ~ {{ c.endDate || t('ct.longTerm') }}</div></div>
-          <span class="badge green">{{ c.cohabitantStatus }}</span>
+          <div style="flex:1"><div>{{ c.personName }} · {{ enumLabel(c.relationType) }}</div><div class="small muted">{{ c.startDate || '' }} ~ {{ c.endDate || t('ct.longTerm') }}</div></div>
+          <span class="badge green">{{ enumLabel(c.cohabitantStatus) }}</span>
           <button class="sm danger" :disabled="busy" @click="removeCohabitant(c)">{{ t('ct.remove') }}</button>
         </div>
       </div>

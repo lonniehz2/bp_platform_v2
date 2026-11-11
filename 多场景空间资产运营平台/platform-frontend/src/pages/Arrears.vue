@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import Pager from '../components/Pager.vue'
 import { useI18n } from 'vue-i18n'
@@ -54,7 +55,7 @@ onMounted(load)
               <td class="small">{{ b.periodStart }} ~ {{ b.periodEnd }}</td>
               <td>¥{{ money(b.payableAmount || b.amount) }}</td><td>¥{{ money(b.paidAmount) }}</td>
               <td><strong>¥{{ money(outstanding(b)) }}</strong></td>
-              <td><span class="badge" :class="b.billStatus === 'OVERDUE' ? 'red' : 'orange'">{{ b.billStatus }}</span></td>
+              <td><span class="badge" :class="b.billStatus === 'OVERDUE' ? 'red' : 'orange'">{{ enumLabel(b.billStatus) }}</span></td>
             </tr>
           </tbody>
         </table>

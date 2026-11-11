@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
 
@@ -188,7 +189,7 @@ onMounted(load)
               <td class="mono">{{ u.username }}</td><td>{{ u.displayName }}</td>
               <td><span v-for="r in u.roleNames" :key="r" class="badge blue" style="margin-right:4px">{{ r }}</span><span v-if="!u.roleNames?.length" class="muted">{{ t('up.unassigned') }}</span></td>
               <td><span v-if="hasOverride(u)" class="badge orange">{{ t('up.override', { n: u.scopeProjectCount || 0 }) }}</span><span v-else class="badge">{{ t('up.follow') }}</span></td>
-              <td><span class="badge" :class="u.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ u.userStatus }}</span></td>
+              <td><span class="badge" :class="u.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ enumLabel(u.userStatus) }}</span></td>
               <td><div class="row"><button class="sm" @click="openEdit(u)">{{ t('up.edit') }}</button><button class="sm" @click="openScope(u)">{{ t('up.scope') }}</button><button class="sm" @click="openPreview(u)">{{ t('up.previewBtn') }}</button><button class="sm danger" @click="askArchive(u)">{{ t('up.delete') }}</button><button class="sm" :class="u.userStatus === 'ENABLED' ? 'danger' : ''" :disabled="busy" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? t('up.disable') : t('up.enable') }}</button></div></td>
             </tr>
           </tbody>

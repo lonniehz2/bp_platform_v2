@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { confirmAction } from '../confirm'
@@ -51,9 +52,9 @@ onMounted(load)
           <thead><tr><th>{{ t('keyring.target') }}</th><th>{{ t('keyring.type') }}</th><th>{{ t('keyring.level') }}</th><th>{{ t('keyring.validity') }}</th><th>{{ t('keyring.status') }}</th><th>{{ t('keyring.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="g in entries" :key="g.id">
-              <td>{{ g.targetName || g.targetId }}</td><td>{{ g.targetType }}</td><td>{{ g.grantLevel }}</td>
+              <td>{{ g.targetName || g.targetId }}</td><td>{{ enumLabel(g.targetType) }}</td><td>{{ enumLabel(g.grantLevel) }}</td>
               <td class="small">{{ g.validStart }} ~ {{ g.validEnd || t('keyring.longTerm') }}</td>
-              <td><span class="badge green">{{ g.grantStatus }}</span></td>
+              <td><span class="badge green">{{ enumLabel(g.grantStatus) }}</span></td>
               <td><button class="sm danger" :disabled="busy" @click="revoke(g)">{{ t('keyring.revoke') }}</button></td>
             </tr>
           </tbody>

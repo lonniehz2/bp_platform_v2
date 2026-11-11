@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
@@ -109,7 +110,7 @@ onMounted(load)
 
       <div class="grid" style="grid-template-columns: 1fr 1fr">
         <div class="panel">
-          <div class="panel-head"><h2>{{ t('deposits.deposit') }}</h2><span class="badge" :class="deposit?.depositStatus === 'HELD' ? 'green' : 'orange'">{{ deposit?.depositStatus || t('deposits.none') }}</span></div>
+          <div class="panel-head"><h2>{{ t('deposits.deposit') }}</h2><span class="badge" :class="deposit?.depositStatus === 'HELD' ? 'green' : 'orange'">{{ deposit ? enumLabel(deposit.depositStatus) : t('deposits.none') }}</span></div>
           <div v-if="!deposit" class="empty">{{ t('deposits.noDeposit') }}</div>
           <template v-else>
             <div class="row" style="margin-bottom:12px">
@@ -140,7 +141,7 @@ onMounted(load)
           <div v-if="!subsidies.length" class="empty">{{ t('deposits.noSubsidy') }}</div>
           <div class="table-wrap" v-else>
             <table><thead><tr><th>{{ t('deposits.type') }}</th><th>{{ t('deposits.amount') }}</th><th>{{ t('deposits.period') }}</th><th>{{ t('deposits.status') }}</th></tr></thead>
-              <tbody><tr v-for="s in subsidies" :key="s.id"><td>{{ s.subsidyType }}</td><td>¥{{ money(s.subsidyAmount) }}</td><td class="small">{{ s.startDate }} ~ {{ s.endDate }}</td><td><span class="badge green">{{ s.subsidyStatus }}</span></td></tr></tbody>
+              <tbody><tr v-for="s in subsidies" :key="s.id"><td>{{ enumLabel(s.subsidyType) }}</td><td>¥{{ money(s.subsidyAmount) }}</td><td class="small">{{ s.startDate }} ~ {{ s.endDate }}</td><td><span class="badge green">{{ enumLabel(s.subsidyStatus) }}</span></td></tr></tbody>
             </table>
           </div>
         </div>

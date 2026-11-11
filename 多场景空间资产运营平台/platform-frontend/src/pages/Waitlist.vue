@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { useI18n } from 'vue-i18n'
@@ -64,7 +65,7 @@ onMounted(load)
           <tbody>
             <tr v-for="w in waitlist" :key="w.id">
               <td class="mono">{{ w.queueNo }}</td><td class="mono">{{ w.applicationNo }}</td><td>{{ w.applicantName }}</td>
-              <td><span class="badge" :class="w.waitlistStatus === 'ALLOCATED' ? 'green' : 'blue'">{{ w.waitlistStatus }}</span></td>
+              <td><span class="badge" :class="w.waitlistStatus === 'ALLOCATED' ? 'green' : 'blue'">{{ enumLabel(w.waitlistStatus) }}</span></td>
               <td class="small">{{ w.createTime }}</td>
             </tr>
           </tbody>

@@ -164,7 +164,7 @@ async function importPersons() {
 <template>
   <div>
     <div class="panel">
-      <div class="panel-head"><div><h2>{{ t('imp.title') }}</h2><p>{{ t('imp.subtitle') }}</p></div><span class="pill">IMPORT</span></div>
+      <div class="panel-head"><div><h2>{{ t('imp.title') }}</h2><p>{{ t('imp.subtitle') }}</p></div><span class="pill">{{ t('imp.title') }}</span></div>
       <div class="alert">{{ t('imp.hint') }}</div>
     </div>
 

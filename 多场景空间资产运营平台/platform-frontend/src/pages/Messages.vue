@@ -59,7 +59,7 @@ onMounted(load)
         <div style="flex:1">
           <div style="font-weight:500">{{ m.title }} <span v-if="m.readStatus === 'UNREAD'" class="badge orange">{{ t('messages.unread') }}</span></div>
           <div class="small muted" style="margin-top:4px">{{ m.content || '-' }}</div>
-          <div class="small muted" style="margin-top:4px">{{ m.createTime }} {{ m.bizType ? '· ' + m.bizType : '' }} {{ m.bizId || '' }}</div>
+          <div class="small muted" style="margin-top:4px">{{ m.createTime }} {{ m.bizType ? '· ' + enumLabel(m.bizType) : '' }} {{ m.bizId || '' }}</div>
         </div>
         <button v-if="m.readStatus === 'UNREAD'" class="sm" @click="read(m)">{{ t('messages.markRead') }}</button>
       </div>

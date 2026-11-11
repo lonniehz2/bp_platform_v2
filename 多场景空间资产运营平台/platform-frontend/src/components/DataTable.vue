@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { enumLabel } from '../enumLabels'
 
 const { t } = useI18n()
 const props = defineProps({
@@ -44,7 +45,9 @@ function toggleRow(row) {
 function cell(row, col) {
   if (col.formatter) return col.formatter(row)
   const v = row[col.key]
-  return v === null || v === undefined || v === '' ? '-' : v
+  if (v === null || v === undefined || v === '') return '-'
+  if (/(status|type|level|priority|cycle|mode|gender|urgency|method|category|orientation)$/i.test(col.key) || /(TypeCode|StatusCode)$/.test(col.key)) return enumLabel(v)
+  return v
 }
 function sort(col) {
   if (!col.sortable) return

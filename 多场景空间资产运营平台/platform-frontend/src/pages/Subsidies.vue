@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
@@ -98,8 +99,8 @@ onMounted(load)
           <thead><tr><th>{{ t('subsidies.type') }}</th><th>{{ t('subsidies.amountPerMonth') }}</th><th>{{ t('subsidies.start') }}</th><th>{{ t('subsidies.end') }}</th><th>{{ t('subsidies.status') }}</th><th>{{ t('subsidies.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="s in subsidies" :key="s.id">
-              <td>{{ s.subsidyType || 'RENT_SUBSIDY' }}</td><td>¥{{ money(s.amount) }}</td><td>{{ s.startDate }}</td><td>{{ s.endDate }}</td>
-              <td><span class="badge" :class="s.subsidyStatus === 'ACTIVE' ? 'green' : 'orange'">{{ s.subsidyStatus }}</span></td>
+              <td>{{ enumLabel(s.subsidyType || 'RENT_SUBSIDY') }}</td><td>¥{{ money(s.amount) }}</td><td>{{ s.startDate }}</td><td>{{ s.endDate }}</td>
+              <td><span class="badge" :class="s.subsidyStatus === 'ACTIVE' ? 'green' : 'orange'">{{ enumLabel(s.subsidyStatus) }}</span></td>
               <td>
                 <button v-if="can('billing') && s.subsidyStatus === 'ACTIVE'" class="sm" @click="openEdit(s)">{{ t('subsidies.edit') }}</button>
                 <button v-if="can('billing') && s.subsidyStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="terminate(s)">{{ t('subsidies.terminate') }}</button>

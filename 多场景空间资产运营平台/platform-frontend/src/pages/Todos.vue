@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
 
@@ -36,9 +37,9 @@ onMounted(load)
           <thead><tr><th>{{ t('todos.bizType') }}</th><th>{{ t('todos.summary') }}</th><th>{{ t('todos.submitter') }}</th><th>{{ t('todos.currentNode') }}</th><th>{{ t('todos.status') }}</th><th>{{ t('todos.submitTime') }}</th></tr></thead>
           <tbody>
             <tr v-for="t in filtered" :key="t.id">
-              <td>{{ t.bizType }}</td><td>{{ t.summary }}</td><td>{{ t.submitterName }}</td>
+              <td>{{ enumLabel(t.bizType) }}</td><td>{{ t.summary }}</td><td>{{ t.submitterName }}</td>
               <td>{{ t.currentNode || '-' }}</td>
-              <td><span class="badge" :class="t.taskStatus === 'APPROVED' ? 'green' : t.taskStatus === 'REJECTED' ? 'red' : 'orange'">{{ t.taskStatus }}</span></td>
+              <td><span class="badge" :class="t.taskStatus === 'APPROVED' ? 'green' : t.taskStatus === 'REJECTED' ? 'red' : 'orange'">{{ enumLabel(t.taskStatus) }}</span></td>
               <td class="small">{{ t.submitTime }}</td>
             </tr>
           </tbody>

@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { can } from '../permissions'
 import TreeSelect from '../components/TreeSelect.vue'
@@ -211,7 +212,7 @@ onMounted(load)
               <h2>{{ selectedSpace?.spaceName || t('deviceBinding.noSpace') }}</h2>
               <p class="small muted">{{ selectedSpace?.fullPath || t('deviceBinding.selectHint') }}</p>
             </div>
-            <span v-if="selectedSpace" class="badge blue">{{ selectedSpace.spaceType }}</span>
+            <span v-if="selectedSpace" class="badge blue">{{ enumLabel(selectedSpace.spaceType) }}</span>
           </div>
 
           <div v-if="!selectedSpace" class="empty">{{ t('deviceBinding.selectSpace') }}</div>
@@ -223,7 +224,7 @@ onMounted(load)
                 <thead><tr><th>{{ t('deviceBinding.deviceCode') }}</th><th>{{ t('deviceBinding.name') }}</th><th>{{ t('deviceBinding.type') }}</th><th>{{ t('deviceBinding.action') }}</th></tr></thead>
                 <tbody>
                   <tr v-for="d in selectedSpace.direct" :key="d.id">
-                    <td class="mono">{{ d.deviceCode }}</td><td>{{ d.deviceName }}</td><td>{{ d.deviceType }}</td>
+                    <td class="mono">{{ d.deviceCode }}</td><td>{{ d.deviceName }}</td><td>{{ enumLabel(d.deviceType) }}</td>
                     <td><button v-if="can('device')" class="sm danger" :disabled="busy" @click="unbind(d)">{{ t('deviceBinding.unbind') }}</button></td>
                   </tr>
                 </tbody>
@@ -259,7 +260,7 @@ onMounted(load)
           <div v-if="!filteredUnbound.length" class="empty">{{ t('deviceBinding.noUnbound') }}</div>
           <div v-for="d in filteredUnbound" :key="d.id" class="unbound-row">
             <input type="checkbox" :checked="selectedUnbound.includes(String(d.id))" @change="toggleUnbound(d.id)" />
-            <div style="flex:1"><div class="mono">{{ d.deviceCode }}</div><div class="small muted">{{ d.deviceName }} · {{ d.deviceType }}</div></div>
+            <div style="flex:1"><div class="mono">{{ d.deviceCode }}</div><div class="small muted">{{ d.deviceName }} · {{ enumLabel(d.deviceType) }}</div></div>
             <button v-if="can('device')" class="sm" :disabled="busy || !selectedSpace" @click="bindOne(d)">{{ t('deviceBinding.bindCurrent') }}</button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { currentScene, sceneRoot } from '../scene'
@@ -330,7 +331,7 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
         <div v-if="!contracts.length" class="empty">{{ t('ops.noContracts') }}</div>
         <div v-for="c in contracts.slice(0, 5)" :key="c.id" class="row" style="border-bottom:1px solid var(--line);padding:9px 0">
           <div style="flex:1"><div>{{ c.contractNo }}</div><div class="small muted">{{ c.personName }} · {{ c.houseName }}</div></div>
-          <span class="badge" :class="c.contractStatus === 'ACTIVE' ? 'green' : 'orange'">{{ c.contractStatus }}</span>
+          <span class="badge" :class="c.contractStatus === 'ACTIVE' ? 'green' : 'orange'">{{ enumLabel(c.contractStatus) }}</span>
           <span class="mono">¥{{ money(c.rentAmount) }}</span>
         </div>
       </div>
@@ -339,7 +340,7 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
         <div v-if="!bills.length" class="empty">{{ t('ops.noBills') }}</div>
         <div v-for="b in bills.filter(x => x.billStatus !== 'PAID').slice(0, 5)" :key="b.id" class="row" style="border-bottom:1px solid var(--line);padding:9px 0">
           <div style="flex:1"><div>{{ b.billNo }}</div><div class="small muted">{{ b.periodStart }} ~ {{ b.periodEnd }}</div></div>
-          <span class="badge orange">{{ b.billStatus }}</span>
+          <span class="badge orange">{{ enumLabel(b.billStatus) }}</span>
           <span class="mono">¥{{ money(b.payableAmount || b.amount) }}</span>
         </div>
       </div>

@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
 
@@ -34,7 +35,7 @@ onMounted(async () => {
           <tbody>
             <tr v-for="o in filtered" :key="o.id">
               <td class="mono">{{ o.orgCode }}</td><td>{{ o.orgName }}</td><td>{{ o.sceneCode }}</td>
-              <td>{{ o.businessMode }}</td><td><span class="badge green">{{ o.status }}</span></td>
+              <td>{{ enumLabel(o.businessMode) }}</td><td><span class="badge green">{{ o.status }}</span></td>
             </tr>
           </tbody>
         </table>

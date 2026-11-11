@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { sceneRoot } from '../scene'
 import { can, canAction } from '../permissions'
@@ -134,9 +135,9 @@ onMounted(load)
               <tr v-for="a in applications" :key="a.id">
                 <td class="mono">{{ a.applicationNo }}</td>
                 <td>{{ a.applicantName }}</td>
-                <td>{{ a.guaranteeType || '-' }}</td><td>{{ a.familyType || '-' }}</td><td>{{ a.archiveNo || '-' }}</td>
+                <td>{{ enumLabel(a.guaranteeType || '-') }}</td><td>{{ enumLabel(a.familyType || '-') }}</td><td>{{ a.archiveNo || '-' }}</td>
                 <td>{{ a.familySize }}</td><td>{{ incomeLabel(a.incomeLevel) }}</td><td>{{ housingLabel(a.housingStatus) }}</td>
-                <td><span class="badge" :class="statusClass(a.applicationStatus)">{{ a.applicationStatus }}</span></td>
+                <td><span class="badge" :class="statusClass(a.applicationStatus)">{{ enumLabel(a.applicationStatus) }}</span></td>
                 <td class="row">
                   <button class="sm" @click="detailApp = a">{{ t('ap.detail') }}</button>
                   <button class="sm" v-if="canAction('application:submit', 'application') && a.applicationStatus === 'DRAFT'" :disabled="busy" @click="submit(a.id)">{{ t('ap.submit') }}</button>
@@ -163,7 +164,7 @@ onMounted(load)
             <tbody>
               <tr v-for="w in waitlist" :key="w.id">
                 <td>{{ w.queueNo }}</td><td class="mono">{{ w.applicationNo }}</td><td>{{ w.applicantName }}</td>
-                <td><span class="badge" :class="w.waitlistStatus === 'ALLOCATED' ? 'green' : 'blue'">{{ w.waitlistStatus }}</span></td>
+                <td><span class="badge" :class="w.waitlistStatus === 'ALLOCATED' ? 'green' : 'blue'">{{ enumLabel(w.waitlistStatus) }}</span></td>
               </tr>
             </tbody>
           </table>
@@ -179,9 +180,9 @@ onMounted(load)
         <div class="row">
           <div class="field"><label>{{ t('ap.appNo') }}</label><div class="mono">{{ detailApp.applicationNo }}</div></div>
           <div class="field"><label>{{ t('ap.applicant') }}</label><div>{{ detailApp.applicantName }}</div></div>
-          <div class="field"><label>{{ t('ap.status') }}</label><span class="badge" :class="statusClass(detailApp.applicationStatus)">{{ detailApp.applicationStatus }}</span></div>
-          <div class="field"><label>{{ t('ap.guarantee') }}</label><div>{{ detailApp.guaranteeType || '-' }}</div></div>
-          <div class="field"><label>{{ t('ap.familyType') }}</label><div>{{ detailApp.familyType || '-' }}</div></div>
+          <div class="field"><label>{{ t('ap.status') }}</label><span class="badge" :class="statusClass(detailApp.applicationStatus)">{{ enumLabel(detailApp.applicationStatus) }}</span></div>
+          <div class="field"><label>{{ t('ap.guarantee') }}</label><div>{{ enumLabel(detailApp.guaranteeType || '-') }}</div></div>
+          <div class="field"><label>{{ t('ap.familyType') }}</label><div>{{ enumLabel(detailApp.familyType || '-') }}</div></div>
           <div class="field"><label>{{ t('ap.familySize') }}</label><div>{{ detailApp.familySize }}</div></div>
           <div class="field"><label>{{ t('ap.income') }}</label><div>{{ incomeLabel(detailApp.incomeLevel) }}</div></div>
           <div class="field"><label>{{ t('ap.housing') }}</label><div>{{ housingLabel(detailApp.housingStatus) }}</div></div>

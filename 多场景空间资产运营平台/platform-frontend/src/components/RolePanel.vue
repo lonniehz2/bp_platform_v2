@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
 import { currentScene } from '../scene'
@@ -283,7 +284,7 @@ onMounted(load)
         <div class="panel">
           <div class="panel-head"><div><h2>{{ t('rp.members') }}</h2><p>{{ t('rp.membersHint') }}</p></div><span class="badge">{{ members.length }} {{ t('rp.memberUnit') }}</span></div>
           <div v-if="!members.length" class="empty">{{ t('rp.noMembers') }}</div>
-          <div v-for="m in members" :key="m.id" class="entity-row"><div><strong>{{ m.displayName }}</strong><span class="small muted"> · {{ m.username }}</span></div><span class="badge" :class="m.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ m.userStatus }}</span></div>
+          <div v-for="m in members" :key="m.id" class="entity-row"><div><strong>{{ m.displayName }}</strong><span class="small muted"> · {{ m.username }}</span></div><span class="badge" :class="m.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ enumLabel(m.userStatus) }}</span></div>
         </div>
 
         <div class="panel">

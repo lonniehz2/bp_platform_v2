@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { sceneRoot } from '../scene'
 import SearchSelect from '../components/SearchSelect.vue'
@@ -165,7 +166,7 @@ onMounted(load)
     <div v-if="!project" class="empty">{{ t('dev.createProject') }}</div>
     <template v-else>
       <div class="panel">
-        <div class="panel-head"><div><h2>{{ t('dev.title') }}</h2><p>{{ project.orgName }} · {{ t('dev.subtitle') }}</p></div><span class="pill">DEVICE</span></div>
+        <div class="panel-head"><div><h2>{{ t('dev.title') }}</h2><p>{{ project.orgName }} · {{ t('dev.subtitle') }}</p></div><span class="pill">{{ t('dev.title') }}</span></div>
         <div class="row">
           <div class="field"><label>{{ t('dev.code') }}</label><input v-model="form.deviceCode" :placeholder="t('dev.codePlaceholder')" /></div>
           <div class="field"><label>{{ t('dev.name') }}</label><input v-model="form.deviceName" :placeholder="t('dev.namePlaceholder')" /></div>
@@ -188,7 +189,7 @@ onMounted(load)
           <input v-model="deviceQuery" :placeholder="t('dev.search')" style="max-width:320px" @input="page = 1" />
         </div>
         <DataTable :rows="pagedDevices" :columns="deviceColumns" :page="page" :page-size="10" :total="filteredDevices.length" :empty-text="t('dev.empty')" @update:page="page = $event">
-          <template #cell-assetStatus="{ row }"><span class="badge green">{{ row.assetStatus }}</span></template>
+          <template #cell-assetStatus="{ row }"><span class="badge green">{{ enumLabel(row.assetStatus) }}</span></template>
           <template #cell-actions="{ row }">
             <button class="sm" @click="openDeviceEdit(row)">{{ t('dev.edit') }}</button>
             <RouterLink class="sm" :to="`${sceneRoot()}/detail/DEVICE/${row.id}`">{{ t('dev.detail') }}</RouterLink>
@@ -217,9 +218,9 @@ onMounted(load)
             <thead><tr><th>{{ t('dev.typeCol') }}</th><th>{{ t('dev.target') }}</th><th>{{ t('dev.level') }}</th><th>{{ t('dev.validity') }}</th><th>{{ t('dev.status') }}</th><th>{{ t('dev.action') }}</th></tr></thead>
             <tbody>
               <tr v-for="g in grants" :key="g.id">
-                <td>{{ g.targetType }}</td><td class="mono">{{ g.targetId }}</td><td>{{ g.grantLevel }}</td>
+                <td>{{ enumLabel(g.targetType) }}</td><td class="mono">{{ g.targetId }}</td><td>{{ enumLabel(g.grantLevel) }}</td>
                 <td class="small">{{ g.validStart }} ~ {{ g.validEnd || t('dev.longTerm') }}</td>
-                <td><span class="badge" :class="g.grantStatus === 'ACTIVE' ? 'green' : 'orange'">{{ g.grantStatus }}</span></td>
+                <td><span class="badge" :class="g.grantStatus === 'ACTIVE' ? 'green' : 'orange'">{{ enumLabel(g.grantStatus) }}</span></td>
                 <td><button v-if="canAction('device:grant', 'device') && g.grantStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="revokeGrant(g)">{{ t('dev.revoke') }}</button></td>
               </tr>
             </tbody>

@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
 
@@ -48,7 +49,7 @@ onMounted(load)
             <tr v-for="r in records" :key="r.id">
               <td>{{ r.visitorName }}</td><td>{{ r.visitorPhone || '-' }}</td><td>{{ r.houseName || '-' }}</td>
               <td>{{ r.personName || '-' }}</td><td class="small">{{ r.validStart || '-' }} ~ {{ r.validEnd || '-' }}</td>
-              <td><span class="badge" :class="r.accessStatus === 'APPROVED' ? 'green' : r.accessStatus === 'REJECTED' ? 'red' : 'orange'">{{ r.accessStatus }}</span></td>
+              <td><span class="badge" :class="r.accessStatus === 'APPROVED' ? 'green' : r.accessStatus === 'REJECTED' ? 'red' : 'orange'">{{ enumLabel(r.accessStatus) }}</span></td>
               <td class="row">
                 <button v-if="r.accessStatus === 'PENDING'" class="sm" :disabled="busy" @click="approve(r, 'APPROVED')">{{ t('accessRecords.approve') }}</button>
                 <button v-if="r.accessStatus === 'PENDING'" class="sm danger" :disabled="busy" @click="approve(r, 'REJECTED')">{{ t('accessRecords.reject') }}</button>

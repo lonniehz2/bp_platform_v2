@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { useRoute, useRouter } from 'vue-router'
 import { contractStatusLabel, contractStatusTone } from '../contractStatus'
 import { relationLabel, relationStatusLabel } from '../relationLabels'
@@ -221,10 +222,10 @@ onMounted(async () => {
         <div v-else-if="!grants.length" class="empty">{{ t('pp.noGrants') }}</div>
         <div v-for="g in grants" :key="g.id" class="row" style="padding:9px 0;border-bottom:1px solid var(--line)">
           <div style="flex:1">
-            <div>{{ g.targetName || g.targetType }}</div>
-            <div class="small muted">{{ g.targetType }} · {{ g.validStart }} ~ {{ g.validEnd || t('pp.longTerm') }}</div>
+            <div>{{ enumLabel(g.targetName || g.targetType) }}</div>
+            <div class="small muted">{{ enumLabel(g.targetType) }} · {{ g.validStart }} ~ {{ g.validEnd || t('pp.longTerm') }}</div>
           </div>
-          <span class="badge blue">{{ g.grantLevel }}</span>
+          <span class="badge blue">{{ enumLabel(g.grantLevel) }}</span>
         </div>
       </div>
     </div>

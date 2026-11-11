@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { can } from '../permissions'
 import { useI18n } from 'vue-i18n'
@@ -60,7 +61,7 @@ onMounted(load)
           <tbody>
             <tr v-for="a in apps" :key="a.id">
               <td class="mono">{{ a.appCode }}</td><td>{{ a.appName }}</td><td class="small">{{ a.scopes || '-' }}</td>
-              <td><span class="badge" :class="a.appStatus === 'ENABLED' ? 'green' : 'orange'">{{ a.appStatus }}</span></td>
+              <td><span class="badge" :class="a.appStatus === 'ENABLED' ? 'green' : 'orange'">{{ enumLabel(a.appStatus) }}</span></td>
               <td class="small">{{ a.createTime }}</td>
               <td><button v-if="can('open')" class="sm" @click="toggle(a)">{{ a.appStatus === 'ENABLED' ? t('openApps.disable') : t('openApps.enable') }}</button></td>
             </tr>

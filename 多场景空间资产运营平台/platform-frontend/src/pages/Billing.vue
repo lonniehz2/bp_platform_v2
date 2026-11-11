@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
 import { sceneRoot } from '../scene'
@@ -189,7 +190,7 @@ onMounted(load)
           <template #cell-discountAmount="{ row }">¥{{ money(row.discountAmount) }}</template>
           <template #cell-payableAmount="{ row }">¥{{ money(row.payableAmount || row.amount) }}</template>
           <template #cell-paidAmount="{ row }">¥{{ money(row.paidAmount) }}</template>
-          <template #cell-billStatus="{ row }"><span class="badge" :class="statusClass(row.billStatus)">{{ row.billStatus }}</span></template>
+          <template #cell-billStatus="{ row }"><span class="badge" :class="statusClass(row.billStatus)">{{ enumLabel(row.billStatus) }}</span></template>
           <template #cell-actions="{ row }">
             <button v-if="canAction('billing:adjust', 'billing') && row.billStatus !== 'PAID'" class="sm" :disabled="busy" @click="openAdjust(row)">{{ t('billing.adjust') }}</button>
             <button v-if="canAction('billing:discard', 'billing') && row.billStatus === 'DRAFT'" class="sm danger" @click="discardBill(row)">{{ t('billing.discard') }}</button>
@@ -207,8 +208,8 @@ onMounted(load)
             <thead><tr><th>{{ t('billing.paymentNo') }}</th><th>{{ t('billing.amount') }}</th><th>{{ t('billing.method') }}</th><th>{{ t('billing.status') }}</th><th>{{ t('billing.receipt') }}</th><th>{{ t('billing.time') }}</th><th>{{ t('billing.action') }}</th></tr></thead>
             <tbody>
               <tr v-for="p in payments" :key="p.id">
-                <td class="mono">{{ p.paymentNo }}</td><td>¥{{ money(p.amount) }}</td><td>{{ p.paymentMethod }}</td>
-                <td><span class="badge green">{{ p.paymentStatus }}</span></td><td class="mono">{{ p.receiptNo || '-' }}</td><td class="small">{{ p.paidTime }}</td>
+                <td class="mono">{{ p.paymentNo }}</td><td>¥{{ money(p.amount) }}</td><td>{{ enumLabel(p.paymentMethod) }}</td>
+                <td><span class="badge green">{{ enumLabel(p.paymentStatus) }}</span></td><td class="mono">{{ p.receiptNo || '-' }}</td><td class="small">{{ p.paidTime }}</td>
                 <td><div class="row"><button v-if="p.receiptNo" class="sm" :disabled="busy" @click="openReceipt(p)">{{ t('billing.print') }}</button><button v-if="canAction('billing:refund', 'billing')" class="sm" @click="openRefund(p)">{{ t('billing.refund') }}</button></div></td>
               </tr>
             </tbody>
@@ -271,7 +272,7 @@ onMounted(load)
           <p>{{ t('billing.receiptNo') }}: {{ receipt.receiptNo }}</p>
           <p>{{ t('billing.paymentNo') }}: {{ receipt.paymentNo }}</p>
           <p>{{ t('billing.payAmount') }}: ¥{{ money(receipt.amount) }}</p>
-          <p>{{ t('billing.method') }}: {{ receipt.paymentMethod }}</p>
+          <p>{{ t('billing.method') }}: {{ enumLabel(receipt.paymentMethod) }}</p>
           <p>{{ t('billing.time') }}: {{ receipt.paidTime }}</p>
           <p class="small muted">{{ t('billing.receiptFooter') }}</p>
         </div>

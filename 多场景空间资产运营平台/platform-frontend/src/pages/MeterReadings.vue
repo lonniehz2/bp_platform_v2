@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { can } from '../permissions'
 import { useI18n } from 'vue-i18n'
@@ -64,7 +65,7 @@ onMounted(load)
             <thead><tr><th>{{ t('readings.meterNo') }}</th><th>{{ t('readings.type') }}</th><th>{{ t('readings.house') }}</th><th>{{ t('readings.current') }}</th></tr></thead>
             <tbody>
               <tr v-for="m in meters" :key="m.id" @click="selectMeter(m)" style="cursor:pointer">
-                <td class="mono">{{ m.meterNo }}</td><td>{{ m.meterType }}</td><td>{{ m.houseName }}</td><td>{{ money(m.currentReading) }}</td>
+                <td class="mono">{{ m.meterNo }}</td><td>{{ enumLabel(m.meterType) }}</td><td>{{ m.houseName }}</td><td>{{ money(m.currentReading) }}</td>
               </tr>
             </tbody>
           </table>

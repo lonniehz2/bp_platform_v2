@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { canAction } from '../permissions'
@@ -153,7 +154,7 @@ onMounted(load)
     <div v-if="!project" class="empty">{{ t('listings.createProject') }}</div>
     <template v-else>
       <div class="panel">
-        <div class="panel-head"><div><h2>{{ t('listings.title') }}</h2><p>{{ project.orgName }} · {{ t('listings.subtitle') }}</p></div><span class="pill">LISTING</span></div>
+        <div class="panel-head"><div><h2>{{ t('listings.title') }}</h2><p>{{ project.orgName }} · {{ t('listings.subtitle') }}</p></div><span class="pill">{{ t('listings.title') }}</span></div>
         <div class="row">
           <div class="field"><label>{{ t('listings.house') }}</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" :placeholder="t('listings.house')" /></div>
           <div class="field" style="flex:2"><label>{{ t('listings.titleCol') }}</label><input v-model="form.title" :placeholder="t('listings.titleCol')" /></div>
@@ -173,7 +174,7 @@ onMounted(load)
               <td><img v-if="l.coverUrl" :src="l.coverUrl" alt="" style="width:64px;height:44px;object-fit:cover;border-radius:6px" /><span v-else class="small muted">{{ t('listings.noImage') }}</span></td>
               <td>{{ l.houseCode }} · {{ l.houseName }}</td><td><button class="link" @click="openDetail(l)">{{ l.title }}</button></td>
               <td>¥{{ money(l.monthlyRent) }}</td><td>¥{{ money(l.depositAmount) }}</td>
-              <td><span class="badge" :class="l.listingStatus === 'PUBLISHED' ? 'green' : 'orange'">{{ l.listingStatus }}</span></td>
+              <td><span class="badge" :class="l.listingStatus === 'PUBLISHED' ? 'green' : 'orange'">{{ enumLabel(l.listingStatus) }}</span></td>
               <td>{{ l.bookingCount }}</td>
               <td class="row">
                 <button v-if="canAction('listing:manage', 'asset')" class="sm" @click="openListingEdit(l)">{{ t('listings.edit') }}</button>
@@ -193,7 +194,7 @@ onMounted(load)
           <table><thead><tr><th>{{ t('listings.bookingNo') }}</th><th>{{ t('listings.listing') }}</th><th>{{ t('listings.person') }}</th><th>{{ t('listings.phone') }}</th><th>{{ t('listings.status') }}</th><th>{{ t('listings.action') }}</th></tr></thead>
             <tbody><tr v-for="b in bookings" :key="b.id">
               <td class="mono">{{ b.bookingNo }}</td><td>{{ b.title }}</td><td>{{ b.personName }}</td><td>{{ b.contactPhone || '-' }}</td>
-              <td><span class="badge" :class="b.bookingStatus === 'CONFIRMED' ? 'green' : 'orange'">{{ b.bookingStatus }}</span></td>
+              <td><span class="badge" :class="b.bookingStatus === 'CONFIRMED' ? 'green' : 'orange'">{{ enumLabel(b.bookingStatus) }}</span></td>
               <td class="row">
                 <button v-if="b.bookingStatus === 'PENDING'" class="sm" @click="updateBooking(b, 'confirm')">{{ t('listings.confirm') }}</button>
                 <button v-if="b.bookingStatus === 'PENDING'" class="sm danger" @click="updateBooking(b, 'cancel')">{{ t('listings.cancel') }}</button>
@@ -212,8 +213,8 @@ onMounted(load)
           <tbody><tr v-for="o in orders" :key="o.id">
             <td class="mono">{{ o.orderNo }}</td><td>{{ o.title }}</td><td>{{ o.personName }}</td>
             <td>¥{{ money(o.rentAmount) }}</td><td>¥{{ money(o.depositAmount) }}</td>
-            <td><span class="badge" :class="o.orderStatus === 'CONTRACTED' ? 'green' : 'orange'">{{ o.orderStatus }}</span></td>
-            <td><span class="badge" :class="o.paymentStatus === 'PAID' ? 'green' : 'red'">{{ o.paymentStatus }}</span></td>
+            <td><span class="badge" :class="o.orderStatus === 'CONTRACTED' ? 'green' : 'orange'">{{ enumLabel(o.orderStatus) }}</span></td>
+            <td><span class="badge" :class="o.paymentStatus === 'PAID' ? 'green' : 'red'">{{ enumLabel(o.paymentStatus) }}</span></td>
             <td class="row">
               <button v-if="canAction('listing:manage', 'asset') && o.paymentStatus !== 'PAID' && ['CONFIRMED','CONTRACTED'].includes(o.orderStatus)" class="sm primary" :disabled="busy" @click="payOrder(o)">{{ t('listings.payment') }}</button>
               <button v-if="canAction('listing:manage', 'asset') && o.orderStatus === 'CONFIRMED'" class="sm" :disabled="busy" @click="convertOrder(o)">{{ t('listings.contract') }}</button>
@@ -229,7 +230,7 @@ onMounted(load)
         <div class="panel-head"><h2>{{ detail.title }}</h2><button class="sm" @click="detail = null">{{ t('listings.close') }}</button></div>
         <img v-if="detail.coverUrl" :src="detail.coverUrl" alt="" style="width:100%;max-height:280px;object-fit:cover;border-radius:8px" />
         <p class="muted">{{ detail.description || t('listings.noDesc') }}</p>
-        <div class="row"><span>{{ t('listings.monthlyRent') }} ¥{{ money(detail.monthlyRent) }}</span><span>{{ t('listings.deposit') }} ¥{{ money(detail.depositAmount) }}</span><span class="badge blue">{{ detail.listingStatus }}</span></div>
+        <div class="row"><span>{{ t('listings.monthlyRent') }} ¥{{ money(detail.monthlyRent) }}</span><span>{{ t('listings.deposit') }} ¥{{ money(detail.depositAmount) }}</span><span class="badge blue">{{ enumLabel(detail.listingStatus) }}</span></div>
         <div class="row" style="justify-content:flex-end"><button v-if="canAction('listing:book', 'asset') && detail.listingStatus === 'PUBLISHED'" class="primary" @click="openBooking(detail); detail = null">{{ t('listings.book') }}</button></div>
       </div>
     </div>
