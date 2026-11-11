@@ -1,5 +1,4 @@
 [
-  "src/components/EntityDetailTabs.vue",
   "src/components/RolePanel.vue",
   "src/components/UserPanel.vue",
   "src/pages/Applications.vue",

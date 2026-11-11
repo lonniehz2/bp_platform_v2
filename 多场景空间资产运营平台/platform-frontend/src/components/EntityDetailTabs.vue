@@ -26,7 +26,7 @@ async function load() {
 }
 
 const current = computed(() => sections.value.find(s => s.key === active.value) || sections.value[0] || null)
-const statusLabels = { ACTIVE:'生效中', INACTIVE:'停用', ENABLED:'启用', DISABLED:'停用', DRAFT:'草稿', APPROVING:'审批中', TERMINATED:'已终止', DISCARDED:'已作废', WITHDRAWN:'已撤回', EXPIRED:'已到期', PAID:'已支付', UNPAID:'未支付', PARTIAL:'部分支付', WAIVED:'已减免', CLOSED:'已关闭', VACANT:'空置', RENTED:'已出租', OCCUPIED:'已入住', ALLOCATED:'已配租', IN_USE:'使用中', CONTRACTED:'已签约', INSTALLED:'已安装', PENDING_INSTALL:'待安装', PENDING:'待处理', PROCESSING:'处理中', DONE:'已完成', OPEN:'待处理', RESOLVED:'已解决', SUCCESS:'成功', FAILED:'失败', LOCKED:'无权限' }
+const statusLabels = {}
 const moneyKeys = new Set(['amount','payableAmount','paidAmount','refundedAmount','subsidyAmount'])
 const dateKeys = new Set(['startDate','endDate','periodStart','periodEnd','validStart','validEnd','paidTime','createTime','effectiveDate'])
 function statusLabel(v) { const code = String(v || '').toUpperCase(); return te(`status.${code}`) ? t(`status.${code}`) : (statusLabels[code] || v || '-') }
@@ -34,15 +34,15 @@ function formatValue(item, col) {
   const v = item?.[col.key]
   if (v === null || v === undefined || v === '') return '-'
   if (col.key === 'status' || col.key.endsWith('Status')) return statusLabel(v)
-  if (col.key === 'personType') return ({ GUARANTEE_TENANT:'保障对象', COHABITANT:'同住人', FAMILY:'家庭成员' }[String(v)] || v)
+  if (col.key === 'personType') return te(`personType.${v}`) ? t(`personType.${v}`) : v
   if (moneyKeys.has(col.key)) return '¥' + Number(v).toFixed(2)
   if (dateKeys.has(col.key)) return String(v).replace('T', ' ').slice(0, 19)
   if (col.key === 'fileSize') return Number(v) >= 1024 ? (Number(v) / 1024).toFixed(1) + ' KB' : v + ' B'
   return v
 }
-const columns = computed(() => current.value?.columns?.length ? current.value.columns : [{ key: 'title', label: '名称' }, { key: 'subtitle', label: '说明' }, { key: 'status', label: '状态' }])
-const overviewLabels = { title: '名称', subtitle: '编码', personName: '姓名', personCode: '人员编码', phone: '电话', personType: '人员类型', status: '状态', contractNo: '合同号', contractStatus: '合同状态', startDate: '开始日期', endDate: '结束日期', houseName: '房屋', houseCode: '房源编码', rentAmount: '租金', depositAmount: '押金', houseStatus: '房态', area: '建筑面积', innerArea: '套内面积', layoutType: '户型', orientation: '朝向', floorNo: '楼层', totalFloors: '总楼层', billNo: '账单号', periodStart: '账期起', periodEnd: '账期止', amount: '金额', discountAmount: '减免', payableAmount: '应付', paidAmount: '已收', billStatus: '账单状态', dueDate: '到期日', deviceCode: '设备编码', deviceName: '设备名称', deviceType: '设备类型', deviceModel: '型号', assetStatus: '资产状态', businessStatus: '业务状态', installTime: '安装时间', warrantyEnd: '保修截止', deviceMac: 'MAC', orderNo: '工单号', orderType: '工单类型', priority: '优先级', orderStatus: '工单状态', assigneeName: '处理人', createTime: '创建时间', finishTime: '完成时间', applicationNo: '申请编号', applicationType: '申请类型', familySize: '家庭人数', incomeLevel: '收入水平', housingStatus: '住房情况', guaranteeType: '保障类型', applicationStatus: '申请状态', submitTime: '提交时间', archiveNo: '档案编号', applicantName: '申请人' }
-function formatOverviewValue(key, value) { if (value === null || value === undefined || value === '') return '-'; const codeLabels = { TWO_BED:'两室', ONE_BED:'一室', THREE_BED:'三室', SOUTH:'南', NORTH:'北', EAST:'东', WEST:'西', SOUTHEAST:'东南', SOUTHWEST:'西南', GUARANTEE_TENANT:'保障对象', COHABITANT:'同住人', PUBLIC_RENTAL:'公租房', AFFORDABLE_RENTAL:'保障性租赁住房', TALENT_APARTMENT:'人才公寓', DORMITORY:'宿舍', RENTAL:'出租房', HOTEL:'酒店民宿' }; if (codeLabels[String(value)]) return codeLabels[String(value)]; if (['area','innerArea'].includes(key)) return Number(value).toFixed(2) + ' ㎡'; if (key === 'floorNo') return value + ' 层'; if (key === 'totalFloors') return value + ' 层'; if (key.toLowerCase().includes('status')) return statusLabel(value); if (moneyKeys.has(key)) return '¥' + Number(value).toFixed(2); if (dateKeys.has(key) || key.toLowerCase().includes('time')) return String(value).replace('T', ' ').slice(0, 19); return value }
+const columns = computed(() => current.value?.columns?.length ? current.value.columns : [{ key: 'title', label: 'Title' }, { key: 'subtitle', label: 'Detail' }, { key: 'status', label: 'Status' }])
+const overviewLabels = {}
+function formatOverviewValue(key, value) { if (value === null || value === undefined || value === '') return '-'; const code = String(value); if (te(`enum.${code}`)) return t(`enum.${code}`); if (['area','innerArea'].includes(key)) return Number(value).toFixed(2) + ' ' + t('units.sqm'); if (key === 'floorNo' || key === 'totalFloors') return value + ' ' + t('units.floor'); if (key.toLowerCase().includes('status')) return statusLabel(value); if (moneyKeys.has(key)) return '¥' + Number(value).toFixed(2); if (dateKeys.has(key) || key.toLowerCase().includes('time')) return String(value).replace('T', ' ').slice(0, 19); return value }
 function overviewEntries(item) {
   const entries = Object.entries(item || {}).filter(([k, v]) => v !== null && v !== '' && !['id','type','route','title','subtitle'].includes(k))
   const hasSpecificStatus = entries.some(([k]) => k !== 'status' && k.toLowerCase().endsWith('status'))
