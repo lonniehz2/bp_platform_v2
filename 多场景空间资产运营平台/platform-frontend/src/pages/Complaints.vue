@@ -4,10 +4,12 @@ import { useRoute } from 'vue-router'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
+import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
+const { t } = useI18n()
 const forcedType = computed(() => route.meta?.complaintType || '')
-const pageTitle = computed(() => ({ APPEAL: '申诉管理', VISIT: '入户走访' }[forcedType.value] || '投诉与申诉'))
+const pageTitle = computed(() => ({ APPEAL: t('complaints.appealTitle'), VISIT: t('complaints.visitTitle') }[forcedType.value] || t('complaints.title')))
 const visibleRecords = computed(() => forcedType.value ? records.value.filter(r => r.complaintType === forcedType.value) : records.value)
 const project = ref(null)
 const houses = ref([])
@@ -17,9 +19,9 @@ const type = ref(forcedType.value || '')
 const error = ref('')
 const busy = ref(false)
 const form = reactive({ complaintType: forcedType.value || 'COMPLAINT', title: '', content: '', houseId: '', personId: '' })
-const handleForm = reactive({ id: '', complaintStatus: 'PROCESSING', handlerName: '客服中心', handleResult: '' })
+const handleForm = reactive({ id: '', complaintStatus: 'PROCESSING', handlerName: t('complaints.defaultHandler'), handleResult: '' })
 
-const typeName = (t) => ({ COMPLAINT: '投诉', APPEAL: '申诉', VISIT: '走访' }[t] || t)
+const typeName = (v) => ({ COMPLAINT: t('complaints.complaint'), APPEAL: t('complaints.appeal'), VISIT: t('complaints.visit') }[v] || v)
 const statusClass = (s) => ({ RESOLVED: 'green', CLOSED: 'blue', PROCESSING: 'orange' }[s] || '')
 
 async function currentProject() {
@@ -45,7 +47,7 @@ async function load() {
 async function create() {
   busy.value = true; error.value = ''
   try {
-    if (!form.title.trim()) throw new Error('请填写标题')
+    if (!form.title.trim()) throw new Error(t('complaints.required'))
     await api.createComplaint({
       projectId: project.value.id, complaintType: form.complaintType, title: form.title.trim(),
       content: form.content, houseId: form.houseId || null, personId: form.personId || null
@@ -82,32 +84,32 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project?.orgName || '未选择项目' }} · 投诉、申诉、入户走访</p></div>
-        <select v-if="!forcedType" v-model="type" @change="load" style="width:140px"><option value="">全部</option><option value="COMPLAINT">投诉</option><option value="APPEAL">申诉</option><option value="VISIT">走访</option></select>
+      <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project?.orgName || t('complaints.noProject') }} · {{ t('complaints.subtitle') }}</p></div>
+        <select v-if="!forcedType" v-model="type" @change="load" style="width:140px"><option value="">{{ t('complaints.all') }}</option><option value="COMPLAINT">{{ t('complaints.complaint') }}</option><option value="APPEAL">{{ t('complaints.appeal') }}</option><option value="VISIT">{{ t('complaints.visit') }}</option></select>
       </div>
       <div class="row">
-        <div class="field" v-if="!forcedType"><label>类型</label><select v-model="form.complaintType"><option value="COMPLAINT">投诉</option><option value="APPEAL">申诉</option><option value="VISIT">走访</option></select></div>
-        <div class="field" style="flex:2"><label>标题</label><input v-model="form.title" /></div>
-        <div class="field"><label>房屋</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" clearable /></div>
-        <div class="field"><label>人员</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" clearable /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('complaint')" class="primary" :disabled="busy" @click="create">新增记录</button></div>
+        <div class="field" v-if="!forcedType"><label>{{ t('complaints.type') }}</label><select v-model="form.complaintType"><option value="COMPLAINT">{{ t('complaints.complaint') }}</option><option value="APPEAL">{{ t('complaints.appeal') }}</option><option value="VISIT">{{ t('complaints.visit') }}</option></select></div>
+        <div class="field" style="flex:2"><label>{{ t('complaints.titleCol') }}</label><input v-model="form.title" /></div>
+        <div class="field"><label>{{ t('complaints.house') }}</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" :placeholder="t('complaints.searchHouse')" clearable /></div>
+        <div class="field"><label>{{ t('complaints.person') }}</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" :placeholder="t('complaints.searchPerson')" clearable /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('complaint')" class="primary" :disabled="busy" @click="create">{{ t('complaints.add') }}</button></div>
       </div>
-      <div class="field" style="margin-top:8px"><label>内容</label><textarea v-model="form.content" rows="2" /></div>
+      <div class="field" style="margin-top:8px"><label>{{ t('complaints.content') }}</label><textarea v-model="form.content" rows="2" /></div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>记录列表</h2><span class="small muted">{{ records.length }} 条</span></div>
-      <div v-if="!records.length" class="empty">暂无记录</div>
+      <div class="panel-head"><h2>{{ t('complaints.list') }}</h2><span class="small muted">{{ records.length }} {{ t('complaints.count') }}</span></div>
+      <div v-if="!records.length" class="empty">{{ t('complaints.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>类型</th><th>标题</th><th>房屋</th><th>人员</th><th>状态</th><th>处理人</th><th>结果</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('complaints.type') }}</th><th>{{ t('complaints.titleCol') }}</th><th>{{ t('complaints.house') }}</th><th>{{ t('complaints.person') }}</th><th>{{ t('complaints.status') }}</th><th>{{ t('complaints.handler') }}</th><th>{{ t('complaints.result') }}</th><th>{{ t('complaints.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="r in visibleRecords" :key="r.id">
               <td>{{ typeName(r.complaintType) }}</td><td>{{ r.title }}</td>
               <td>{{ r.houseName || '-' }}</td><td>{{ r.personName || '-' }}</td>
               <td><span class="badge" :class="statusClass(r.complaintStatus)">{{ r.complaintStatus }}</span></td>
               <td>{{ r.handlerName || '-' }}</td><td class="small">{{ r.handleResult || '-' }}</td>
-              <td><button v-if="can('complaint') && r.complaintStatus !== 'CLOSED'" class="sm" @click="openHandle(r)">处理</button></td>
+              <td><button v-if="can('complaint') && r.complaintStatus !== 'CLOSED'" class="sm" @click="openHandle(r)">{{ t('complaints.handle') }}</button></td>
             </tr>
           </tbody>
         </table>
@@ -115,12 +117,12 @@ onMounted(load)
     </div>
 
     <div v-if="handleForm.id" class="panel">
-      <div class="panel-head"><h2>处理记录</h2><button class="sm" @click="handleForm.id = ''">关闭</button></div>
+      <div class="panel-head"><h2>{{ t('complaints.handleTitle') }}</h2><button class="sm" @click="handleForm.id = ''">{{ t('complaints.close') }}</button></div>
       <div class="row">
-        <div class="field"><label>状态</label><select v-model="handleForm.complaintStatus"><option value="PROCESSING">处理中</option><option value="RESOLVED">已解决</option><option value="CLOSED">已关闭</option></select></div>
-        <div class="field"><label>处理人</label><input v-model="handleForm.handlerName" /></div>
-        <div class="field" style="flex:2"><label>处理结果</label><input v-model="handleForm.handleResult" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="handle">保存</button></div>
+        <div class="field"><label>{{ t('complaints.status') }}</label><select v-model="handleForm.complaintStatus"><option value="PROCESSING">{{ t('complaints.processing') }}</option><option value="RESOLVED">{{ t('complaints.resolved') }}</option><option value="CLOSED">{{ t('complaints.closed') }}</option></select></div>
+        <div class="field"><label>{{ t('complaints.handler') }}</label><input v-model="handleForm.handlerName" /></div>
+        <div class="field" style="flex:2"><label>{{ t('complaints.handleResult') }}</label><input v-model="handleForm.handleResult" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="handle">{{ t('complaints.save') }}</button></div>
       </div>
     </div>
   </div>
