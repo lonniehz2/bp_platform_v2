@@ -3,7 +3,9 @@ import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { confirmAction } from '../confirm'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const houses = ref([])
 const persons = ref([])
@@ -42,7 +44,7 @@ async function loadGrants() {
 async function grant() {
   busy.value = true; error.value = ''
   try {
-    if (!house.value?.spaceId) throw new Error('该房源没有空间记录')
+    if (!house.value?.spaceId) throw new Error(t('houseAccess.noSpace'))
     await api.createGrant({
       projectId: project.value.id, personId: personId.value, targetType: 'SPACE', targetId: house.value.spaceId,
       grantLevel: 'OPEN', validStart: '2026-11-08', validEnd: '2027-11-07', sourceType: 'MANUAL'
@@ -52,9 +54,9 @@ async function grant() {
 }
 
 async function revoke(g) {
-  if (!await confirmAction({ title: '撤销授权', message: '确认撤销该授权？', confirmText: '撤销', danger: true })) return
+  if (!await confirmAction({ title: t('houseAccess.revokeTitle'), message: t('houseAccess.revokeMessage'), confirmText: t('houseAccess.revokeConfirm'), danger: true })) return
   busy.value = true; error.value = ''
-  try { await api.revokeGrant(g.id, '房源权限撤销'); await loadGrants() } catch (e) { error.value = e.message } finally { busy.value = false }
+  try { await api.revokeGrant(g.id, t('houseAccess.revokeReason')); await loadGrants() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
 onMounted(load)
@@ -64,28 +66,28 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>房源权限</h2><p>{{ project?.orgName || '未选择项目' }} · 按房源授权人员通行</p></div><span class="badge blue">{{ houseGrants.length }} 项</span></div>
+      <div class="panel-head"><div><h2>{{ t('houseAccess.title') }}</h2><p>{{ project?.orgName || t('houseAccess.noProject') }} · {{ t('houseAccess.subtitle') }}</p></div><span class="badge blue">{{ houseGrants.length }} {{ t('houseAccess.count') }}</span></div>
       <div class="row">
-        <div class="field" style="flex:2"><label>房源</label><SearchSelect v-model="houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" /></div>
-        <div class="field" style="flex:2"><label>人员</label><SearchSelect v-model="personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" @change="loadGrants" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="grant">授权通行</button></div>
+        <div class="field" style="flex:2"><label>{{ t('houseAccess.house') }}</label><SearchSelect v-model="houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" :placeholder="t('houseAccess.house')" /></div>
+        <div class="field" style="flex:2"><label>{{ t('houseAccess.person') }}</label><SearchSelect v-model="personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" :placeholder="t('houseAccess.person')" @change="loadGrants" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="grant">{{ t('houseAccess.grant') }}</button></div>
       </div>
-      <div class="alert" style="margin-top:10px">房源权限基于房源对应空间授权；子空间/床位按空间继承规则生效。</div>
+      <div class="alert" style="margin-top:10px">{{ t('houseAccess.hint') }}</div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>当前房源授权</h2><span class="small muted">{{ house?.houseName || '未选择房源' }}</span></div>
-      <div v-if="!houseGrants.length" class="empty">该房源暂无授权</div>
+      <div class="panel-head"><h2>{{ t('houseAccess.current') }}</h2><span class="small muted">{{ house?.houseName || t('houseAccess.noHouse') }}</span></div>
+      <div v-if="!houseGrants.length" class="empty">{{ t('houseAccess.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>人员</th><th>授权对象</th><th>级别</th><th>有效期</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('houseAccess.person') }}</th><th>{{ t('houseAccess.target') }}</th><th>{{ t('houseAccess.level') }}</th><th>{{ t('houseAccess.validity') }}</th><th>{{ t('houseAccess.status') }}</th><th>{{ t('houseAccess.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="g in houseGrants" :key="g.id">
               <td>{{ persons.find(p => String(p.id) === String(g.personId))?.personName || g.personId }}</td>
               <td class="mono">{{ g.targetId }}</td><td>{{ g.grantLevel }}</td>
-              <td class="small">{{ g.validStart }} ~ {{ g.validEnd || '长期' }}</td>
+              <td class="small">{{ g.validStart }} ~ {{ g.validEnd || t('houseAccess.longTerm') }}</td>
               <td><span class="badge" :class="g.grantStatus === 'ACTIVE' ? 'green' : 'orange'">{{ g.grantStatus }}</span></td>
-              <td><button v-if="g.grantStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="revoke(g)">撤销</button></td>
+              <td><button v-if="g.grantStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="revoke(g)">{{ t('houseAccess.revoke') }}</button></td>
             </tr>
           </tbody>
         </table>

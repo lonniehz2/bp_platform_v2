@@ -65,6 +65,7 @@ const messages = {
     detail: { person: '人员详情', house: '房源详情', bill: '账单详情', device: '设备详情', workOrder: '工单详情', application: '申请详情', contract: '合同详情', title: '详情', subtitle: '关联信息统一 Tab 视图', back: '返回' },
     calendar: { title: '日房态', subtitle: '未来 14 天房屋占用', prev: '前 7 天', today: '今天', next: '后 7 天', vacant: '空置', contract: '合同', short: '短租', house: '房屋', empty: '暂无房源', noProject: '未选择项目' },
     cashflow: { title: '资金流水', subtitle: '收款与收据', count: '收款笔数', total: '收款金额', currentProject: '当前项目', all: '全部收款', paymentNo: '收款单号', amount: '金额', method: '方式', status: '状态', receipt: '收据', time: '时间', noProject: '未选择项目', empty: '暂无收款' },
+    houseAccess: { title: '房源权限', subtitle: '按房源授权人员通行', count: '项', house: '房源', person: '人员', grant: '授权通行', hint: '房源权限基于房源对应空间授权；子空间/床位按空间继承规则生效。', current: '当前房源授权', noHouse: '未选择房源', empty: '该房源暂无授权', personCol: '人员', target: '授权对象', level: '级别', validity: '有效期', status: '状态', action: '操作', longTerm: '长期', revoke: '撤销', noProject: '未选择项目', revokeTitle: '撤销授权', revokeMessage: '确认撤销该授权？', revokeConfirm: '撤销', revokeReason: '房源权限撤销', noSpace: '该房源没有空间记录' },
     nav: {
       dashboard: '工作台',
       workbench: '我的工作台',
@@ -235,6 +236,7 @@ const messages = {
     detail: { person: 'Person Details', house: 'House Details', bill: 'Bill Details', device: 'Device Details', workOrder: 'Work Order Details', application: 'Application Details', contract: 'Contract Details', title: 'Details', subtitle: 'Unified relation tabs', back: 'Back' },
     calendar: { title: 'Daily House Calendar', subtitle: 'House occupancy for the next 14 days', prev: 'Previous 7 Days', today: 'Today', next: 'Next 7 Days', vacant: 'Vacant', contract: 'Contract', short: 'Short Rent', house: 'House', empty: 'No houses', noProject: 'No project selected' },
     cashflow: { title: 'Cash Flow', subtitle: 'Payments and receipts', count: 'Payments', total: 'Payment Amount', currentProject: 'Current project', all: 'All payments', paymentNo: 'Payment No.', amount: 'Amount', method: 'Method', status: 'Status', receipt: 'Receipt', time: 'Time', noProject: 'No project selected', empty: 'No payments' },
+    houseAccess: { title: 'House Access', subtitle: 'Grant access by house', count: 'items', house: 'House', person: 'Person', grant: 'Grant Access', hint: 'House access is based on the house space; child spaces/beds inherit according to space rules.', current: 'Current House Grants', noHouse: 'No house selected', empty: 'No grants for this house', personCol: 'Person', target: 'Target', level: 'Level', validity: 'Validity', status: 'Status', action: 'Actions', longTerm: 'Long-term', revoke: 'Revoke', noProject: 'No project selected', revokeTitle: 'Revoke Grant', revokeMessage: 'Revoke this grant?', revokeConfirm: 'Revoke', revokeReason: 'House access revoked', noSpace: 'This house has no space record' },
     nav: {
       dashboard: 'Workspace',
       workbench: 'My Workspace',
