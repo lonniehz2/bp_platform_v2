@@ -2,7 +2,9 @@
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can } from '../permissions'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const props = defineProps({ embedded: Boolean })
 
 const users = ref([])
@@ -28,7 +30,7 @@ async function create() {
   busy.value = true; error.value = ''
   try {
     if (!form.username.trim() || !form.displayName.trim() || form.password.length < 6) {
-      throw new Error('请填写用户名、姓名，密码至少 6 位')
+      throw new Error(t('users.required'))
     }
     await api.createUser({
       username: form.username.trim(), displayName: form.displayName.trim(),
@@ -91,23 +93,23 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div v-if="!props.embedded" class="panel-head"><div><h2>用户管理</h2><p>平台账号、角色绑定、启用/停用</p></div><span class="badge blue">{{ users.length }} 个用户</span></div>
+      <div v-if="!props.embedded" class="panel-head"><div><h2>{{ t('users.title') }}</h2><p>{{ t('users.subtitle') }}</p></div><span class="badge blue">{{ users.length }} {{ t('users.count') }}</span></div>
       <div class="row">
-        <div class="field"><label>用户名</label><input v-model="form.username" /></div>
-        <div class="field"><label>姓名</label><input v-model="form.displayName" /></div>
-        <div class="field"><label>初始密码</label><input v-model="form.password" type="password" /></div>
-        <div class="field" style="flex:2"><label>角色</label>
-          <select v-model="form.roleIds" multiple size="3"><option v-for="r in roles" :key="r.id" :value="r.id">{{ r.roleName }}（{{ r.roleCode }}）</option></select>
+        <div class="field"><label>{{ t('users.username') }}</label><input v-model="form.username" /></div>
+        <div class="field"><label>{{ t('users.name') }}</label><input v-model="form.displayName" /></div>
+        <div class="field"><label>{{ t('users.password') }}</label><input v-model="form.password" type="password" /></div>
+        <div class="field" style="flex:2"><label>{{ t('users.roles') }}</label>
+          <select v-model="form.roleIds" multiple size="3"><option v-for="r in roles" :key="r.id" :value="r.id">{{ r.roleName }} ({{ r.roleCode }})</option></select>
         </div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('config')" class="primary" :disabled="busy" @click="create">新增用户</button></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('config')" class="primary" :disabled="busy" @click="create">{{ t('users.add') }}</button></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>用户列表</h2><span class="small muted">启用/停用、重置密码</span></div>
+      <div class="panel-head"><h2>{{ t('users.list') }}</h2><span class="small muted">{{ t('users.hint') }}</span></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>用户名</th><th>姓名</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('users.username') }}</th><th>{{ t('users.name') }}</th><th>{{ t('users.roles') }}</th><th>{{ t('users.status') }}</th><th>{{ t('users.createTime') }}</th><th>{{ t('users.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="u in users" :key="u.id">
               <td class="mono">{{ u.username }}</td><td>{{ u.displayName }}</td>
@@ -115,9 +117,9 @@ onMounted(load)
               <td><span class="badge" :class="u.userStatus === 'ENABLED' ? 'green' : 'orange'">{{ u.userStatus }}</span></td>
               <td class="small">{{ u.createTime }}</td>
               <td class="row">
-                <button v-if="can('config')" class="sm" @click="openScopes(u)">数据范围</button>
-                <button v-if="can('config')" class="sm" @click="openEdit(u)">改密</button>
-                <button v-if="can('config')" class="sm" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? '停用' : '启用' }}</button>
+                <button v-if="can('config')" class="sm" @click="openScopes(u)">{{ t('users.scopes') }}</button>
+                <button v-if="can('config')" class="sm" @click="openEdit(u)">{{ t('users.changePassword') }}</button>
+                <button v-if="can('config')" class="sm" @click="toggle(u)">{{ u.userStatus === 'ENABLED' ? t('users.disable') : t('users.enable') }}</button>
               </td>
             </tr>
           </tbody>
@@ -126,30 +128,30 @@ onMounted(load)
     </div>
 
     <div v-if="scopeUser" class="panel">
-      <div class="panel-head"><h2>数据范围</h2><span class="small muted">{{ scopeUser.username }}</span><button class="sm" @click="scopeUser = null">关闭</button></div>
-      <div class="alert">项目范围用于人员查询；组织范围用于财务收费数据。管理员不受范围限制。</div>
+      <div class="panel-head"><h2>{{ t('users.scopes') }}</h2><span class="small muted">{{ scopeUser.username }}</span><button class="sm" @click="scopeUser = null">{{ t('users.close') }}</button></div>
+      <div class="alert">{{ t('users.scopeHint') }}</div>
       <div class="row">
-        <div class="field" style="flex:1"><label>项目范围</label>
+        <div class="field" style="flex:1"><label>{{ t('users.projectScope') }}</label>
           <select v-model="scopeProjectIds" multiple size="6">
-            <option v-for="p in scopeOptions" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option>
+            <option v-for="p in scopeOptions" :key="p.id" :value="String(p.id)">{{ p.orgName }} ({{ p.orgCode }})</option>
           </select>
         </div>
-        <div class="field" style="flex:1"><label>组织范围</label>
+        <div class="field" style="flex:1"><label>{{ t('users.orgScope') }}</label>
           <select v-model="scopeOrgIds" multiple size="6">
-            <option v-for="p in scopeOptions" :key="p.id" :value="String(p.id)">{{ p.orgName }}（{{ p.orgCode }}）</option>
+            <option v-for="p in scopeOptions" :key="p.id" :value="String(p.id)">{{ p.orgName }} ({{ p.orgCode }})</option>
           </select>
         </div>
       </div>
-      <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="primary" :disabled="busy" @click="saveScopes">保存范围</button></div>
+      <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="primary" :disabled="busy" @click="saveScopes">{{ t('users.saveScope') }}</button></div>
     </div>
 
     <div v-if="edit.id" class="panel">
-      <div class="panel-head"><h2>编辑用户</h2><button class="sm" @click="edit.id = ''">关闭</button></div>
+      <div class="panel-head"><h2>{{ t('users.editTitle') }}</h2><button class="sm" @click="edit.id = ''">{{ t('users.close') }}</button></div>
       <div class="row">
-        <div class="field"><label>姓名</label><input v-model="edit.displayName" /></div>
-        <div class="field"><label>新密码（留空不改）</label><input v-model="edit.password" type="password" /></div>
-        <div class="field" style="flex:2"><label>角色</label><select v-model="edit.roleIds" multiple size="3"><option v-for="r in roles" :key="r.id" :value="r.id">{{ r.roleName }}（{{ r.roleCode }}）</option></select></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="saveEdit">保存</button></div>
+        <div class="field"><label>{{ t('users.name') }}</label><input v-model="edit.displayName" /></div>
+        <div class="field"><label>{{ t('users.newPassword') }}</label><input v-model="edit.password" type="password" /></div>
+        <div class="field" style="flex:2"><label>{{ t('users.roles') }}</label><select v-model="edit.roleIds" multiple size="3"><option v-for="r in roles" :key="r.id" :value="r.id">{{ r.roleName }} ({{ r.roleCode }})</option></select></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="saveEdit">{{ t('users.save') }}</button></div>
       </div>
     </div>
   </div>

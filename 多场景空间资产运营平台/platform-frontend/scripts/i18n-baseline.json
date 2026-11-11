@@ -13,6 +13,5 @@
   "src/pages/Patrol.vue",
   "src/pages/Persons.vue",
   "src/pages/Projects.vue",
-  "src/pages/Reports.vue",
-  "src/pages/Users.vue"
+  "src/pages/Reports.vue"
 ]
