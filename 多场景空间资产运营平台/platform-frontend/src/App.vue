@@ -7,6 +7,7 @@ import { getMenus, setMenus } from './permissions'
 import { mode, toggleMode } from './ui'
 import { setLocale } from './i18n'
 import { currentScene } from './scene'
+import { applyLegacyTranslation } from './legacyTranslator'
 import { navGroups, navItems } from './navConfig'
 import SearchSelect from './components/SearchSelect.vue'
 import ConfirmDialog from './components/ConfirmDialog.vue'
@@ -85,6 +86,7 @@ function toggleGroup(key) {
   openGroups.value = next
 }
 
+watch(locale, value => applyLegacyTranslation(value === 'en-US'), { immediate: true })
 watch(currentGroupKey, (key) => {
   if (key) openGroups.value = new Set([key])
 }, { immediate: true })

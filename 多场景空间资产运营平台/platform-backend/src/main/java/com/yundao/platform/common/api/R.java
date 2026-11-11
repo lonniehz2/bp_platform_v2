@@ -1,9 +1,9 @@
 package com.yundao.platform.common.api;
 
-public record R<T>(String code, String message, T data, long timestamp) {
+public record R<T>(String code, String message, String messageKey, T data, long timestamp) {
 
     public static <T> R<T> ok(T data) {
-        return new R<>("BP00000", "成功", data, System.currentTimeMillis());
+        return new R<>("BP00000", "成功", "success", data, System.currentTimeMillis());
     }
 
     public static <T> R<T> ok() {
@@ -11,6 +11,6 @@ public record R<T>(String code, String message, T data, long timestamp) {
     }
 
     public static <T> R<T> error(String code, String message) {
-        return new R<>(code, message, null, System.currentTimeMillis());
+        return new R<>(code, message, "error." + code, null, System.currentTimeMillis());
     }
 }
