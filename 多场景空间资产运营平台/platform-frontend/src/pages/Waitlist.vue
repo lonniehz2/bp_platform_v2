@@ -2,7 +2,9 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const waitlist = ref([])
 const houses = ref([])
@@ -31,7 +33,7 @@ async function load() {
 async function allocate() {
   busy.value = true; error.value = ''
   try {
-    if (!form.waitlistId || !form.houseId) throw new Error('请选择轮候记录和房屋')
+    if (!form.waitlistId || !form.houseId) throw new Error(t('waitlist.required'))
     await api.allocate(form.waitlistId, form.houseId)
     form.waitlistId = ''; form.houseId = ''
     await load()
@@ -45,20 +47,20 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>轮候管理</h2><p>{{ project?.orgName || '未选择项目' }} · 轮候队列与排位</p></div><span class="badge blue">{{ waiting.length }} 户等待</span></div>
+      <div class="panel-head"><div><h2>{{ t('waitlist.title') }}</h2><p>{{ project?.orgName || t('waitlist.noProject') }} · {{ t('waitlist.subtitle') }}</p></div><span class="badge blue">{{ waiting.length }} {{ t('waitlist.waiting') }}</span></div>
       <div class="row">
-        <div class="field"><label>轮候记录</label><SearchSelect v-model="form.waitlistId" :options="waiting" label-key="queueNo" sublabel-key="applicantName" value-key="id" placeholder="搜索轮候记录" /></div>
-        <div class="field"><label>空置房屋</label><SearchSelect v-model="form.houseId" :options="vacant" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索空置房屋" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="allocate">配租</button></div>
+        <div class="field"><label>{{ t('waitlist.record') }}</label><SearchSelect v-model="form.waitlistId" :options="waiting" label-key="queueNo" sublabel-key="applicantName" value-key="id" :placeholder="t('waitlist.searchRecord')" /></div>
+        <div class="field"><label>{{ t('waitlist.vacant') }}</label><SearchSelect v-model="form.houseId" :options="vacant" label-key="houseCode" sublabel-key="houseName" value-key="id" :placeholder="t('waitlist.searchVacant')" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="allocate">{{ t('waitlist.allocate') }}</button></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>轮候队列</h2><span class="small muted">{{ waitlist.length }} 条</span></div>
-      <div v-if="!waitlist.length" class="empty">暂无轮候</div>
+      <div class="panel-head"><h2>{{ t('waitlist.queue') }}</h2><span class="small muted">{{ waitlist.length }} {{ t('waitlist.count') }}</span></div>
+      <div v-if="!waitlist.length" class="empty">{{ t('waitlist.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>排队号</th><th>申请编号</th><th>申请人</th><th>状态</th><th>登记时间</th></tr></thead>
+          <thead><tr><th>{{ t('waitlist.queueNo') }}</th><th>{{ t('waitlist.applicationNo') }}</th><th>{{ t('waitlist.applicant') }}</th><th>{{ t('waitlist.status') }}</th><th>{{ t('waitlist.createTime') }}</th></tr></thead>
           <tbody>
             <tr v-for="w in waitlist" :key="w.id">
               <td class="mono">{{ w.queueNo }}</td><td class="mono">{{ w.applicationNo }}</td><td>{{ w.applicantName }}</td>

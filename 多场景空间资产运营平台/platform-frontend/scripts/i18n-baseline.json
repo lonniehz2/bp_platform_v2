@@ -40,7 +40,6 @@
   "src/pages/Sys.vue",
   "src/pages/Translations.vue",
   "src/pages/Users.vue",
-  "src/pages/Waitlist.vue",
   "src/pages/WorkOrders.vue",
   "src/pages/Workbench.vue"
 ]
