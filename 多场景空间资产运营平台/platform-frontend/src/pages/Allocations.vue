@@ -2,7 +2,9 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const waitlist = ref([])
 const houses = ref([])
@@ -32,7 +34,7 @@ async function load() {
 async function allocate() {
   busy.value = true; error.value = ''
   try {
-    if (!form.waitlistId || !form.houseId) throw new Error('请选择轮候记录和房屋')
+    if (!form.waitlistId || !form.houseId) throw new Error(t('allocations.required'))
     await api.allocate(form.waitlistId, form.houseId)
     form.waitlistId = ''; form.houseId = ''
     await load()
@@ -46,26 +48,26 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="grid cards">
-      <div class="card"><div class="label">待配租</div><div class="value">{{ waiting.length }}</div><div class="hint">轮候队列</div></div>
-      <div class="card"><div class="label">已配租</div><div class="value">{{ allocated.length }}</div><div class="hint">历史配租</div></div>
-      <div class="card"><div class="label">空置房源</div><div class="value">{{ vacant.length }}</div><div class="hint">可分配</div></div>
+      <div class="card"><div class="label">{{ t('allocations.waiting') }}</div><div class="value">{{ waiting.length }}</div><div class="hint">{{ t('allocations.queue') }}</div></div>
+      <div class="card"><div class="label">{{ t('allocations.allocated') }}</div><div class="value">{{ allocated.length }}</div><div class="hint">{{ t('allocations.history') }}</div></div>
+      <div class="card"><div class="label">{{ t('allocations.vacant') }}</div><div class="value">{{ vacant.length }}</div><div class="hint">{{ t('allocations.available') }}</div></div>
     </div>
 
     <div class="panel" style="margin-top:16px">
-      <div class="panel-head"><div><h2>配租摇号</h2><p>{{ project?.orgName || '未选择项目' }} · 轮候记录配租到空置房屋</p></div></div>
+      <div class="panel-head"><div><h2>{{ t('allocations.title') }}</h2><p>{{ project?.orgName || t('allocations.noProject') }} · {{ t('allocations.subtitle') }}</p></div></div>
       <div class="row">
-        <div class="field"><label>轮候记录</label><SearchSelect v-model="form.waitlistId" :options="waiting" label-key="queueNo" sublabel-key="applicantName" value-key="id" placeholder="搜索轮候记录" /></div>
-        <div class="field"><label>房屋</label><SearchSelect v-model="form.houseId" :options="vacant" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索空置房屋" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="allocate">确认配租</button></div>
+        <div class="field"><label>{{ t('allocations.record') }}</label><SearchSelect v-model="form.waitlistId" :options="waiting" label-key="queueNo" sublabel-key="applicantName" value-key="id" :placeholder="t('allocations.searchRecord')" /></div>
+        <div class="field"><label>{{ t('allocations.house') }}</label><SearchSelect v-model="form.houseId" :options="vacant" label-key="houseCode" sublabel-key="houseName" value-key="id" :placeholder="t('allocations.searchVacant')" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="allocate">{{ t('allocations.confirm') }}</button></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>配租记录</h2><span class="small muted">{{ waitlist.length }} 条</span></div>
-      <div v-if="!waitlist.length" class="empty">暂无记录</div>
+      <div class="panel-head"><h2>{{ t('allocations.records') }}</h2><span class="small muted">{{ waitlist.length }} {{ t('allocations.count') }}</span></div>
+      <div v-if="!waitlist.length" class="empty">{{ t('allocations.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>排队号</th><th>申请编号</th><th>申请人</th><th>状态</th></tr></thead>
+          <thead><tr><th>{{ t('allocations.queueNo') }}</th><th>{{ t('allocations.applicationNo') }}</th><th>{{ t('allocations.applicant') }}</th><th>{{ t('allocations.status') }}</th></tr></thead>
           <tbody>
             <tr v-for="w in waitlist" :key="w.id">
               <td>{{ w.queueNo }}</td><td class="mono">{{ w.applicationNo }}</td><td>{{ w.applicantName }}</td>
