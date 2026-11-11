@@ -29,7 +29,6 @@
   "src/pages/Help.vue",
   "src/pages/ImportCenter.vue",
   "src/pages/Keyring.vue",
-  "src/pages/Listings.vue",
   "src/pages/Menus.vue",
   "src/pages/Messages.vue",
   "src/pages/MeterReadings.vue",
