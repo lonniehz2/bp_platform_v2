@@ -129,6 +129,7 @@ for (const item of navItems) {
   if (!titleKey[item.to]) titleKey[item.to] = 'nav.' + item.key
 }
 const title = computed(() => t(route.meta?.titleKey || titleKey[route.path] || 'nav.dashboard'))
+watch(title, value => { document.title = value }, { immediate: true })
 
 onMounted(async () => {
   try {
@@ -236,7 +237,7 @@ function logout() {
             @change="switchProject"
           />
           <a v-if="isAdmin" class="admin-link" :href="legacyAdminUrl" target="_blank" rel="noopener">{{ t('common.admin') }}</a>
-          <button class="ghost sm" @click="switchLocale">{{ locale === 'zh-CN' ? 'EN' : t('common.zhShort') }}</button>
+          <button class="ghost sm" @click="switchLocale">{{ locale === 'zh-CN' ? 'EN' : 'ZH' }}</button>
           <button class="ghost sm" @click="toggleMode">{{ mode === 'dark' ? '☀' : '☾' }}</button>
           <button class="sm" @click="pwdOpen = true">{{ t('shell.changePwd') }}</button>
           <button class="sm" @click="logout">{{ t('common.logout') }}</button>

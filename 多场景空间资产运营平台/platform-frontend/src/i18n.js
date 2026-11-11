@@ -198,7 +198,7 @@ export const messages = {
     },
     login: {
       title: '登录',
-      zhShort: '中',
+      zhShort: 'ZH',
       brand: '多场景空间资产运营平台',
       en: 'Multi-scene Space Asset Platform',
       slogan: '统一空间资产、合同、收费与授权，服务保障房、物业、公寓、办公、酒店与校园。',
@@ -217,12 +217,13 @@ export const messages = {
       password: '密码',
       submit: '登录',
       demo: '演示账号',
+      demoAccount: 'demo_manager / admin123',
       platform: '运营平台'
     },
     common: {
       project: '项目',
       admin: '平台管理',
-      zhShort: '中',
+      zhShort: 'ZH',
       logout: '退出',
       light: '浅色',
       dark: '深色',
@@ -427,7 +428,7 @@ export const messages = {
     },
     login: {
       title: 'Sign In',
-      zhShort: '中',
+      zhShort: 'ZH',
       brand: 'Multi-scene Space Asset Platform',
       en: 'Multi-scene Space Asset Platform',
       slogan: 'Unified space assets, contracts, billing and access for housing, property, apartment, office, hotel and campus.',
@@ -446,12 +447,13 @@ export const messages = {
       password: 'Password',
       submit: 'Sign in',
       demo: 'Demo account',
+      demoAccount: 'demo_manager / admin123',
       platform: 'Platform'
     },
     common: {
       project: 'Project',
       admin: 'Platform Admin',
-      zhShort: '中',
+      zhShort: 'ZH',
       logout: 'Sign out',
       light: 'Light',
       dark: 'Dark',

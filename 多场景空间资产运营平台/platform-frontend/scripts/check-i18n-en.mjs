@@ -20,7 +20,7 @@ const en = flatten(messages['en-US'])
 const zhKeys = new Set(Object.keys(zh))
 const enKeys = new Set(Object.keys(en))
 const cjk = /[\u4e00-\u9fa5]/
-const allowedChinese = new Set(['common.zhShort', 'login.zhShort'])
+const allowedChinese = new Set()
 let failed = false
 for (const key of enKeys) {
   if (cjk.test(String(en[key])) && !allowedChinese.has(key)) {
