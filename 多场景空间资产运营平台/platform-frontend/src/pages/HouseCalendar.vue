@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const houses = ref([])
 const contracts = ref([])
@@ -62,15 +64,15 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>日房态</h2><p>{{ project?.orgName || '未选择项目' }} · 未来 14 天房屋占用</p></div>
-        <div class="row"><button class="sm" @click="move(-7)">前 7 天</button><button class="sm" @click="start = new Date()">今天</button><button class="sm" @click="move(7)">后 7 天</button></div>
+      <div class="panel-head"><div><h2>{{ t('calendar.title') }}</h2><p>{{ project?.orgName || t('calendar.noProject') }} · {{ t('calendar.subtitle') }}</p></div>
+        <div class="row"><button class="sm" @click="move(-7)">{{ t('calendar.prev') }}</button><button class="sm" @click="start = new Date()">{{ t('calendar.today') }}</button><button class="sm" @click="move(7)">{{ t('calendar.next') }}</button></div>
       </div>
       <div class="row" style="margin-bottom:10px">
-        <span class="badge green">空置</span><span class="badge blue">合同</span><span class="badge orange">短租</span>
+        <span class="badge green">{{ t('calendar.vacant') }}</span><span class="badge blue">{{ t('calendar.contract') }}</span><span class="badge orange">{{ t('calendar.short') }}</span>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>房屋</th><th v-for="d in days" :key="dateKey(d)" class="small">{{ dateKey(d).slice(5) }}</th></tr></thead>
+          <thead><tr><th>{{ t('calendar.house') }}</th><th v-for="d in days" :key="dateKey(d)" class="small">{{ dateKey(d).slice(5) }}</th></tr></thead>
           <tbody>
             <tr v-for="r in rows" :key="r.house.id">
               <td class="mono">{{ r.house.houseCode }}<div class="small muted">{{ r.house.houseName }}</div></td>
@@ -81,7 +83,7 @@ onMounted(load)
           </tbody>
         </table>
       </div>
-      <div v-if="!rows.length" class="empty">暂无房源</div>
+      <div v-if="!rows.length" class="empty">{{ t('calendar.empty') }}</div>
     </div>
   </div>
 </template>

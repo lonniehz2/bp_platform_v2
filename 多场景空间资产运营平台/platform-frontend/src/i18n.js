@@ -63,6 +63,7 @@ const messages = {
     login: { zhShort: '中' },
     rbac: { title: '用户与权限', subtitle: '用户、角色和数据范围', user: '用户管理', role: '角色管理', perm: '权限清单' },
     detail: { person: '人员详情', house: '房源详情', bill: '账单详情', device: '设备详情', workOrder: '工单详情', application: '申请详情', contract: '合同详情', title: '详情', subtitle: '关联信息统一 Tab 视图', back: '返回' },
+    calendar: { title: '日房态', subtitle: '未来 14 天房屋占用', prev: '前 7 天', today: '今天', next: '后 7 天', vacant: '空置', contract: '合同', short: '短租', house: '房屋', empty: '暂无房源', noProject: '未选择项目' },
     nav: {
       dashboard: '工作台',
       workbench: '我的工作台',
@@ -231,6 +232,7 @@ const messages = {
     login: { zhShort: '中' },
     rbac: { title: 'Users & Permissions', subtitle: 'Users, roles and data scope', user: 'Users', role: 'Roles', perm: 'Permissions' },
     detail: { person: 'Person Details', house: 'House Details', bill: 'Bill Details', device: 'Device Details', workOrder: 'Work Order Details', application: 'Application Details', contract: 'Contract Details', title: 'Details', subtitle: 'Unified relation tabs', back: 'Back' },
+    calendar: { title: 'Daily House Calendar', subtitle: 'House occupancy for the next 14 days', prev: 'Previous 7 Days', today: 'Today', next: 'Next 7 Days', vacant: 'Vacant', contract: 'Contract', short: 'Short Rent', house: 'House', empty: 'No houses', noProject: 'No project selected' },
     nav: {
       dashboard: 'Workspace',
       workbench: 'My Workspace',
