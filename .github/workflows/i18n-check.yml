@@ -15,6 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - run: npm install --no-audit --no-fund
       - run: node scripts/check-i18n.mjs --strict
       - run: node scripts/check-i18n-en.mjs
       - run: node scripts/check-scene.mjs
