@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { sceneRoot } from '../scene'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 
@@ -128,7 +129,7 @@ function exportCsv() {
 }
 
 watch(active, key => { statusFilter.value = ''; applySaved(key) })
-function openProject(row) { localStorage.setItem('platformProjectId', String(row.projectId)); router.push('/guarantee/cockpit') }
+function openProject(row) { localStorage.setItem('platformProjectId', String(row.projectId)); router.push(sceneRoot() + '/cockpit') }
 function saveSubscription() {
   if (!subscription.value.recipients.trim()) { error.value = '请填写订阅接收人'; return }
   subscriptions.value = [...subscriptions.value, { report: title.value, frequency: subscription.value.frequency, recipients: subscription.value.recipients.trim(), enabled: subscription.value.enabled }]

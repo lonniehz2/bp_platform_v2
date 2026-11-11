@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { sceneRoot } from '../scene'
 import * as echarts from 'echarts'
 import { api } from '../api'
 import { mode } from '../ui'
@@ -252,7 +253,7 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>{{ t('cockpit.org') }}</h2><p>{{ orgSummary.projects }} {{ t('cockpit.projects') }} · {{ t('cockpit.currentScope') }}</p></div><div class="row"><button class="sm" :class="{ primary: cockpitView === 'org' }" @click="cockpitView = 'org'">{{ t('cockpit.orgView') }}</button><button class="sm" :class="{ primary: cockpitView === 'project' }" @click="cockpitView = 'project'">{{ t('cockpit.projectView') }}</button><RouterLink to="/guarantee/reports">{{ t('cockpit.reports') }}</RouterLink></div></div>
+      <div class="panel-head"><div><h2>{{ t('cockpit.org') }}</h2><p>{{ orgSummary.projects }} {{ t('cockpit.projects') }} · {{ t('cockpit.currentScope') }}</p></div><div class="row"><button class="sm" :class="{ primary: cockpitView === 'org' }" @click="cockpitView = 'org'">{{ t('cockpit.orgView') }}</button><button class="sm" :class="{ primary: cockpitView === 'project' }" @click="cockpitView = 'project'">{{ t('cockpit.projectView') }}</button><RouterLink :to="sceneRoot() + '/reports'">{{ t('cockpit.reports') }}</RouterLink></div></div>
       <template v-if="cockpitView === 'org'">
       <div class="grid cards" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
         <div class="card"><div class="label">{{ t('cockpit.projects') }}</div><div class="value">{{ orgSummary.projects }}</div><div class="hint">{{ t('cockpit.currentScope') }}</div></div>
