@@ -10,6 +10,5 @@
   "src/pages/Help.vue",
   "src/pages/ImportCenter.vue",
   "src/pages/Persons.vue",
-  "src/pages/Projects.vue",
-  "src/pages/Reports.vue"
+  "src/pages/Projects.vue"
 ]

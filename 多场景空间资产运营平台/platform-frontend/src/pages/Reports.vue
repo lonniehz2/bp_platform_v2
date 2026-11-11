@@ -27,28 +27,28 @@ const error = ref('')
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 
 const reports = [
-  { key: 'projects', label: '项目经营对比' },
-  { key: 'applications', label: '申请受理' },
-  { key: 'contracts', label: '合同台账' },
-  { key: 'bills', label: '应收实收' },
-  { key: 'arrears', label: '欠费清单' },
-  { key: 'houses', label: '房源台账' },
-  { key: 'workOrders', label: '工单统计' },
-  { key: 'devices', label: '设备台账' },
-  { key: 'payments', label: '资金流水' },
-  { key: 'regulatory', label: '监管报送（项目口径）' }
+  { key: 'projects', label: 'Project Performance' },
+  { key: 'applications', label: 'Applications' },
+  { key: 'contracts', label: 'Contracts' },
+  { key: 'bills', label: 'Receivables' },
+  { key: 'arrears', label: 'Arrears' },
+  { key: 'houses', label: 'Houses' },
+  { key: 'workOrders', label: 'Work Orders' },
+  { key: 'devices', label: 'Devices' },
+  { key: 'payments', label: 'Cash Flow' },
+  { key: 'regulatory', label: 'Regulatory (project scope)' }
 ]
 
 const columns = {
-  projects: [['orgName','项目'],['houses','房源'],['occupancyRate','出租率'],['receivable','应收'],['received','实收'],['collectionRate','收缴率'],['outstanding','欠费'],['workOrders','工单']],
-  applications: [['applicationNo','申请编号'],['applicantName','申请人'],['applicationType','类型'],['familySize','家庭人数'],['applicationStatus','状态']],
-  contracts: [['contractNo','合同号'],['personName','承租人'],['houseName','房屋'],['startDate','开始'],['endDate','结束'],['rentAmount','租金'],['contractStatus','状态']],
-  bills: [['billNo','账单号'],['personName','承租人'],['periodStart','账期起'],['periodEnd','账期止'],['payableAmount','应付'],['paidAmount','已收'],['billStatus','状态']],
-  houses: [['houseCode','房源编码'],['houseName','名称'],['area','面积'],['layoutType','户型'],['houseStatus','房态']],
-  workOrders: [['orderNo','工单号'],['title','标题'],['orderType','类型'],['assigneeName','处理人'],['orderStatus','状态']],
-  devices: [['deviceCode','设备编码'],['deviceName','名称'],['deviceType','类型'],['businessStatus','业务状态']],
-  payments: [['paymentNo','收款单号'],['paymentMethod','方式'],['amount','金额'],['paidTime','时间'],['paymentStatus','状态']],
-  regulatory: [['orgName','项目'],['houses','房源总数'],['rentedHouses','已出租'],['vacantHouses','空置'],['occupancyRate','出租率'],['activeContracts','在租合同'],['receivable','应收'],['received','实收'],['outstanding','欠费']]
+  projects: [['orgName','Project'],['houses','Houses'],['occupancyRate','Occupancy'],['receivable','Receivable'],['received','Received'],['collectionRate','Collection Rate'],['outstanding','Outstanding'],['workOrders','Work Orders']],
+  applications: [['applicationNo','Application No.'],['applicantName','Applicant'],['applicationType','Type'],['familySize','Family Size'],['applicationStatus','Status']],
+  contracts: [['contractNo','Contract No.'],['personName','Tenant'],['houseName','House'],['startDate','Start'],['endDate','End'],['rentAmount','Rent'],['contractStatus','Status']],
+  bills: [['billNo','Bill No.'],['personName','Tenant'],['periodStart','Period Start'],['periodEnd','Period End'],['payableAmount','Payable'],['paidAmount','Paid'],['billStatus','Status']],
+  houses: [['houseCode','House Code'],['houseName','Name'],['area','Area'],['layoutType','Layout'],['houseStatus','House Status']],
+  workOrders: [['orderNo','Order No.'],['title','Title'],['orderType','Type'],['assigneeName','Assignee'],['orderStatus','Status']],
+  devices: [['deviceCode','Device Code'],['deviceName','Name'],['deviceType','Type'],['businessStatus','Business Status']],
+  payments: [['paymentNo','Payment No.'],['paymentMethod','Method'],['amount','Amount'],['paidTime','Time'],['paymentStatus','Status']],
+  regulatory: [['orgName','Project'],['houses','Total Houses'],['rentedHouses','Rented'],['vacantHouses','Vacant'],['occupancyRate','Occupancy'],['activeContracts','Active Contracts'],['receivable','Receivable'],['received','Received'],['outstanding','Outstanding']]
 }
 const rows = computed(() => ({
   projects: compare.value,
@@ -84,7 +84,7 @@ function saveView() {
 }
 function applySaved(key) { const v = savedViews.value[key]; if (!v) return; search.value = v.search || ''; statusFilter.value = v.status || '' }
 function resetFilters() { search.value = ''; statusFilter.value = '' }
-const title = computed(() => reports.find(r => r.key === active.value)?.label || '报表')
+const title = computed(() => reports.find(r => r.key === active.value)?.label || 'Reports')
 
 async function currentProject() {
   const all = await api.projects()
@@ -131,7 +131,7 @@ function exportCsv() {
 watch(active, key => { statusFilter.value = ''; applySaved(key) })
 function openProject(row) { localStorage.setItem('platformProjectId', String(row.projectId)); router.push(sceneRoot() + '/cockpit') }
 function saveSubscription() {
-  if (!subscription.value.recipients.trim()) { error.value = '请填写订阅接收人'; return }
+  if (!subscription.value.recipients.trim()) { error.value = t('reports.recipientsRequired'); return }
   subscriptions.value = [...subscriptions.value, { report: title.value, frequency: subscription.value.frequency, recipients: subscription.value.recipients.trim(), enabled: subscription.value.enabled }]
   localStorage.setItem('platformReportSubscriptions', JSON.stringify(subscriptions.value))
   subscription.value = { frequency: 'MONTHLY', recipients: '', enabled: false }
