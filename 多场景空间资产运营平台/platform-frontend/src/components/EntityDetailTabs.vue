@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 
 const props = defineProps({ type: { type: String, required: true }, entityId: { type: [String, Number], required: true } })
@@ -67,11 +68,11 @@ watch(() => [props.type, props.entityId], load, { immediate: true })
     <template v-else>
       <div v-if="entity" class="entity-detail-head">
         <div><strong>{{ entity.title }}</strong><span v-if="entity.subtitle" class="small muted"> · {{ entity.subtitle }}</span></div>
-        <span class="badge">{{ entity.type }}</span>
+        <span class="badge">{{ enumLabel(entity.type) }}</span>
       </div>
       <div class="tab-strip">
         <button v-for="s in sections" :key="s.key" class="tab-btn" :class="{ active: s.key === active }" @click="selectTab(s.key)">
-          {{ s.label }}<span v-if="s.items?.length" class="tab-count">{{ s.items.length }}</span>
+          {{ te(`section.${s.key}`) ? t(`section.${s.key}`) : s.label }}<span v-if="s.items?.length" class="tab-count">{{ s.items.length }}</span>
         </button>
       </div>
       <div v-if="current" class="tab-panel">
