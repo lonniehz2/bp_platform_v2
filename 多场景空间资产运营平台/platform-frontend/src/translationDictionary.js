@@ -1,0 +1,17 @@
+export const businessTerms = [
+  ['GUARANTEE', '保障房', 'Guarantee Housing'],
+  ['PUBLIC_RENTAL', '公共租赁', 'Public Rental'],
+  ['AFFORDABLE_RENTAL', '保障性租赁', 'Affordable Rental'],
+  ['ACTIVE', '有效', 'Active'],
+  ['VACANT', '空置', 'Vacant'],
+  ['ALLOCATED', '已配租', 'Allocated'],
+  ['UNPAID', '未缴', 'Unpaid'],
+  ['OVERDUE', '逾期', 'Overdue'],
+  ['RENT_CHANGE', '租金变更', 'Rent Change'],
+  ['TERMINATION', '退租', 'Termination'],
+  ['BUILDING', '楼栋', 'Building'],
+  ['ROOM', '房屋', 'Room'],
+  ['LOCK', '门锁', 'Lock'],
+  ['PENDING', '待处理', 'Pending'],
+  ['RESOLVED', '已解决', 'Resolved'],
+]
