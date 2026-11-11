@@ -54,6 +54,7 @@ const messages = {
       pendingBills: '待处理账单', collect: '去收款', noBills: '暂无账单', emptyProjects: '暂无项目经营数据',
       thisMonth: '本月账期', noProject: '未选择项目', billsUnit: '笔', houseUnit: '套', deviceUnit: '台', tenThousand: '万', caliber: '口径：本期应收/实收/收缴率按账期只算当期账单；期初欠费单独展示；总欠费 = 期初 + 当期。', thisQuarter: '本季账期', thisYear: '本年账期', customPeriod: '自定义账期', vacant: '空置', allocated: '已配租', other: '其他', receivable: '应收', received: '已收', project: '项目', house: '房源', occupancy: '出租率', workOrders: '工单'
     },
+    houses: { title: '房源台账', subtitle: '可出租房源和房态', count: '套', status: '房态', all: '全部', vacant: '空置', allocated: '已配租', occupied: '已入住', list: '房源列表', listHint: '房源由可出租空间生成', search: '搜索房源编码/名称', empty: '暂无房源', edit: '编辑', detail: '详情', editTitle: '编辑房源', close: '关闭', house: '房源', area: '建筑面积', innerArea: '套内面积', assetType: '资产类型', layout: '户型', layoutPlaceholder: '如 二室一厅', orientation: '朝向', unspecified: '未填写', south: '南', north: '北', east: '东', west: '西', southeast: '东南', southwest: '西南', floor: '所在楼层', totalFloors: '总楼层', save: '保存', relation: '房源关联信息', noProject: '未选择项目', spaces: '空间层级', floorValue: '楼层', areaNegative: '面积不能为负数', floorInvalid: '楼层需满足 1 ≤ 所在楼层 ≤ 总楼层', frozen: '冻结' },
     nav: {
       dashboard: '工作台',
       workbench: '我的工作台',
@@ -213,6 +214,7 @@ const messages = {
       pendingBills: 'Pending Bills', collect: 'Collect', noBills: 'No bills', emptyProjects: 'No project data',
       thisMonth: 'This Month', noProject: 'No project selected', billsUnit: 'bills', houseUnit: 'units', deviceUnit: 'devices', tenThousand: '0k', caliber: 'Scope: current receivable/collected/collection rate use bills of the selected period; opening arrears are shown separately; total arrears = opening + current.', thisQuarter: 'This Quarter', thisYear: 'This Year', customPeriod: 'Custom Period', vacant: 'Vacant', allocated: 'Allocated', other: 'Other', receivable: 'Receivable', received: 'Collected', project: 'Project', house: 'House', occupancy: 'Occupancy', workOrders: 'Work Orders'
     },
+    houses: { title: 'Houses', subtitle: 'Rentable houses and status', count: 'units', status: 'Status', all: 'All', vacant: 'Vacant', allocated: 'Allocated', occupied: 'Occupied', list: 'House List', listHint: 'Houses are generated from rentable spaces', search: 'Search house code/name', empty: 'No houses', edit: 'Edit', detail: 'Details', editTitle: 'Edit House', close: 'Close', house: 'House', area: 'Gross Area', innerArea: 'Net Area', assetType: 'Asset Type', layout: 'Layout', layoutPlaceholder: 'e.g. 2-bedroom', orientation: 'Orientation', unspecified: 'Not set', south: 'South', north: 'North', east: 'East', west: 'West', southeast: 'Southeast', southwest: 'Southwest', floor: 'Floor', totalFloors: 'Total Floors', save: 'Save', relation: 'House Relations', noProject: 'No project selected', spaces: 'Spaces', floorValue: 'Floor', areaNegative: 'Area cannot be negative', floorInvalid: 'Floor must satisfy 1 ≤ floor ≤ total floors', frozen: 'Frozen' },
     nav: {
       dashboard: 'Workspace',
       workbench: 'My Workspace',

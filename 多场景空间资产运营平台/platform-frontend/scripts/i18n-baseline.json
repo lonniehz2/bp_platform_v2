@@ -36,7 +36,6 @@
   "src/pages/Help.vue",
   "src/pages/HouseAccess.vue",
   "src/pages/HouseCalendar.vue",
-  "src/pages/Houses.vue",
   "src/pages/ImportCenter.vue",
   "src/pages/Keyring.vue",
   "src/pages/Listings.vue",
