@@ -11,7 +11,8 @@
     "check:i18n:en": "node scripts/check-i18n-en.mjs",
     "check:scene": "node scripts/check-scene.mjs",
     "check:ui-labels": "node scripts/check-ui-labels.mjs",
-    "check:field-labels": "node scripts/check-field-labels.mjs"
+    "check:field-labels": "node scripts/check-field-labels.mjs",
+    "check:menu-labels": "node scripts/check-menu-labels.mjs"
   },
   "dependencies": {
     "vue": "^3.5.11",

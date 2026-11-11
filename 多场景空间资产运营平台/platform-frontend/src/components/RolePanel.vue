@@ -5,7 +5,9 @@ import { api } from '../api'
 import { useI18n } from 'vue-i18n'
 import { currentScene } from '../scene'
 
-const { t } = useI18n()
+const { t, te } = useI18n()
+const groupLabel = (g) => te(`group.${String(g.menuCode).replace('group_', '')}`) ? t(`group.${String(g.menuCode).replace('group_', '')}`) : g.menuName
+const pageLabel = (p) => te(`nav.${p.menuCode}`) ? t(`nav.${p.menuCode}`) : p.menuName
 const roles = ref([])
 const projects = ref([])
 const menus = ref([])
@@ -258,7 +260,7 @@ onMounted(load)
               <div class="group-row">
                 <label class="group-name">
                   <input type="checkbox" :checked="groupAll(g)" @change="toggleGroup(g)" />
-                  <strong>{{ g.menuName }}</strong>
+                  <strong>{{ groupLabel(g) }}</strong>
                   <span class="badge" :class="groupAll(g) ? 'green' : (groupSome(g) ? 'orange' : '')">{{ pageCodes(g).filter(c => selectedCodes.includes(c)).length }}/{{ g.pages.length }}</span>
                   <span class="mono small muted">{{ g.menuCode }}</span>
                 </label>
@@ -270,7 +272,7 @@ onMounted(load)
               <div v-for="p in g.pages" :key="p.menuCode" class="page-row">
                 <label class="page-name">
                   <input type="checkbox" :checked="selectedCodes.includes(p.menuCode)" @change="toggleCode(p.menuCode)" />
-                  <span>{{ p.menuName }}</span>
+                  <span>{{ pageLabel(p) }}</span>
                   <span class="mono small muted">{{ p.menuCode }}</span>
                 </label>
                 <input v-for="a in actionOptions" :key="a.code" type="checkbox" class="cell-check"

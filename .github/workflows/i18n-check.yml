@@ -19,3 +19,4 @@ jobs:
       - run: node scripts/check-scene.mjs
       - run: node scripts/check-ui-labels.mjs
       - run: node scripts/check-field-labels.mjs
+      - run: node scripts/check-menu-labels.mjs

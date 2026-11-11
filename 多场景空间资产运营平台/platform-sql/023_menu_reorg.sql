@@ -5,7 +5,7 @@ insert into bp_menu(id, scene_code, menu_code, parent_code, menu_name, menu_type
 values (921000000000000010, 'GUARANTEE', 'group_data', null, '数据与报表', 'GROUP', null, 90, 'ENABLED')
 on duplicate key update menu_name='数据与报表', sort_no=90, menu_status='ENABLED';
 
-update bp_menu set menu_name='租务办理', sort_no=20 where menu_code='group_application';
+update bp_menu set menu_name='租务管理', sort_no=20 where menu_code='group_application';
 update bp_menu set menu_name='合同管理', sort_no=30 where menu_code='group_contract';
 update bp_menu set menu_name='房源与资产', sort_no=40 where menu_code='group_asset';
 update bp_menu set menu_name='收费与账务', sort_no=50 where menu_code='group_finance';
@@ -15,7 +15,7 @@ update bp_menu set menu_name='风险与预警', sort_no=80 where menu_code='grou
 update bp_menu set menu_name='数据与报表', sort_no=90 where menu_code='group_data';
 update bp_menu set menu_name='系统管理', sort_no=100 where menu_code='group_system';
 
--- 租务办理：合并轮候与配租
+-- 租务管理：合并轮候与配租
 update bp_menu set parent_code='group_application', sort_no=80 where menu_code='waitlist';
 update bp_menu set parent_code='group_application', sort_no=90 where menu_code='allocations';
 update bp_menu set parent_code='group_application', sort_no=100 where menu_code='publicities';

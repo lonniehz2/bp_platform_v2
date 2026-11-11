@@ -1,0 +1,258 @@
+[
+  {
+    "key": "workbench",
+    "name": "工作台",
+    "items": [
+      {
+        "key": "dashboard",
+        "name": "工作台"
+      },
+      {
+        "key": "cockpit",
+        "name": "运营驾驶舱"
+      },
+      {
+        "key": "search",
+        "name": "统一查询"
+      },
+      {
+        "key": "todos",
+        "name": "我的待办"
+      },
+      {
+        "key": "audit",
+        "name": "审批中心"
+      },
+      {
+        "key": "message",
+        "name": "消息中心"
+      }
+    ]
+  },
+  {
+    "key": "application",
+    "name": "租务管理",
+    "items": [
+      {
+        "key": "applications",
+        "name": "申请受理"
+      },
+      {
+        "key": "person",
+        "name": "人员档案"
+      },
+      {
+        "key": "qualification",
+        "name": "资格复核"
+      },
+      {
+        "key": "waitlist",
+        "name": "轮候管理"
+      },
+      {
+        "key": "allocations",
+        "name": "配租摇号"
+      },
+      {
+        "key": "publicities",
+        "name": "公示管理"
+      }
+    ]
+  },
+  {
+    "key": "contract",
+    "name": "合同管理",
+    "items": [
+      {
+        "key": "contracts",
+        "name": "合同台账"
+      },
+      {
+        "key": "contractChanges",
+        "name": "合同变更"
+      },
+      {
+        "key": "exchanges",
+        "name": "换房管理"
+      },
+      {
+        "key": "terminations",
+        "name": "退租管理"
+      }
+    ]
+  },
+  {
+    "key": "asset",
+    "name": "房源与资产",
+    "items": [
+      {
+        "key": "asset",
+        "name": "项目与资产"
+      },
+      {
+        "key": "spaces",
+        "name": "空间层级"
+      },
+      {
+        "key": "houses",
+        "name": "房源台账"
+      },
+      {
+        "key": "calendar",
+        "name": "日房态"
+      },
+      {
+        "key": "listings",
+        "name": "房源展示"
+      },
+      {
+        "key": "shortrent",
+        "name": "短租管理"
+      }
+    ]
+  },
+  {
+    "key": "finance",
+    "name": "收费与账务",
+    "items": [
+      {
+        "key": "billing",
+        "name": "账单与缴费"
+      },
+      {
+        "key": "deposits",
+        "name": "押金管理"
+      },
+      {
+        "key": "subsidies",
+        "name": "补贴管理"
+      },
+      {
+        "key": "cashflow",
+        "name": "资金流水"
+      },
+      {
+        "key": "fee",
+        "name": "计费项目"
+      },
+      {
+        "key": "arrears",
+        "name": "欠费清单"
+      }
+    ]
+  },
+  {
+    "key": "service",
+    "name": "服务与监督",
+    "items": [
+      {
+        "key": "workOrders",
+        "name": "服务工单"
+      },
+      {
+        "key": "complaints",
+        "name": "投诉管理"
+      },
+      {
+        "key": "appeals",
+        "name": "申诉管理"
+      },
+      {
+        "key": "visits",
+        "name": "回访管理"
+      }
+    ]
+  },
+  {
+    "key": "access",
+    "name": "通行与设备",
+    "items": [
+      {
+        "key": "houseAccess",
+        "name": "房源通行"
+      },
+      {
+        "key": "devices",
+        "name": "设备管理"
+      },
+      {
+        "key": "deviceBind",
+        "name": "设备绑定"
+      },
+      {
+        "key": "devEvents",
+        "name": "设备告警"
+      },
+      {
+        "key": "accessRecords",
+        "name": "通行记录"
+      },
+      {
+        "key": "keyring",
+        "name": "钥匙包"
+      },
+      {
+        "key": "grants",
+        "name": "通行授权"
+      }
+    ]
+  },
+  {
+    "key": "risk",
+    "name": "风险与预警",
+    "items": [
+      {
+        "key": "alertCenter",
+        "name": "预警中心"
+      },
+      {
+        "key": "patrol",
+        "name": "巡检管理"
+      },
+      {
+        "key": "credit",
+        "name": "信用管理"
+      }
+    ]
+  },
+  {
+    "key": "data",
+    "name": "数据与报表",
+    "items": [
+      {
+        "key": "reports",
+        "name": "报表中心"
+      },
+      {
+        "key": "gov",
+        "name": "监管报送"
+      }
+    ]
+  },
+  {
+    "key": "system",
+    "name": "系统管理",
+    "items": [
+      {
+        "key": "orgs",
+        "name": "组织机构"
+      },
+      {
+        "key": "rbac",
+        "name": "用户与权限"
+      },
+      {
+        "key": "batchImport",
+        "name": "批量导入"
+      },
+      {
+        "key": "sys",
+        "name": "系统支撑"
+      },
+      {
+        "key": "help",
+        "name": "使用帮助"
+      }
+    ]
+  }
+]

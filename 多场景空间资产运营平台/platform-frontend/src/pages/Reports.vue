@@ -1,12 +1,9 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { sceneRoot } from '../scene'
 import { enumLabel } from '../enumLabels'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 
-const router = useRouter()
 const { t, te } = useI18n()
 const project = ref(null)
 const compare = ref([])
@@ -141,7 +138,6 @@ function exportCsv() {
 }
 
 watch(active, key => { statusFilter.value = ''; applySaved(key) })
-function openProject(row) { localStorage.setItem('platformProjectId', String(row.projectId)); router.push(sceneRoot() + '/cockpit') }
 function saveSubscription() {
   if (!subscription.value.recipients.trim()) { error.value = t('reports.recipientsRequired'); return }
   subscriptions.value = [...subscriptions.value, { report: title.value, frequency: subscription.value.frequency, recipients: subscription.value.recipients.trim(), enabled: subscription.value.enabled }]
