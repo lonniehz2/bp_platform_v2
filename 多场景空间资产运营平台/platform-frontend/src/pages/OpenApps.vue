@@ -2,7 +2,9 @@
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import { can } from '../permissions'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const apps = ref([])
 const error = ref('')
 const busy = ref(false)
@@ -17,7 +19,7 @@ async function load() {
 async function create() {
   busy.value = true; error.value = ''; createdSecret.value = ''
   try {
-    if (!form.appCode.trim() || !form.appName.trim()) throw new Error('请填写应用编码和名称')
+    if (!form.appCode.trim() || !form.appName.trim()) throw new Error(t('openApps.required'))
     const r = await api.createOpenApp({ appCode: form.appCode.trim(), appName: form.appName.trim(), scopes: form.scopes })
     createdSecret.value = r.appSecret
     form.appCode = ''; form.appName = ''; form.scopes = ''
@@ -37,30 +39,30 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>开放平台</h2><p>第三方应用接入凭证和授权范围</p></div><span class="badge blue">{{ apps.length }} 个应用</span></div>
+      <div class="panel-head"><div><h2>{{ t('openApps.title') }}</h2><p>{{ t('openApps.subtitle') }}</p></div><span class="badge blue">{{ apps.length }} {{ t('openApps.count') }}</span></div>
       <div class="row">
-        <div class="field"><label>应用编码</label><input v-model="form.appCode" placeholder="如 GOV_SYNC" /></div>
-        <div class="field"><label>应用名称</label><input v-model="form.appName" placeholder="监管数据同步" /></div>
-        <div class="field" style="flex:2"><label>授权范围</label><input v-model="form.scopes" placeholder="project:read,bill:read" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('open')" class="primary" :disabled="busy" @click="create">创建应用</button></div>
+        <div class="field"><label>{{ t('openApps.appCode') }}</label><input v-model="form.appCode" :placeholder="t('openApps.codePlaceholder')" /></div>
+        <div class="field"><label>{{ t('openApps.appName') }}</label><input v-model="form.appName" :placeholder="t('openApps.namePlaceholder')" /></div>
+        <div class="field" style="flex:2"><label>{{ t('openApps.scopes') }}</label><input v-model="form.scopes" :placeholder="t('openApps.scopes')" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('open')" class="primary" :disabled="busy" @click="create">{{ t('openApps.create') }}</button></div>
       </div>
       <div v-if="createdSecret" class="alert" style="margin-top:10px">
-        应用密钥只显示一次：<span class="mono">{{ createdSecret }}</span>
+        {{ t('openApps.secret') }}: <span class="mono">{{ createdSecret }}</span>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>应用列表</h2><span class="small muted">停用后不可调用开放接口</span></div>
-      <div v-if="!apps.length" class="empty">暂无应用</div>
+      <div class="panel-head"><h2>{{ t('openApps.list') }}</h2><span class="small muted">{{ t('openApps.hint') }}</span></div>
+      <div v-if="!apps.length" class="empty">{{ t('openApps.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>应用编码</th><th>名称</th><th>授权范围</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('openApps.appCode') }}</th><th>{{ t('openApps.name') }}</th><th>{{ t('openApps.scopes') }}</th><th>{{ t('openApps.status') }}</th><th>{{ t('openApps.createTime') }}</th><th>{{ t('openApps.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="a in apps" :key="a.id">
               <td class="mono">{{ a.appCode }}</td><td>{{ a.appName }}</td><td class="small">{{ a.scopes || '-' }}</td>
               <td><span class="badge" :class="a.appStatus === 'ENABLED' ? 'green' : 'orange'">{{ a.appStatus }}</span></td>
               <td class="small">{{ a.createTime }}</td>
-              <td><button v-if="can('open')" class="sm" @click="toggle(a)">{{ a.appStatus === 'ENABLED' ? '停用' : '启用' }}</button></td>
+              <td><button v-if="can('open')" class="sm" @click="toggle(a)">{{ a.appStatus === 'ENABLED' ? t('openApps.disable') : t('openApps.enable') }}</button></td>
             </tr>
           </tbody>
         </table>

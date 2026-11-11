@@ -12,7 +12,6 @@
   "src/pages/GovReport.vue",
   "src/pages/Help.vue",
   "src/pages/ImportCenter.vue",
-  "src/pages/OpenApps.vue",
   "src/pages/Patrol.vue",
   "src/pages/Persons.vue",
   "src/pages/Projects.vue",
