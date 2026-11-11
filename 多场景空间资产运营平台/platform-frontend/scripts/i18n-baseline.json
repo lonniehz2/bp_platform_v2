@@ -10,7 +10,6 @@
   "src/pages/Contracts.vue",
   "src/pages/Devices.vue",
   "src/pages/GovReport.vue",
-  "src/pages/Grants.vue",
   "src/pages/Help.vue",
   "src/pages/ImportCenter.vue",
   "src/pages/OpenApps.vue",

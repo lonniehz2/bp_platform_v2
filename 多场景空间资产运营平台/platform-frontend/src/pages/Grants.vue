@@ -4,7 +4,9 @@ import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { confirmAction } from '../confirm'
 import TreeSelect from '../components/TreeSelect.vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const persons = ref([])
 const spaces = ref([])
@@ -41,7 +43,7 @@ async function loadGrants() {
 async function create() {
   busy.value = true; error.value = ''
   try {
-    if (!personId.value || !form.targetId) throw new Error('请选择人员和授权空间')
+    if (!personId.value || !form.targetId) throw new Error(t('grants.required'))
     await api.createGrant({
       projectId: project.value.id, personId: personId.value, targetType: 'SPACE', targetId: form.targetId,
       grantLevel: 'OPEN', validStart: form.validStart, validEnd: form.validEnd, sourceType: 'MANUAL'
@@ -51,9 +53,9 @@ async function create() {
 }
 
 async function revoke(g) {
-  if (!await confirmAction({ title: '撤销授权', message: '确认撤销该授权？', confirmText: '撤销', danger: true })) return
+  if (!await confirmAction({ title: t('grants.revokeTitle'), message: t('grants.revokeMessage'), confirmText: t('grants.revokeConfirm'), danger: true })) return
   busy.value = true; error.value = ''
-  try { await api.revokeGrant(g.id, '授权撤销'); await loadGrants() } catch (e) { error.value = e.message } finally { busy.value = false }
+  try { await api.revokeGrant(g.id, t('grants.revokeReason')); await loadGrants() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
 onMounted(load)
@@ -63,28 +65,28 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>通行授权</h2><p>{{ project?.orgName || '未选择项目' }} · 人员到空间的通行授权</p></div><span class="badge blue">{{ grants.length }} 条</span></div>
+      <div class="panel-head"><div><h2>{{ t('grants.title') }}</h2><p>{{ project?.orgName || t('grants.noProject') }} · {{ t('grants.subtitle') }}</p></div><span class="badge blue">{{ grants.length }} {{ t('grants.count') }}</span></div>
       <div class="row">
-        <div class="field"><label>人员</label><SearchSelect v-model="personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" @change="loadGrants" /></div>
-        <div class="field"><label>授权空间</label><TreeSelect v-model="form.targetId" :nodes="spaces" label-key="spaceName" value-key="id" parent-key="parentId" placeholder="选择授权空间" /></div>
-        <div class="field"><label>开始</label><input v-model="form.validStart" type="date" /></div>
-        <div class="field"><label>结束</label><input v-model="form.validEnd" type="date" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="create">新增授权</button></div>
+        <div class="field"><label>{{ t('grants.person') }}</label><SearchSelect v-model="personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" :placeholder="t('grants.searchPerson')" @change="loadGrants" /></div>
+        <div class="field"><label>{{ t('grants.target') }}</label><TreeSelect v-model="form.targetId" :nodes="spaces" label-key="spaceName" value-key="id" parent-key="parentId" :placeholder="t('grants.selectTarget')" /></div>
+        <div class="field"><label>{{ t('grants.start') }}</label><input v-model="form.validStart" type="date" /></div>
+        <div class="field"><label>{{ t('grants.end') }}</label><input v-model="form.validEnd" type="date" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="create">{{ t('grants.add') }}</button></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>授权列表</h2><span class="small muted">授权到空间，按人员查看</span></div>
-      <div v-if="!grants.length" class="empty">暂无授权</div>
+      <div class="panel-head"><h2>{{ t('grants.list') }}</h2><span class="small muted">{{ t('grants.hint') }}</span></div>
+      <div v-if="!grants.length" class="empty">{{ t('grants.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>类型</th><th>对象</th><th>级别</th><th>有效期</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('grants.type') }}</th><th>{{ t('grants.object') }}</th><th>{{ t('grants.level') }}</th><th>{{ t('grants.validity') }}</th><th>{{ t('grants.status') }}</th><th>{{ t('grants.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="g in grants" :key="g.id">
               <td>{{ g.targetType }}</td><td class="mono">{{ g.targetId }}</td><td>{{ g.grantLevel }}</td>
-              <td class="small">{{ g.validStart }} ~ {{ g.validEnd || '长期' }}</td>
+              <td class="small">{{ g.validStart }} ~ {{ g.validEnd || t('grants.longTerm') }}</td>
               <td><span class="badge" :class="g.grantStatus === 'ACTIVE' ? 'green' : 'orange'">{{ g.grantStatus }}</span></td>
-              <td><button v-if="g.grantStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="revoke(g)">撤销</button></td>
+              <td><button v-if="g.grantStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="revoke(g)">{{ t('grants.revoke') }}</button></td>
             </tr>
           </tbody>
         </table>
