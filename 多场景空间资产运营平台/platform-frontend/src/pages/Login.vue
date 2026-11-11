@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 import { setLocale } from '../i18n'
+import { currentScene, sceneRoot } from '../scene'
 import { mode, toggleMode } from '../ui'
 
 const router = useRouter()
@@ -24,7 +25,7 @@ async function submit() {
     localStorage.setItem('platformToken', result.token)
     localStorage.setItem('platformUser', JSON.stringify(result))
     try {
-      const menus = await api.myMenus('GUARANTEE')
+      const menus = await api.myMenus(currentScene())
       localStorage.setItem('platformMenus', JSON.stringify(menus))
     } catch {}
     try {
@@ -32,7 +33,8 @@ async function submit() {
       localStorage.setItem('platformPermissions', JSON.stringify(actions))
     } catch {}
     const roles = result.roles || []
-    const defaultPath = roles.some(r => ['GUARANTEE_ADMIN','GUARANTEE_MANAGER','ADMIN'].includes(r)) ? '/guarantee/cockpit' : '/guarantee/workbench'
+    const root = sceneRoot()
+    const defaultPath = roles.some(r => ['GUARANTEE_ADMIN','GUARANTEE_MANAGER','ADMIN'].includes(r)) ? `${root}/cockpit` : `${root}/workbench`
     await router.replace(defaultPath)
   } catch (e) {
     error.value = e.message

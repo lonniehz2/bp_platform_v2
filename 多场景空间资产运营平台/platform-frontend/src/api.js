@@ -1,3 +1,4 @@
+import { currentScene } from './scene'
 const BASE = '/api/v1/platform'
 const AUTH = '/api/v1/auth'
 const TENANT = '350600'
@@ -231,6 +232,6 @@ export const api = {
   roleActions: (roleId) => request(`/roles/${roleId}/actions`),
   saveRoleActions: (roleId, actions) => request(`/roles/${roleId}/actions`, { method: 'POST', body: JSON.stringify({ actions }) }),
   saveRoleScope: (roleId, body) => request(`/roles/${roleId}/scope`, { method: 'POST', body: JSON.stringify(body) }),
-  reportCompare: () => request('/reports/projects/compare'),
-  reportCockpit: (id) => request(`/reports/projects/${id}/cockpit`),
+  reportCompare: () => request(`/reports/projects/compare?sceneCode=${currentScene()}`),
+  reportCockpit: (id) => request(`/reports/projects/${id}/cockpit?sceneCode=${currentScene()}`),
 }

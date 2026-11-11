@@ -21,11 +21,11 @@ public class ReportService {
         this.dataScope = dataScope;
     }
 
-    public List<Map<String, Object>> projectCompare() {
+    public List<Map<String, Object>> projectCompare(String sceneCode) {
         String tenant = TenantContext.require();
         Set<Long> scope = dataScope.projectIds();
         List<Map<String, Object>> projects = jdbc.queryForList(
-                "select id, org_code orgCode, org_name orgName from bp_org where tenant_id=? and scene_code='GUARANTEE' and org_type='PROJECT' and status='ENABLED' and is_deleted=0 order by sort_no, id", tenant);
+                "select id, org_code orgCode, org_name orgName from bp_org where tenant_id=? and scene_code=? and org_type='PROJECT' and status='ENABLED' and is_deleted=0 order by sort_no, id", tenant, sceneCode);
         List<Map<String, Object>> out = new ArrayList<>();
         for (Map<String, Object> p : projects) {
             long id = ((Number) p.get("id")).longValue();
@@ -35,12 +35,12 @@ public class ReportService {
         return out;
     }
 
-    public Map<String, Object> cockpit(long projectId) {
+    public Map<String, Object> cockpit(long projectId, String sceneCode) {
         String tenant = TenantContext.require();
         Set<Long> scope = dataScope.projectIds();
         if (scope != null && !scope.contains(projectId)) throw new BizException("BP40300", "无权查看该项目经营数据", 403);
         List<Map<String, Object>> rows = jdbc.queryForList(
-                "select id, org_code orgCode, org_name orgName from bp_org where tenant_id=? and id=? and is_deleted=0", tenant, projectId);
+                "select id, org_code orgCode, org_name orgName from bp_org where tenant_id=? and id=? and scene_code=? and is_deleted=0", tenant, projectId, sceneCode);
         if (rows.isEmpty()) throw BizException.notFound("项目不存在");
         return metrics(tenant, projectId, rows.get(0));
     }

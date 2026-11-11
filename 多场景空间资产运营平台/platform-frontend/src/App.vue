@@ -6,13 +6,15 @@ import { api } from './api'
 import { getMenus, setMenus } from './permissions'
 import { mode, toggleMode } from './ui'
 import { setLocale } from './i18n'
+import { currentScene } from './scene'
 import { navGroups, navItems } from './navConfig'
 import SearchSelect from './components/SearchSelect.vue'
 import ConfirmDialog from './components/ConfirmDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
-const { t, locale } = useI18n()
+const { t, te, locale } = useI18n()
+const sceneCode = ref(currentScene())
 
 const isLogin = computed(() => route.path === '/login')
 const collapsed = ref(localStorage.getItem('platformSidebar') === '1')
@@ -51,12 +53,12 @@ const sidebarGroups = computed(() => {
   if (!menuTree.value.length) return visibleGroups.value
   return menuTree.value.map(g => ({
     key: g.menuCode,
-    label: g.menuName,
+    label: te(`group.${g.menuCode.replace('group_', '')}`) ? t(`group.${g.menuCode.replace('group_', '')}`) : g.menuName,
     icon: groupIconMap[g.menuCode] || '•',
     items: (g.children || []).map(p => ({
       to: p.route,
       key: p.menuCode,
-      label: p.menuName,
+      label: te(`nav.${p.menuCode}`) ? t(`nav.${p.menuCode}`) : p.menuName,
       icon: '·'
     }))
   })).filter(g => g.items.length)
@@ -132,7 +134,7 @@ onMounted(async () => {
   try {
     if (localStorage.getItem('platformToken')) {
       try {
-        const [menus, tree] = await Promise.all([api.myMenus('GUARANTEE'), api.myMenuTree('GUARANTEE')])
+        const [menus, tree] = await Promise.all([api.myMenus('GUARANTEE'), api.myMenuTree(sceneCode.value)])
         setMenus(menus)
         allowedMenus.value = menus
         menuTree.value = tree || []

@@ -18,8 +18,8 @@ public class ReportController {
     public ReportController(ReportService service) { this.service = service; }
 
     @GetMapping("/projects/compare")
-    public R<List<Map<String, Object>>> compare() { return R.ok(service.projectCompare()); }
+    public R<List<Map<String, Object>>> compare(@org.springframework.web.bind.annotation.RequestParam(defaultValue = "GUARANTEE") String sceneCode) { return R.ok(service.projectCompare(sceneCode)); }
 
     @GetMapping("/projects/{projectId}/cockpit")
-    public R<Map<String, Object>> cockpit(@PathVariable long projectId) { return R.ok(service.cockpit(projectId)); }
+    public R<Map<String, Object>> cockpit(@PathVariable long projectId, @org.springframework.web.bind.annotation.RequestParam(defaultValue = "GUARANTEE") String sceneCode) { return R.ok(service.cockpit(projectId, sceneCode)); }
 }
