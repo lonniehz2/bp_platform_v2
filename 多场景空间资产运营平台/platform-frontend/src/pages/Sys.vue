@@ -1,7 +1,10 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
+import { currentScene } from '../scene'
 
+const { t } = useI18n()
 const projects = ref([])
 const users = ref([])
 const roles = ref([])
@@ -12,7 +15,7 @@ onMounted(async () => {
   try {
     projects.value = await api.projects()
     users.value = await api.users()
-    roles.value = await api.roles('GUARANTEE')
+    roles.value = await api.roles(currentScene())
     auditLogs.value = await api.auditLogs(20).catch(() => [])
   } catch (e) { error.value = e.message }
 })
@@ -22,19 +25,19 @@ onMounted(async () => {
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>系统支撑</h2><p>平台基础配置、权限、开放和运维入口</p></div><span class="badge blue">SYSTEM</span></div>
+      <div class="panel-head"><div><h2>{{ t('sys.title') }}</h2><p>{{ t('sys.subtitle') }}</p></div><span class="badge blue">SYSTEM</span></div>
       <div class="grid cards">
-        <div class="card"><div class="label">项目</div><div class="value">{{ projects.length }}</div><div class="hint">组织/项目</div></div>
-        <div class="card"><div class="label">用户</div><div class="value">{{ users.length }}</div><div class="hint">平台账号</div></div>
-        <div class="card"><div class="label">角色</div><div class="value">{{ roles.length }}</div><div class="hint">场景角色</div></div>
+        <div class="card"><div class="label">{{ t('sys.projects') }}</div><div class="value">{{ projects.length }}</div><div class="hint">{{ t('sys.projectHint') }}</div></div>
+        <div class="card"><div class="label">{{ t('sys.users') }}</div><div class="value">{{ users.length }}</div><div class="hint">{{ t('sys.userHint') }}</div></div>
+        <div class="card"><div class="label">{{ t('sys.roles') }}</div><div class="value">{{ roles.length }}</div><div class="hint">{{ t('sys.roleHint') }}</div></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>操作审计</h2><span class="small muted">最近 20 条写操作</span></div>
-      <div v-if="!auditLogs.length" class="empty">暂无审计日志</div>
+      <div class="panel-head"><h2>{{ t('sys.audit') }}</h2><span class="small muted">{{ t('sys.auditHint') }}</span></div>
+      <div v-if="!auditLogs.length" class="empty">{{ t('sys.empty') }}</div>
       <div class="table-wrap" v-else>
-        <table><thead><tr><th>时间</th><th>用户</th><th>方法</th><th>路径</th><th>状态</th><th>IP</th></tr></thead>
+        <table><thead><tr><th>{{ t('sys.time') }}</th><th>{{ t('sys.users') }}</th><th>{{ t('sys.method') }}</th><th>{{ t('sys.path') }}</th><th>{{ t('sys.status') }}</th><th>IP</th></tr></thead>
           <tbody><tr v-for="l in auditLogs" :key="l.id">
             <td class="small">{{ l.createTime }}</td><td>{{ l.username }}</td><td class="mono">{{ l.method }}</td>
             <td class="mono small">{{ l.path }}</td><td>{{ l.statusCode }}</td><td class="small">{{ l.ip }}</td>
@@ -44,10 +47,10 @@ onMounted(async () => {
     </div>
 
     <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-      <div class="panel"><div class="panel-head"><h2>用户与权限</h2></div><div class="row"><RouterLink class="badge blue" to="/users">用户管理</RouterLink><RouterLink class="badge blue" to="/menus">菜单与角色</RouterLink></div></div>
-      <div class="panel"><div class="panel-head"><h2>开放与数据</h2></div><div class="row"><RouterLink class="badge blue" to="/open-apps">开放平台</RouterLink><RouterLink class="badge blue" to="/migration-exceptions">迁移异常</RouterLink></div></div>
-      <div class="panel"><div class="panel-head"><h2>运行信息</h2></div><div class="row"><RouterLink class="badge blue" to="/platform-info">平台信息</RouterLink><RouterLink class="badge blue" to="/help">使用帮助</RouterLink></div></div>
-      <div class="panel"><div class="panel-head"><h2>业务数据</h2></div><div class="row"><RouterLink class="badge blue" to="/translations">业务数据翻译</RouterLink><RouterLink class="badge blue" to="/reports">报表导出</RouterLink></div></div>
+      <div class="panel"><div class="panel-head"><h2>{{ t('sys.permissions') }}</h2></div><div class="row"><RouterLink class="badge blue" to="/users">{{ t('sys.userMgmt') }}</RouterLink><RouterLink class="badge blue" to="/menus">{{ t('sys.menus') }}</RouterLink></div></div>
+      <div class="panel"><div class="panel-head"><h2>{{ t('sys.open') }}</h2></div><div class="row"><RouterLink class="badge blue" to="/open-apps">{{ t('sys.openApps') }}</RouterLink><RouterLink class="badge blue" to="/migration-exceptions">{{ t('sys.migration') }}</RouterLink></div></div>
+      <div class="panel"><div class="panel-head"><h2>{{ t('sys.runtime') }}</h2></div><div class="row"><RouterLink class="badge blue" to="/platform-info">{{ t('sys.platformInfo') }}</RouterLink><RouterLink class="badge blue" to="/help">{{ t('sys.help') }}</RouterLink></div></div>
+      <div class="panel"><div class="panel-head"><h2>{{ t('sys.business') }}</h2></div><div class="row"><RouterLink class="badge blue" to="/translations">{{ t('sys.translations') }}</RouterLink><RouterLink class="badge blue" to="/reports">{{ t('sys.reports') }}</RouterLink></div></div>
     </div>
   </div>
 </template>
