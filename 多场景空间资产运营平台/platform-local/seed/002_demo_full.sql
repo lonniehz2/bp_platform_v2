@@ -188,9 +188,9 @@ insert ignore into bp_booking
 values
 (990000000000002501,'350600',990000000000000001,990000000000002401,990000000000000301,'DEMO_BOOK_001','PENDING','13800000001','演示看房预约',0);
 insert ignore into bp_listing_order
-(id, tenant_id, project_id, listing_id, booking_id, person_id, order_no, order_status, rent_amount, deposit_amount, is_deleted, payment_status)
+(id, tenant_id, project_id, listing_id, booking_id, person_id, order_no, order_status, rent_amount, deposit_amount, is_deleted)
 values
-(990000000000002601,'350600',990000000000000001,990000000000002401,990000000000002501,990000000000000301,'DEMO_ORDER_001','CONFIRMED',900.00,900.00,0,'UNPAID');
+(990000000000002601,'350600',990000000000000001,990000000000002401,990000000000002501,990000000000000301,'DEMO_ORDER_001','CONFIRMED',900.00,900.00,0);
 
 -- 合同变更
 insert ignore into guarantee_contract_change
@@ -208,10 +208,12 @@ values
 insert ignore into bp_user
 (id, tenant_id, username, password_hash, display_name, user_status, is_deleted)
 values
-(990000000000002901,'350600','demo_manager','$2b$10$HVUYQSbuwXgAHW5uDfv1T.1ndyEO/8xhF5JSNEbe0dawi/dJinQl.','演示经理','ENABLED',0),
-(990000000000002902,'350600','demo_finance','$2b$10$HVUYQSbuwXgAHW5uDfv1T.1ndyEO/8xhF5JSNEbe0dawi/dJinQl.','演示财务','ENABLED',0),
-(990000000000002903,'350600','demo_steward','$2b$10$HVUYQSbuwXgAHW5uDfv1T.1ndyEO/8xhF5JSNEbe0dawi/dJinQl.','演示客服','ENABLED',0);
+(990000000000002901,'350600','demo_manager','$2a$10$hA0eKiDJdf.Z0BzkKWcrbOWPs.mH4vHfDJqSiLTZVqfccD/L305rW','演示经理','ENABLED',0),
+(990000000000002902,'350600','demo_finance','$2a$10$hA0eKiDJdf.Z0BzkKWcrbOWPs.mH4vHfDJqSiLTZVqfccD/L305rW','演示财务','ENABLED',0),
+(990000000000002903,'350600','demo_steward','$2a$10$hA0eKiDJdf.Z0BzkKWcrbOWPs.mH4vHfDJqSiLTZVqfccD/L305rW','演示客服','ENABLED',0),
+(990000000000002904,'350600','admin','$2a$10$hA0eKiDJdf.Z0BzkKWcrbOWPs.mH4vHfDJqSiLTZVqfccD/L305rW','管理员','ENABLED',0);
 insert ignore into bp_user_role(id, tenant_id, user_id, role_id) values
 (990000000000003001,'350600',990000000000002901,930000000000000002),
 (990000000000003002,'350600',990000000000002902,930000000000000003),
-(990000000000003003,'350600',990000000000002903,930000000000000004);
+(990000000000003003,'350600',990000000000002903,930000000000000004),
+(990000000000003004,'350600',990000000000002904,930000000000000001);
