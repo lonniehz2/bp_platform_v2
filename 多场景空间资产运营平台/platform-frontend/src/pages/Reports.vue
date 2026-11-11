@@ -3,19 +3,57 @@ import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
 
 const project = ref(null)
+const compare = ref([])
 const applications = ref([])
 const contracts = ref([])
 const bills = ref([])
 const payments = ref([])
-const compare = ref([])
 const devices = ref([])
+const houses = ref([])
+const workOrders = ref([])
+const alerts = ref([])
+const active = ref('projects')
 const error = ref('')
-
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
-const totalBills = computed(() => bills.value.reduce((s, b) => s + Number(b.amount || 0), 0))
-const totalPaid = computed(() => bills.value.reduce((s, b) => s + Number(b.paidAmount || 0), 0))
-const totalOutstanding = computed(() => bills.value.reduce((s, b) => s + Math.max(0, Number(b.payableAmount || b.amount || 0) - Number(b.paidAmount || 0)), 0))
-const activeContracts = computed(() => contracts.value.filter(c => c.contractStatus === 'ACTIVE').length)
+
+const reports = [
+  { key: 'projects', label: '项目经营对比' },
+  { key: 'applications', label: '申请受理' },
+  { key: 'contracts', label: '合同台账' },
+  { key: 'bills', label: '应收实收' },
+  { key: 'arrears', label: '欠费清单' },
+  { key: 'houses', label: '房源台账' },
+  { key: 'workOrders', label: '工单统计' },
+  { key: 'devices', label: '设备台账' },
+  { key: 'payments', label: '资金流水' },
+  { key: 'regulatory', label: '监管报送' }
+]
+
+const columns = {
+  projects: [['orgName','项目'],['houses','房源'],['occupancyRate','出租率'],['receivable','应收'],['received','实收'],['collectionRate','收缴率'],['outstanding','欠费'],['workOrders','工单']],
+  applications: [['applicationNo','申请编号'],['applicantName','申请人'],['applicationType','类型'],['familySize','家庭人数'],['applicationStatus','状态']],
+  contracts: [['contractNo','合同号'],['personName','承租人'],['houseName','房屋'],['startDate','开始'],['endDate','结束'],['rentAmount','租金'],['contractStatus','状态']],
+  bills: [['billNo','账单号'],['personName','承租人'],['periodStart','账期起'],['periodEnd','账期止'],['payableAmount','应付'],['paidAmount','已收'],['billStatus','状态']],
+  houses: [['houseCode','房源编码'],['houseName','名称'],['area','面积'],['layoutType','户型'],['houseStatus','房态']],
+  workOrders: [['orderNo','工单号'],['title','标题'],['orderType','类型'],['assigneeName','处理人'],['orderStatus','状态']],
+  devices: [['deviceCode','设备编码'],['deviceName','名称'],['deviceType','类型'],['businessStatus','业务状态']],
+  payments: [['paymentNo','收款单号'],['paymentMethod','方式'],['amount','金额'],['paidTime','时间'],['paymentStatus','状态']],
+  regulatory: [['orgName','项目'],['houses','房源'],['occupancyRate','出租率'],['receivable','应收'],['received','实收'],['outstanding','欠费']]
+}
+const rows = computed(() => ({
+  projects: compare.value,
+  applications: applications.value,
+  contracts: contracts.value,
+  bills: bills.value,
+  arrears: bills.value.filter(b => b.billStatus !== 'PAID'),
+  houses: houses.value,
+  workOrders: workOrders.value,
+  devices: devices.value,
+  payments: payments.value,
+  regulatory: compare.value
+}[active.value] || []))
+const cols = computed(() => columns[active.value] || [])
+const title = computed(() => reports.find(r => r.key === active.value)?.label || '报表')
 
 async function currentProject() {
   const all = await api.projects()
@@ -27,26 +65,35 @@ async function load() {
   error.value = ''
   try {
     project.value = await currentProject()
+    compare.value = await api.reportCompare()
     if (!project.value) return
     const id = project.value.id
-    const [a, c, b, p, d] = await Promise.all([
-      api.applications(id), api.contracts(id), api.bills(id), api.payments(id), api.devices(id)
+    const [a, c, b, p, d, h, w, al] = await Promise.all([
+      api.applications(id), api.contracts(id), api.bills(id), api.payments(id),
+      api.devices(id), api.houses(id), api.workOrders(id), api.alerts(id)
     ])
-    applications.value = a; contracts.value = c; bills.value = b; payments.value = p; devices.value = d
-    compare.value = await api.reportCompare()
+    applications.value = a; contracts.value = c; bills.value = b; payments.value = p
+    devices.value = d; houses.value = h; workOrders.value = w; alerts.value = al
   } catch (e) { error.value = e.message }
 }
 
-function exportBills() {
-  const rows = [['账单号', '承租人', '周期开始', '周期结束', '账单金额', '补贴', '应付', '已收', '状态']]
-  bills.value.forEach(b => rows.push([b.billNo, b.personName || '', b.periodStart, b.periodEnd, b.amount, b.discountAmount || 0, b.payableAmount || b.amount, b.paidAmount, b.billStatus]))
-  const csv = '\ufeff' + rows.map(r => r.map(x => `"${String(x ?? '').replace(/"/g, '""')}"`).join(',')).join('\n')
+function display(row, key) {
+  const v = row[key]
+  if (v === null || v === undefined || v === '') return '-'
+  if (['receivable','received','outstanding','amount','payableAmount','paidAmount','rentAmount'].includes(key)) return '¥' + money(v)
+  if (['occupancyRate','collectionRate'].includes(key)) return v + '%'
+  return v
+}
+
+function exportCsv() {
+  const header = cols.value.map(c => c[1])
+  const data = rows.value.map(row => cols.value.map(([key]) => row[key] ?? ''))
+  const csv = '\ufeff' + [header, ...data].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
-  link.download = `保障房账单_${project.value?.orgCode || 'export'}.csv`
-  link.click()
-  URL.revokeObjectURL(link.href)
+  link.download = `报表_${title.value}.csv`
+  link.click(); URL.revokeObjectURL(link.href)
 }
 
 onMounted(load)
@@ -56,37 +103,25 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>报表中心</h2><p>{{ project?.orgName || '未选择项目' }} · 申请、合同、账单、收款、设备</p></div><button class="primary" @click="exportBills">导出账单 CSV</button></div>
-      <div class="grid cards">
-        <div class="card"><div class="label">申请数</div><div class="value">{{ applications.length }}</div><div class="hint">待审 {{ applications.filter(a => a.applicationStatus === 'SUBMITTED').length }}</div></div>
-        <div class="card"><div class="label">合同数</div><div class="value">{{ contracts.length }}</div><div class="hint">生效 {{ activeContracts }}</div></div>
-        <div class="card"><div class="label">账单金额</div><div class="value">¥{{ money(totalBills) }}</div><div class="hint">已收 ¥{{ money(totalPaid) }}</div></div>
-        <div class="card"><div class="label">欠费</div><div class="value">¥{{ money(totalOutstanding) }}</div><div class="hint">未结清 {{ bills.filter(b => b.billStatus !== 'PAID').length }} 笔</div></div>
-        <div class="card"><div class="label">设备</div><div class="value">{{ devices.length }}</div><div class="hint">业务台账</div></div>
+      <div class="panel-head"><div><h2>报表中心</h2><p>{{ project?.orgName || '未选择项目' }} · 经营明细与监管数据</p></div><button class="primary" @click="exportCsv">导出当前报表</button></div>
+      <div class="tab-strip">
+        <button v-for="r in reports" :key="r.key" class="tab-btn" :class="{ active: active === r.key }" @click="active = r.key">{{ r.label }}</button>
       </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h2>项目经营对比</h2><span class="small muted">出租率 / 收缴率 / 欠费</span></div>
-      <div v-if="!compare.length" class="empty">暂无项目经营数据</div>
-      <div v-else class="table-wrap"><table><thead><tr><th>项目</th><th>房源</th><th>出租率</th><th>应收</th><th>实收</th><th>收缴率</th><th>欠费</th><th>工单</th></tr></thead><tbody>
-        <tr v-for="p in compare" :key="p.projectId"><td><strong>{{ p.orgName }}</strong></td><td>{{ p.houses }}</td><td>{{ p.occupancyRate }}%</td><td>¥{{ money(p.receivable) }}</td><td>¥{{ money(p.received) }}</td><td>{{ p.collectionRate }}%</td><td>¥{{ money(p.outstanding) }}</td><td>{{ p.workOrders }}</td></tr>
-      </tbody></table></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h2>账单状态分布</h2></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>状态</th><th>笔数</th><th>金额</th></tr></thead>
-          <tbody>
-            <tr v-for="s in ['UNPAID','PARTIAL','PAID','OVERDUE','WAIVED']" :key="s">
-              <td><span class="badge" :class="s === 'PAID' ? 'green' : s === 'OVERDUE' ? 'red' : 'orange'">{{ s }}</span></td>
-              <td>{{ bills.filter(b => b.billStatus === s).length }}</td>
-              <td>¥{{ money(bills.filter(b => b.billStatus === s).reduce((sum, b) => sum + Number(b.amount || 0), 0)) }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="row" style="justify-content:space-between;align-items:center;margin:8px 0">
+        <strong>{{ title }}</strong><span class="small muted">共 {{ rows.length }} 条</span>
+      </div>
+      <div v-if="!rows.length" class="empty">暂无数据</div>
+      <div v-else class="table-wrap">
+        <table><thead><tr><th v-for="c in cols" :key="c[0]">{{ c[1] }}</th></tr></thead><tbody>
+          <tr v-for="(row, i) in rows" :key="i"><td v-for="c in cols" :key="c[0]">{{ display(row, c[0]) }}</td></tr>
+        </tbody></table>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.tab-strip{display:flex;gap:6px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab-btn{border:0;background:transparent;padding:8px 10px;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tab-btn.active{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+</style>
