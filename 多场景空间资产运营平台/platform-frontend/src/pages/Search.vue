@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const keyword = ref('')
 const projects = ref([])
 const persons = ref([])
@@ -39,37 +41,37 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>统一查询</h2><p>项目、人员、当前项目合同</p></div><span class="badge blue">{{ projects.length }} 项目 · {{ persons.length }} 人员</span></div>
+      <div class="panel-head"><div><h2>{{ t('search.title') }}</h2><p>{{ t('search.subtitle') }}</p></div><span class="badge blue">{{ projects.length }} {{ t('search.projects') }} · {{ persons.length }} {{ t('search.persons') }}</span></div>
       <div class="row">
-        <div class="field" style="flex:2"><label>关键字</label><input v-model="keyword" placeholder="项目名称/编码、人员姓名/手机号、合同号" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" @click="load">刷新数据</button></div>
+        <div class="field" style="flex:2"><label>{{ t('search.keyword') }}</label><input v-model="keyword" :placeholder="t('search.placeholder')" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" @click="load">{{ t('search.refresh') }}</button></div>
       </div>
     </div>
 
-    <div v-if="!q" class="empty">输入关键字开始查询</div>
-    <div v-else-if="!hasResult" class="empty">没有匹配结果</div>
+    <div v-if="!q" class="empty">{{ t('search.start') }}</div>
+    <div v-else-if="!hasResult" class="empty">{{ t('search.noResult') }}</div>
     <template v-else>
       <div v-if="projectHits.length" class="panel">
-        <div class="panel-head"><h2>项目</h2><span class="small muted">{{ projectHits.length }} 条</span></div>
+        <div class="panel-head"><h2>{{ t('search.project') }}</h2><span class="small muted">{{ projectHits.length }} {{ t('search.records') }}</span></div>
         <div v-for="p in projectHits" :key="p.id" class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div>{{ p.orgName }}</div><div class="mono">{{ p.orgCode }}</div></div>
-          <RouterLink to="/projects">查看</RouterLink>
+          <RouterLink to="/projects">{{ t('search.view') }}</RouterLink>
         </div>
       </div>
 
       <div v-if="personHits.length" class="panel">
-        <div class="panel-head"><h2>人员</h2><span class="small muted">{{ personHits.length }} 条</span></div>
+        <div class="panel-head"><h2>{{ t('search.person') }}</h2><span class="small muted">{{ personHits.length }} {{ t('search.records') }}</span></div>
         <div v-for="p in personHits" :key="p.id" class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div>{{ p.personName }}</div><div class="mono">{{ p.personCode }} · {{ p.phone }}</div></div>
-          <RouterLink to="/persons">查看</RouterLink>
+          <RouterLink to="/persons">{{ t('search.view') }}</RouterLink>
         </div>
       </div>
 
       <div v-if="contractHits.length" class="panel">
-        <div class="panel-head"><h2>合同 · {{ project?.orgName }}</h2><span class="small muted">{{ contractHits.length }} 条</span></div>
+        <div class="panel-head"><h2>{{ t('search.contract') }} · {{ project?.orgName }}</h2><span class="small muted">{{ contractHits.length }} {{ t('search.records') }}</span></div>
         <div v-for="c in contractHits" :key="c.id" class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div class="mono">{{ c.contractNo }}</div><div class="small muted">{{ c.personName }} · {{ c.houseName }}</div></div>
-          <RouterLink to="/contracts">查看</RouterLink>
+          <RouterLink to="/contracts">{{ t('search.view') }}</RouterLink>
         </div>
       </div>
     </template>

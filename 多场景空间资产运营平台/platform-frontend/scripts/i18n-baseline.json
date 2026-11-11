@@ -35,7 +35,6 @@
   "src/pages/Projects.vue",
   "src/pages/Qualification.vue",
   "src/pages/Reports.vue",
-  "src/pages/Search.vue",
   "src/pages/ShortRent.vue",
   "src/pages/Subsidies.vue",
   "src/pages/Sys.vue",
