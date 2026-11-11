@@ -1,6 +1,6 @@
 {
-  "remoteCommit": "01e9635",
-  "remoteDeployedAt": "2026-11-10T21:13:00+08:00",
+  "remoteCommit": "f1444f8",
+  "remoteDeployedAt": "2026-11-11T12:10:00+08:00",
   "verified": "VERIFY OK: 168 assertions passed",
-  "note": "最后一次确认成功的远程部署；本地后续提交见 version-diff.ps1"
+  "note": "2026-11-11 增量部署：021/022 已执行，远程 8090 健康，168 断言通过；数据库备份 backup/bp_platform_v2_20261111_110057.sql.gz"
 }
