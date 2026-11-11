@@ -54,7 +54,7 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>运营报表</h2><p>{{ project?.orgName || '未选择项目' }} · 申请、合同、账单、收款、设备</p></div><button class="primary" @click="exportBills">导出账单 CSV</button></div>
+      <div class="panel-head"><div><h2>报表中心</h2><p>{{ project?.orgName || '未选择项目' }} · 申请、合同、账单、收款、设备</p></div><button class="primary" @click="exportBills">导出账单 CSV</button></div>
       <div class="grid cards">
         <div class="card"><div class="label">申请数</div><div class="value">{{ applications.length }}</div><div class="hint">待审 {{ applications.filter(a => a.applicationStatus === 'SUBMITTED').length }}</div></div>
         <div class="card"><div class="label">合同数</div><div class="value">{{ contracts.length }}</div><div class="hint">生效 {{ activeContracts }}</div></div>

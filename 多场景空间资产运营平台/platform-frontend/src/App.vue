@@ -43,9 +43,9 @@ const visibleGroups = computed(() => navGroups.map(g => ({
   items: g.items.filter(item => allowedMenus.value.length === 0 || allowedMenus.value.includes(item.menu))
 })).filter(g => g.items.length > 0))
 const groupIconMap = {
-  group_workbench: '◈', group_application: '☷', group_waitlist: '↕', group_contract: '▤',
+  group_workbench: '◈', group_application: '☷', group_contract: '▤',
   group_finance: '¥', group_asset: '▦', group_service: '⚒', group_access: '⌘',
-  group_risk: '⚠', group_system: '☰'
+  group_risk: '⚠', group_data: '▥', group_system: '☰'
 }
 const sidebarGroups = computed(() => {
   if (!menuTree.value.length) return visibleGroups.value

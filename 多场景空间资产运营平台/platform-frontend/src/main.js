@@ -68,6 +68,7 @@ const router = createRouter({
   routes: [
     { path: '/login', component: Login, meta: { title: '登录', public: true } },
     { path: '/', component: Dashboard, meta: { title: '工作台' } },
+    { path: '/guarantee/cockpit', component: Dashboard, meta: { title: '运营驾驶舱' } },
     { path: '/projects', component: Projects, meta: { title: '项目与资产' } },
     { path: '/persons', component: Persons, meta: { title: '客户与人员' } },
     { path: '/applications', component: Applications, meta: { title: '申请与轮候' } },
