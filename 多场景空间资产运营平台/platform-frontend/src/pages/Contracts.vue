@@ -8,7 +8,9 @@ import DataTable from '../components/DataTable.vue'
 import { confirmAction } from '../confirm'
 import { contractStatusLabel, contractStatusTone } from '../contractStatus'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const contracts = ref([])
 const persons = ref([])
@@ -46,15 +48,15 @@ const filteredContracts = computed(() => {
 })
 const pagedContracts = computed(() => filteredContracts.value.slice((page.value - 1) * 10, page.value * 10))
 const contractColumns = [
-  { key: 'contractNo', title: '合同编号', width: '170px' },
-  { key: 'houseName', title: '房屋', width: '150px' },
-  { key: 'personName', title: '承租人', width: '110px' },
-  { key: 'rentAmount', title: '租金', width: '90px' },
-  { key: 'depositAmount', title: '押金', width: '90px' },
-  { key: 'billingCycle', title: '周期', width: '80px' },
-  { key: 'billDay', title: '账单日', width: '70px' },
-  { key: 'contractStatus', title: '状态', width: '90px' },
-  { key: 'actions', title: '操作', width: '360px' }
+  { key: 'contractNo', title: t('ct.contractNo'), width: '170px' },
+  { key: 'houseName', title: t('ct.house'), width: '150px' },
+  { key: 'personName', title: t('ct.tenant'), width: '110px' },
+  { key: 'rentAmount', title: t('ct.rent'), width: '90px' },
+  { key: 'depositAmount', title: t('ct.deposit'), width: '90px' },
+  { key: 'billingCycle', title: t('ct.cycle'), width: '80px' },
+  { key: 'billDay', title: t('ct.billDay'), width: '70px' },
+  { key: 'contractStatus', title: t('ct.status'), width: '90px' },
+  { key: 'actions', title: t('ct.action'), width: '360px' }
 ]
 
 async function currentProject() {
@@ -89,12 +91,12 @@ async function load() {
 async function create() {
   busy.value = true; error.value = ''
   try {
-    if (!form.contractNo.trim()) throw new Error('请填写合同编号')
-    if (!form.houseId || !form.personId) throw new Error('请选择房屋和承租人')
-    if (!form.startDate || !form.endDate) throw new Error('请选择合同起止日期')
-    if (new Date(form.endDate) <= new Date(form.startDate)) throw new Error('合同结束日期必须晚于开始日期')
-    if (Number(form.rentAmount) < 0 || Number(form.depositAmount) < 0) throw new Error('租金和押金不能为负数')
-    if (Number(form.billDay) < 1 || Number(form.billDay) > 28) throw new Error('账单日需在 1-28 之间')
+    if (!form.contractNo.trim()) throw new Error(t('ct.requiredNo'))
+    if (!form.houseId || !form.personId) throw new Error(t('ct.requiredHousePerson'))
+    if (!form.startDate || !form.endDate) throw new Error(t('ct.requiredDates'))
+    if (new Date(form.endDate) <= new Date(form.startDate)) throw new Error(t('ct.requiredEndAfterStart'))
+    if (Number(form.rentAmount) < 0 || Number(form.depositAmount) < 0) throw new Error(t('ct.negativeAmount'))
+    if (Number(form.billDay) < 1 || Number(form.billDay) > 28) throw new Error(t('ct.billDayRange'))
     await api.createContract({
       projectId: project.value.id, contractNo: form.contractNo.trim(),
       houseId: form.houseId, personId: form.personId,
@@ -110,7 +112,7 @@ async function create() {
 
 async function contractAction(c, action) {
   if (action === 'discard' || action === 'withdraw') {
-    const ok = await confirmAction({ title: action === 'discard' ? '作废合同' : '撤回合同', message: `确认${action === 'discard' ? '作废' : '撤回'}合同 ${c.contractNo}？`, confirmText: action === 'discard' ? '作废' : '撤回', danger: action === 'discard' })
+    const ok = await confirmAction({ title: t(action === 'discard' ? 'ct.discardTitle' : 'ct.withdrawTitle'), message: t('ct.confirmAction', { action: t(action === 'discard' ? 'ct.discard' : 'ct.withdraw'), no: c.contractNo }), confirmText: t(action === 'discard' ? 'ct.discard' : 'ct.withdraw'), danger: action === 'discard' })
     if (!ok) return
   }
   error.value = ''
@@ -121,7 +123,7 @@ async function contractAction(c, action) {
     if (action === 'withdraw') await api.withdrawContract(c.id)
     if (action === 'discard') await api.discardContract(c.id)
     if (action === 'activate') {
-      const reason = window.prompt('无模板直接生效说明', '无审批模板，项目负责人确认直接生效')
+      const reason = window.prompt(t('ct.promptTitle'), t('ct.promptDefault'))
       if (reason === null) return
       await api.activateContract(c.id, reason)
     }
@@ -152,7 +154,7 @@ async function uploadFile(e) {
 }
 
 async function addCohabitant() {
-  if (!selectedContract.value || !cohabForm.personId) { error.value = '请选择人员'; return }
+  if (!selectedContract.value || !cohabForm.personId) { error.value = t('ct.requiredPerson'); return }
   busy.value = true; error.value = ''
   try {
     await api.addCohabitant(selectedContract.value.id, {
@@ -179,7 +181,7 @@ async function openPayment(c) {
       checked: false,
       amount: Number(b.payableAmount || 0) - Number(b.paidAmount || 0)
     }))
-    if (!payBills.value.length) { error.value = '该合同没有未结清账单'; return }
+    if (!payBills.value.length) { error.value = t('ct.noUnpaid'); return }
     payContractRow.value = c
     payMethod.value = 'CASH'
     payOpen.value = true
@@ -196,12 +198,12 @@ async function submitPayment() {
   payBusy.value = true; error.value = ''
   try {
     const allocations = payBills.value.filter(b => b.checked).map(b => ({ billId: b.id, amount: Number(b.amount || 0) }))
-    if (!allocations.length) throw new Error('请选择至少一笔账单')
-    if (allocations.some(a => a.amount <= 0)) throw new Error('每笔收款金额必须大于 0')
+    if (!allocations.length) throw new Error(t('ct.requiredAllocations'))
+    if (allocations.some(a => a.amount <= 0)) throw new Error(t('ct.positiveAmount'))
     const r = await api.payContract(payContractRow.value.id, { paymentMethod: payMethod.value, allocations })
     payOpen.value = false
     await load()
-    alert(`收款成功：${r.paymentNo}，金额 ¥${money(r.totalAmount)}，收据 ${r.receiptNo}`)
+    alert(t('ct.paySuccess', { no: r.paymentNo, amount: money(r.totalAmount), receipt: r.receiptNo }))
   } catch (e) { error.value = e.message } finally { payBusy.value = false }
 }
 
@@ -212,13 +214,13 @@ async function downloadFile(f) {
 async function generateBill() {
   busy.value = true; error.value = ''
   try {
-    if (!billForm.contractId) throw new Error('请选择合同')
+    if (!billForm.contractId) throw new Error(t('ct.requiredContract'))
     await api.generateBill(billForm.contractId, {
       periodStart: billForm.periodStart, periodEnd: billForm.periodEnd,
       amount: Number(billForm.amount)
     })
     error.value = ''
-    alert('账单已生成，请到“收费与账务”查看')
+    alert(t('ct.created'))
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
@@ -228,32 +230,32 @@ onMounted(load)
 <template>
   <div>
     <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="!project" class="empty">请先创建项目</div>
+    <div v-if="!project" class="empty">{{ t('ct.createProject') }}</div>
     <template v-else>
       <div class="panel">
-        <div class="panel-head"><div><h2>保障房合同</h2><p>{{ project.orgName }} · 合同列表与生命周期</p></div>
-          <div class="row"><button v-if="canAction('contract:create', 'contract')" class="primary" @click="createOpen = true">新建合同</button><button class="sm" @click="billOpen = true">生成租金账单</button></div>
+        <div class="panel-head"><div><h2>{{ t('ct.title') }}</h2><p>{{ project.orgName }} · {{ t('ct.subtitle') }}</p></div>
+          <div class="row"><button v-if="canAction('contract:create', 'contract')" class="primary" @click="createOpen = true">{{ t('ct.createTitle') }}</button><button class="sm" @click="billOpen = true">{{ t('ct.billTitle') }}</button></div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>合同列表</h2><span class="small muted">生效合同可生成租金账单</span></div>
+        <div class="panel-head"><h2>{{ t('ct.list') }}</h2><span class="small muted">{{ t('ct.listHint') }}</span></div>
         <div class="row" style="margin-bottom:8px">
-          <input v-model="contractQuery" placeholder="搜索合同号/承租人/房屋" style="max-width:300px" @input="page = 1" />
+          <input v-model="contractQuery" :placeholder="t('ct.search')" style="max-width:300px" @input="page = 1" />
         </div>
-        <DataTable :rows="pagedContracts" :columns="contractColumns" :page="page" :page-size="10" :total="filteredContracts.length" empty-text="暂无合同" @update:page="page = $event">
+        <DataTable :rows="pagedContracts" :columns="contractColumns" :page="page" :page-size="10" :total="filteredContracts.length" :empty-text="t('ct.empty')" @update:page="page = $event">
           <template #cell-rentAmount="{ row }">¥{{ money(row.rentAmount) }}</template>
           <template #cell-depositAmount="{ row }">¥{{ money(row.depositAmount) }}</template>
           <template #cell-contractStatus="{ row }"><span class="badge" :class="contractStatusTone(row.contractStatus)">{{ contractStatusLabel(row.contractStatus) }}</span></template>
           <template #cell-actions="{ row }">
             <div class="row">
-              <button class="sm" @click="openDetail(row)">详情</button>
-              <button v-if="canAction('contract:submit', 'contract') && row.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(row, 'submit')">提交</button>
-              <button v-if="canAction('contract:activate', 'contract') && row.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(row, 'activate')">直接生效</button>
-              <button v-if="canAction('contract:discard', 'contract') && row.contractStatus === 'DRAFT'" class="sm danger" :disabled="busy" @click="contractAction(row, 'discard')">作废</button>
-              <button v-if="canAction('contract:approve', 'contract') && row.contractStatus === 'APPROVING'" class="sm primary" :disabled="busy" @click="contractAction(row, 'approve')">审批通过</button>
-              <button v-if="canAction('contract:withdraw', 'contract') && row.contractStatus === 'APPROVING'" class="sm" :disabled="busy" @click="contractAction(row, 'withdraw')">撤回</button>
-              <button v-if="canAction('billing:pay', 'billing') && row.contractStatus === 'ACTIVE'" class="sm primary" @click="openPayment(row)">收款</button>
+              <button class="sm" @click="openDetail(row)">{{ t('ct.detail') }}</button>
+              <button v-if="canAction('contract:submit', 'contract') && row.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(row, 'submit')">{{ t('ct.submit') }}</button>
+              <button v-if="canAction('contract:activate', 'contract') && row.contractStatus === 'DRAFT'" class="sm" :disabled="busy" @click="contractAction(row, 'activate')">{{ t('ct.activate') }}</button>
+              <button v-if="canAction('contract:discard', 'contract') && row.contractStatus === 'DRAFT'" class="sm danger" :disabled="busy" @click="contractAction(row, 'discard')">{{ t('ct.discard') }}</button>
+              <button v-if="canAction('contract:approve', 'contract') && row.contractStatus === 'APPROVING'" class="sm primary" :disabled="busy" @click="contractAction(row, 'approve')">{{ t('ct.approve') }}</button>
+              <button v-if="canAction('contract:withdraw', 'contract') && row.contractStatus === 'APPROVING'" class="sm" :disabled="busy" @click="contractAction(row, 'withdraw')">{{ t('ct.withdraw') }}</button>
+              <button v-if="canAction('billing:pay', 'billing') && row.contractStatus === 'ACTIVE'" class="sm primary" @click="openPayment(row)">{{ t('ct.pay') }}</button>
             </div>
           </template>
         </DataTable>
@@ -261,34 +263,34 @@ onMounted(load)
 
       <div v-if="detailOpen" class="modal-mask" @click.self="detailOpen = false">
         <div class="modal" style="max-width:900px">
-          <div class="panel-head"><h2>合同详情</h2><button class="sm" @click="detailOpen = false">关闭</button></div>
+          <div class="panel-head"><h2>{{ t('ct.detailTitle') }}</h2><button class="sm" @click="detailOpen = false">{{ t('ct.close') }}</button></div>
       <EntityDetailTabs v-if="selectedContract" type="CONTRACT" :entity-id="selectedContract.id" />
       <div v-if="detailOpen && selectedContract" class="panel">
-        <div class="panel-head"><h2>合同附件</h2><span class="small muted">{{ selectedContract.contractNo }}</span></div>
+        <div class="panel-head"><h2>{{ t('ct.attachments') }}</h2><span class="small muted">{{ selectedContract.contractNo }}</span></div>
         <div class="row" style="margin-bottom:10px">
           <input type="file" @change="uploadFile" :disabled="fileBusy" style="max-width:320px" />
         </div>
-        <div v-if="!files.length" class="empty">暂无附件</div>
+        <div v-if="!files.length" class="empty">{{ t('ct.noFiles') }}</div>
         <div v-for="f in files" :key="f.id" class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
           <div style="flex:1"><div>{{ f.fileName }}</div><div class="small muted">{{ f.fileSize }} bytes · {{ f.createTime }}</div></div>
-          <button class="sm" @click="downloadFile(f)">下载</button>
+          <button class="sm" @click="downloadFile(f)">{{ t('ct.download') }}</button>
         </div>
       </div>
 
       <div v-if="detailOpen && selectedContract" class="panel">
-        <div class="panel-head"><h2>合同同住人</h2><span class="small muted">{{ selectedContract.contractNo }} · {{ cohabitants.length }} 人</span></div>
+        <div class="panel-head"><h2>{{ t('ct.cohabitants') }}</h2><span class="small muted">{{ selectedContract.contractNo }} · {{ cohabitants.length }} {{ t('ct.people') }}</span></div>
         <div class="row" style="margin-bottom:10px">
-          <div class="field" style="flex:2"><label>人员</label><SearchSelect v-model="cohabForm.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" /></div>
-          <div class="field"><label>关系</label><select v-model="cohabForm.relationType"><option value="SPOUSE">配偶</option><option value="CHILD">子女</option><option value="PARENT">父母</option><option value="FAMILY">家庭成员</option><option value="OTHER">其他</option></select></div>
-          <div class="field"><label>开始</label><input v-model="cohabForm.startDate" type="date" /></div>
-          <div class="field"><label>结束</label><input v-model="cohabForm.endDate" type="date" /></div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="addCohabitant">新增同住人</button></div>
+          <div class="field" style="flex:2"><label>{{ t('ct.person') }}</label><SearchSelect v-model="cohabForm.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" :placeholder="t('ct.searchPerson')" /></div>
+          <div class="field"><label>{{ t('ct.relation') }}</label><select v-model="cohabForm.relationType"><option value="SPOUSE">{{ t('ct.spouse') }}</option><option value="CHILD">{{ t('ct.child') }}</option><option value="PARENT">{{ t('ct.parent') }}</option><option value="FAMILY">{{ t('ct.family') }}</option><option value="OTHER">{{ t('ct.other') }}</option></select></div>
+          <div class="field"><label>{{ t('ct.start') }}</label><input v-model="cohabForm.startDate" type="date" /></div>
+          <div class="field"><label>{{ t('ct.end') }}</label><input v-model="cohabForm.endDate" type="date" /></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="addCohabitant">{{ t('ct.addCohabitant') }}</button></div>
         </div>
-        <div v-if="!cohabitants.length" class="empty">暂无同住人</div>
+        <div v-if="!cohabitants.length" class="empty">{{ t('ct.noCohabitants') }}</div>
         <div v-for="c in cohabitants" :key="c.id" class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
-          <div style="flex:1"><div>{{ c.personName }} · {{ c.relationType }}</div><div class="small muted">{{ c.startDate || '' }} ~ {{ c.endDate || '长期' }}</div></div>
+          <div style="flex:1"><div>{{ c.personName }} · {{ c.relationType }}</div><div class="small muted">{{ c.startDate || '' }} ~ {{ c.endDate || t('ct.longTerm') }}</div></div>
           <span class="badge green">{{ c.cohabitantStatus }}</span>
-          <button class="sm danger" :disabled="busy" @click="removeCohabitant(c)">移除</button>
+          <button class="sm danger" :disabled="busy" @click="removeCohabitant(c)">{{ t('ct.remove') }}</button>
         </div>
       </div>
 
@@ -297,43 +299,43 @@ onMounted(load)
 
       <div v-if="createOpen" class="modal-mask" @click.self="createOpen = false">
         <div class="modal" style="max-width:860px">
-          <div class="panel-head"><h2>新建合同</h2><button class="sm" @click="createOpen = false">关闭</button></div>
+          <div class="panel-head"><h2>{{ t('ct.createTitle') }}</h2><button class="sm" @click="createOpen = false">{{ t('ct.close') }}</button></div>
           <div class="row">
-            <div class="field"><label>合同编号</label><input v-model="form.contractNo" placeholder="如 HT2026001" /></div>
-            <div class="field"><label>房屋</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋编码/名称" /></div>
-            <div class="field"><label>承租人</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索承租人" /></div>
-            <div class="field"><label>开始日期</label><input v-model="form.startDate" type="date" /></div>
-            <div class="field"><label>结束日期</label><input v-model="form.endDate" type="date" /></div>
-            <div class="field"><label>月租金</label><input v-model.number="form.rentAmount" type="number" /></div>
-            <div class="field"><label>押金</label><input v-model.number="form.depositAmount" type="number" /></div>
-            <div class="field"><label>账单周期</label><select v-model="form.billingCycle"><option value="MONTH">按月</option><option value="QUARTER">按季</option><option value="YEAR">按年</option></select></div>
-            <div class="field"><label>账单日</label><input v-model.number="form.billDay" type="number" min="1" max="28" /></div>
-            <div class="field" style="flex:0 0 auto"><label><input type="checkbox" v-model="form.draft" /> 保存草稿</label></div>
+            <div class="field"><label>{{ t('ct.contractNo') }}</label><input v-model="form.contractNo" :placeholder="t('ct.placeholderNo')" /></div>
+            <div class="field"><label>{{ t('ct.house') }}</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" :placeholder="t('ct.searchHouse')" /></div>
+            <div class="field"><label>{{ t('ct.tenant') }}</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" :placeholder="t('ct.searchTenant')" /></div>
+            <div class="field"><label>{{ t('ct.startDate') }}</label><input v-model="form.startDate" type="date" /></div>
+            <div class="field"><label>{{ t('ct.endDate') }}</label><input v-model="form.endDate" type="date" /></div>
+            <div class="field"><label>{{ t('ct.rent') }}</label><input v-model.number="form.rentAmount" type="number" /></div>
+            <div class="field"><label>{{ t('ct.deposit') }}</label><input v-model.number="form.depositAmount" type="number" /></div>
+            <div class="field"><label>{{ t('ct.cycle') }}</label><select v-model="form.billingCycle"><option value="MONTH">{{ t('ct.monthly') }}</option><option value="QUARTER">{{ t('ct.quarterly') }}</option><option value="YEAR">{{ t('ct.yearly') }}</option></select></div>
+            <div class="field"><label>{{ t('ct.billDay') }}</label><input v-model.number="form.billDay" type="number" min="1" max="28" /></div>
+            <div class="field" style="flex:0 0 auto"><label><input type="checkbox" v-model="form.draft" /> {{ t('ct.draft') }}</label></div>
           </div>
-          <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="create">创建合同</button></div>
+          <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="create">{{ t('ct.create') }}</button></div>
         </div>
       </div>
 
       <div v-if="billOpen" class="modal-mask" @click.self="billOpen = false">
         <div class="modal" style="max-width:640px">
-          <div class="panel-head"><h2>生成租金账单</h2><button class="sm" @click="billOpen = false">关闭</button></div>
+          <div class="panel-head"><h2>{{ t('ct.billTitle') }}</h2><button class="sm" @click="billOpen = false">{{ t('ct.close') }}</button></div>
           <div class="row">
-            <div class="field"><label>合同</label><SearchSelect v-model="billForm.contractId" :options="contracts" label-key="contractNo" sublabel-key="personName" value-key="id" placeholder="搜索合同号/承租人" /></div>
-            <div class="field"><label>周期开始</label><input v-model="billForm.periodStart" type="date" /></div>
-            <div class="field"><label>周期结束</label><input v-model="billForm.periodEnd" type="date" /></div>
-            <div class="field"><label>金额</label><input v-model.number="billForm.amount" type="number" /></div>
+            <div class="field"><label>{{ t('ct.contract') }}</label><SearchSelect v-model="billForm.contractId" :options="contracts" label-key="contractNo" sublabel-key="personName" value-key="id" :placeholder="t('ct.searchContract')" /></div>
+            <div class="field"><label>{{ t('ct.periodStart') }}</label><input v-model="billForm.periodStart" type="date" /></div>
+            <div class="field"><label>{{ t('ct.periodEnd') }}</label><input v-model="billForm.periodEnd" type="date" /></div>
+            <div class="field"><label>{{ t('ct.amount') }}</label><input v-model.number="billForm.amount" type="number" /></div>
           </div>
-          <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="generateBill(); billOpen = false">生成账单</button></div>
+          <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="generateBill(); billOpen = false">{{ t('ct.generate') }}</button></div>
         </div>
       </div>
 
       <div v-if="payOpen" class="modal-mask" @click.self="payOpen = false">
         <div class="modal" style="max-width:760px">
-          <div class="panel-head"><h2>合同收款</h2><button class="sm" @click="payOpen = false">关闭</button></div>
-          <div class="small muted" style="margin-bottom:8px">{{ payContractRow?.contractNo }} · 选择未结清账单，支持部分收款</div>
+          <div class="panel-head"><h2>{{ t('ct.payTitle') }}</h2><button class="sm" @click="payOpen = false">{{ t('ct.close') }}</button></div>
+          <div class="small muted" style="margin-bottom:8px">{{ payContractRow?.contractNo }} · {{ t('ct.payHint') }}</div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>选择</th><th>账单号</th><th>账期</th><th>应付</th><th>已收</th><th>未收</th><th>本次收款</th></tr></thead>
+              <thead><tr><th>{{ t('ct.choose') }}</th><th>{{ t('ct.billNo') }}</th><th>{{ t('ct.period') }}</th><th>{{ t('ct.payable') }}</th><th>{{ t('ct.paid') }}</th><th>{{ t('ct.outstanding') }}</th><th>{{ t('ct.thisPay') }}</th></tr></thead>
               <tbody>
                 <tr v-for="b in payBills" :key="b.id">
                   <td><input type="checkbox" v-model="b.checked" @change="togglePayBill(b)" /></td>
@@ -348,10 +350,10 @@ onMounted(load)
             </table>
           </div>
           <div class="row" style="justify-content:space-between;margin-top:10px">
-            <div class="field" style="max-width:180px"><label>收款方式</label><select v-model="payMethod"><option value="CASH">现金</option><option value="WECHAT">微信</option><option value="ALIPAY">支付宝</option><option value="BANK">银行转账</option></select></div>
-            <strong>合计：¥{{ money(payTotal) }}</strong>
+            <div class="field" style="max-width:180px"><label>{{ t('ct.method') }}</label><select v-model="payMethod"><option value="CASH">{{ t('ct.cash') }}</option><option value="WECHAT">{{ t('ct.wechat') }}</option><option value="ALIPAY">{{ t('ct.alipay') }}</option><option value="BANK">{{ t('ct.bankTransfer') }}</option></select></div>
+            <strong>{{ t('ct.total') }}: ¥{{ money(payTotal) }}</strong>
           </div>
-          <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="payBusy" @click="submitPayment">确认收款</button></div>
+          <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="payBusy" @click="submitPayment">{{ t('ct.confirmPay') }}</button></div>
         </div>
       </div>
     </template>
