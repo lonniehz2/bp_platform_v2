@@ -11,7 +11,6 @@
   "src/components/UserPanel.vue",
   "src/pages/Access.vue",
   "src/pages/AccessRecords.vue",
-  "src/pages/Alerts.vue",
   "src/pages/Allocations.vue",
   "src/pages/Applications.vue",
   "src/pages/Arrears.vue",

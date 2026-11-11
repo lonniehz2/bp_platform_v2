@@ -3,7 +3,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const houses = ref([])
 const persons = ref([])
@@ -11,7 +13,7 @@ const records = ref([])
 const error = ref('')
 const busy = ref(false)
 const form = reactive({ alertType: 'RISK', alertLevel: 'NORMAL', title: '', content: '', houseId: '', personId: '' })
-const handleForm = reactive({ id: '', alertStatus: 'PROCESSING', handlerName: '运营中心', handleResult: '' })
+const handleForm = reactive({ id: '', alertStatus: 'PROCESSING', handlerName: t('alerts.handlerName'), handleResult: '' })
 
 const levelClass = (l) => ({ URGENT: 'red', HIGH: 'orange', NORMAL: 'blue' }[l] || '')
 const statusClass = (s) => ({ RESOLVED: 'green', IGNORED: 'blue', PROCESSING: 'orange' }[s] || '')
@@ -38,7 +40,7 @@ async function load() {
 async function create() {
   busy.value = true; error.value = ''
   try {
-    if (!form.title.trim()) throw new Error('请填写告警标题')
+    if (!form.title.trim()) throw new Error(t('alerts.required'))
     await api.createAlert({
       projectId: project.value.id, alertType: form.alertType, alertLevel: form.alertLevel,
       title: form.title.trim(), content: form.content, houseId: form.houseId || null, personId: form.personId || null
@@ -70,31 +72,31 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>风险告警</h2><p>{{ project?.orgName || '未选择项目' }} · 欠费、风险、设备、其他</p></div><span class="badge blue">{{ records.length }} 条</span></div>
+      <div class="panel-head"><div><h2>{{ t('alerts.title') }}</h2><p>{{ project?.orgName || t('alerts.noProject') }} · {{ t('alerts.subtitle') }}</p></div><span class="badge blue">{{ records.length }} {{ t('alerts.count') }}</span></div>
       <div class="row">
-        <div class="field"><label>类型</label><select v-model="form.alertType"><option value="RISK">风险</option><option value="OVERDUE">欠费</option><option value="DEVICE">设备</option><option value="OTHER">其他</option></select></div>
-        <div class="field"><label>级别</label><select v-model="form.alertLevel"><option value="LOW">低</option><option value="NORMAL">普通</option><option value="HIGH">高</option><option value="URGENT">紧急</option></select></div>
-        <div class="field" style="flex:2"><label>标题</label><input v-model="form.title" /></div>
-        <div class="field"><label>房屋</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" clearable /></div>
-        <div class="field"><label>人员</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" clearable /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('alert')" class="primary" :disabled="busy" @click="create">新增告警</button></div>
+        <div class="field"><label>{{ t('alerts.type') }}</label><select v-model="form.alertType"><option value="RISK">{{ t('alerts.risk') }}</option><option value="OVERDUE">{{ t('alerts.overdue') }}</option><option value="DEVICE">{{ t('alerts.device') }}</option><option value="OTHER">{{ t('alerts.other') }}</option></select></div>
+        <div class="field"><label>{{ t('alerts.level') }}</label><select v-model="form.alertLevel"><option value="LOW">{{ t('alerts.low') }}</option><option value="NORMAL">{{ t('alerts.normal') }}</option><option value="HIGH">{{ t('alerts.high') }}</option><option value="URGENT">{{ t('alerts.urgent') }}</option></select></div>
+        <div class="field" style="flex:2"><label>{{ t('alerts.titleCol') }}</label><input v-model="form.title" /></div>
+        <div class="field"><label>{{ t('alerts.house') }}</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" :placeholder="t('alerts.searchHouse')" clearable /></div>
+        <div class="field"><label>{{ t('alerts.person') }}</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" :placeholder="t('alerts.searchPerson')" clearable /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('alert')" class="primary" :disabled="busy" @click="create">{{ t('alerts.add') }}</button></div>
       </div>
-      <div class="field" style="margin-top:8px"><label>内容</label><textarea v-model="form.content" rows="2" /></div>
+      <div class="field" style="margin-top:8px"><label>{{ t('alerts.content') }}</label><textarea v-model="form.content" rows="2" /></div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>告警列表</h2><span class="small muted">处理中 → 已解决 / 忽略</span></div>
-      <div v-if="!records.length" class="empty">暂无告警</div>
+      <div class="panel-head"><h2>{{ t('alerts.list') }}</h2><span class="small muted">{{ t('alerts.hint') }}</span></div>
+      <div v-if="!records.length" class="empty">{{ t('alerts.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>类型</th><th>级别</th><th>标题</th><th>房屋</th><th>人员</th><th>状态</th><th>处理人</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('alerts.type') }}</th><th>{{ t('alerts.level') }}</th><th>{{ t('alerts.titleCol') }}</th><th>{{ t('alerts.house') }}</th><th>{{ t('alerts.person') }}</th><th>{{ t('alerts.status') }}</th><th>{{ t('alerts.handler') }}</th><th>{{ t('alerts.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="r in records" :key="r.id">
               <td>{{ r.alertType }}</td><td><span class="badge" :class="levelClass(r.alertLevel)">{{ r.alertLevel }}</span></td>
               <td>{{ r.title }}</td><td>{{ r.houseName || '-' }}</td><td>{{ r.personName || '-' }}</td>
               <td><span class="badge" :class="statusClass(r.alertStatus)">{{ r.alertStatus }}</span></td>
               <td>{{ r.handlerName || '-' }}</td>
-              <td><button v-if="can('alert') && r.alertStatus !== 'RESOLVED' && r.alertStatus !== 'IGNORED'" class="sm" @click="openHandle(r)">处理</button></td>
+              <td><button v-if="can('alert') && r.alertStatus !== 'RESOLVED' && r.alertStatus !== 'IGNORED'" class="sm" @click="openHandle(r)">{{ t('alerts.handle') }}</button></td>
             </tr>
           </tbody>
         </table>
@@ -102,12 +104,12 @@ onMounted(load)
     </div>
 
     <div v-if="handleForm.id" class="panel">
-      <div class="panel-head"><h2>处理告警</h2><button class="sm" @click="handleForm.id = ''">关闭</button></div>
+      <div class="panel-head"><h2>{{ t('alerts.handleTitle') }}</h2><button class="sm" @click="handleForm.id = ''">{{ t('alerts.close') }}</button></div>
       <div class="row">
-        <div class="field"><label>状态</label><select v-model="handleForm.alertStatus"><option value="PROCESSING">处理中</option><option value="RESOLVED">已解决</option><option value="IGNORED">忽略</option></select></div>
-        <div class="field"><label>处理人</label><input v-model="handleForm.handlerName" /></div>
-        <div class="field" style="flex:2"><label>处理结果</label><input v-model="handleForm.handleResult" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="handle">保存</button></div>
+        <div class="field"><label>{{ t('alerts.status') }}</label><select v-model="handleForm.alertStatus"><option value="PROCESSING">{{ t('alerts.processing') }}</option><option value="RESOLVED">{{ t('alerts.resolved') }}</option><option value="IGNORED">{{ t('alerts.ignored') }}</option></select></div>
+        <div class="field"><label>{{ t('alerts.handler') }}</label><input v-model="handleForm.handlerName" /></div>
+        <div class="field" style="flex:2"><label>{{ t('alerts.result') }}</label><input v-model="handleForm.handleResult" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="handle">{{ t('alerts.save') }}</button></div>
       </div>
     </div>
   </div>
