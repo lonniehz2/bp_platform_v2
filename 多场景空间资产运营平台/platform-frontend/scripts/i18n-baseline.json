@@ -2,6 +2,5 @@
   "src/pages/Applications.vue",
   "src/pages/Contracts.vue",
   "src/pages/ImportCenter.vue",
-  "src/pages/Persons.vue",
-  "src/pages/Projects.vue"
+  "src/pages/Persons.vue"
 ]

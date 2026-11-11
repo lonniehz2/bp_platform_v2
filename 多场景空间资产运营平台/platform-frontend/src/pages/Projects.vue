@@ -5,7 +5,10 @@ import TreeSelect from '../components/TreeSelect.vue'
 import { can } from '../permissions'
 import Pager from '../components/Pager.vue'
 import { confirmAction } from '../confirm'
+import { useI18n } from 'vue-i18n'
+import { currentScene } from '../scene'
 
+const { t } = useI18n()
 const projects = ref([])
 const templates = ref([])
 const modes = ref([])
@@ -17,7 +20,7 @@ const page = ref(1)
 const error = ref('')
 const busy = ref(false)
 const pagedProjects = computed(() => projects.value.slice((page.value - 1) * 10, page.value * 10))
-const form = reactive({ orgCode: '', orgName: '保障房项目', businessMode: 'PUBLIC_RENTAL', spaceTemplateId: '', defaultAssetTypeCode: 'PUBLIC_RENTAL', address: '', contactName: '', contactPhone: '', remark: '', totalArea: 0, landArea: 0, propertyType: '', buildYear: 2020 })
+const form = reactive({ orgCode: '', orgName: t('proj.defaultName'), businessMode: 'PUBLIC_RENTAL', spaceTemplateId: '', defaultAssetTypeCode: 'PUBLIC_RENTAL', address: '', contactName: '', contactPhone: '', remark: '', totalArea: 0, landArea: 0, propertyType: '', buildYear: 2020 })
 const editingProject = ref(null)
 const projectEditForm = reactive({ orgName: '', address: '', contactName: '', contactPhone: '', remark: '', totalArea: 0, landArea: 0, propertyType: '', buildYear: 2020 })
 const spaceForm = reactive({ parentId: '', spaceCode: '', spaceName: '', spaceType: 'BUILDING', assetTypeCode: 'PUBLIC_RENTAL', rentable: false, area: 0 })
@@ -26,7 +29,7 @@ const spaceTypes = ['AREA', 'BUILDING', 'UNIT', 'FLOOR', 'ROOM', 'INNER_ROOM', '
 async function load() {
   try {
     const [p, t, m, at] = await Promise.all([
-      api.projects(), api.templates('GUARANTEE'), api.modes('GUARANTEE'), api.assetTypes('GUARANTEE')
+      api.projects(), api.templates(currentScene()), api.modes(currentScene()), api.assetTypes(currentScene())
     ])
     projects.value = p
     templates.value = t
@@ -42,14 +45,14 @@ async function load() {
 async function create() {
   busy.value = true; error.value = ''
   try {
-    if (!form.orgCode.trim()) throw new Error('请填写项目编码')
-    if (!form.orgName.trim()) throw new Error('请填写项目名称')
-    if (form.contactPhone && !/^1\d{10}$/.test(form.contactPhone)) throw new Error('联系电话需为 11 位手机号')
-    if (Number(form.totalArea) < 0 || Number(form.landArea) < 0) throw new Error('面积不能为负数')
-    if (form.buildYear && (form.buildYear < 1900 || form.buildYear > 2100)) throw new Error('建成年份需在 1900-2100 之间')
+    if (!form.orgCode.trim()) throw new Error(t('proj.requiredCode'))
+    if (!form.orgName.trim()) throw new Error(t('proj.requiredName'))
+    if (form.contactPhone && !/^1\d{10}$/.test(form.contactPhone)) throw new Error(t('proj.invalidPhone'))
+    if (Number(form.totalArea) < 0 || Number(form.landArea) < 0) throw new Error(t('proj.negativeArea'))
+    if (form.buildYear && (form.buildYear < 1900 || form.buildYear > 2100)) throw new Error(t('proj.invalidYear'))
     await api.createProject({
       orgCode: form.orgCode.trim(), orgName: form.orgName.trim(),
-      sceneCode: 'GUARANTEE', businessMode: form.businessMode,
+      sceneCode: currentScene(), businessMode: form.businessMode,
       spaceTemplateId: form.spaceTemplateId,
       defaultAssetTypeCode: form.defaultAssetTypeCode,
       address: form.address, contactName: form.contactName,
@@ -74,7 +77,7 @@ function openProjectEdit(p) {
 
 
 async function archiveProject(p) {
-  if (!await confirmAction({ title: '归档项目', message: `确认归档项目 ${p.orgName}？存在合同或申请时会被拒绝。`, confirmText: '归档', danger: true })) return
+  if (!await confirmAction({ title: t('proj.archiveTitle'), message: t('proj.archiveMessage', { name: p.orgName }), confirmText: t('proj.archiveConfirm'), danger: true })) return
   busy.value = true; error.value = ''
   try { await api.archiveProject(p.id); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -82,7 +85,7 @@ async function archiveProject(p) {
 async function saveProjectEdit() {
   busy.value = true; error.value = ''
   try {
-    if (!projectEditForm.orgName.trim()) throw new Error('项目名称不能为空')
+    if (!projectEditForm.orgName.trim()) throw new Error(t('proj.nameRequired'))
     await api.updateProject(editingProject.value.id, { ...projectEditForm })
     editingProject.value = null
     await load()
@@ -108,7 +111,7 @@ async function loadAssets() {
 async function createSpace() {
   busy.value = true; error.value = ''
   try {
-    if (!spaceForm.spaceCode.trim() || !spaceForm.spaceName.trim()) throw new Error('请填写空间编码和名称')
+    if (!spaceForm.spaceCode.trim() || !spaceForm.spaceName.trim()) throw new Error(t('proj.requiredSpace'))
     await api.createSpace(currentProject.value.id, {
       parentId: spaceForm.parentId || null,
       spaceCode: spaceForm.spaceCode.trim(),
@@ -134,35 +137,35 @@ onMounted(load)
 
     <div class="panel">
       <div class="panel-head">
-        <div><h2>项目与空间模板</h2><p>保障房项目选择空间模板，创建后维护空间和房屋</p></div>
-        <span class="badge blue">GUARANTEE</span>
+        <div><h2>{{ t('proj.title') }}</h2><p>{{ t('proj.subtitle') }}</p></div>
+        <span class="badge blue">{{ currentScene() }}</span>
       </div>
       <div class="row">
-        <div class="field"><label>项目编码</label><input v-model="form.orgCode" placeholder="如 GUA_001" /></div>
-        <div class="field"><label>项目名称</label><input v-model="form.orgName" /></div>
-        <div class="field"><label>经营模式</label>
+        <div class="field"><label>{{ t('proj.code') }}</label><input v-model="form.orgCode" :placeholder="t('proj.placeholderCode')" /></div>
+        <div class="field"><label>{{ t('proj.name') }}</label><input v-model="form.orgName" /></div>
+        <div class="field"><label>{{ t('proj.mode') }}</label>
           <select v-model="form.businessMode"><option v-for="m in modes" :key="m.modeCode" :value="m.modeCode">{{ m.modeName }}</option></select>
         </div>
-        <div class="field"><label>空间模板</label>
+        <div class="field"><label>{{ t('proj.template') }}</label>
           <select v-model="form.spaceTemplateId"><option v-for="t in templates" :key="t.id" :value="t.id">{{ t.templateName }}</option></select>
         </div>
-        <div class="field" style="flex:2"><label>项目地址</label><input v-model="form.address" /></div>
-        <div class="field"><label>联系人</label><input v-model="form.contactName" /></div>
-        <div class="field"><label>联系电话</label><input v-model="form.contactPhone" /></div>
-        <div class="field"><label>总建筑面积</label><input v-model.number="form.totalArea" type="number" /></div>
-        <div class="field"><label>占地面积</label><input v-model.number="form.landArea" type="number" /></div>
-        <div class="field"><label>产权类型</label><select v-model="form.propertyType"><option value="">未填写</option><option value="STATE">国有</option><option value="COLLECTIVE">集体</option><option value="PRIVATE">私有</option></select></div>
-        <div class="field"><label>建成年份</label><input v-model.number="form.buildYear" type="number" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('asset')" class="primary" :disabled="busy" @click="create">创建项目</button></div>
+        <div class="field" style="flex:2"><label>{{ t('proj.address') }}</label><input v-model="form.address" /></div>
+        <div class="field"><label>{{ t('proj.contact') }}</label><input v-model="form.contactName" /></div>
+        <div class="field"><label>{{ t('proj.phone') }}</label><input v-model="form.contactPhone" /></div>
+        <div class="field"><label>{{ t('proj.totalArea') }}</label><input v-model.number="form.totalArea" type="number" /></div>
+        <div class="field"><label>{{ t('proj.landArea') }}</label><input v-model.number="form.landArea" type="number" /></div>
+        <div class="field"><label>{{ t('proj.property') }}</label><select v-model="form.propertyType"><option value="">{{ t('proj.unset') }}</option><option value="STATE">{{ t('proj.state') }}</option><option value="COLLECTIVE">{{ t('proj.collective') }}</option><option value="PRIVATE">{{ t('proj.private') }}</option></select></div>
+        <div class="field"><label>{{ t('proj.buildYear') }}</label><input v-model.number="form.buildYear" type="number" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('asset')" class="primary" :disabled="busy" @click="create">{{ t('proj.create') }}</button></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>项目列表</h2><span class="small muted">点击项目切换当前上下文</span></div>
-      <div v-if="!projects.length" class="empty">暂无项目</div>
+      <div class="panel-head"><h2>{{ t('proj.list') }}</h2><span class="small muted">{{ t('proj.listHint') }}</span></div>
+      <div v-if="!projects.length" class="empty">{{ t('proj.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>项目编码</th><th>项目名称</th><th>地址</th><th>联系人</th><th>总建筑面积</th><th>产权类型</th><th>经营模式</th><th>模板</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('proj.code') }}</th><th>{{ t('proj.name') }}</th><th>{{ t('proj.addressCol') }}</th><th>{{ t('proj.contact') }}</th><th>{{ t('proj.totalArea') }}</th><th>{{ t('proj.property') }}</th><th>{{ t('proj.mode') }}</th><th>{{ t('proj.templateCol') }}</th><th>{{ t('proj.status') }}</th><th>{{ t('proj.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="p in pagedProjects" :key="p.id" :class="{ active: currentProject && String(currentProject.id) === String(p.id) }">
               <td class="mono">{{ p.orgCode }}</td><td>{{ p.orgName }}</td><td>{{ p.address || '-' }}</td>
@@ -170,7 +173,7 @@ onMounted(load)
               <td>{{ p.propertyType || '-' }}</td><td>{{ p.businessMode }}</td>
               <td>{{ p.templateName || p.spaceTemplateId }}</td>
               <td><span class="badge green">{{ p.status }}</span></td>
-              <td><button class="sm" @click="selectProject(p)">设为当前</button> <button class="sm" @click="openProjectEdit(p)">编辑</button> <button class="sm danger" :disabled="busy" @click="archiveProject(p)">归档</button></td>
+              <td><button class="sm" @click="selectProject(p)">{{ t('proj.setCurrent') }}</button> <button class="sm" @click="openProjectEdit(p)">{{ t('proj.edit') }}</button> <button class="sm danger" :disabled="busy" @click="archiveProject(p)">{{ t('proj.archive') }}</button></td>
             </tr>
           </tbody>
         </table>
@@ -181,30 +184,30 @@ onMounted(load)
     <template v-if="currentProject">
       <div class="panel">
         <div class="panel-head">
-          <div><h2>空间树</h2><p>{{ currentProject.orgName }} · 小区/楼栋/单元/楼层/房屋/内房/床位</p></div>
-          <span class="small muted">{{ spaces.length }} 个空间 · {{ houses.length }} 个房源</span>
+          <div><h2>{{ t('proj.spaceTree') }}</h2><p>{{ currentProject.orgName }} · {{ t('proj.spaceTreeHint') }}</p></div>
+          <span class="small muted">{{ spaces.length }} {{ t('proj.spaces') }} · {{ houses.length }} {{ t('proj.houses') }}</span>
         </div>
         <div class="row" style="margin-bottom:12px">
-          <div class="field"><label>上级空间</label>
-            <TreeSelect v-model="spaceForm.parentId" :nodes="spaces" label-key="spaceName" value-key="id" parent-key="parentId" placeholder="选择上级空间（空为根）" clearable />
+          <div class="field"><label>{{ t('proj.parent') }}</label>
+            <TreeSelect v-model="spaceForm.parentId" :nodes="spaces" label-key="spaceName" value-key="id" parent-key="parentId" :placeholder="t('proj.placeholderParent')" clearable />
           </div>
-          <div class="field"><label>空间编码</label><input v-model="spaceForm.spaceCode" placeholder="如 A / 101" /></div>
-          <div class="field"><label>空间名称</label><input v-model="spaceForm.spaceName" placeholder="如 A栋 / 101室" /></div>
-          <div class="field"><label>类型</label>
+          <div class="field"><label>{{ t('proj.spaceCode') }}</label><input v-model="spaceForm.spaceCode" :placeholder="t('proj.placeholderSpaceCode')" /></div>
+          <div class="field"><label>{{ t('proj.spaceName') }}</label><input v-model="spaceForm.spaceName" :placeholder="t('proj.placeholderSpaceName')" /></div>
+          <div class="field"><label>{{ t('proj.type') }}</label>
             <select v-model="spaceForm.spaceType"><option v-for="t in spaceTypes" :key="t" :value="t">{{ t }}</option></select>
           </div>
-          <div class="field"><label>资产类型</label>
+          <div class="field"><label>{{ t('proj.assetType') }}</label>
             <select v-model="spaceForm.assetTypeCode"><option v-for="t in assetTypes" :key="t.typeCode" :value="t.typeCode">{{ t.typeName }}</option></select>
           </div>
           <div class="field" v-if="['ROOM','INNER_ROOM','BED'].includes(spaceForm.spaceType)" style="flex:0 0 auto">
-            <label>可出租</label><input v-model="spaceForm.rentable" type="checkbox" style="width:auto" />
+            <label>{{ t('proj.rentable') }}</label><input v-model="spaceForm.rentable" type="checkbox" style="width:auto" />
           </div>
-          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('asset')" class="primary" :disabled="busy" @click="createSpace">新增空间</button></div>
+          <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('asset')" class="primary" :disabled="busy" @click="createSpace">{{ t('proj.addSpace') }}</button></div>
         </div>
-        <div v-if="!spaces.length" class="empty">暂无空间</div>
+        <div v-if="!spaces.length" class="empty">{{ t('proj.noSpaces') }}</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>空间编码</th><th>名称</th><th>类型</th><th>层级</th><th>资产类型</th><th>路径</th></tr></thead>
+            <thead><tr><th>{{ t('proj.spaceCode') }}</th><th>{{ t('proj.nameCol2') }}</th><th>{{ t('proj.type') }}</th><th>{{ t('proj.level') }}</th><th>{{ t('proj.assetType') }}</th><th>{{ t('proj.path') }}</th></tr></thead>
             <tbody>
               <tr v-for="s in spaces" :key="s.id">
                 <td class="mono">{{ s.spaceCode }}</td><td>{{ s.spaceName }}</td><td>{{ s.spaceType }}</td>
@@ -216,11 +219,11 @@ onMounted(load)
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>房屋/房源</h2><span class="small muted">可出租空间自动生成房源</span></div>
-        <div v-if="!houses.length" class="empty">暂无房源</div>
+        <div class="panel-head"><h2>{{ t('proj.houseTitle') }}</h2><span class="small muted">{{ t('proj.houseHint') }}</span></div>
+        <div v-if="!houses.length" class="empty">{{ t('proj.noHouses') }}</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>房源编码</th><th>名称</th><th>资产类型</th><th>面积</th><th>状态</th></tr></thead>
+            <thead><tr><th>{{ t('proj.houseCode') }}</th><th>{{ t('proj.nameCol2') }}</th><th>{{ t('proj.assetType') }}</th><th>{{ t('proj.area') }}</th><th>{{ t('proj.status') }}</th></tr></thead>
             <tbody>
               <tr v-for="h in houses" :key="h.id">
                 <td class="mono">{{ h.houseCode }}</td><td>{{ h.houseName }}</td>
@@ -235,15 +238,15 @@ onMounted(load)
 
     <div v-if="editingProject" class="modal-mask" @click.self="editingProject = null">
       <div class="modal">
-        <div class="panel-head"><h2>编辑项目</h2><button class="sm" @click="editingProject = null">关闭</button></div>
-        <div class="field"><label>项目编码</label><input :value="editingProject.orgCode" disabled /></div>
-        <div class="field"><label>项目名称</label><input v-model="projectEditForm.orgName" /></div>
-        <div class="field"><label>地址</label><input v-model="projectEditForm.address" /></div>
-        <div class="field"><label>联系人</label><input v-model="projectEditForm.contactName" /></div>
-        <div class="field"><label>联系电话</label><input v-model="projectEditForm.contactPhone" /></div>
-        <div class="field"><label>总建筑面积</label><input v-model.number="projectEditForm.totalArea" type="number" /></div>
-        <div class="field"><label>产权类型</label><input v-model="projectEditForm.propertyType" /></div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveProjectEdit">保存</button></div>
+        <div class="panel-head"><h2>{{ t('proj.editTitle') }}</h2><button class="sm" @click="editingProject = null">{{ t('proj.close') }}</button></div>
+        <div class="field"><label>{{ t('proj.code') }}</label><input :value="editingProject.orgCode" disabled /></div>
+        <div class="field"><label>{{ t('proj.name') }}</label><input v-model="projectEditForm.orgName" /></div>
+        <div class="field"><label>{{ t('proj.addressCol') }}</label><input v-model="projectEditForm.address" /></div>
+        <div class="field"><label>{{ t('proj.contact') }}</label><input v-model="projectEditForm.contactName" /></div>
+        <div class="field"><label>{{ t('proj.phone') }}</label><input v-model="projectEditForm.contactPhone" /></div>
+        <div class="field"><label>{{ t('proj.totalArea') }}</label><input v-model.number="projectEditForm.totalArea" type="number" /></div>
+        <div class="field"><label>{{ t('proj.property') }}</label><input v-model="projectEditForm.propertyType" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveProjectEdit">{{ t('proj.save') }}</button></div>
       </div>
     </div>
   </div>
