@@ -39,8 +39,9 @@ function formatValue(item, col) {
   return v
 }
 const columns = computed(() => current.value?.columns?.length ? current.value.columns : [{ key: 'title', label: '名称' }, { key: 'subtitle', label: '说明' }, { key: 'status', label: '状态' }])
-const overviewLabels = { title: '名称', subtitle: '编码', personName: '姓名', personCode: '人员编码', phone: '电话', personType: '人员类型', status: '状态', contractNo: '合同号', contractStatus: '合同状态', startDate: '开始日期', endDate: '结束日期', houseName: '房屋', houseCode: '房源编码', rentAmount: '租金', depositAmount: '押金' }
-function overviewEntries(item) { return Object.entries(item || {}).filter(([k, v]) => v !== null && v !== '' && !['id','type','route'].includes(k)).map(([k, v]) => [overviewLabels[k] || k, v]) }
+const overviewLabels = { title: '名称', subtitle: '编码', personName: '姓名', personCode: '人员编码', phone: '电话', personType: '人员类型', status: '状态', contractNo: '合同号', contractStatus: '合同状态', startDate: '开始日期', endDate: '结束日期', houseName: '房屋', houseCode: '房源编码', rentAmount: '租金', depositAmount: '押金', houseStatus: '房态', area: '建筑面积', innerArea: '套内面积', layoutType: '户型', orientation: '朝向', floorNo: '楼层', totalFloors: '总楼层', billNo: '账单号', periodStart: '账期起', periodEnd: '账期止', amount: '金额', discountAmount: '减免', payableAmount: '应付', paidAmount: '已收', billStatus: '账单状态', dueDate: '到期日', deviceCode: '设备编码', deviceName: '设备名称', deviceType: '设备类型', deviceModel: '型号', assetStatus: '资产状态', businessStatus: '业务状态', installTime: '安装时间', warrantyEnd: '保修截止', deviceMac: 'MAC', orderNo: '工单号', orderType: '工单类型', priority: '优先级', orderStatus: '工单状态', assigneeName: '处理人', createTime: '创建时间', finishTime: '完成时间', applicationNo: '申请编号', applicationType: '申请类型', familySize: '家庭人数', incomeLevel: '收入水平', housingStatus: '住房情况', guaranteeType: '保障类型', applicationStatus: '申请状态', submitTime: '提交时间', archiveNo: '档案编号', applicantName: '申请人' }
+function formatOverviewValue(key, value) { if (value === null || value === undefined || value === '') return '-'; if (key.toLowerCase().includes('status')) return statusLabel(value); if (moneyKeys.has(key)) return '¥' + Number(value).toFixed(2); if (dateKeys.has(key) || key.toLowerCase().includes('time')) return String(value).replace('T', ' ').slice(0, 19); return value }
+function overviewEntries(item) { return Object.entries(item || {}).filter(([k, v]) => v !== null && v !== '' && !['id','type','route'].includes(k)).map(([k, v]) => ({ label: overviewLabels[k] || k, key: k, value: v })) }
 
 function selectTab(key) {
   active.value = key
@@ -71,7 +72,7 @@ watch(() => [props.type, props.entityId], load, { immediate: true })
         <div v-if="!current.accessible" class="empty">🔒 {{ current.reason || '无权限查看该关联信息' }}</div>
         <div v-else-if="!current.items?.length" class="empty">暂无关联记录</div>
         <div v-else-if="current.key === 'overview'" class="kv-grid">
-          <div v-for="([label, value], i) in overviewEntries(current.items[0])" :key="i"><span>{{ label }}</span><strong>{{ formatValue({ value }, { key: 'value' }) === '-' ? value : value }}</strong></div>
+          <div v-for="([label, value], i) in overviewEntries(current.items[0])" :key="i"><span>{{ label }}</span><strong>{{ formatOverviewValue(labelToKey(label), value) }}</strong></div>
         </div>
         <div v-else class="table-wrap">
           <table>

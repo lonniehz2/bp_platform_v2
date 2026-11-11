@@ -139,7 +139,7 @@ public class RelationService {
         else if ("WORK_ORDER".equalsIgnoreCase(type)) root = workOrder(id);
         else if ("APPLICATION".equalsIgnoreCase(type)) root = application(id);
         else throw new BizException("BP40004", "暂不支持该关联类型", 400);
-        Map<String, Object> entity = entityOf(root, type, id);
+        Map<String, Object> entity = entityOf(tenant, root, type, id);
         List<Map<String, Object>> sections = new ArrayList<>();
         sections.add(section("overview", "概览", true, null, List.of(entity)));
         String t = type.toUpperCase();
@@ -154,7 +154,7 @@ public class RelationService {
         out.put("entity", entity); out.put("sections", sections); return out;
     }
 
-    private Map<String, Object> entityOf(Map<String, Object> root, String type, long id) {
+    private Map<String, Object> entityOf(String tenant, Map<String, Object> root, String type, long id) {
         Map<String, Object> entity = new LinkedHashMap<>();
         if (root.get("entity") instanceof Map<?, ?> e) entity.putAll((Map<String, Object>) e);
         else if (root.get("person") instanceof Map<?, ?> p) {
@@ -170,7 +170,31 @@ public class RelationService {
             }
             if (entity.get("contractStatus") != null) entity.put("status", entity.get("contractStatus"));
         }
+        enrichEntity(tenant, entity, type.toUpperCase(), id);
         return entity;
+    }
+
+    private void enrichEntity(String tenant, Map<String, Object> entity, String type, long id) {
+        List<Map<String, Object>> rows;
+        if ("HOUSE".equals(type)) {
+            rows = jdbc.queryForList("select house_code houseCode, house_name houseName, house_status houseStatus, area, inner_area innerArea, layout_type layoutType, orientation, floor_no floorNo, total_floors totalFloors from bp_house where tenant_id=? and id=? and is_deleted=0", tenant, id);
+        } else if ("BILL".equals(type)) {
+            rows = jdbc.queryForList("select bill_no billNo, period_start periodStart, period_end periodEnd, amount, discount_amount discountAmount, payable_amount payableAmount, paid_amount paidAmount, bill_status billStatus, due_date dueDate from bp_bill where tenant_id=? and id=? and is_deleted=0", tenant, id);
+        } else if ("DEVICE".equals(type)) {
+            rows = jdbc.queryForList("select device_code deviceCode, device_name deviceName, device_type deviceType, device_model deviceModel, asset_status assetStatus, business_status businessStatus, install_time installTime, warranty_end warrantyEnd, device_mac deviceMac from bp_dev_device where tenant_id=? and id=? and is_deleted=0", tenant, id);
+        } else if ("WORK_ORDER".equals(type)) {
+            rows = jdbc.queryForList("select order_no orderNo, title, order_type orderType, priority, order_status orderStatus, assignee_name assigneeName, create_time createTime, finish_time finishTime from guarantee_work_order where tenant_id=? and id=? and is_deleted=0", tenant, id);
+        } else if ("APPLICATION".equals(type)) {
+            rows = jdbc.queryForList("select a.application_no applicationNo, a.application_type applicationType, a.family_size familySize, a.income_level incomeLevel, a.housing_status housingStatus, a.guarantee_type guaranteeType, a.application_status applicationStatus, a.submit_time submitTime, a.archive_no archiveNo, p.person_name applicantName from guarantee_application a left join bp_person p on p.id=a.applicant_person_id where a.tenant_id=? and a.id=? and a.is_deleted=0", tenant, id);
+        } else {
+            return;
+        }
+        if (!rows.isEmpty()) entity.putAll(rows.get(0));
+        if (entity.get("houseStatus") != null) entity.put("status", entity.get("houseStatus"));
+        if (entity.get("billStatus") != null) entity.put("status", entity.get("billStatus"));
+        if (entity.get("businessStatus") != null) entity.put("status", entity.get("businessStatus"));
+        if (entity.get("orderStatus") != null) entity.put("status", entity.get("orderStatus"));
+        if (entity.get("applicationStatus") != null) entity.put("status", entity.get("applicationStatus"));
     }
 
     private List<Map<String, Object>> columns(String key) {
