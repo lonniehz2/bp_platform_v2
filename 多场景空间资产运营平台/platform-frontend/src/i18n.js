@@ -16,6 +16,9 @@ const messages = {
       "asset": "房源与资产",
       "data": "数据与报表"
 },
+    errors: {
+      'BP40001': '请求参数不正确', 'BP40004': '数据不存在', 'BP40300': '无权执行该操作', 'BP50000': '系统异常'
+    },
     field: {
       contractNo: '合同号', houseName: '房屋', startDate: '开始日期', endDate: '结束日期', status: '状态',
       billNo: '账单号', periodStart: '账期起', periodEnd: '账期止', payableAmount: '应付', paidAmount: '已收',
@@ -171,6 +174,9 @@ const messages = {
       "asset": "Housing & Assets",
       "data": "Data & Reports"
 },
+    errors: {
+      'BP40001': 'Invalid request', 'BP40004': 'Not found', 'BP40300': 'Forbidden', 'BP50000': 'Server error'
+    },
     field: {
       contractNo: 'Contract No.', houseName: 'House', startDate: 'Start Date', endDate: 'End Date', status: 'Status',
       billNo: 'Bill No.', periodStart: 'Period From', periodEnd: 'Period To', payableAmount: 'Payable', paidAmount: 'Paid',

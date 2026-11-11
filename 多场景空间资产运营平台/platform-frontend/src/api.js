@@ -1,7 +1,16 @@
 import { currentScene } from './scene'
+import { i18n } from './i18n'
 const BASE = '/api/v1/platform'
 const AUTH = '/api/v1/auth'
 const TENANT = '350600'
+
+function messageOf(json, fallback) {
+  if (json && json.messageKey) {
+    const key = `errors.${json.code || json.messageKey}`
+    if (i18n.global.te(key)) return i18n.global.t(key)
+  }
+  return json?.message || fallback
+}
 
 function token() {
   return localStorage.getItem('platformToken') || ''
@@ -21,7 +30,7 @@ async function request(path, options = {}) {
     if (!location.hash.startsWith('#/login')) location.hash = '#/login'
   }
   if (!res.ok || json.code !== 'BP00000') {
-    throw new Error(json.message || `请求失败：${res.status}`)
+    throw new Error(messageOf(json, `Request failed: ${res.status}`))
   }
   return json.data
 }
@@ -33,25 +42,25 @@ async function login(body) {
     body: JSON.stringify(body)
   })
   const json = await res.json().catch(() => ({}))
-  if (!res.ok || json.code !== 'BP00000') throw new Error(json.message || '登录失败')
+  if (!res.ok || json.code !== 'BP00000') throw new Error(messageOf(json, 'Login failed'))
   return json.data
 }
 
 async function me() {
   const res = await fetch(`${AUTH}/me`, { headers: { Authorization: `Bearer ${token()}` } })
   const json = await res.json().catch(() => ({}))
-  if (!res.ok || json.code !== 'BP00000') throw new Error(json.message || '获取用户失败')
+  if (!res.ok || json.code !== 'BP00000') throw new Error(messageOf(json, 'Failed to load user'))
   return json.data
 }
 
 export const api = {
   login,
   me,
-  myPermissions: () => fetch(`${AUTH}/permissions`, { headers: { Authorization: `Bearer ${token()}` } }).then(async r => { const j = await r.json().catch(() => ({})); if (!r.ok || j.code !== 'BP00000') throw new Error(j.message || '获取权限失败'); return j.data || [] }),
-  myMenuTree: (sceneCode = 'GUARANTEE') => fetch(`${AUTH}/menu-tree?sceneCode=${sceneCode}`, { headers: { Authorization: `Bearer ${token()}` } }).then(async r => { const j = await r.json(); if (!r.ok) throw new Error(j.message || '菜单加载失败'); return j.data }),
-  myMenus: (sceneCode = 'GUARANTEE') => fetch(`${AUTH}/menus?sceneCode=${sceneCode}`, { headers: { Authorization: `Bearer ${token()}` } }).then(async r => {
+  myPermissions: () => fetch(`${AUTH}/permissions`, { headers: { Authorization: `Bearer ${token()}` } }).then(async r => { const j = await r.json().catch(() => ({})); if (!r.ok || j.code !== 'BP00000') throw new Error(messageOf(j, 'Failed to load permissions')); return j.data || [] }),
+  myMenuTree: (sceneCode = currentScene()) => fetch(`${AUTH}/menu-tree?sceneCode=${sceneCode}`, { headers: { Authorization: `Bearer ${token()}` } }).then(async r => { const j = await r.json(); if (!r.ok) throw new Error(messageOf(j, 'Failed to load menu')); return j.data }),
+  myMenus: (sceneCode = currentScene()) => fetch(`${AUTH}/menus?sceneCode=${sceneCode}`, { headers: { Authorization: `Bearer ${token()}` } }).then(async r => {
     const j = await r.json().catch(() => ({}))
-    if (!r.ok || j.code !== 'BP00000') throw new Error(j.message || '获取菜单失败')
+    if (!r.ok || j.code !== 'BP00000') throw new Error(messageOf(j, 'Failed to load menus'))
     return j.data
   }),
   scenes: () => request('/scenes'),
