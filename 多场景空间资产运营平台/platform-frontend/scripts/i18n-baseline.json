@@ -41,7 +41,6 @@
   "src/pages/Persons.vue",
   "src/pages/PlatformInfo.vue",
   "src/pages/Projects.vue",
-  "src/pages/Publicity.vue",
   "src/pages/Qualification.vue",
   "src/pages/Reports.vue",
   "src/pages/Search.vue",
