@@ -131,6 +131,16 @@ for (const item of navItems) {
 const title = computed(() => t(route.meta?.titleKey || titleKey[route.path] || 'nav.dashboard'))
 watch(title, value => { document.title = value }, { immediate: true })
 
+watch(() => route.path, async (path) => {
+  if (path === '/login' || !localStorage.getItem('platformToken') || menuTree.value.length) return
+  try {
+    const [menus, tree] = await Promise.all([api.myMenus(sceneCode.value), api.myMenuTree(sceneCode.value)])
+    setMenus(menus)
+    allowedMenus.value = menus
+    menuTree.value = tree || []
+  } catch {}
+})
+
 onMounted(async () => {
   try {
     if (localStorage.getItem('platformToken')) {
