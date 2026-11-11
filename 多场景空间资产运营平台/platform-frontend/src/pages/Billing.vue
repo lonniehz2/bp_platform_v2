@@ -6,10 +6,12 @@ import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
 import DataTable from '../components/DataTable.vue'
 import EntityDetailTabs from '../components/EntityDetailTabs.vue'
+import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
+const { t } = useI18n()
 const router = useRouter()
-const pageTitle = route.path === '/bills' ? '账单与缴费' : '收款'
+const pageTitle = computed(() => route.path === '/bills' ? t('billing.billsTitle') : t('billing.paymentsTitle'))
 const project = ref(null)
 const bills = ref([])
 const payments = ref([])
@@ -40,15 +42,15 @@ const filteredBills = computed(() => {
 })
 const pagedBills = computed(() => filteredBills.value.slice((page.value - 1) * 10, page.value * 10))
 const billColumns = [
-  { key: 'billNo', title: '账单号', width: '170px' },
-  { key: 'personName', title: '承租人', width: '120px' },
-  { key: 'period', title: '周期', width: '200px' },
-  { key: 'amount', title: '账单金额', width: '100px' },
-  { key: 'discountAmount', title: '补贴', width: '90px' },
-  { key: 'payableAmount', title: '应付', width: '100px' },
-  { key: 'paidAmount', title: '已收', width: '100px' },
-  { key: 'billStatus', title: '状态', width: '90px' },
-  { key: 'actions', title: '操作', width: '80px' }
+  { key: 'billNo', title: t('billing.billNo'), width: '170px' },
+  { key: 'personName', title: t('billing.tenant'), width: '120px' },
+  { key: 'period', title: t('billing.period'), width: '200px' },
+  { key: 'amount', title: t('billing.amount'), width: '100px' },
+  { key: 'discountAmount', title: t('billing.discount'), width: '90px' },
+  { key: 'payableAmount', title: t('billing.payable'), width: '100px' },
+  { key: 'paidAmount', title: t('billing.paid'), width: '100px' },
+  { key: 'billStatus', title: t('billing.status'), width: '90px' },
+  { key: 'actions', title: t('billing.action'), width: '80px' }
 ]
 const statusClass = (s) => ({ PAID: 'green', PARTIAL: 'orange', UNPAID: 'red' }[s] || '')
 
@@ -121,7 +123,7 @@ function pickAllocation() {
 async function submitRefund() {
   busy.value = true; error.value = ''
   try {
-    if (!refunding.value || !refundForm.allocationId) throw new Error('请选择原收款分配')
+    if (!refunding.value || !refundForm.allocationId) throw new Error(t('billing.requiredAllocation'))
     await api.refundPayment(refunding.value.id, {
       billId: refundAllocations.value.find(x => String(x.allocationId) === String(refundForm.allocationId))?.billId,
       amount: Number(refundForm.amount),
@@ -134,13 +136,13 @@ async function submitRefund() {
 
 
 async function discardBill(b) {
-  if (!window.confirm(`确认作废账单 ${b.billNo}？`)) return
+  if (!window.confirm(t('billing.confirmDiscard', { no: b.billNo }))) return
   busy.value = true; error.value = ''
   try { await api.discardBill(b.id); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
 async function closeBill(b) {
-  if (!window.confirm(`确认关闭账单 ${b.billNo}？`)) return
+  if (!window.confirm(t('billing.confirmClose', { no: b.billNo }))) return
   busy.value = true; error.value = ''
   try { await api.closeBill(b.id); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -151,7 +153,7 @@ function printReceipt() { window.print() }
 async function pay() {
   busy.value = true; error.value = ''
   try {
-    if (!payForm.billId) throw new Error('请选择账单')
+    if (!payForm.billId) throw new Error(t('billing.requiredBill'))
     await api.pay(payForm.billId, { amount: Number(payForm.amount), paymentMethod: payForm.method })
     payForm.billId = ''
     payForm.amount = ''
@@ -166,21 +168,21 @@ onMounted(load)
 <template>
   <div>
     <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="route.query.contractId" class="alert">当前仅显示合同 {{ route.query.contractId }} 的账单 <button class="sm" @click="router.replace('/guarantee/billing')">清除合同筛选</button></div>
-    <div v-if="!project" class="empty">请先创建项目</div>
+    <div v-if="route.query.contractId" class="alert">{{ t('billing.onlyContract', { id: route.query.contractId }) }} <button class="sm" @click="router.replace('/guarantee/billing')">{{ t('billing.clear') }}</button></div>
+    <div v-if="!project" class="empty">{{ t('billing.createProject') }}</div>
     <template v-else>
       <div class="panel">
-        <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project.orgName }} · 账单列表与收款</p></div>
-          <div class="row"><button v-if="canAction('billing:pay', 'billing')" class="primary" @click="payOpen = true">收款</button><button class="sm" @click="paymentsOpen = !paymentsOpen">{{ paymentsOpen ? '隐藏收款记录' : '收款记录' }}</button></div>
+        <div class="panel-head"><div><h2>{{ pageTitle }}</h2><p>{{ project.orgName }} · {{ t('billing.subtitle') }}</p></div>
+          <div class="row"><button v-if="canAction('billing:pay', 'billing')" class="primary" @click="payOpen = true">{{ t('billing.pay') }}</button><button class="sm" @click="paymentsOpen = !paymentsOpen">{{ paymentsOpen ? t('billing.hidePayments') : t('billing.payments') }}</button></div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>账单列表</h2><span class="small muted" v-if="drillRange.start">账期 {{ drillRange.start }} ~ {{ drillRange.end }} · 应收 {{ bills.length }} 笔</span><span class="small muted" v-else>应收 {{ bills.length }} 笔</span></div>
+        <div class="panel-head"><h2>{{ t('billing.list') }}</h2><span class="small muted" v-if="drillRange.start">{{ t('billing.periodRange', { start: drillRange.start, end: drillRange.end }) }} · {{ t('billing.receivable', { n: bills.length }) }}</span><span class="small muted" v-else>{{ t('billing.receivable', { n: bills.length }) }}</span></div>
         <div class="row" style="margin-bottom:8px">
-          <input v-model="billQuery" placeholder="搜索账单号/承租人" style="max-width:260px" @input="page = 1" />
+          <input v-model="billQuery" :placeholder="t('billing.search')" style="max-width:260px" @input="page = 1" />
         </div>
-        <DataTable :rows="pagedBills" :columns="billColumns" :page="page" :page-size="10" :total="filteredBills.length" empty-text="暂无账单" @update:page="page = $event">
+        <DataTable :rows="pagedBills" :columns="billColumns" :page="page" :page-size="10" :total="filteredBills.length" :empty-text="t('billing.noBills')" @update:page="page = $event">
           <template #cell-period="{ row }"><span class="small">{{ row.periodStart }} ~ {{ row.periodEnd }}</span></template>
           <template #cell-amount="{ row }">¥{{ money(row.amount) }}</template>
           <template #cell-discountAmount="{ row }">¥{{ money(row.discountAmount) }}</template>
@@ -188,25 +190,25 @@ onMounted(load)
           <template #cell-paidAmount="{ row }">¥{{ money(row.paidAmount) }}</template>
           <template #cell-billStatus="{ row }"><span class="badge" :class="statusClass(row.billStatus)">{{ row.billStatus }}</span></template>
           <template #cell-actions="{ row }">
-            <button v-if="canAction('billing:adjust', 'billing') && row.billStatus !== 'PAID'" class="sm" :disabled="busy" @click="openAdjust(row)">调整</button>
-            <button v-if="canAction('billing:discard', 'billing') && row.billStatus === 'DRAFT'" class="sm danger" @click="discardBill(row)">作废</button>
-            <button v-if="canAction('billing:close', 'billing') && row.billStatus === 'WAIVED'" class="sm" @click="closeBill(row)">关闭</button>
-            <RouterLink class="sm" :to="`/guarantee/detail/BILL/${row.id}`">详情</RouterLink>
+            <button v-if="canAction('billing:adjust', 'billing') && row.billStatus !== 'PAID'" class="sm" :disabled="busy" @click="openAdjust(row)">{{ t('billing.adjust') }}</button>
+            <button v-if="canAction('billing:discard', 'billing') && row.billStatus === 'DRAFT'" class="sm danger" @click="discardBill(row)">{{ t('billing.discard') }}</button>
+            <button v-if="canAction('billing:close', 'billing') && row.billStatus === 'WAIVED'" class="sm" @click="closeBill(row)">{{ t('billing.close') }}</button>
+            <RouterLink class="sm" :to="`/guarantee/detail/BILL/${row.id}`">{{ t('billing.detail') }}</RouterLink>
           </template>
         </DataTable>
       </div>
 
       <div v-if="paymentsOpen" class="panel">
-        <div class="panel-head"><h2>收款记录</h2><span class="small muted">收据随收款自动生成</span></div>
-        <div v-if="!payments.length" class="empty">暂无收款</div>
+        <div class="panel-head"><h2>{{ t('billing.payments') }}</h2><span class="small muted">{{ t('billing.paymentHint') }}</span></div>
+        <div v-if="!payments.length" class="empty">{{ t('billing.noPayments') }}</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>收款单号</th><th>金额</th><th>方式</th><th>状态</th><th>收据</th><th>时间</th><th>操作</th></tr></thead>
+            <thead><tr><th>{{ t('billing.paymentNo') }}</th><th>{{ t('billing.amount') }}</th><th>{{ t('billing.method') }}</th><th>{{ t('billing.status') }}</th><th>{{ t('billing.receipt') }}</th><th>{{ t('billing.time') }}</th><th>{{ t('billing.action') }}</th></tr></thead>
             <tbody>
               <tr v-for="p in payments" :key="p.id">
                 <td class="mono">{{ p.paymentNo }}</td><td>¥{{ money(p.amount) }}</td><td>{{ p.paymentMethod }}</td>
                 <td><span class="badge green">{{ p.paymentStatus }}</span></td><td class="mono">{{ p.receiptNo || '-' }}</td><td class="small">{{ p.paidTime }}</td>
-                <td><div class="row"><button v-if="p.receiptNo" class="sm" :disabled="busy" @click="openReceipt(p)">打印</button><button v-if="canAction('billing:refund', 'billing')" class="sm" @click="openRefund(p)">退款</button></div></td>
+                <td><div class="row"><button v-if="p.receiptNo" class="sm" :disabled="busy" @click="openReceipt(p)">{{ t('billing.print') }}</button><button v-if="canAction('billing:refund', 'billing')" class="sm" @click="openRefund(p)">{{ t('billing.refund') }}</button></div></td>
               </tr>
             </tbody>
           </table>
@@ -216,64 +218,64 @@ onMounted(load)
 
     <div v-if="payOpen" class="modal-mask" @click.self="payOpen = false">
       <div class="modal" style="max-width:640px">
-        <div class="panel-head"><h2>收款</h2><button class="sm" @click="payOpen = false">关闭</button></div>
+        <div class="panel-head"><h2>{{ t('billing.payTitle') }}</h2><button class="sm" @click="payOpen = false">{{ t('billing.close') }}</button></div>
         <div class="row">
-          <div class="field"><label>账单</label><SearchSelect v-model="payForm.billId" :options="bills.filter(x => x.billStatus !== 'PAID')" label-key="billNo" sublabel-key="personName" value-key="id" placeholder="搜索账单号/承租人" @change="selectBill" /></div>
-          <div class="field"><label>收款金额</label><input v-model.number="payForm.amount" type="number" /></div>
-          <div class="field"><label>方式</label><select v-model="payForm.method"><option value="CASH">现金</option><option value="WECHAT">微信</option><option value="ALIPAY">支付宝</option><option value="BANK">银行</option></select></div>
+          <div class="field"><label>{{ t('billing.bill') }}</label><SearchSelect v-model="payForm.billId" :options="bills.filter(x => x.billStatus !== 'PAID')" label-key="billNo" sublabel-key="personName" value-key="id" :placeholder="t('billing.search')" @change="selectBill" /></div>
+          <div class="field"><label>{{ t('billing.payAmount') }}</label><input v-model.number="payForm.amount" type="number" /></div>
+          <div class="field"><label>{{ t('billing.method') }}</label><select v-model="payForm.method"><option value="CASH">{{ t('billing.cash') }}</option><option value="WECHAT">{{ t('billing.wechat') }}</option><option value="ALIPAY">{{ t('billing.alipay') }}</option><option value="BANK">{{ t('billing.bank') }}</option></select></div>
         </div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="pay">确认收款</button></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="pay">{{ t('billing.confirmPay') }}</button></div>
       </div>
     </div>
 
     <div v-if="refunding" class="modal-mask" @click.self="refunding = null">
       <div class="modal">
-        <div class="panel-head"><h2>账单退款</h2><button class="sm" @click="refunding = null">关闭</button></div>
-        <div class="field"><label>原收款</label><div class="mono">{{ refunding.paymentNo }} · ¥{{ money(refunding.amount) }}</div></div>
-        <div class="field"><label>原收款分配</label>
+        <div class="panel-head"><h2>{{ t('billing.refundTitle') }}</h2><button class="sm" @click="refunding = null">{{ t('billing.close') }}</button></div>
+        <div class="field"><label>{{ t('billing.original') }}</label><div class="mono">{{ refunding.paymentNo }} · ¥{{ money(refunding.amount) }}</div></div>
+        <div class="field"><label>{{ t('billing.allocation') }}</label>
           <select v-model="refundForm.allocationId" @change="pickAllocation">
             <option v-for="a in refundAllocations" :key="a.allocationId" :value="a.allocationId">
-              {{ a.billNo }} · {{ a.periodStart }} ~ {{ a.periodEnd }} · 可退 ¥{{ money(Number(a.amount) - Number(a.refunded || 0)) }}
+              {{ a.billNo }} · {{ a.periodStart }} ~ {{ a.periodEnd }} · {{ t('billing.refundable') }} ¥{{ money(Number(a.amount) - Number(a.refunded || 0)) }}
             </option>
           </select>
         </div>
-        <div class="field"><label>退款金额</label><input v-model.number="refundForm.amount" type="number" /></div>
-        <div class="field"><label>退款原因</label><input v-model="refundForm.reason" /></div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="submitRefund">确认退款</button></div>
+        <div class="field"><label>{{ t('billing.refundAmount') }}</label><input v-model.number="refundForm.amount" type="number" /></div>
+        <div class="field"><label>{{ t('billing.refundReason') }}</label><input v-model="refundForm.reason" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="submitRefund">{{ t('billing.confirmRefund') }}</button></div>
       </div>
     </div>
 
     <div v-if="adjusting" class="modal-mask" @click.self="adjusting = null">
       <div class="modal">
-        <div class="panel-head"><h2>账单调整</h2><button class="sm" @click="adjusting = null">关闭</button></div>
-        <div class="field"><label>账单</label><div class="mono">{{ adjusting.billNo }}</div></div>
-        <div class="field"><label>新增减免</label><input v-model.number="adjustForm.discountAmount" type="number" /></div>
-        <div class="field"><label>调整原因</label><input v-model="adjustForm.remark" /></div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="adjust">保存</button></div>
+        <div class="panel-head"><h2>{{ t('billing.adjustTitle') }}</h2><button class="sm" @click="adjusting = null">{{ t('billing.close') }}</button></div>
+        <div class="field"><label>{{ t('billing.bill') }}</label><div class="mono">{{ adjusting.billNo }}</div></div>
+        <div class="field"><label>{{ t('billing.newDiscount') }}</label><input v-model.number="adjustForm.discountAmount" type="number" /></div>
+        <div class="field"><label>{{ t('billing.adjustReason') }}</label><input v-model="adjustForm.remark" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="adjust">{{ t('billing.save') }}</button></div>
       </div>
     </div>
 
     <div v-if="detailBill" class="modal-mask" @click.self="detailBill = null">
       <div class="modal" style="max-width:760px">
-        <div class="panel-head"><div><h2>{{ detailBill.billNo }}</h2><p class="small muted">账单关联信息</p></div><button class="sm" @click="detailBill = null">关闭</button></div>
+        <div class="panel-head"><div><h2>{{ detailBill.billNo }}</h2><p class="small muted">{{ t('billing.billRelations') }}</p></div><button class="sm" @click="detailBill = null">{{ t('billing.close') }}</button></div>
         <EntityDetailTabs type="BILL" :entity-id="detailBill.id" />
       </div>
     </div>
 
     <div v-if="receipt" class="modal-mask" @click.self="receipt = null">
       <div class="modal receipt-box">
-        <div class="panel-head"><h2>收款收据</h2><button class="sm no-print" @click="receipt = null">关闭</button></div>
+        <div class="panel-head"><h2>{{ t('billing.receiptTitle') }}</h2><button class="sm no-print" @click="receipt = null">{{ t('billing.close') }}</button></div>
         <div class="receipt">
-          <h3>保障房租金收据</h3>
-          <p>收据号：{{ receipt.receiptNo }}</p>
-          <p>收款单号：{{ receipt.paymentNo }}</p>
-          <p>收款金额：¥{{ money(receipt.amount) }}</p>
-          <p>收款方式：{{ receipt.paymentMethod }}</p>
-          <p>收款时间：{{ receipt.paidTime }}</p>
-          <p class="small muted">本收据由多场景空间资产运营平台生成</p>
+          <h3>{{ t('billing.receiptTitle') }}</h3>
+          <p>{{ t('billing.receiptNo') }}: {{ receipt.receiptNo }}</p>
+          <p>{{ t('billing.paymentNo') }}: {{ receipt.paymentNo }}</p>
+          <p>{{ t('billing.payAmount') }}: ¥{{ money(receipt.amount) }}</p>
+          <p>{{ t('billing.method') }}: {{ receipt.paymentMethod }}</p>
+          <p>{{ t('billing.time') }}: {{ receipt.paidTime }}</p>
+          <p class="small muted">{{ t('billing.receiptFooter') }}</p>
         </div>
         <div class="row no-print" style="justify-content:flex-end;margin-top:12px">
-          <button class="primary" @click="printReceipt">打印</button>
+          <button class="primary" @click="printReceipt">{{ t('billing.print') }}</button>
         </div>
       </div>
     </div>

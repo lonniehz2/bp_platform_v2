@@ -2,7 +2,6 @@
   "src/components/RolePanel.vue",
   "src/components/UserPanel.vue",
   "src/pages/Applications.vue",
-  "src/pages/Billing.vue",
   "src/pages/Contracts.vue",
   "src/pages/Devices.vue",
   "src/pages/ImportCenter.vue",
