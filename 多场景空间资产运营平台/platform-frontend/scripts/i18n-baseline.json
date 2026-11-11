@@ -23,7 +23,6 @@
   "src/pages/Credit.vue",
   "src/pages/Dashboard.vue",
   "src/pages/DeviceBinding.vue",
-  "src/pages/DeviceEvents.vue",
   "src/pages/Devices.vue",
   "src/pages/Energy.vue",
   "src/pages/GovReport.vue",

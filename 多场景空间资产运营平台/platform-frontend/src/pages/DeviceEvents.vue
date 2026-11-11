@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const alerts = ref([])
 const error = ref('')
@@ -28,14 +30,14 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>设备告警</h2><p>{{ project?.orgName || '未选择项目' }} · 低电量、拆机、离线、试错</p></div><span class="badge blue">{{ deviceAlerts.length }} 条</span></div>
+      <div class="panel-head"><div><h2>{{ t('deviceEvents.title') }}</h2><p>{{ project?.orgName || t('deviceEvents.noProject') }} · {{ t('deviceEvents.subtitle') }}</p></div><span class="badge blue">{{ deviceAlerts.length }} {{ t('deviceEvents.count') }}</span></div>
     </div>
     <div class="panel">
-      <div class="panel-head"><h2>设备告警列表</h2><RouterLink to="/alerts">全部告警</RouterLink></div>
-      <div v-if="!deviceAlerts.length" class="empty">暂无设备告警</div>
+      <div class="panel-head"><h2>{{ t('deviceEvents.list') }}</h2><RouterLink to="/alerts">{{ t('deviceEvents.all') }}</RouterLink></div>
+      <div v-if="!deviceAlerts.length" class="empty">{{ t('deviceEvents.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>级别</th><th>标题</th><th>房屋</th><th>状态</th><th>处理人</th><th>时间</th></tr></thead>
+          <thead><tr><th>{{ t('deviceEvents.level') }}</th><th>{{ t('deviceEvents.alertTitle') }}</th><th>{{ t('deviceEvents.house') }}</th><th>{{ t('deviceEvents.status') }}</th><th>{{ t('deviceEvents.handler') }}</th><th>{{ t('deviceEvents.time') }}</th></tr></thead>
           <tbody>
             <tr v-for="a in deviceAlerts" :key="a.id">
               <td><span class="badge" :class="a.alertLevel === 'HIGH' || a.alertLevel === 'URGENT' ? 'red' : 'orange'">{{ a.alertLevel }}</span></td>
