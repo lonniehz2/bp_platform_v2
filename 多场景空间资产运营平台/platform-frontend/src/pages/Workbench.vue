@@ -26,9 +26,9 @@ const pendingWorkOrders = computed(() => workOrders.value.filter(w => w.orderSta
 const unpaidBills = computed(() => bills.value.filter(b => b.billStatus !== 'PAID').slice(0, 5))
 const activeAlerts = computed(() => alerts.value.filter(a => a.alertStatus === 'PENDING').length)
 const todos = computed(() => [
-  { label: 'pendingWork', value: pendingWorkOrders.value.length, to: '/guarantee/work-orders' },
-  { label: 'unpaid', value: unpaidBills.value.length, to: '/guarantee/billing' },
-  { label: 'pendingApps', value: applications.value.filter(a => a.applicationStatus === 'SUBMITTED').length, to: '/guarantee/applications' }
+  { label: 'pendingWork', value: pendingWorkOrders.value.length, to: sceneRoot() + '/work-orders' },
+  { label: 'unpaid', value: unpaidBills.value.length, to: sceneRoot() + '/billing' },
+  { label: 'pendingApps', value: applications.value.filter(a => a.applicationStatus === 'SUBMITTED').length, to: sceneRoot() + '/applications' }
 ])
 
 async function load() {

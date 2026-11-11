@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { sceneRoot } from '../scene'
+import { currentScene, sceneRoot } from '../scene'
 import * as echarts from 'echarts'
 import { api } from '../api'
 import { mode } from '../ui'
@@ -27,7 +27,8 @@ const customEnd = ref('')
 const summary = ref(null)
 const compare = ref([])
 const user = (() => { try { return JSON.parse(localStorage.getItem('platformUser') || '{}') } catch { return {} } })()
-const isManager = (user.roles || []).some(r => ['GUARANTEE_ADMIN','GUARANTEE_MANAGER','ADMIN'].includes(r))
+const scene = currentScene()
+const isManager = (user.roles || []).some(r => ['ADMIN', `${scene}_ADMIN`, `${scene}_MANAGER`].includes(r))
 const cockpitView = ref(isManager ? 'org' : 'project')
 const houseChart = ref(null)
 const trendChart = ref(null)
@@ -275,10 +276,10 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
         <div><h2>{{ t('cockpit.projectCockpit') }}</h2><p>{{ project?.orgName || '未选择项目' }} · {{ t('cockpit.projectHint') }}</p></div>
         <div class="row">
           <select id="periodMode" v-model="periodMode" class="sm" style="padding:6px">
-            <option value="month">本月账期</option>
-            <option value="quarter">本季账期</option>
-            <option value="year">本年账期</option>
-            <option value="custom">自定义账期</option>
+            <option value="month">{{ t('ops.thisMonth') }}</option>
+            <option value="quarter">{{ t('ops.thisQuarter') }}</option>
+            <option value="year">{{ t('ops.thisYear') }}</option>
+            <option value="custom">{{ t('ops.customPeriod') }}</option>
           </select>
           <template v-if="periodMode === 'custom'">
             <input v-model="customStart" type="date" class="sm" />
@@ -288,7 +289,7 @@ onBeforeUnmount(() => { window.removeEventListener('resize', resize); charts.for
         </div>
       </div>
       <div class="grid cards" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
-        <div class="card"><div class="label">{{ t('cockpit.projects') }}</div><div class="value">{{ projects.length }}</div><div class="hint">当前租户</div></div>
+        <div class="card"><div class="label">{{ t('cockpit.projects') }}</div><div class="value">{{ projects.length }}</div><div class="hint">{{ t('ops.tenant') }}</div></div>
         <div class="card"><div class="label">{{ t('ops.applications') }}</div><div class="value">{{ applications.length }}</div><div class="hint">{{ t('ops.pendingReview') }} {{ count(applications, 'SUBMITTED', 'applicationStatus') }}</div></div>
         <div class="card"><div class="label">{{ t('ops.activeContracts') }}</div><div class="value">{{ contracts.filter(c => c.contractStatus === 'ACTIVE').length }}</div><div class="hint">{{ t('ops.totalContracts') }} {{ contracts.length }}</div></div>
         <div class="card clickable" @click="drillBilling"><div class="label">{{ t('ops.currentReceivable') }}</div><div class="value">¥{{ money(billStats().total) }}</div><div class="hint">{{ t('ops.periodBills') }} {{ currentBills.length }} 笔</div></div>
