@@ -160,7 +160,7 @@ onMounted(() => { try { savedViews.value = JSON.parse(localStorage.getItem('plat
       </div>
       <div v-if="!filteredRows.length" class="empty">{{ t('reports.noData') }}</div>
       <div v-else class="table-wrap">
-        <table><thead><tr><th v-for="c in cols" :key="c[0]">{{ te(`field.${c[0]}`) ? t(`field.${c[0]}`) : c[1] }}</th><th v-if="active === 'projects'">操作</th></tr></thead><tbody>
+        <table><thead><tr><th v-for="c in cols" :key="c[0]">{{ te(`field.${c[0]}`) ? t(`field.${c[0]}`) : c[1] }}</th><th v-if="active === 'projects'">{{ t('common.action') }}</th></tr></thead><tbody>
           <tr v-for="(row, i) in filteredRows" :key="i"><td v-for="c in cols" :key="c[0]">{{ display(row, c[0]) }}</td><td v-if="active === 'projects'"><button class="sm" @click="openProject(row)">{{ t('reports.drill') }}</button></td></tr>
         </tbody></table>
       </div>
@@ -169,12 +169,12 @@ onMounted(() => { try { savedViews.value = JSON.parse(localStorage.getItem('plat
       <div class="panel-head"><div><h2>{{ t('reports.subscription') }}</h2><p>{{ t('reports.subscriptionHint') }}</p></div></div>
       <div class="row">
         <div class="field"><label>{{ t('reports.frequency') }}</label><select v-model="subscription.frequency"><option value="DAILY">{{ t('reports.daily') }}</option><option value="WEEKLY">{{ t('reports.weekly') }}</option><option value="MONTHLY">{{ t('reports.monthly') }}</option></select></div>
-        <div class="field" style="flex:2"><label>{{ t('reports.recipients') }}</label><input v-model="subscription.recipients" placeholder="用户名或邮箱" /></div>
+        <div class="field" style="flex:2"><label>{{ t('reports.recipients') }}</label><input v-model="subscription.recipients" :placeholder="t('reports.recipients')" /></div>
         <div class="field"><label>{{ t('reports.enabled') }}</label><input v-model="subscription.enabled" type="checkbox" /></div>
         <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" @click="saveSubscription">{{ t('reports.saveSubscription') }}</button></div>
       </div>
-      <div v-if="subscriptions.length" class="table-wrap"><table><thead><tr><th>报表</th><th>{{ t('reports.frequency') }}</th><th>{{ t('reports.recipients') }}</th><th>状态</th></tr></thead><tbody><tr v-for="(s, i) in subscriptions" :key="i"><td>{{ s.report }}</td><td>{{ s.frequency }}</td><td>{{ s.recipients }}</td><td>{{ s.enabled ? '启用' : '停用' }}</td></tr></tbody></table></div>
-      <div v-else class="empty">暂无订阅</div>
+      <div v-if="subscriptions.length" class="table-wrap"><table><thead><tr><th>{{ t('reports.report') }}</th><th>{{ t('reports.frequency') }}</th><th>{{ t('reports.recipients') }}</th><th>{{ t('reports.status') }}</th></tr></thead><tbody><tr v-for="(s, i) in subscriptions" :key="i"><td>{{ s.report }}</td><td>{{ s.frequency }}</td><td>{{ s.recipients }}</td><td>{{ s.enabled ? t('reports.enabled') : t('status.DISABLED') }}</td></tr></tbody></table></div>
+      <div v-else class="empty">{{ t('reports.noData') }}</div>
     </div>
   </div>
 </template>

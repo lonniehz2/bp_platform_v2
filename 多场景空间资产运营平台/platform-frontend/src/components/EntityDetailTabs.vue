@@ -62,7 +62,7 @@ watch(() => [props.type, props.entityId], load, { immediate: true })
 
 <template>
   <div class="entity-detail-tabs">
-    <div v-if="loading" class="empty">加载中…</div>
+    <div v-if="loading" class="empty">{{ t('common.loading') }}</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <template v-else>
       <div v-if="entity" class="entity-detail-head">
@@ -75,18 +75,18 @@ watch(() => [props.type, props.entityId], load, { immediate: true })
         </button>
       </div>
       <div v-if="current" class="tab-panel">
-        <div v-if="!current.accessible" class="empty">🔒 {{ current.reason || '无权限查看该关联信息' }}</div>
-        <div v-else-if="!current.items?.length" class="empty">暂无关联记录</div>
+        <div v-if="!current.accessible" class="empty">🔒 {{ current.reason || t('common.noPermission') }}</div>
+        <div v-else-if="!current.items?.length" class="empty">{{ t('common.noRelation') }}</div>
         <div v-else-if="current.key === 'overview'" class="kv-grid">
           <div v-for="(entry, i) in overviewEntries(current.items[0])" :key="i"><span>{{ te(`field.${entry.key}`) ? t(`field.${entry.key}`) : entry.label }}</span><strong>{{ formatOverviewValue(entry.key, entry.value) }}</strong></div>
         </div>
         <div v-else class="table-wrap">
           <table>
-            <thead><tr><th v-for="col in columns" :key="col.key">{{ te(`field.${col.key}`) ? t(`field.${col.key}`) : col.label }}</th><th>{{ te('common.action') ? t('common.action') : '操作' }}</th></tr></thead>
+            <thead><tr><th v-for="col in columns" :key="col.key">{{ te(`field.${col.key}`) ? t(`field.${col.key}`) : col.label }}</th><th>{{ t('common.action') }}</th></tr></thead>
             <tbody>
               <tr v-for="(item, i) in current.items" :key="i">
                 <td v-for="col in columns" :key="col.key">{{ formatValue(item, col) }}</td>
-                <td><RouterLink v-if="item.route && item.status !== 'LOCKED'" :to="item.route">{{ te('common.open') ? t('common.open') : '打开' }}</RouterLink><span v-else class="small muted">-</span></td>
+                <td><RouterLink v-if="item.route && item.status !== 'LOCKED'" :to="item.route">{{ t('common.open') }}</RouterLink><span v-else class="small muted">-</span></td>
               </tr>
             </tbody>
           </table>
