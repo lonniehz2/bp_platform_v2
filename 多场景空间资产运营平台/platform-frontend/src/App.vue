@@ -6,8 +6,7 @@ import { api } from './api'
 import { getMenus, setMenus } from './permissions'
 import { mode, toggleMode } from './ui'
 import { setLocale } from './i18n'
-import { currentScene } from './scene'
-import { applyLegacyTranslation } from './legacyTranslator'
+import { currentScene, scenePath } from './scene'
 import { navGroups, navItems } from './navConfig'
 import SearchSelect from './components/SearchSelect.vue'
 import ConfirmDialog from './components/ConfirmDialog.vue'
@@ -68,7 +67,7 @@ const sidebarGroups = computed(() => {
 const currentGroupKey = computed(() => {
   const path = route.path
   const group = sidebarGroups.value.find(g => g.items.some(item =>
-    path === item.to || path.startsWith(item.to + '/')))
+    path === scenePath(item.to) || path.startsWith(scenePath(item.to) + '/')))
   return group ? group.key : ''
 })
 
@@ -86,7 +85,6 @@ function toggleGroup(key) {
   openGroups.value = next
 }
 
-watch(locale, value => applyLegacyTranslation(value === 'en-US'), { immediate: true })
 watch(currentGroupKey, (key) => {
   if (key) openGroups.value = new Set([key])
 }, { immediate: true })
@@ -130,7 +128,7 @@ const titleKey = {
 for (const item of navItems) {
   if (!titleKey[item.to]) titleKey[item.to] = 'nav.' + item.key
 }
-const title = computed(() => route.meta?.title || t(titleKey[route.path] || 'nav.dashboard'))
+const title = computed(() => t(route.meta?.titleKey || titleKey[route.path] || 'nav.dashboard'))
 
 onMounted(async () => {
   try {
@@ -169,13 +167,13 @@ function switchLocale() {
 
 async function changePassword() {
   pwdError.value = ''
-  if (!pwd.oldPassword || pwd.newPassword.length < 6) { pwdError.value = '请输入原密码，新密码至少 6 位'; return }
-  if (pwd.newPassword !== pwd.confirm) { pwdError.value = '两次新密码不一致'; return }
+  if (!pwd.oldPassword || pwd.newPassword.length < 6) { pwdError.value = t('shell.pwdRequired'); return }
+  if (pwd.newPassword !== pwd.confirm) { pwdError.value = t('shell.pwdMismatch'); return }
   try {
     await api.changePassword({ oldPassword: pwd.oldPassword, newPassword: pwd.newPassword })
     pwdOpen.value = false
     pwd.oldPassword = ''; pwd.newPassword = ''; pwd.confirm = ''
-    alert('密码已修改')
+    alert(t('shell.pwdChanged'))
   } catch (e) { pwdError.value = e.message }
 }
 
@@ -206,7 +204,7 @@ function logout() {
             <span class="nav-label nav-group-arrow">{{ isGroupOpen(g.key) ? '⌄' : '›' }}</span>
           </button>
           <div v-show="isGroupOpen(g.key)" class="nav-group-items">
-            <RouterLink v-for="item in g.items" :key="item.to" :to="item.to" class="nav-item">
+            <RouterLink v-for="item in g.items" :key="item.to" :to="scenePath(item.to)" class="nav-item">
               <span class="nav-icon">{{ item.icon }}</span>
               <span class="nav-label">{{ item.label || t('nav.' + item.key) }}</span>
             </RouterLink>
@@ -221,7 +219,7 @@ function logout() {
 
     <main class="main">
       <header class="topbar">
-        <button class="ghost sm" @click="toggleSidebar" title="折叠菜单">☰</button>
+        <button class="ghost sm" @click="toggleSidebar" :title="t('shell.collapse')">☰</button>
         <div class="page-heading">
           <h1>{{ title }}</h1>
           <p>{{ currentUser.displayName || currentUser.username || 'admin' }} · {{ currentUser.tenantId || '350600' }}</p>
@@ -233,14 +231,14 @@ function logout() {
             label-key="orgName"
             sublabel-key="orgCode"
             value-key="id"
-            placeholder="选择项目"
+            :placeholder="t('shell.selectProject')"
             class="project-picker"
             @change="switchProject"
           />
-          <a v-if="isAdmin" class="admin-link" :href="legacyAdminUrl" target="_blank" rel="noopener">平台管理</a>
-          <button class="ghost sm" @click="switchLocale">{{ locale === 'zh-CN' ? 'EN' : '中' }}</button>
+          <a v-if="isAdmin" class="admin-link" :href="legacyAdminUrl" target="_blank" rel="noopener">{{ t('common.admin') }}</a>
+          <button class="ghost sm" @click="switchLocale">{{ locale === 'zh-CN' ? 'EN' : t('common.zhShort') }}</button>
           <button class="ghost sm" @click="toggleMode">{{ mode === 'dark' ? '☀' : '☾' }}</button>
-          <button class="sm" @click="pwdOpen = true">修改密码</button>
+          <button class="sm" @click="pwdOpen = true">{{ t('shell.changePwd') }}</button>
           <button class="sm" @click="logout">{{ t('common.logout') }}</button>
         </div>
       </header>
@@ -251,12 +249,12 @@ function logout() {
 
     <div v-if="pwdOpen" class="modal-mask" @click.self="pwdOpen = false">
       <div class="modal">
-        <div class="panel-head"><h2>修改密码</h2><button class="sm" @click="pwdOpen = false">关闭</button></div>
+        <div class="panel-head"><h2>{{ t('shell.changePwd') }}</h2><button class="sm" @click="pwdOpen = false">{{ t('shell.close') }}</button></div>
         <div v-if="pwdError" class="error">{{ pwdError }}</div>
-        <div class="field"><label>原密码</label><input v-model="pwd.oldPassword" type="password" /></div>
-        <div class="field"><label>新密码（至少 6 位）</label><input v-model="pwd.newPassword" type="password" /></div>
-        <div class="field"><label>确认新密码</label><input v-model="pwd.confirm" type="password" /></div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" @click="changePassword">保存</button></div>
+        <div class="field"><label>{{ t('shell.oldPwd') }}</label><input v-model="pwd.oldPassword" type="password" /></div>
+        <div class="field"><label>{{ t('shell.newPwd') }}</label><input v-model="pwd.newPassword" type="password" /></div>
+        <div class="field"><label>{{ t('shell.confirmPwd') }}</label><input v-model="pwd.confirm" type="password" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" @click="changePassword">{{ t('shell.save') }}</button></div>
       </div>
     </div>
     <ConfirmDialog />

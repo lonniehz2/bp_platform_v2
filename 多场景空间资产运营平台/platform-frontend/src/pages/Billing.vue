@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
+import { sceneRoot } from '../scene'
 import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
 import DataTable from '../components/DataTable.vue'
@@ -168,7 +169,7 @@ onMounted(load)
 <template>
   <div>
     <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="route.query.contractId" class="alert">{{ t('billing.onlyContract', { id: route.query.contractId }) }} <button class="sm" @click="router.replace('/guarantee/billing')">{{ t('billing.clear') }}</button></div>
+    <div v-if="route.query.contractId" class="alert">{{ t('billing.onlyContract', { id: route.query.contractId }) }} <button class="sm" @click="router.replace(sceneRoot() + '/billing')">{{ t('billing.clear') }}</button></div>
     <div v-if="!project" class="empty">{{ t('billing.createProject') }}</div>
     <template v-else>
       <div class="panel">
@@ -193,7 +194,7 @@ onMounted(load)
             <button v-if="canAction('billing:adjust', 'billing') && row.billStatus !== 'PAID'" class="sm" :disabled="busy" @click="openAdjust(row)">{{ t('billing.adjust') }}</button>
             <button v-if="canAction('billing:discard', 'billing') && row.billStatus === 'DRAFT'" class="sm danger" @click="discardBill(row)">{{ t('billing.discard') }}</button>
             <button v-if="canAction('billing:close', 'billing') && row.billStatus === 'WAIVED'" class="sm" @click="closeBill(row)">{{ t('billing.close') }}</button>
-            <RouterLink class="sm" :to="`/guarantee/detail/BILL/${row.id}`">{{ t('billing.detail') }}</RouterLink>
+            <RouterLink class="sm" :to="`${sceneRoot()}/detail/BILL/${row.id}`">{{ t('billing.detail') }}</RouterLink>
           </template>
         </DataTable>
       </div>

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import { sceneRoot } from '../scene'
 import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
 import EntityDetailTabs from '../components/EntityDetailTabs.vue'
@@ -132,7 +133,7 @@ async function contractAction(c, action) {
 }
 
 async function openDetail(c) {
-  router.push(`/guarantee/contracts/${c.id}`)
+  router.push(`${sceneRoot()}/contracts/${c.id}`)
 }
 
 async function openFiles(c) {

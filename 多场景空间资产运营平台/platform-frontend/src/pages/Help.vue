@@ -14,7 +14,7 @@ const sections = computed(() => [
   { title: t('help.section4'), items: [t('help.i41'), t('help.i42'), t('help.i43'), t('help.i44')] },
   { title: t('help.section5'), items: [t('help.i51'), t('help.i52'), t('help.i53'), t('help.i54')] }
 ])
-const currentTitle = computed(() => route.meta?.title || t('help.title'))
+const currentTitle = computed(() => t(route.meta?.titleKey || 'help.title'))
 </script>
 
 <template>

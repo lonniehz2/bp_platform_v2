@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import { sceneRoot } from '../scene'
 import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
 import EntityDetailTabs from '../components/EntityDetailTabs.vue'
@@ -173,7 +174,7 @@ onMounted(load)
     <div v-if="detailApp" class="modal-mask" @click.self="detailApp = null">
       <div class="modal" style="max-width:720px">
         <div class="panel-head"><h2>{{ t('ap.detailTitle') }}</h2><button class="sm" @click="detailApp = null">{{ t('ap.close') }}</button></div>
-        <div class="row" style="justify-content:flex-end;margin-bottom:8px"><RouterLink class="sm" :to="`/guarantee/detail/APPLICATION/${detailApp.id}`">{{ t('ap.openDetail') }}</RouterLink></div>
+        <div class="row" style="justify-content:flex-end;margin-bottom:8px"><RouterLink class="sm" :to="`${sceneRoot()}/detail/APPLICATION/${detailApp.id}`">{{ t('ap.openDetail') }}</RouterLink></div>
         <EntityDetailTabs type="APPLICATION" :entity-id="detailApp.id" />
         <div class="row">
           <div class="field"><label>{{ t('ap.appNo') }}</label><div class="mono">{{ detailApp.applicationNo }}</div></div>

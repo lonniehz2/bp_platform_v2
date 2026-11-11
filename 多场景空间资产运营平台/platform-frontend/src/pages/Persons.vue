@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { contractStatusLabel, contractStatusTone } from '../contractStatus'
 import { relationLabel, relationStatusLabel } from '../relationLabels'
 import { api } from '../api'
+import { sceneRoot } from '../scene'
 import { can } from '../permissions'
 import DataTable from '../components/DataTable.vue'
 import SearchSelect from '../components/SearchSelect.vue'
@@ -165,10 +166,10 @@ onMounted(async () => {
     <div v-if="error" class="error">{{ error }}</div>
     <div v-if="route.query.from === 'contract' && route.query.contractId" class="alert">
       {{ t('pp.fromContract', { id: route.query.contractId }) }}
-      <button class="sm" @click="router.push(`/guarantee/contracts/${route.query.contractId}?tab=persons`)">{{ t('pp.backContract') }}</button>
+      <button class="sm" @click="router.push(`${sceneRoot()}/contracts/${route.query.contractId}?tab=persons`)">{{ t('pp.backContract') }}</button>
     </div>
     <div class="panel">
-      <div class="panel-head"><div><h2>{{ t('pp.title') }}</h2><p>{{ t('pp.subtitle') }}</p></div><div class="row"><span class="badge blue">{{ persons.length }} {{ t('pp.count') }}</span><RouterLink class="sm" to="/guarantee/imports">{{ t('pp.import') }}</RouterLink></div></div>
+      <div class="panel-head"><div><h2>{{ t('pp.title') }}</h2><p>{{ t('pp.subtitle') }}</p></div><div class="row"><span class="badge blue">{{ persons.length }} {{ t('pp.count') }}</span><RouterLink class="sm" :to="sceneRoot() + '/imports'">{{ t('pp.import') }}</RouterLink></div></div>
       <div class="row">
         <div class="field"><label>{{ t('pp.code') }}</label><input v-model="form.personCode" :placeholder="t('pp.code')" /></div>
         <div class="field"><label>{{ t('pp.name') }}</label><input v-model="form.personName" /></div>
@@ -211,7 +212,7 @@ onMounted(async () => {
         </DataTable>
       </div>
 
-      <div v-if="selected" id="person-detail" class="row" style="justify-content:flex-end;margin-bottom:8px"><RouterLink class="sm" :to="`/guarantee/detail/PERSON/${selected.id}`">{{ t('pp.openDetail') }}</RouterLink></div>
+      <div v-if="selected" id="person-detail" class="row" style="justify-content:flex-end;margin-bottom:8px"><RouterLink class="sm" :to="`${sceneRoot()}/detail/PERSON/${selected.id}`">{{ t('pp.openDetail') }}</RouterLink></div>
       <EntityDetailTabs v-if="selected" type="PERSON" :entity-id="selected.id" />
 
       <div class="panel">

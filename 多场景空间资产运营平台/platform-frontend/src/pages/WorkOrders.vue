@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import { sceneRoot } from '../scene'
 import SearchSelect from '../components/SearchSelect.vue'
 import EntityDetailTabs from '../components/EntityDetailTabs.vue'
 import { can } from '../permissions'
@@ -90,7 +91,7 @@ onMounted(load)
               <td>{{ o.houseName || '-' }}</td><td>{{ o.personName || '-' }}</td><td>{{ o.assigneeName || '-' }}</td>
               <td><span class="badge" :class="statusClass(o.orderStatus)">{{ o.orderStatus }}</span></td>
               <td class="row">
-                <RouterLink class="sm" :to="`/guarantee/detail/WORK_ORDER/${o.id}`">{{ t('workOrders.detail') }}</RouterLink>
+                <RouterLink class="sm" :to="`${sceneRoot()}/detail/WORK_ORDER/${o.id}`">{{ t('workOrders.detail') }}</RouterLink>
                 <button v-if="can('service') && o.orderStatus === 'PENDING'" class="sm" :disabled="busy" @click="update(o, 'PROCESSING')">{{ t('workOrders.accept') }}</button>
                 <button v-if="can('service') && o.orderStatus === 'PROCESSING'" class="sm" :disabled="busy" @click="update(o, 'DONE')">{{ t('workOrders.complete') }}</button>
                 <button v-if="can('service') && o.orderStatus === 'DONE'" class="sm" :disabled="busy" @click="update(o, 'CLOSED')">{{ t('workOrders.close') }}</button>

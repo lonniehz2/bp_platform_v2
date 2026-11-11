@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import { sceneRoot } from '../scene'
 import SearchSelect from '../components/SearchSelect.vue'
 import TreeSelect from '../components/TreeSelect.vue'
 import { confirmAction } from '../confirm'
@@ -190,7 +191,7 @@ onMounted(load)
           <template #cell-assetStatus="{ row }"><span class="badge green">{{ row.assetStatus }}</span></template>
           <template #cell-actions="{ row }">
             <button class="sm" @click="openDeviceEdit(row)">{{ t('dev.edit') }}</button>
-            <RouterLink class="sm" :to="`/guarantee/detail/DEVICE/${row.id}`">{{ t('dev.detail') }}</RouterLink>
+            <RouterLink class="sm" :to="`${sceneRoot()}/detail/DEVICE/${row.id}`">{{ t('dev.detail') }}</RouterLink>
             <button v-if="canAction('device:archive', 'device')" class="sm danger" :disabled="busy" @click="archiveDevice(row)">{{ t('dev.archive') }}</button>
             <button v-if="canAction('device:repair', 'device') && row.businessStatus !== 'FAULT'" class="sm" :disabled="busy" @click="repairDevice(row)">{{ t('dev.repair') }}</button>
             <button v-if="canAction('device:enable', 'device') && ['FAULT','DISABLED'].includes(row.businessStatus)" class="sm primary" :disabled="busy" @click="enableDevice(row)">{{ t('dev.enable') }}</button>

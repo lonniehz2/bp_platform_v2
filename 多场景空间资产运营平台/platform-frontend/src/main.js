@@ -2,7 +2,6 @@ import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
 import { i18n } from './i18n'
-import { installPageI18n } from './auto-i18n'
 import './styles.css'
 
 import Login from './pages/Login.vue'
@@ -64,93 +63,104 @@ import HouseAccess from './pages/HouseAccess.vue'
 import Rbac from './pages/Rbac.vue'
 import EntityDetailPage from './pages/EntityDetailPage.vue'
 
-const router = createRouter({
-  history: createWebHashHistory(),
-  routes: [
-    { path: '/login', component: Login, meta: { title: '登录', public: true } },
-    { path: '/', component: Workbench, meta: { title: '工作台' } },
-    { path: '/guarantee/workbench', component: Workbench, meta: { title: '工作台' } },
-    { path: '/guarantee/cockpit', component: Dashboard, meta: { title: '运营驾驶舱' } },
-    { path: '/projects', component: Projects, meta: { title: '项目与资产' } },
-    { path: '/persons', component: Persons, meta: { title: '客户与人员' } },
-    { path: '/applications', component: Applications, meta: { title: '申请与轮候' } },
-    { path: '/detail/:type/:id', component: EntityDetailPage, meta: { title: '关联详情' } },
-    { path: '/guarantee/detail/:type/:id', component: EntityDetailPage, meta: { title: '关联详情' } },
-    { path: '/contracts/:id', component: ContractDetail, meta: { title: '合同详情' } },
-    { path: '/contracts', component: Contracts, meta: { title: '合同与租赁' } },
-    { path: '/guarantee/dashboard', component: Dashboard, meta: { title: '运营驾驶舱' } },
-    { path: '/guarantee/assets', component: Projects, meta: { title: '项目与资产' } },
-    { path: '/guarantee/persons', component: Persons, meta: { title: '客户与人员' } },
-    { path: '/guarantee/applications', component: Applications, meta: { title: '申请管理' } },
-    { path: '/guarantee/waitlist', component: Waitlist, meta: { title: '轮候配租' } },
-    { path: '/guarantee/allocations', component: Allocations, meta: { title: '配租摇号' } },
-    { path: '/guarantee/contracts/:id', component: ContractDetail, meta: { title: '合同详情' } },
-    { path: '/guarantee/contracts', component: Contracts, meta: { title: '合同与租赁' } },
-    { path: '/guarantee/billing', component: Billing, meta: { title: '收费与账务' } },
-    { path: '/guarantee/devices', component: Devices, meta: { title: '设备与授权' } },
-    { path: '/guarantee/listings', component: Listings, meta: { title: '房源展示' } },
-    { path: '/billing', component: Billing, meta: { title: '收费与账务' } },
-    { path: '/deposits', alias: '/guarantee/deposits', component: Deposits, meta: { title: '押金与补贴' } },
-    { path: '/arrears', alias: '/guarantee/arrears', component: Arrears, meta: { title: '欠费清单' } },
-    { path: '/cashflow', alias: '/guarantee/cashflow', component: Cashflow, meta: { title: '资金流水' } },
-    { path: '/fee-items', alias: '/guarantee/fee-items', component: FeeItems, meta: { title: '计费项目' } },
-    { path: '/imports', alias: '/guarantee/imports', component: ImportCenter, meta: { title: '批量导入' } },
-    { path: '/reports', alias: '/guarantee/reports', component: Reports, meta: { title: '运营报表' } },
-    { path: '/changes', component: Changes, meta: { title: '合同变更' } },
-    { path: '/qualification', alias: '/guarantee/qualification', component: Qualification, meta: { title: '资格复核' } },
-    { path: '/meters', component: Meters, meta: { title: '计量与能耗' } },
-    { path: '/devices', component: Devices, meta: { title: '设备与授权' } },
-    { path: '/work-orders', alias: '/guarantee/work-orders', component: WorkOrders, meta: { title: '服务与工单' } },
-    { path: '/access-records', component: Access, meta: { title: '访客通行' } },
-    { path: '/complaints', alias: '/guarantee/complaints', component: Complaints, meta: { title: '投诉与申诉' } },
-    { path: '/publicities', alias: '/guarantee/publicities', component: Publicity, meta: { title: '公示管理' } },
-    { path: '/alerts', alias: '/guarantee/alerts', component: Alerts, meta: { title: '风险告警' } },
-    { path: '/credits', alias: '/guarantee/credits', component: Credit, meta: { title: '信用惩戒' } },
-    { path: '/short-rent-orders', component: ShortRent, meta: { title: '短租订单' } },
-    { path: '/open-apps', component: OpenApps, meta: { title: '开放平台' } },
-    { path: '/messages', alias: '/guarantee/messages', component: Messages, meta: { title: '消息中心' } },
-    { path: '/gov-report', component: GovReport, meta: { title: '监管报送' } },
-    { path: '/search', alias: '/guarantee/search', component: Search, meta: { title: '统一查询' } },
-    { path: '/help', alias: '/guarantee/help', component: Help, meta: { title: '使用帮助' } },
-    { path: '/house-calendar', alias: '/guarantee/house-calendar', component: HouseCalendar, meta: { title: '日房态' } },
-    { path: '/energy', component: Energy, meta: { title: '能耗分析' } },
+const baseRoutes = [
+    { path: '/login', component: Login, meta: { titleKey: 'login.title', public: true } },
+    { path: '/', component: Workbench, meta: { titleKey: 'workbench.title' } },
+    { path: '/guarantee/workbench', component: Workbench, meta: { titleKey: 'workbench.title' } },
+    { path: '/guarantee/cockpit', component: Dashboard, meta: { titleKey: 'cockpit.title' } },
+    { path: '/projects', component: Projects, meta: { titleKey: 'proj.title' } },
+    { path: '/persons', component: Persons, meta: { titleKey: 'pp.title' } },
+    { path: '/applications', component: Applications, meta: { titleKey: 'ap.title' } },
+    { path: '/detail/:type/:id', component: EntityDetailPage, meta: { titleKey: 'detail.title' } },
+    { path: '/guarantee/detail/:type/:id', component: EntityDetailPage, meta: { titleKey: 'detail.title' } },
+    { path: '/contracts/:id', component: ContractDetail, meta: { titleKey: 'ct.detailTitle' } },
+    { path: '/contracts', component: Contracts, meta: { titleKey: 'ct.title' } },
+    { path: '/guarantee/dashboard', component: Dashboard, meta: { titleKey: 'cockpit.title' } },
+    { path: '/guarantee/assets', component: Projects, meta: { titleKey: 'proj.title' } },
+    { path: '/guarantee/persons', component: Persons, meta: { titleKey: 'pp.title' } },
+    { path: '/guarantee/applications', component: Applications, meta: { titleKey: 'ap.title' } },
+    { path: '/guarantee/waitlist', component: Waitlist, meta: { titleKey: 'waitlist.title' } },
+    { path: '/guarantee/allocations', component: Allocations, meta: { titleKey: 'allocations.title' } },
+    { path: '/guarantee/contracts/:id', component: ContractDetail, meta: { titleKey: 'ct.detailTitle' } },
+    { path: '/guarantee/contracts', component: Contracts, meta: { titleKey: 'ct.title' } },
+    { path: '/guarantee/billing', component: Billing, meta: { titleKey: 'billing.billsTitle' } },
+    { path: '/guarantee/devices', component: Devices, meta: { titleKey: 'dev.title' } },
+    { path: '/guarantee/listings', component: Listings, meta: { titleKey: 'listings.title' } },
+    { path: '/billing', component: Billing, meta: { titleKey: 'billing.billsTitle' } },
+    { path: '/deposits', alias: '/guarantee/deposits', component: Deposits, meta: { titleKey: 'deposits.title' } },
+    { path: '/arrears', alias: '/guarantee/arrears', component: Arrears, meta: { titleKey: 'arrears.title' } },
+    { path: '/cashflow', alias: '/guarantee/cashflow', component: Cashflow, meta: { titleKey: 'cashflow.title' } },
+    { path: '/fee-items', alias: '/guarantee/fee-items', component: FeeItems, meta: { titleKey: 'fee.title' } },
+    { path: '/imports', alias: '/guarantee/imports', component: ImportCenter, meta: { titleKey: 'imp.title' } },
+    { path: '/reports', alias: '/guarantee/reports', component: Reports, meta: { titleKey: 'reports.title' } },
+    { path: '/changes', component: Changes, meta: { titleKey: 'changes.title' } },
+    { path: '/qualification', alias: '/guarantee/qualification', component: Qualification, meta: { titleKey: 'qualification.title' } },
+    { path: '/meters', component: Meters, meta: { titleKey: 'meters.title' } },
+    { path: '/devices', component: Devices, meta: { titleKey: 'dev.title' } },
+    { path: '/work-orders', alias: '/guarantee/work-orders', component: WorkOrders, meta: { titleKey: 'workOrders.title' } },
+    { path: '/access-records', component: Access, meta: { titleKey: 'access.title' } },
+    { path: '/complaints', alias: '/guarantee/complaints', component: Complaints, meta: { titleKey: 'complaints.title' } },
+    { path: '/publicities', alias: '/guarantee/publicities', component: Publicity, meta: { titleKey: 'publicity.title' } },
+    { path: '/alerts', alias: '/guarantee/alerts', component: Alerts, meta: { titleKey: 'alerts.title' } },
+    { path: '/credits', alias: '/guarantee/credits', component: Credit, meta: { titleKey: 'credit.title' } },
+    { path: '/short-rent-orders', component: ShortRent, meta: { titleKey: 'shortRent.title' } },
+    { path: '/open-apps', component: OpenApps, meta: { titleKey: 'openApps.title' } },
+    { path: '/messages', alias: '/guarantee/messages', component: Messages, meta: { titleKey: 'messages.title' } },
+    { path: '/gov-report', component: GovReport, meta: { titleKey: 'govReport.title' } },
+    { path: '/search', alias: '/guarantee/search', component: Search, meta: { titleKey: 'search.title' } },
+    { path: '/help', alias: '/guarantee/help', component: Help, meta: { titleKey: 'help.title' } },
+    { path: '/house-calendar', alias: '/guarantee/house-calendar', component: HouseCalendar, meta: { titleKey: 'calendar.title' } },
+    { path: '/energy', component: Energy, meta: { titleKey: 'energy.title' } },
     { path: '/users', redirect: '/rbac/user' },
     { path: '/guarantee/users', redirect: '/rbac/user' },
-    { path: '/audit', alias: '/guarantee/audit', component: Audit, meta: { title: '审批中心' } },
+    { path: '/audit', alias: '/guarantee/audit', component: Audit, meta: { titleKey: 'audit.title' } },
     { path: '/menus', redirect: '/rbac/role' },
     { path: '/guarantee/menus', redirect: '/rbac/role' },
-    { path: '/migration-exceptions', component: MigrationExceptions, meta: { title: '迁移异常' } },
+    { path: '/migration-exceptions', component: MigrationExceptions, meta: { titleKey: 'migration.title' } },
 
-    // 旧系统路径兼容
-    { path: '/todos', alias: '/guarantee/todos', component: Todos, meta: { title: '我的待办' } },
-    { path: '/patrol', alias: '/guarantee/patrol', component: Patrol, meta: { title: '自动巡查' } },
-    { path: '/house-access', alias: '/guarantee/house-access', component: HouseAccess, meta: { title: '房源权限' } },
-    { path: '/visits', alias: '/guarantee/visits', component: Complaints, meta: { title: '入户走访', complaintType: 'VISIT' } },
-    { path: '/waitlist', component: Waitlist, meta: { title: '轮候管理' } },
-    { path: '/allocations', component: Allocations, meta: { title: '配租摇号' } },
-    { path: '/annual-reviews', component: Qualification, meta: { title: '年审复核' } },
-    { path: '/contract-changes', alias: '/guarantee/contract-changes', component: Changes, meta: { title: '合同变更' } },
-    { path: '/exchanges', alias: '/guarantee/exchanges', component: Changes, meta: { title: '换房管理', changeType: 'ROOM_CHANGE' } },
-    { path: '/terminations', alias: '/guarantee/terminations', component: Changes, meta: { title: '退租管理', changeType: 'TERMINATION' } },
-    { path: '/houses', alias: '/guarantee/houses', component: Houses, meta: { title: '房源台账' } },
-    { path: '/spaces', alias: '/guarantee/spaces', component: Spaces, meta: { title: '空间层级' } },
-    { path: '/bills', component: Billing, meta: { title: '账单与缴费' } },
-    { path: '/subsidies', alias: '/guarantee/subsidies', component: Subsidies, meta: { title: '补贴管理' } },
-    { path: '/meter-readings', component: MeterReadings, meta: { title: '抄表管理' } },
-    { path: '/device-bind', alias: '/guarantee/device-bind', component: DeviceBinding, meta: { title: '设备绑定' } },
-    { path: '/dev-events', alias: '/guarantee/dev-events', component: DeviceEvents, meta: { title: '设备告警' } },
-    { path: '/access', alias: '/guarantee/access', component: AccessRecords, meta: { title: '通行记录' } },
-    { path: '/keyring', alias: '/guarantee/keyring', component: Keyring, meta: { title: '钥匙包' } },
-    { path: '/grants', alias: '/guarantee/grants', component: Grants, meta: { title: '通行授权' } },
-    { path: '/appeals', alias: '/guarantee/appeals', component: Complaints, meta: { title: '申诉管理', complaintType: 'APPEAL' } },
-    { path: '/orgs', alias: '/guarantee/orgs', component: Orgs, meta: { title: '组织机构' } },
-    { path: '/gov', alias: '/guarantee/gov', component: GovReport, meta: { title: '监管报送' } },
-    { path: '/rbac/:tab?', alias: '/guarantee/rbac/:tab?', component: Rbac, meta: { title: '用户与权限' } },
-    { path: '/sys', alias: '/guarantee/sys', component: Sys, meta: { title: '系统支撑' } },
-    { path: '/translations', component: Translations, meta: { title: '业务数据翻译' } },
-    { path: '/platform-info', component: PlatformInfo, meta: { title: '平台信息' } },
-    { path: '/short-rent', alias: '/guarantee/short-rent', component: ShortRent, meta: { title: '短租订单' } }
+    { path: '/todos', alias: '/guarantee/todos', component: Todos, meta: { titleKey: 'todos.title' } },
+    { path: '/patrol', alias: '/guarantee/patrol', component: Patrol, meta: { titleKey: 'patrol.title' } },
+    { path: '/house-access', alias: '/guarantee/house-access', component: HouseAccess, meta: { titleKey: 'houseAccess.title' } },
+    { path: '/visits', alias: '/guarantee/visits', component: Complaints, meta: { titleKey: 'complaints.visitTitle', complaintType: 'VISIT' } },
+    { path: '/waitlist', component: Waitlist, meta: { titleKey: 'waitlist.title' } },
+    { path: '/allocations', component: Allocations, meta: { titleKey: 'allocations.title' } },
+    { path: '/annual-reviews', component: Qualification, meta: { titleKey: 'qualification.annual' } },
+    { path: '/contract-changes', alias: '/guarantee/contract-changes', component: Changes, meta: { titleKey: 'changes.title' } },
+    { path: '/exchanges', alias: '/guarantee/exchanges', component: Changes, meta: { titleKey: 'changes.room', changeType: 'ROOM_CHANGE' } },
+    { path: '/terminations', alias: '/guarantee/terminations', component: Changes, meta: { titleKey: 'changes.termination', changeType: 'TERMINATION' } },
+    { path: '/houses', alias: '/guarantee/houses', component: Houses, meta: { titleKey: 'houses.title' } },
+    { path: '/spaces', alias: '/guarantee/spaces', component: Spaces, meta: { titleKey: 'spaces.title' } },
+    { path: '/bills', component: Billing, meta: { titleKey: 'billing.billsTitle' } },
+    { path: '/subsidies', alias: '/guarantee/subsidies', component: Subsidies, meta: { titleKey: 'subsidies.title' } },
+    { path: '/meter-readings', component: MeterReadings, meta: { titleKey: 'readings.title' } },
+    { path: '/device-bind', alias: '/guarantee/device-bind', component: DeviceBinding, meta: { titleKey: 'deviceBinding.title' } },
+    { path: '/dev-events', alias: '/guarantee/dev-events', component: DeviceEvents, meta: { titleKey: 'deviceEvents.title' } },
+    { path: '/access', alias: '/guarantee/access', component: AccessRecords, meta: { titleKey: 'accessRecords.title' } },
+    { path: '/keyring', alias: '/guarantee/keyring', component: Keyring, meta: { titleKey: 'keyring.title' } },
+    { path: '/grants', alias: '/guarantee/grants', component: Grants, meta: { titleKey: 'grants.title' } },
+    { path: '/appeals', alias: '/guarantee/appeals', component: Complaints, meta: { titleKey: 'complaints.appealTitle', complaintType: 'APPEAL' } },
+    { path: '/orgs', alias: '/guarantee/orgs', component: Orgs, meta: { titleKey: 'orgs.title' } },
+    { path: '/gov', alias: '/guarantee/gov', component: GovReport, meta: { titleKey: 'govReport.title' } },
+    { path: '/rbac/:tab?', alias: '/guarantee/rbac/:tab?', component: Rbac, meta: { titleKey: 'rbac.title' } },
+    { path: '/sys', alias: '/guarantee/sys', component: Sys, meta: { titleKey: 'sys.title' } },
+    { path: '/translations', component: Translations, meta: { titleKey: 'translations.title' } },
+    { path: '/platform-info', component: PlatformInfo, meta: { titleKey: 'platformInfo.title' } },
+    { path: '/short-rent', alias: '/guarantee/short-rent', component: ShortRent, meta: { titleKey: 'shortRent.title' } }
   ]
+const routes = [...baseRoutes]
+for (const scene of ['asset', 'service']) {
+  for (const route of baseRoutes.filter(r => r.path.startsWith('/guarantee'))) {
+    const { alias, ...rest } = route
+    routes.push({
+      ...rest,
+      path: '/' + scene + route.path.slice('/guarantee'.length),
+      meta: { ...(route.meta || {}) }
+    })
+  }
+}
+const router = createRouter({
+  history: createWebHashHistory(),
+  routes
 })
 
 router.beforeEach((to) => {
@@ -160,4 +170,3 @@ router.beforeEach((to) => {
 })
 
 createApp(App).use(i18n).use(router).mount('#app')
-installPageI18n(i18n.global.locale)

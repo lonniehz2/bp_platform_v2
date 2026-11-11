@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
+import { sceneRoot } from '../scene'
 import EntityDetailTabs from '../components/EntityDetailTabs.vue'
 import { can } from '../permissions'
 import { contractStatusLabel, contractStatusTone } from '../contractStatus'
@@ -135,8 +136,8 @@ function switchTab(key) {
   router.replace({ query: { ...route.query, tab: key } })
 }
 
-function openPerson(id) { if (id) router.push(`/guarantee/persons?id=${id}&from=contract&contractId=${contract.value.id}`) }
-function openHouse(id) { if (id) router.push(`/guarantee/houses?id=${id}&from=contract&contractId=${contract.value.id}`) }
+function openPerson(id) { if (id) router.push(`${sceneRoot()}/persons?id=${id}&from=contract&contractId=${contract.value.id}`) }
+function openHouse(id) { if (id) router.push(`${sceneRoot()}/houses?id=${id}&from=contract&contractId=${contract.value.id}`) }
 
 onMounted(load)
 watch(() => route.params.id, load)
@@ -154,7 +155,7 @@ watch(tab, loadTab)
             <h2>{{ contract.contractNo }}</h2>
             <p>{{ contract.personName }} · {{ contract.houseName }} · {{ contract.startDate }} ~ {{ contract.endDate }}</p>
           </div>
-          <div class="row"><span class="badge" :class="contractStatusTone(contract.contractStatus)">{{ contractStatusLabel(contract.contractStatus) }}</span><button class="sm" @click="router.push('/guarantee/contracts')">{{ t('cd.back') }}</button></div>
+          <div class="row"><span class="badge" :class="contractStatusTone(contract.contractStatus)">{{ contractStatusLabel(contract.contractStatus) }}</span><button class="sm" @click="router.push(sceneRoot() + '/contracts')">{{ t('cd.back') }}</button></div>
         </div>
         <div class="summary">
           <div><span>{{ t('cd.rent') }}</span><strong>{{ money(contract.rentAmount) }}</strong></div>

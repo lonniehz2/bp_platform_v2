@@ -12,3 +12,8 @@ export function currentScene() {
 export function sceneRoot(scene = currentScene()) {
   return '/' + (SCENE_ROUTES[scene] || 'guarantee')
 }
+
+export function scenePath(path) {
+  const root = sceneRoot()
+  return String(path || '').startsWith('/guarantee') ? root + String(path).slice('/guarantee'.length) : path
+}
