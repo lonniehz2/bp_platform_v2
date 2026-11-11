@@ -27,7 +27,6 @@
   "src/pages/DeviceEvents.vue",
   "src/pages/Devices.vue",
   "src/pages/Energy.vue",
-  "src/pages/EntityDetailPage.vue",
   "src/pages/GovReport.vue",
   "src/pages/Grants.vue",
   "src/pages/Help.vue",

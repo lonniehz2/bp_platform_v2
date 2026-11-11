@@ -62,6 +62,7 @@ const messages = {
     meters: { title: '表计台账', subtitle: '水表/电表/燃气表', count: '表计数量', hint: '水/电/气', usage: '用量', house: '房屋', type: '类型', meterNo: '表号', initial: '初始读数', add: '新增表计', list: '表计列表', listHint: '点击查看抄表记录', lastReading: '上次读数', status: '状态', action: '操作', edit: '编辑', disable: '停用', enable: '启用', read: '抄表', noSelected: '未选择', select: '请选择表计', currentReading: '本次读数', date: '日期', saveReading: '保存抄表', noReadings: '暂无抄表记录', editTitle: '编辑表计', close: '关闭', installDate: '安装日期', save: '保存', water: '水表', electricity: '电表', gas: '燃气表', noProject: '未选择项目', searchHouse: '搜索房屋', meterNoPlaceholder: '如 WM-001', statusTitle: '变更表计状态', statusMessage: '确认将表计 {no} 设为 {status}？', confirm: '确认', requiredNo: '请填写表号', requiredReading: '请填写本次读数' },
     login: { zhShort: '中' },
     rbac: { title: '用户与权限', subtitle: '用户、角色和数据范围', user: '用户管理', role: '角色管理', perm: '权限清单' },
+    detail: { person: '人员详情', house: '房源详情', bill: '账单详情', device: '设备详情', workOrder: '工单详情', application: '申请详情', contract: '合同详情', title: '详情', subtitle: '关联信息统一 Tab 视图', back: '返回' },
     nav: {
       dashboard: '工作台',
       workbench: '我的工作台',
@@ -229,6 +230,7 @@ const messages = {
     meters: { title: 'Meter Ledger', subtitle: 'Water / Electricity / Gas Meters', count: 'Meters', hint: 'Water / Electricity / Gas', usage: 'Usage', house: 'House', type: 'Type', meterNo: 'Meter No.', initial: 'Initial Reading', add: 'Add Meter', list: 'Meter List', listHint: 'Click to view readings', lastReading: 'Last Reading', status: 'Status', action: 'Actions', edit: 'Edit', disable: 'Disable', enable: 'Enable', read: 'Read Meter', noSelected: 'Not selected', select: 'Select a meter', currentReading: 'Current Reading', date: 'Date', saveReading: 'Save Reading', noReadings: 'No readings', editTitle: 'Edit Meter', close: 'Close', installDate: 'Install Date', save: 'Save', water: 'Water', electricity: 'Electricity', gas: 'Gas', noProject: 'No project selected', searchHouse: 'Search house', meterNoPlaceholder: 'e.g. WM-001', statusTitle: 'Change Meter Status', statusMessage: 'Set meter {no} to {status}?', confirm: 'Confirm', requiredNo: 'Meter number is required', requiredReading: 'Current reading is required' },
     login: { zhShort: '中' },
     rbac: { title: 'Users & Permissions', subtitle: 'Users, roles and data scope', user: 'Users', role: 'Roles', perm: 'Permissions' },
+    detail: { person: 'Person Details', house: 'House Details', bill: 'Bill Details', device: 'Device Details', workOrder: 'Work Order Details', application: 'Application Details', contract: 'Contract Details', title: 'Details', subtitle: 'Unified relation tabs', back: 'Back' },
     nav: {
       dashboard: 'Workspace',
       workbench: 'My Workspace',
