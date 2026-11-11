@@ -1,0 +1,21 @@
+[Unit]
+Description=BP Platform Backend
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=bp-platform
+Group=bp-platform
+WorkingDirectory=/opt/bp-platform
+EnvironmentFile=/etc/bp-platform.env
+ExecStart=/usr/bin/java $JAVA_OPTS -jar /opt/bp-platform/app.jar
+Restart=always
+RestartSec=5
+SuccessExitStatus=143
+LimitNOFILE=65535
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
