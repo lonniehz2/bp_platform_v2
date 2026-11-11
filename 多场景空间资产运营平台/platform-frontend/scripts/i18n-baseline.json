@@ -22,7 +22,6 @@
   "src/pages/OpenApps.vue",
   "src/pages/Patrol.vue",
   "src/pages/Persons.vue",
-  "src/pages/PlatformInfo.vue",
   "src/pages/Projects.vue",
   "src/pages/Qualification.vue",
   "src/pages/Reports.vue",
