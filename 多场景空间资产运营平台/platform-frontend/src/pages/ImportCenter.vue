@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { sceneRoot } from '../scene'
 import { contractTemplate, userTemplate, deviceGrantTemplate, grantTemplate, bindingTemplate, relationTemplate, spaceTemplate, personTemplate } from '../importTemplates'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const personFile = ref(null)
 const personBusy = ref(false)
 const personResult = ref(null)
@@ -45,7 +45,7 @@ function pickPerson(e) { personFile.value = e.target.files?.[0] || null; personR
 function pickContract(e) { contractFile.value = e.target.files?.[0] || null; contractResult.value = null; contractError.value = '' }
 
 function downloadContractTemplate() {
-  const csv = contractTemplate()
+  const csv = contractTemplate(locale.value === 'en-US')
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
   a.download = t('imp.contractTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
@@ -60,7 +60,7 @@ async function importContracts() {
 function pickUser(e) { userFile.value = e.target.files?.[0] || null; userResult.value = null; userError.value = '' }
 
 function downloadUserTemplate() {
-  const csv = userTemplate()
+  const csv = userTemplate(locale.value === 'en-US')
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
   a.download = t('imp.userTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
@@ -75,7 +75,7 @@ async function importUsers() {
 function pickDeviceGrant(e) { deviceGrantFile.value = e.target.files?.[0] || null; deviceGrantResult.value = null; deviceGrantError.value = '' }
 
 function downloadDeviceGrantTemplate() {
-  const csv = deviceGrantTemplate()
+  const csv = deviceGrantTemplate(locale.value === 'en-US')
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
   a.download = t('imp.deviceGrantTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
@@ -90,7 +90,7 @@ async function importDeviceGrants() {
 function pickGrant(e) { grantFile.value = e.target.files?.[0] || null; grantResult.value = null; grantError.value = '' }
 
 function downloadGrantTemplate() {
-  const csv = grantTemplate()
+  const csv = grantTemplate(locale.value === 'en-US')
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
   a.download = t('imp.grantTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
@@ -105,7 +105,7 @@ async function importGrants() {
 function pickBinding(e) { bindingFile.value = e.target.files?.[0] || null; bindingResult.value = null; bindingError.value = '' }
 
 function downloadBindingTemplate() {
-  const csv = bindingTemplate()
+  const csv = bindingTemplate(locale.value === 'en-US')
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
   a.download = t('imp.bindingTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
@@ -120,7 +120,7 @@ async function importBindings() {
 function pickRelation(e) { relationFile.value = e.target.files?.[0] || null; relationResult.value = null; relationError.value = '' }
 
 function downloadRelationTemplate() {
-  const csv = relationTemplate()
+  const csv = relationTemplate(locale.value === 'en-US')
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
   a.download = t('imp.relationTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
@@ -135,7 +135,7 @@ async function importRelations() {
 function pickSpace(e) { spaceFile.value = e.target.files?.[0] || null; spaceResult.value = null; spaceError.value = '' }
 
 function downloadSpaceTemplate() {
-  const csv = spaceTemplate()
+  const csv = spaceTemplate(locale.value === 'en-US')
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
   a.download = t('imp.spaceTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
@@ -148,7 +148,7 @@ async function importSpaces() {
 }
 
 function downloadPersonTemplate() {
-  const csv = personTemplate()
+  const csv = personTemplate(locale.value === 'en-US')
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
   a.download = t('imp.personTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)

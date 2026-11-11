@@ -6,9 +6,9 @@ import { can } from '../permissions'
 import TreeSelect from '../components/TreeSelect.vue'
 import { confirmAction } from '../confirm'
 import { useI18n } from 'vue-i18n'
-import { deviceImportHeader, deviceImportSample } from '../importTemplates'
+import { deviceImportHeader, deviceImportHeaderEn, deviceImportSample } from '../importTemplates'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const project = ref(null)
 const devices = ref([])
 const spaces = ref([])
@@ -127,7 +127,8 @@ async function bindSelected() {
 
 function downloadTemplate() {
   const orgCode = project.value?.orgCode || '350600'
-  const csv = '\ufeff' + deviceImportHeader + '\n' + deviceImportSample(orgCode) + '\n'
+  const header = locale.value === 'en-US' ? deviceImportHeaderEn : deviceImportHeader
+  const csv = '\ufeff' + header + '\n' + deviceImportSample(orgCode) + '\n'
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)

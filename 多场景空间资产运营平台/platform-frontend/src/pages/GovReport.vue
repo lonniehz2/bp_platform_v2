@@ -3,9 +3,9 @@ import { computed, onMounted, ref } from 'vue'
 import { enumLabel } from '../enumLabels'
 import { api } from '../api'
 import { useI18n } from 'vue-i18n'
-import { govReportHeader } from '../importTemplates'
+import { govReportHeader, govReportHeaderEn } from '../importTemplates'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const project = ref(null)
 const contracts = ref([])
 const persons = ref([])
@@ -45,7 +45,7 @@ async function load() {
 }
 
 function exportCsv() {
-  const rows = [govReportHeader]
+  const rows = [locale.value === 'en-US' ? govReportHeaderEn : govReportHeader]
   filteredContracts.value.forEach(c => rows.push([c.contractNo, c.personName || '', c.houseName || '', c.startDate, c.endDate, c.rentAmount, c.contractStatus]))
   const csv = '\ufeff' + rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n')
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
