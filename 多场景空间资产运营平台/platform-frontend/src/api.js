@@ -5,9 +5,11 @@ const AUTH = '/api/v1/auth'
 const TENANT = '350600'
 
 function messageOf(json, fallback) {
-  if (json && json.messageKey) {
-    const key = `errors.${json.code || json.messageKey}`
-    if (i18n.global.te(key)) return i18n.global.t(key)
+  if (json) {
+    const keys = [json.messageKey, json.code && `errors.${json.code}`, json.code && `error.${json.code}`].filter(Boolean)
+    for (const key of keys) {
+      if (i18n.global.te(key)) return i18n.global.t(key)
+    }
   }
   return json?.message || fallback
 }
@@ -153,7 +155,7 @@ export const api = {
   removeCohabitant: (id) => request(`/guarantee/contract-cohabitants/${id}/remove`, { method: 'POST' }),
   files: (bizType, bizId) => request(`/files?bizType=${bizType}&bizId=${bizId}`),
   uploadFile: (bizType, bizId, file) => { const fd = new FormData(); fd.append('file', file); return request(`/files?bizType=${bizType}&bizId=${bizId}`, { method: 'POST', body: fd }) },
-  downloadFile: async (id, name) => { const res = await fetch(`${BASE}/files/${id}/download`, { headers: { Authorization: `Bearer ${token()}` } }); if (!res.ok) throw new Error('下载失败'); const blob = await res.blob(); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name || 'download'; a.click(); URL.revokeObjectURL(a.href) },
+  downloadFile: async (id, name) => { const res = await fetch(`${BASE}/files/${id}/download`, { headers: { Authorization: `Bearer ${token()}` } }); if (!res.ok) throw new Error(i18n.global.te('errors.downloadFailed') ? i18n.global.t('errors.downloadFailed') : `Download failed: ${res.status}`); const blob = await res.blob(); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name || 'download'; a.click(); URL.revokeObjectURL(a.href) },
   users: () => request('/users'),
   userRoles: () => request('/users/roles'),
   createUser: (body) => request('/users', { method: 'POST', body: JSON.stringify(body) }),
