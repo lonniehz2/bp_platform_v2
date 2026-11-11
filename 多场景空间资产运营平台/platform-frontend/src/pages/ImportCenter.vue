@@ -2,7 +2,11 @@
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
+import { sceneRoot } from '../scene'
+import { contractTemplate, userTemplate, deviceGrantTemplate, grantTemplate, bindingTemplate, relationTemplate, spaceTemplate, personTemplate } from '../importTemplates'
 
+const { t } = useI18n()
 const personFile = ref(null)
 const personBusy = ref(false)
 const personResult = ref(null)
@@ -41,14 +45,14 @@ function pickPerson(e) { personFile.value = e.target.files?.[0] || null; personR
 function pickContract(e) { contractFile.value = e.target.files?.[0] || null; contractResult.value = null; contractError.value = '' }
 
 function downloadContractTemplate() {
-  const csv = '\ufeff项目编码,合同编号,房屋编码,人员编码,开始日期,结束日期,月租金,押金,账单周期,账单日,草稿\nZZ0020,HT-001,101,P0001,2026-01-01,2026-12-31,1200,1200,MONTH,1,是\n'
+  const csv = contractTemplate()
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-  a.download = '合同导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+  a.download = t('imp.contractTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
 }
 
 async function importContracts() {
-  if (!contractFile.value) { contractError.value = '请选择 CSV 文件'; return }
+  if (!contractFile.value) { contractError.value = t('imp.requiredFile'); return }
   contractBusy.value = true; contractError.value = ''; contractResult.value = null
   try { contractResult.value = await api.importContracts(contractFile.value) } catch (e) { contractError.value = e.message } finally { contractBusy.value = false }
 }
@@ -56,14 +60,14 @@ async function importContracts() {
 function pickUser(e) { userFile.value = e.target.files?.[0] || null; userResult.value = null; userError.value = '' }
 
 function downloadUserTemplate() {
-  const csv = '\ufeff用户名,密码,姓名,角色编码\nzhangsan,123456,张三,ASSET_CLERK\n'
+  const csv = userTemplate()
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-  a.download = '用户导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+  a.download = t('imp.userTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
 }
 
 async function importUsers() {
-  if (!userFile.value) { userError.value = '请选择 CSV 文件'; return }
+  if (!userFile.value) { userError.value = t('imp.requiredFile'); return }
   userBusy.value = true; userError.value = ''; userResult.value = null
   try { userResult.value = await api.importUsers(userFile.value) } catch (e) { userError.value = e.message } finally { userBusy.value = false }
 }
@@ -71,14 +75,14 @@ async function importUsers() {
 function pickDeviceGrant(e) { deviceGrantFile.value = e.target.files?.[0] || null; deviceGrantResult.value = null; deviceGrantError.value = '' }
 
 function downloadDeviceGrantTemplate() {
-  const csv = '\ufeff项目编码,人员编码,设备编码,开始日期,结束日期,权限级别\nZZ0020,P0001,LOCK-001,2026-01-01,2026-12-31,OPEN\n'
+  const csv = deviceGrantTemplate()
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-  a.download = '人员设备授权导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+  a.download = t('imp.deviceGrantTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
 }
 
 async function importDeviceGrants() {
-  if (!deviceGrantFile.value) { deviceGrantError.value = '请选择 CSV 文件'; return }
+  if (!deviceGrantFile.value) { deviceGrantError.value = t('imp.requiredFile'); return }
   deviceGrantBusy.value = true; deviceGrantError.value = ''; deviceGrantResult.value = null
   try { deviceGrantResult.value = await api.importDeviceGrants(deviceGrantFile.value) } catch (e) { deviceGrantError.value = e.message } finally { deviceGrantBusy.value = false }
 }
@@ -86,14 +90,14 @@ async function importDeviceGrants() {
 function pickGrant(e) { grantFile.value = e.target.files?.[0] || null; grantResult.value = null; grantError.value = '' }
 
 function downloadGrantTemplate() {
-  const csv = '\ufeff项目编码,人员编码,空间编码,权限级别,开始日期,结束日期\nZZ0020,P0001,101,OPEN,2026-01-01,2026-12-31\n'
+  const csv = grantTemplate()
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-  a.download = '人员空间授权导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+  a.download = t('imp.grantTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
 }
 
 async function importGrants() {
-  if (!grantFile.value) { grantError.value = '请选择 CSV 文件'; return }
+  if (!grantFile.value) { grantError.value = t('imp.requiredFile'); return }
   grantBusy.value = true; grantError.value = ''; grantResult.value = null
   try { grantResult.value = await api.importSpaceGrants(grantFile.value) } catch (e) { grantError.value = e.message } finally { grantBusy.value = false }
 }
@@ -101,14 +105,14 @@ async function importGrants() {
 function pickBinding(e) { bindingFile.value = e.target.files?.[0] || null; bindingResult.value = null; bindingError.value = '' }
 
 function downloadBindingTemplate() {
-  const csv = '\ufeff项目编码,设备编码,空间编码\nZZ0020,LOCK-001,101\n'
+  const csv = bindingTemplate()
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-  a.download = '设备资产绑定导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+  a.download = t('imp.bindingTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
 }
 
 async function importBindings() {
-  if (!bindingFile.value) { bindingError.value = '请选择 CSV 文件'; return }
+  if (!bindingFile.value) { bindingError.value = t('imp.requiredFile'); return }
   bindingBusy.value = true; bindingError.value = ''; bindingResult.value = null
   try { bindingResult.value = await api.importDeviceBindings(bindingFile.value) } catch (e) { bindingError.value = e.message } finally { bindingBusy.value = false }
 }
@@ -116,15 +120,14 @@ async function importBindings() {
 function pickRelation(e) { relationFile.value = e.target.files?.[0] || null; relationResult.value = null; relationError.value = '' }
 
 function downloadRelationTemplate() {
-  const csv = '\ufeff项目编码,人员编码,房屋编码,关系类型,开始日期,结束日期,是否主要关系\n'
-    + 'ZZ0020,P0001,101,TENANT,2026-01-01,2026-12-31,是\n'
+  const csv = relationTemplate()
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-  a.download = '人员资产关系导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+  a.download = t('imp.relationTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
 }
 
 async function importRelations() {
-  if (!relationFile.value) { relationError.value = '请选择 CSV 文件'; return }
+  if (!relationFile.value) { relationError.value = t('imp.requiredFile'); return }
   relationBusy.value = true; relationError.value = ''; relationResult.value = null
   try { relationResult.value = await api.importPersonAssets(relationFile.value) } catch (e) { relationError.value = e.message } finally { relationBusy.value = false }
 }
@@ -132,30 +135,27 @@ async function importRelations() {
 function pickSpace(e) { spaceFile.value = e.target.files?.[0] || null; spaceResult.value = null; spaceError.value = '' }
 
 function downloadSpaceTemplate() {
-  const csv = '\ufeff项目编码,上级空间编码,空间编码,空间名称,空间类型,资产类型,建筑面积,套内面积,可出租\n'
-    + 'ZZ0020,A栋,1单元,1单元,UNIT,PUBLIC_RENTAL,0,0,否\n'
-    + 'ZZ0020,1单元,101,101室,ROOM,PUBLIC_RENTAL,60,52,是\n'
+  const csv = spaceTemplate()
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-  a.download = '房屋空间导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+  a.download = t('imp.spaceTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
 }
 
 async function importSpaces() {
-  if (!spaceFile.value) { spaceError.value = '请选择 CSV 文件'; return }
+  if (!spaceFile.value) { spaceError.value = t('imp.requiredFile'); return }
   spaceBusy.value = true; spaceError.value = ''; spaceResult.value = null
   try { spaceResult.value = await api.importSpaces(spaceFile.value) } catch (e) { spaceError.value = e.message } finally { spaceBusy.value = false }
 }
 
 function downloadPersonTemplate() {
-  const csv = '\ufeff人员编码,姓名,手机号,身份证脱敏,人员类型,性别,出生日期,地址,工作单位,紧急联系人,备注\n'
-    + 'P0001,张三,13800000000,330***********1234,GUARANTEE_TENANT,MALE,1990-01-01,示例地址,示例单位,李四,导入示例\n'
+  const csv = personTemplate()
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-  a.download = '人员导入模板.csv'; a.click(); URL.revokeObjectURL(a.href)
+  a.download = t('imp.personTemplate') + '.csv'; a.click(); URL.revokeObjectURL(a.href)
 }
 
 async function importPersons() {
-  if (!personFile.value) { personError.value = '请选择 CSV 文件'; return }
+  if (!personFile.value) { personError.value = t('imp.requiredFile'); return }
   personBusy.value = true; personError.value = ''; personResult.value = null
   try { personResult.value = await api.importPersons(personFile.value) } catch (e) { personError.value = e.message } finally { personBusy.value = false }
 }
@@ -164,105 +164,105 @@ async function importPersons() {
 <template>
   <div>
     <div class="panel">
-      <div class="panel-head"><div><h2>批量导入</h2><p>基础数据导入入口 · 校验后逐行入库</p></div><span class="pill">IMPORT</span></div>
-      <div class="alert">人员导入支持 CSV；设备导入模板同时创建空间、房屋和设备，请到设备绑定页使用。</div>
+      <div class="panel-head"><div><h2>{{ t('imp.title') }}</h2><p>{{ t('imp.subtitle') }}</p></div><span class="pill">IMPORT</span></div>
+      <div class="alert">{{ t('imp.hint') }}</div>
     </div>
 
     <div class="grid" style="grid-template-columns:1fr 1fr">
       <div class="panel">
-        <div class="panel-head"><h2>人员导入</h2><span class="small muted">CSV</span></div>
-        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadPersonTemplate">下载模板</button><input type="file" accept=".csv" @change="pickPerson" /><span class="small muted">{{ personFile?.name || '未选择文件' }}</span></div>
+        <div class="panel-head"><h2>{{ t('imp.person') }}</h2><span class="small muted">{{ t('imp.csv') }}</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadPersonTemplate">{{ t('imp.download') }}</button><input type="file" accept=".csv" @change="pickPerson" /><span class="small muted">{{ personFile?.name || t('imp.noFile') }}</span></div>
         <div v-if="personError" class="error">{{ personError }}</div>
-        <button class="primary" :disabled="personBusy || !personFile" @click="importPersons">{{ personBusy ? '导入中…' : '开始导入' }}</button>
+        <button class="primary" :disabled="personBusy || !personFile" @click="importPersons">{{ personBusy ? t('imp.importing') : t('imp.start') }}</button>
         <div v-if="personResult" style="margin-top:12px">
-          <div class="alert" :class="personResult.failed ? 'warn' : 'ok'">共 {{ personResult.total }} 行，成功 {{ personResult.success }}，失败 {{ personResult.failed }}。</div>
+          <div class="alert" :class="personResult.failed ? 'warn' : 'ok'">{{ t('imp.total', { n: personResult.total }) }} · {{ t('imp.success', { n: personResult.success }) }} · {{ t('imp.failed', { n: personResult.failed }) }}</div>
           <div v-if="personResult.errors?.length" class="table-wrap" style="margin-top:8px">
-            <table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in personResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table>
+            <table><thead><tr><th>{{ t('imp.line') }}</th><th>{{ t('imp.reason') }}</th></tr></thead><tbody><tr v-for="e in personResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table>
           </div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>房屋/空间导入</h2><span class="small muted">CSV</span></div>
-        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadSpaceTemplate">下载模板</button><input type="file" accept=".csv" @change="pickSpace" /><span class="small muted">{{ spaceFile?.name || '未选择文件' }}</span></div>
+        <div class="panel-head"><h2>{{ t('imp.space') }}</h2><span class="small muted">{{ t('imp.csv') }}</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadSpaceTemplate">{{ t('imp.download') }}</button><input type="file" accept=".csv" @change="pickSpace" /><span class="small muted">{{ spaceFile?.name || t('imp.noFile') }}</span></div>
         <div v-if="spaceError" class="error">{{ spaceError }}</div>
-        <button class="primary" :disabled="spaceBusy || !spaceFile" @click="importSpaces">{{ spaceBusy ? '导入中…' : '开始导入' }}</button>
+        <button class="primary" :disabled="spaceBusy || !spaceFile" @click="importSpaces">{{ spaceBusy ? t('imp.importing') : t('imp.start') }}</button>
         <div v-if="spaceResult" style="margin-top:12px">
-          <div class="alert" :class="spaceResult.failed ? 'warn' : 'ok'">共 {{ spaceResult.total }} 行，成功 {{ spaceResult.success }}，失败 {{ spaceResult.failed }}。</div>
-          <div v-if="spaceResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in spaceResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+          <div class="alert" :class="spaceResult.failed ? 'warn' : 'ok'">{{ t('imp.total', { n: spaceResult.total }) }} · {{ t('imp.success', { n: spaceResult.success }) }} · {{ t('imp.failed', { n: spaceResult.failed }) }}</div>
+          <div v-if="spaceResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>{{ t('imp.line') }}</th><th>{{ t('imp.reason') }}</th></tr></thead><tbody><tr v-for="e in spaceResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>人员-资产关系导入</h2><span class="small muted">CSV</span></div>
-        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadRelationTemplate">下载模板</button><input type="file" accept=".csv" @change="pickRelation" /><span class="small muted">{{ relationFile?.name || '未选择文件' }}</span></div>
+        <div class="panel-head"><h2>{{ t('imp.relation') }}</h2><span class="small muted">{{ t('imp.csv') }}</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadRelationTemplate">{{ t('imp.download') }}</button><input type="file" accept=".csv" @change="pickRelation" /><span class="small muted">{{ relationFile?.name || t('imp.noFile') }}</span></div>
         <div v-if="relationError" class="error">{{ relationError }}</div>
-        <button class="primary" :disabled="relationBusy || !relationFile" @click="importRelations">{{ relationBusy ? '导入中…' : '开始导入' }}</button>
+        <button class="primary" :disabled="relationBusy || !relationFile" @click="importRelations">{{ relationBusy ? t('imp.importing') : t('imp.start') }}</button>
         <div v-if="relationResult" style="margin-top:12px">
-          <div class="alert" :class="relationResult.failed ? 'warn' : 'ok'">共 {{ relationResult.total }} 行，成功 {{ relationResult.success }}，失败 {{ relationResult.failed }}。</div>
-          <div v-if="relationResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in relationResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+          <div class="alert" :class="relationResult.failed ? 'warn' : 'ok'">{{ t('imp.total', { n: relationResult.total }) }} · {{ t('imp.success', { n: relationResult.success }) }} · {{ t('imp.failed', { n: relationResult.failed }) }}</div>
+          <div v-if="relationResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>{{ t('imp.line') }}</th><th>{{ t('imp.reason') }}</th></tr></thead><tbody><tr v-for="e in relationResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>人员-空间授权导入</h2><span class="small muted">CSV</span></div>
-        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadGrantTemplate">下载模板</button><input type="file" accept=".csv" @change="pickGrant" /><span class="small muted">{{ grantFile?.name || '未选择文件' }}</span></div>
+        <div class="panel-head"><h2>{{ t('imp.grant') }}</h2><span class="small muted">{{ t('imp.csv') }}</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadGrantTemplate">{{ t('imp.download') }}</button><input type="file" accept=".csv" @change="pickGrant" /><span class="small muted">{{ grantFile?.name || t('imp.noFile') }}</span></div>
         <div v-if="grantError" class="error">{{ grantError }}</div>
-        <button class="primary" :disabled="grantBusy || !grantFile" @click="importGrants">{{ grantBusy ? '导入中…' : '开始导入' }}</button>
+        <button class="primary" :disabled="grantBusy || !grantFile" @click="importGrants">{{ grantBusy ? t('imp.importing') : t('imp.start') }}</button>
         <div v-if="grantResult" style="margin-top:12px">
-          <div class="alert" :class="grantResult.failed ? 'warn' : 'ok'">共 {{ grantResult.total }} 行，成功 {{ grantResult.success }}，失败 {{ grantResult.failed }}。</div>
-          <div v-if="grantResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in grantResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+          <div class="alert" :class="grantResult.failed ? 'warn' : 'ok'">{{ t('imp.total', { n: grantResult.total }) }} · {{ t('imp.success', { n: grantResult.success }) }} · {{ t('imp.failed', { n: grantResult.failed }) }}</div>
+          <div v-if="grantResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>{{ t('imp.line') }}</th><th>{{ t('imp.reason') }}</th></tr></thead><tbody><tr v-for="e in grantResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>合同导入</h2><span class="small muted">CSV</span></div>
-        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadContractTemplate">下载模板</button><input type="file" accept=".csv" @change="pickContract" /><span class="small muted">{{ contractFile?.name || '未选择文件' }}</span></div>
+        <div class="panel-head"><h2>{{ t('imp.contract') }}</h2><span class="small muted">{{ t('imp.csv') }}</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadContractTemplate">{{ t('imp.download') }}</button><input type="file" accept=".csv" @change="pickContract" /><span class="small muted">{{ contractFile?.name || t('imp.noFile') }}</span></div>
         <div v-if="contractError" class="error">{{ contractError }}</div>
-        <button class="primary" :disabled="contractBusy || !contractFile" @click="importContracts">{{ contractBusy ? '导入中…' : '开始导入' }}</button>
+        <button class="primary" :disabled="contractBusy || !contractFile" @click="importContracts">{{ contractBusy ? t('imp.importing') : t('imp.start') }}</button>
         <div v-if="contractResult" style="margin-top:12px">
-          <div class="alert" :class="contractResult.failed ? 'warn' : 'ok'">共 {{ contractResult.total }} 行，成功 {{ contractResult.success }}，失败 {{ contractResult.failed }}。</div>
-          <div v-if="contractResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in contractResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+          <div class="alert" :class="contractResult.failed ? 'warn' : 'ok'">{{ t('imp.total', { n: contractResult.total }) }} · {{ t('imp.success', { n: contractResult.success }) }} · {{ t('imp.failed', { n: contractResult.failed }) }}</div>
+          <div v-if="contractResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>{{ t('imp.line') }}</th><th>{{ t('imp.reason') }}</th></tr></thead><tbody><tr v-for="e in contractResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>用户导入</h2><span class="small muted">CSV</span></div>
-        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadUserTemplate">下载模板</button><input type="file" accept=".csv" @change="pickUser" /><span class="small muted">{{ userFile?.name || '未选择文件' }}</span></div>
+        <div class="panel-head"><h2>{{ t('imp.user') }}</h2><span class="small muted">{{ t('imp.csv') }}</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadUserTemplate">{{ t('imp.download') }}</button><input type="file" accept=".csv" @change="pickUser" /><span class="small muted">{{ userFile?.name || t('imp.noFile') }}</span></div>
         <div v-if="userError" class="error">{{ userError }}</div>
-        <button class="primary" :disabled="userBusy || !userFile" @click="importUsers">{{ userBusy ? '导入中…' : '开始导入' }}</button>
+        <button class="primary" :disabled="userBusy || !userFile" @click="importUsers">{{ userBusy ? t('imp.importing') : t('imp.start') }}</button>
         <div v-if="userResult" style="margin-top:12px">
-          <div class="alert" :class="userResult.failed ? 'warn' : 'ok'">共 {{ userResult.total }} 行，成功 {{ userResult.success }}，失败 {{ userResult.failed }}。</div>
-          <div v-if="userResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in userResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+          <div class="alert" :class="userResult.failed ? 'warn' : 'ok'">{{ t('imp.total', { n: userResult.total }) }} · {{ t('imp.success', { n: userResult.success }) }} · {{ t('imp.failed', { n: userResult.failed }) }}</div>
+          <div v-if="userResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>{{ t('imp.line') }}</th><th>{{ t('imp.reason') }}</th></tr></thead><tbody><tr v-for="e in userResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>人员-设备授权导入</h2><span class="small muted">CSV</span></div>
-        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadDeviceGrantTemplate">下载模板</button><input type="file" accept=".csv" @change="pickDeviceGrant" /><span class="small muted">{{ deviceGrantFile?.name || '未选择文件' }}</span></div>
+        <div class="panel-head"><h2>{{ t('imp.deviceGrant') }}</h2><span class="small muted">{{ t('imp.csv') }}</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadDeviceGrantTemplate">{{ t('imp.download') }}</button><input type="file" accept=".csv" @change="pickDeviceGrant" /><span class="small muted">{{ deviceGrantFile?.name || t('imp.noFile') }}</span></div>
         <div v-if="deviceGrantError" class="error">{{ deviceGrantError }}</div>
-        <button class="primary" :disabled="deviceGrantBusy || !deviceGrantFile" @click="importDeviceGrants">{{ deviceGrantBusy ? '导入中…' : '开始导入' }}</button>
+        <button class="primary" :disabled="deviceGrantBusy || !deviceGrantFile" @click="importDeviceGrants">{{ deviceGrantBusy ? t('imp.importing') : t('imp.start') }}</button>
         <div v-if="deviceGrantResult" style="margin-top:12px">
-          <div class="alert" :class="deviceGrantResult.failed ? 'warn' : 'ok'">共 {{ deviceGrantResult.total }} 行，成功 {{ deviceGrantResult.success }}，失败 {{ deviceGrantResult.failed }}。</div>
-          <div v-if="deviceGrantResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in deviceGrantResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+          <div class="alert" :class="deviceGrantResult.failed ? 'warn' : 'ok'">{{ t('imp.total', { n: deviceGrantResult.total }) }} · {{ t('imp.success', { n: deviceGrantResult.success }) }} · {{ t('imp.failed', { n: deviceGrantResult.failed }) }}</div>
+          <div v-if="deviceGrantResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>{{ t('imp.line') }}</th><th>{{ t('imp.reason') }}</th></tr></thead><tbody><tr v-for="e in deviceGrantResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>设备-资产绑定导入</h2><span class="small muted">CSV</span></div>
-        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadBindingTemplate">下载模板</button><input type="file" accept=".csv" @change="pickBinding" /><span class="small muted">{{ bindingFile?.name || '未选择文件' }}</span></div>
+        <div class="panel-head"><h2>{{ t('imp.binding') }}</h2><span class="small muted">{{ t('imp.csv') }}</span></div>
+        <div class="row" style="margin-bottom:10px"><button class="sm" @click="downloadBindingTemplate">{{ t('imp.download') }}</button><input type="file" accept=".csv" @change="pickBinding" /><span class="small muted">{{ bindingFile?.name || t('imp.noFile') }}</span></div>
         <div v-if="bindingError" class="error">{{ bindingError }}</div>
-        <button class="primary" :disabled="bindingBusy || !bindingFile" @click="importBindings">{{ bindingBusy ? '导入中…' : '开始导入' }}</button>
+        <button class="primary" :disabled="bindingBusy || !bindingFile" @click="importBindings">{{ bindingBusy ? t('imp.importing') : t('imp.start') }}</button>
         <div v-if="bindingResult" style="margin-top:12px">
-          <div class="alert" :class="bindingResult.failed ? 'warn' : 'ok'">共 {{ bindingResult.total }} 行，成功 {{ bindingResult.success }}，失败 {{ bindingResult.failed }}。</div>
-          <div v-if="bindingResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>行号</th><th>原因</th></tr></thead><tbody><tr v-for="e in bindingResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
+          <div class="alert" :class="bindingResult.failed ? 'warn' : 'ok'">{{ t('imp.total', { n: bindingResult.total }) }} · {{ t('imp.success', { n: bindingResult.success }) }} · {{ t('imp.failed', { n: bindingResult.failed }) }}</div>
+          <div v-if="bindingResult.errors?.length" class="table-wrap" style="margin-top:8px"><table><thead><tr><th>{{ t('imp.line') }}</th><th>{{ t('imp.reason') }}</th></tr></thead><tbody><tr v-for="e in bindingResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody></table></div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>设备导入</h2><span class="small muted">CSV</span></div>
-        <p class="muted">设备导入模板按“组织-楼栋-单元-楼层-房间-设备”一行一台设备，导入时自动创建空间和房屋。</p>
-        <RouterLink class="primary" to="/guarantee/device-bind">去设备绑定页导入</RouterLink>
+        <div class="panel-head"><h2>{{ t('imp.device') }}</h2><span class="small muted">{{ t('imp.csv') }}</span></div>
+        <p class="muted">{{ t('imp.deviceHint') }}</p>
+        <RouterLink class="primary" :to="sceneRoot() + '/device-bind'">{{ t('imp.goBind') }}</RouterLink>
       </div>
     </div>
   </div>
