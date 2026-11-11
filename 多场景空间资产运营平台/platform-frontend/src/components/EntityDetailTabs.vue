@@ -1,9 +1,11 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 
 const props = defineProps({ type: { type: String, required: true }, entityId: { type: [String, Number], required: true } })
+const { t, te } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
@@ -27,7 +29,7 @@ const current = computed(() => sections.value.find(s => s.key === active.value) 
 const statusLabels = { ACTIVE:'生效中', INACTIVE:'停用', ENABLED:'启用', DISABLED:'停用', DRAFT:'草稿', APPROVING:'审批中', TERMINATED:'已终止', DISCARDED:'已作废', WITHDRAWN:'已撤回', EXPIRED:'已到期', PAID:'已支付', UNPAID:'未支付', PARTIAL:'部分支付', WAIVED:'已减免', CLOSED:'已关闭', VACANT:'空置', RENTED:'已出租', OCCUPIED:'已入住', ALLOCATED:'已配租', IN_USE:'使用中', CONTRACTED:'已签约', INSTALLED:'已安装', PENDING_INSTALL:'待安装', PENDING:'待处理', PROCESSING:'处理中', DONE:'已完成', OPEN:'待处理', RESOLVED:'已解决', SUCCESS:'成功', FAILED:'失败', LOCKED:'无权限' }
 const moneyKeys = new Set(['amount','payableAmount','paidAmount','refundedAmount','subsidyAmount'])
 const dateKeys = new Set(['startDate','endDate','periodStart','periodEnd','validStart','validEnd','paidTime','createTime','effectiveDate'])
-function statusLabel(v) { return statusLabels[String(v || '').toUpperCase()] || v || '-' }
+function statusLabel(v) { const code = String(v || '').toUpperCase(); return te(`status.${code}`) ? t(`status.${code}`) : (statusLabels[code] || v || '-') }
 function formatValue(item, col) {
   const v = item?.[col.key]
   if (v === null || v === undefined || v === '') return '-'
@@ -76,15 +78,15 @@ watch(() => [props.type, props.entityId], load, { immediate: true })
         <div v-if="!current.accessible" class="empty">🔒 {{ current.reason || '无权限查看该关联信息' }}</div>
         <div v-else-if="!current.items?.length" class="empty">暂无关联记录</div>
         <div v-else-if="current.key === 'overview'" class="kv-grid">
-          <div v-for="(entry, i) in overviewEntries(current.items[0])" :key="i"><span>{{ entry.label }}</span><strong>{{ formatOverviewValue(entry.key, entry.value) }}</strong></div>
+          <div v-for="(entry, i) in overviewEntries(current.items[0])" :key="i"><span>{{ te(`field.${entry.key}`) ? t(`field.${entry.key}`) : entry.label }}</span><strong>{{ formatOverviewValue(entry.key, entry.value) }}</strong></div>
         </div>
         <div v-else class="table-wrap">
           <table>
-            <thead><tr><th v-for="col in columns" :key="col.key">{{ col.label }}</th><th>操作</th></tr></thead>
+            <thead><tr><th v-for="col in columns" :key="col.key">{{ te(`field.${col.key}`) ? t(`field.${col.key}`) : col.label }}</th><th>{{ te('common.action') ? t('common.action') : '操作' }}</th></tr></thead>
             <tbody>
               <tr v-for="(item, i) in current.items" :key="i">
                 <td v-for="col in columns" :key="col.key">{{ formatValue(item, col) }}</td>
-                <td><RouterLink v-if="item.route && item.status !== 'LOCKED'" :to="item.route">打开</RouterLink><span v-else class="small muted">-</span></td>
+                <td><RouterLink v-if="item.route && item.status !== 'LOCKED'" :to="item.route">{{ te('common.open') ? t('common.open') : '打开' }}</RouterLink><span v-else class="small muted">-</span></td>
               </tr>
             </tbody>
           </table>

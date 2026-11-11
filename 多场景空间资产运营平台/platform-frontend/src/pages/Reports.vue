@@ -1,9 +1,11 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 
 const router = useRouter()
+const { t, te } = useI18n()
 const project = ref(null)
 const compare = ref([])
 const applications = ref([])
@@ -144,10 +146,10 @@ onMounted(() => { try { savedViews.value = JSON.parse(localStorage.getItem('plat
     <div class="panel">
       <div class="panel-head"><div><h2>报表中心</h2><p>{{ project?.orgName || '未选择项目' }} · 经营明细与监管数据</p></div><button class="primary" @click="exportCsv">导出当前报表</button></div>
       <div class="tab-strip">
-        <button v-for="r in reports" :key="r.key" class="tab-btn" :class="{ active: active === r.key }" @click="active = r.key">{{ r.label }}</button>
+        <button v-for="r in reports" :key="r.key" class="tab-btn" :class="{ active: active === r.key }" @click="active = r.key">{{ te(`report.${r.key}`) ? t(`report.${r.key}`) : r.label }}</button>
       </div>
       <div class="row" style="justify-content:space-between;align-items:center;margin:8px 0">
-        <strong>{{ title }}</strong><span class="small muted">共 {{ filteredRows.length }} 条</span>
+        <strong>{{ te(`report.${active}`) ? t(`report.${active}`) : title }}</strong><span class="small muted">共 {{ filteredRows.length }} 条</span>
       </div>
       <div v-if="active === 'regulatory'" class="alert">监管口径：房源总数、已出租、空置、出租率、在租合同、应收、实收、欠费；按项目汇总。</div>
       <div class="row" style="margin-bottom:8px">
@@ -158,7 +160,7 @@ onMounted(() => { try { savedViews.value = JSON.parse(localStorage.getItem('plat
       </div>
       <div v-if="!filteredRows.length" class="empty">暂无数据</div>
       <div v-else class="table-wrap">
-        <table><thead><tr><th v-for="c in cols" :key="c[0]">{{ c[1] }}</th><th v-if="active === 'projects'">操作</th></tr></thead><tbody>
+        <table><thead><tr><th v-for="c in cols" :key="c[0]">{{ te(`field.${c[0]}`) ? t(`field.${c[0]}`) : c[1] }}</th><th v-if="active === 'projects'">操作</th></tr></thead><tbody>
           <tr v-for="(row, i) in filteredRows" :key="i"><td v-for="c in cols" :key="c[0]">{{ display(row, c[0]) }}</td><td v-if="active === 'projects'"><button class="sm" @click="openProject(row)">下钻</button></td></tr>
         </tbody></table>
       </div>

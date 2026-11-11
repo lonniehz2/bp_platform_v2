@@ -16,6 +16,28 @@ const messages = {
       "asset": "房源与资产",
       "data": "数据与报表"
 },
+    field: {
+      contractNo: '合同号', houseName: '房屋', startDate: '开始日期', endDate: '结束日期', status: '状态',
+      billNo: '账单号', periodStart: '账期起', periodEnd: '账期止', payableAmount: '应付', paidAmount: '已收',
+      orderNo: '工单号', title: '标题', assigneeName: '处理人', validStart: '通行时间', visitorName: '访客', purpose: '事由',
+      deviceCode: '设备编码', deviceName: '设备名称', deviceType: '类型', personName: '姓名', phone: '电话', personType: '人员类型',
+      houseCode: '房源编码', houseStatus: '房态', contractStatus: '合同状态', queueNo: '轮候号', waitlistStatus: '状态',
+      allocationNo: '配租单号', allocationStatus: '状态', paymentNo: '收款单号', paymentMethod: '方式', amount: '金额',
+      paidTime: '时间', grantLevel: '级别', validEnd: '结束', alertLevel: '级别', alertStatus: '状态',
+      refundedAmount: '已退', changeType: '变更类型', effectiveDate: '生效日期', reason: '原因', fileName: '文件名',
+      fileSize: '大小', createTime: '上传时间', subsidyType: '补贴类型', subsidyAmount: '金额'
+    },
+    status: {
+      ACTIVE: '生效中', INACTIVE: '停用', ENABLED: '启用', DISABLED: '停用', DRAFT: '草稿', APPROVING: '审批中',
+      TERMINATED: '已终止', DISCARDED: '已作废', WITHDRAWN: '已撤回', EXPIRED: '已到期', PAID: '已支付',
+      UNPAID: '未支付', PARTIAL: '部分支付', WAIVED: '已减免', CLOSED: '已关闭', VACANT: '空置', RENTED: '已出租',
+      OCCUPIED: '已入住', ALLOCATED: '已配租', PENDING: '待处理', PROCESSING: '处理中', DONE: '已完成', OPEN: '待处理',
+      RESOLVED: '已解决', SUCCESS: '成功', FAILED: '失败', LOCKED: '无权限', IN_USE: '使用中', CONTRACTED: '已签约'
+    },
+    report: {
+      projects: '项目经营对比', applications: '申请受理', contracts: '合同台账', bills: '应收实收', arrears: '欠费清单',
+      houses: '房源台账', workOrders: '工单统计', devices: '设备台账', payments: '资金流水', regulatory: '监管报送'
+    },
     nav: {
       dashboard: '工作台',
       workbench: '我的工作台',
@@ -136,6 +158,29 @@ const messages = {
       "asset": "Housing & Assets",
       "data": "Data & Reports"
 },
+    field: {
+      contractNo: 'Contract No.', houseName: 'House', startDate: 'Start Date', endDate: 'End Date', status: 'Status',
+      billNo: 'Bill No.', periodStart: 'Period From', periodEnd: 'Period To', payableAmount: 'Payable', paidAmount: 'Paid',
+      orderNo: 'Order No.', title: 'Title', assigneeName: 'Assignee', validStart: 'Access Time', visitorName: 'Visitor', purpose: 'Purpose',
+      deviceCode: 'Device Code', deviceName: 'Device Name', deviceType: 'Type', personName: 'Name', phone: 'Phone', personType: 'Person Type',
+      houseCode: 'House Code', houseStatus: 'House Status', contractStatus: 'Contract Status', queueNo: 'Queue No.', waitlistStatus: 'Status',
+      allocationNo: 'Allocation No.', allocationStatus: 'Status', paymentNo: 'Payment No.', paymentMethod: 'Method', amount: 'Amount',
+      paidTime: 'Time', grantLevel: 'Level', validEnd: 'End', alertLevel: 'Level', alertStatus: 'Status',
+      refundedAmount: 'Refunded', changeType: 'Change Type', effectiveDate: 'Effective Date', reason: 'Reason', fileName: 'File Name',
+      fileSize: 'Size', createTime: 'Uploaded At', subsidyType: 'Subsidy Type', subsidyAmount: 'Amount'
+    },
+    status: {
+      ACTIVE: 'Active', INACTIVE: 'Inactive', ENABLED: 'Enabled', DISABLED: 'Disabled', DRAFT: 'Draft', APPROVING: 'Approving',
+      TERMINATED: 'Terminated', DISCARDED: 'Discarded', WITHDRAWN: 'Withdrawn', EXPIRED: 'Expired', PAID: 'Paid',
+      UNPAID: 'Unpaid', PARTIAL: 'Partial', WAIVED: 'Waived', CLOSED: 'Closed', VACANT: 'Vacant', RENTED: 'Rented',
+      OCCUPIED: 'Occupied', ALLOCATED: 'Allocated', PENDING: 'Pending', PROCESSING: 'Processing', DONE: 'Done', OPEN: 'Open',
+      RESOLVED: 'Resolved', SUCCESS: 'Success', FAILED: 'Failed', LOCKED: 'Locked', IN_USE: 'In Use', CONTRACTED: 'Contracted'
+    },
+    report: {
+      projects: 'Project Comparison', applications: 'Applications', contracts: 'Contracts', bills: 'Receivables',
+      arrears: 'Arrears', houses: 'Houses', workOrders: 'Work Orders', devices: 'Devices', payments: 'Cash Flow',
+      regulatory: 'Regulatory Report'
+    },
     nav: {
       dashboard: 'Workspace',
       workbench: 'My Workspace',
