@@ -1,6 +1,8 @@
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const props = defineProps({
   total: { type: Number, default: 0 },
   page: { type: Number, default: 1 },
@@ -19,11 +21,11 @@ function go(p) {
 
 <template>
   <div class="pager">
-    <span class="small muted">共 {{ total }} 条 · {{ from }}-{{ to }} / {{ pages }} 页</span>
+    <span class="small muted">{{ t('components.total') }} {{ total }} {{ t('components.records') }} · {{ from }}-{{ to }} / {{ pages }} {{ t('components.page') }}</span>
     <div class="row" style="gap:6px">
-      <button class="sm" :disabled="page <= 1" @click="go(page - 1)">上一页</button>
+      <button class="sm" :disabled="page <= 1" @click="go(page - 1)">{{ t('components.prev') }}</button>
       <span class="small">{{ page }}</span>
-      <button class="sm" :disabled="page >= pages" @click="go(page + 1)">下一页</button>
+      <button class="sm" :disabled="page >= pages" @click="go(page + 1)">{{ t('components.next') }}</button>
     </div>
   </div>
 </template>

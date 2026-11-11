@@ -1,13 +1,15 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const props = defineProps({
   modelValue: { type: [String, Number, Array, null], default: null },
   options: { type: Array, default: () => [] },
   labelKey: { type: String, default: 'label' },
   sublabelKey: { type: String, default: '' },
   valueKey: { type: String, default: 'value' },
-  placeholder: { type: String, default: '请选择' },
+  placeholder: { type: String, default: '' },
   multiple: { type: Boolean, default: false },
   clearable: { type: Boolean, default: true },
   disabled: { type: Boolean, default: false }
@@ -67,7 +69,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', outside))
     <div ref="control" class="ss-control">
       <div class="ss-value">
         <template v-if="open">
-          <input ref="search" v-model="query" class="ss-input" :placeholder="placeholder" @keydown="onKeydown" @click.stop />
+          <input ref="search" v-model="query" class="ss-input" :placeholder="placeholder || t('components.select')" @keydown="onKeydown" @click.stop />
         </template>
         <template v-else>
           <span v-if="selectedLabel" class="ss-selected">{{ selectedLabel }}</span>
@@ -78,7 +80,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', outside))
       <span class="ss-arrow">⌄</span>
     </div>
     <div v-if="open" class="ss-drop" @click.stop>
-      <div v-if="!filtered.length" class="ss-empty">没有匹配项</div>
+      <div v-if="!filtered.length" class="ss-empty">{{ t('components.noMatch') }}</div>
       <button v-for="(o, i) in filtered" :key="valueOf(o)" type="button" class="ss-option" :class="{ active: i === active, selected: selectedValues.some(v => String(v) === String(valueOf(o))) }" @mouseenter="active = i" @click="choose(o)">
         <span class="ss-option-label">{{ labelOf(o) }}</span>
         <span v-if="subOf(o)" class="ss-option-sub">{{ subOf(o) }}</span>

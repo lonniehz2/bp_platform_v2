@@ -1,13 +1,6 @@
 [
-  "src/components/ConfirmDialog.vue",
-  "src/components/DataTable.vue",
   "src/components/EntityDetailTabs.vue",
-  "src/components/EntityRelationPanel.vue",
-  "src/components/Pager.vue",
-  "src/components/PermissionPanel.vue",
   "src/components/RolePanel.vue",
-  "src/components/SearchSelect.vue",
-  "src/components/TreeSelect.vue",
   "src/components/UserPanel.vue",
   "src/pages/Access.vue",
   "src/pages/Allocations.vue",
@@ -18,7 +11,6 @@
   "src/pages/ContractDetail.vue",
   "src/pages/Contracts.vue",
   "src/pages/Credit.vue",
-  "src/pages/Dashboard.vue",
   "src/pages/Devices.vue",
   "src/pages/Energy.vue",
   "src/pages/GovReport.vue",
@@ -40,6 +32,5 @@
   "src/pages/Sys.vue",
   "src/pages/Translations.vue",
   "src/pages/Users.vue",
-  "src/pages/WorkOrders.vue",
-  "src/pages/Workbench.vue"
+  "src/pages/WorkOrders.vue"
 ]

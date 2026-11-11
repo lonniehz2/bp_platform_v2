@@ -1,6 +1,8 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
+import { currentScene } from '../scene'
 
 const menus = ref([])
 const error = ref('')
@@ -20,7 +22,7 @@ const rows = computed(() => {
 })
 
 onMounted(async () => {
-  try { menus.value = await api.menus('GUARANTEE') } catch (e) { error.value = e.message }
+  try { menus.value = await api.menus(currentScene()) } catch (e) { error.value = e.message }
 })
 </script>
 
@@ -28,13 +30,13 @@ onMounted(async () => {
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>权限清单</h2><p>页面级权限，只读</p></div><span class="badge blue">{{ rows.length }} 项</span></div>
-      <input v-model="search" placeholder="搜索权限名称/编码/路由" style="max-width:360px" />
+      <div class="panel-head"><div><h2>{{ t('components.permissionList') }}</h2><p>{{ t('components.permissionHint') }}</p></div><span class="badge blue">{{ rows.length }} {{ t('components.records') }}</span></div>
+      <input v-model="search" :placeholder="t('components.searchPermission')" style="max-width:360px" />
     </div>
     <div class="panel">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>权限名称</th><th>编码</th><th>路由</th></tr></thead>
+          <thead><tr><th>{{ t('components.permissionName') }}</th><th>{{ t('components.code') }}</th><th>{{ t('components.route') }}</th></tr></thead>
           <tbody>
             <tr v-for="m in rows" :key="m.menuCode">
               <td :style="{ paddingLeft: (12 + m.depth * 18) + 'px' }">{{ m.menuName }}</td>

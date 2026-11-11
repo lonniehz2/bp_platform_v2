@@ -1,13 +1,15 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const props = defineProps({
   modelValue: { type: [String, Number, null], default: null },
   nodes: { type: Array, default: () => [] },
   labelKey: { type: String, default: 'spaceName' },
   valueKey: { type: String, default: 'id' },
   parentKey: { type: String, default: 'parentId' },
-  placeholder: { type: String, default: '请选择' },
+  placeholder: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
   clearable: { type: Boolean, default: true }
 })
@@ -82,8 +84,8 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', outside))
       <span class="ts-arrow">⌄</span>
     </div>
     <div v-if="open" class="ts-drop" @click.stop>
-      <input ref="search" v-model="query" class="ts-search" placeholder="搜索空间/名称" @click.stop />
-      <div v-if="!flat.length" class="ts-empty">没有匹配项</div>
+      <input ref="search" v-model="query" class="ts-search" :placeholder="t('components.searchSpace')" @click.stop />
+      <div v-if="!flat.length" class="ts-empty">{{ t('components.noMatch') }}</div>
       <button v-for="row in flat" :key="valueOf(row.node)" type="button" class="ts-node" :style="{ paddingLeft: (10 + row.depth * 16) + 'px' }" :class="{ selected: String(valueOf(row.node)) === String(modelValue) }" @click="choose(row.node)">
         <span v-if="row.hasChildren" class="ts-toggle" @click.stop="toggleNode(row.node)">{{ expanded.has(String(valueOf(row.node))) ? '⌄' : '›' }}</span>
         <span v-else class="ts-toggle-placeholder"></span>

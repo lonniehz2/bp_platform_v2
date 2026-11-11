@@ -2,7 +2,9 @@
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const props = defineProps({ type: { type: String, required: true }, entityId: { type: [String, Number], default: '' } })
 const router = useRouter()
 const links = ref([])
@@ -28,16 +30,16 @@ watch(() => [props.type, props.entityId], load)
 
 <template>
   <div class="panel">
-    <div class="panel-head"><div><h2>关联信息</h2><p>人员、房源、账单、押金</p></div></div>
+    <div class="panel-head"><div><h2>{{ t('components.relation') }}</h2><p>{{ t('components.relationHint') }}</p></div></div>
     <div v-if="error" class="error">{{ error }}</div>
-    <div v-else-if="loading" class="empty">加载中…</div>
-    <div v-else-if="!links.length" class="empty">暂无关联信息</div>
+    <div v-else-if="loading" class="empty">{{ t('components.loading') }}</div>
+    <div v-else-if="!links.length" class="empty">{{ t('components.noRelation') }}</div>
     <div v-else class="relation-grid">
       <button v-for="l in links" :key="l.type + '-' + (l.id || '')" class="relation-card" :class="{ locked: !l.accessible }" :disabled="!l.accessible" @click="open(l)">
         <div class="relation-kind">{{ l.label }}</div>
         <div class="relation-title">{{ l.title }}</div>
         <div v-if="l.reason" class="relation-reason">{{ l.reason }}</div>
-        <div v-else class="relation-go">查看 →</div>
+        <div v-else class="relation-go">{{ t('components.view') }} →</div>
       </button>
     </div>
   </div>

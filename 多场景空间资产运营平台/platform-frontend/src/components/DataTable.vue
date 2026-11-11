@@ -1,6 +1,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const props = defineProps({
   rows: { type: Array, default: () => [] },
   columns: { type: Array, default: () => [] },
@@ -10,7 +12,7 @@ const props = defineProps({
   page: { type: Number, default: 1 },
   pageSize: { type: Number, default: 10 },
   total: { type: Number, default: 0 },
-  emptyText: { type: String, default: '暂无数据' },
+  emptyText: { type: String, default: '' },
   density: { type: String, default: 'normal' },
   rowClass: { type: Function, default: null }
 })
@@ -71,8 +73,8 @@ function setSize(e) {
           </tr>
         </thead>
         <tbody>
-          <tr v-if="loading"><td :colspan="columns.length + (selectable ? 1 : 0)" class="dt-state">加载中…</td></tr>
-          <tr v-else-if="!rows.length"><td :colspan="columns.length + (selectable ? 1 : 0)" class="dt-state">{{ emptyText }}</td></tr>
+          <tr v-if="loading"><td :colspan="columns.length + (selectable ? 1 : 0)" class="dt-state">{{ t('components.loading') }}</td></tr>
+          <tr v-else-if="!rows.length"><td :colspan="columns.length + (selectable ? 1 : 0)" class="dt-state">{{ emptyText || t('components.noData') }}</td></tr>
           <template v-else>
             <tr v-for="row in rows" :key="row[rowKey]" :class="rowClass ? rowClass(row) : ''" @click="$emit('rowClick', row)">
               <td v-if="selectable" class="dt-check" @click.stop><input type="checkbox" :checked="selected.has(String(row[rowKey]))" @change="toggleRow(row)" /></td>
@@ -85,15 +87,15 @@ function setSize(e) {
       </table>
     </div>
     <div v-if="total > pageSize || total === 0" class="dt-foot">
-      <span class="dt-total">共 {{ total }} 条</span>
+      <span class="dt-total">{{ t('components.total') }} {{ total }} {{ t('components.records') }}</span>
       <select :value="pageSize" class="dt-size" @change="setSize">
-        <option :value="10">10 条/页</option>
-        <option :value="20">20 条/页</option>
-        <option :value="50">50 条/页</option>
+        <option :value="10">{{ 10 }} {{ t('components.perPage') }}</option>
+        <option :value="20">{{ 20 }} {{ t('components.perPage') }}</option>
+        <option :value="50">{{ 50 }} {{ t('components.perPage') }}</option>
       </select>
-      <button class="sm" :disabled="page <= 1" @click="go(page - 1)">上一页</button>
+      <button class="sm" :disabled="page <= 1" @click="go(page - 1)">{{ t('components.prev') }}</button>
       <span class="dt-page">{{ page }} / {{ pageCount }}</span>
-      <button class="sm" :disabled="page >= pageCount" @click="go(page + 1)">下一页</button>
+      <button class="sm" :disabled="page >= pageCount" @click="go(page + 1)">{{ t('components.next') }}</button>
     </div>
   </div>
 </template>
