@@ -4,7 +4,10 @@ import { api } from '../api'
 import { can } from '../permissions'
 import TreeSelect from '../components/TreeSelect.vue'
 import { confirmAction } from '../confirm'
+import { useI18n } from 'vue-i18n'
+import { deviceImportHeader, deviceImportSample } from '../importTemplates'
 
+const { t } = useI18n()
 const project = ref(null)
 const devices = ref([])
 const spaces = ref([])
@@ -103,7 +106,7 @@ function toggleUnbound(id) {
 }
 
 async function bindOne(d) {
-  if (!selectedSpace.value) { error.value = '请先选择空间'; return }
+  if (!selectedSpace.value) { error.value = t('deviceBinding.selectSpaceFirst'); return }
   busy.value = true; error.value = ''
   try {
     await api.bindDevice(d.id, selectedSpace.value.id)
@@ -123,12 +126,11 @@ async function bindSelected() {
 
 function downloadTemplate() {
   const orgCode = project.value?.orgCode || '350600'
-  const csv = '\ufeff组织编码,楼栋,单元,楼层,房间,床位内房,房源编号,房源名称,房源类型,建筑面积,设备编号,设备类型,设备名称,物理MAC\n'
-    + orgCode + ',A栋,1单元,1层,101室,,,101室,公租房,60,,门锁,101门锁,\n'
+  const csv = '\ufeff' + deviceImportHeader + '\n' + deviceImportSample(orgCode) + '\n'
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = '设备绑定导入模板.csv'
+  a.download = t('deviceBinding.download') + '.csv'
   a.click()
   URL.revokeObjectURL(a.href)
 }
@@ -147,7 +149,7 @@ function pickImportFile(e) {
 }
 
 async function runImport() {
-  if (!importFile.value) { importError.value = '请选择 CSV 文件'; return }
+  if (!importFile.value) { importError.value = t('deviceBinding.selectFile'); return }
   importBusy.value = true; importError.value = ''
   try {
     importResult.value = await api.importDevices(importFile.value)
@@ -168,7 +170,7 @@ function jumpSource(d) {
 }
 
 async function unbind(d) {
-  if (!await confirmAction({ title: '解绑设备', message: `确认解绑设备 ${d.deviceName || d.deviceCode}？`, confirmText: '解绑', danger: true })) return
+  if (!await confirmAction({ title: t('deviceBinding.unbindTitle'), message: t('deviceBinding.unbindMessage', { name: d.deviceName || d.deviceCode }), confirmText: t('deviceBinding.unbindConfirm'), danger: true })) return
   busy.value = true; error.value = ''
   try { await api.bindDevice(d.id, null); await load() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -182,15 +184,15 @@ onMounted(load)
 
     <div class="panel">
       <div class="panel-head">
-        <div><h2>设备绑定</h2><p>{{ project?.orgName || '未选择项目' }} · 按空间查看、绑定和解绑设备</p></div>
-        <div class="row"><span class="badge blue">{{ unbound.length }} 台未绑定</span><button class="sm" @click="openImport">设备导入</button></div>
+        <div><h2>{{ t('deviceBinding.title') }}</h2><p>{{ project?.orgName || t('deviceBinding.noProject') }} · {{ t('deviceBinding.subtitle') }}</p></div>
+        <div class="row"><span class="badge blue">{{ unbound.length }} {{ t('deviceBinding.unboundCount') }}</span><button class="sm" @click="openImport">{{ t('deviceBinding.import') }}</button></div>
       </div>
-      <div class="alert">左侧选择空间；右侧查看该空间直绑设备和继承设备。设备绑定到楼栋/单元/楼层后会向下继承显示，但设备只属于实际绑定空间。</div>
+      <div class="alert">{{ t('deviceBinding.hint') }}</div>
     </div>
 
     <div class="binding-grid">
       <div class="panel binding-tree">
-        <div class="panel-head"><h2>空间树</h2><span class="small muted">{{ spaces.length }} 个空间</span></div>
+        <div class="panel-head"><h2>{{ t('deviceBinding.tree') }}</h2><span class="small muted">{{ spaces.length }} {{ t('deviceBinding.spaces') }}</span></div>
         <div class="tree-scroll">
           <div v-for="s in visibleSpaces" :key="s.id" class="tree-row" :class="{ active: String(s.id) === String(activeSpaceId) }" :style="{ paddingLeft: (12 + s.depth * 18) + 'px' }" @click="selectSpace(s)">
             <button v-if="s.children.length" class="tree-toggle" type="button" @click.stop="toggleExpand(s)">{{ expanded.has(String(s.id)) ? '⌄' : '›' }}</button>
@@ -198,7 +200,7 @@ onMounted(load)
             <span class="tree-name">{{ s.spaceName }}</span>
             <span class="tree-counts"><span v-if="s.direct.length" class="badge green">{{ s.direct.length }}</span><span v-if="s.inherited.length" class="badge orange">{{ s.inherited.length }}</span></span>
           </div>
-          <div v-if="!visibleSpaces.length" class="empty">暂无空间</div>
+          <div v-if="!visibleSpaces.length" class="empty">{{ t('deviceBinding.emptySpaces') }}</div>
         </div>
       </div>
 
@@ -206,38 +208,38 @@ onMounted(load)
         <div class="panel">
           <div class="panel-head">
             <div>
-              <h2>{{ selectedSpace?.spaceName || '未选择空间' }}</h2>
-              <p class="small muted">{{ selectedSpace?.fullPath || '请选择左侧空间' }}</p>
+              <h2>{{ selectedSpace?.spaceName || t('deviceBinding.noSpace') }}</h2>
+              <p class="small muted">{{ selectedSpace?.fullPath || t('deviceBinding.selectHint') }}</p>
             </div>
             <span v-if="selectedSpace" class="badge blue">{{ selectedSpace.spaceType }}</span>
           </div>
 
-          <div v-if="!selectedSpace" class="empty">请选择空间</div>
+          <div v-if="!selectedSpace" class="empty">{{ t('deviceBinding.selectSpace') }}</div>
           <template v-else>
-            <h3 class="section-title">直绑设备 <span class="small muted">{{ selectedSpace.direct.length }} 台</span></h3>
-            <div v-if="!selectedSpace.direct.length" class="empty small">该空间暂无直绑设备</div>
+            <h3 class="section-title">{{ t('deviceBinding.direct') }} <span class="small muted">{{ selectedSpace.direct.length }} {{ t('deviceBinding.units') }}</span></h3>
+            <div v-if="!selectedSpace.direct.length" class="empty small">{{ t('deviceBinding.noDirect') }}</div>
             <div v-else class="table-wrap">
               <table>
-                <thead><tr><th>设备编码</th><th>名称</th><th>类型</th><th>操作</th></tr></thead>
+                <thead><tr><th>{{ t('deviceBinding.deviceCode') }}</th><th>{{ t('deviceBinding.name') }}</th><th>{{ t('deviceBinding.type') }}</th><th>{{ t('deviceBinding.action') }}</th></tr></thead>
                 <tbody>
                   <tr v-for="d in selectedSpace.direct" :key="d.id">
                     <td class="mono">{{ d.deviceCode }}</td><td>{{ d.deviceName }}</td><td>{{ d.deviceType }}</td>
-                    <td><button v-if="can('device')" class="sm danger" :disabled="busy" @click="unbind(d)">解绑</button></td>
+                    <td><button v-if="can('device')" class="sm danger" :disabled="busy" @click="unbind(d)">{{ t('deviceBinding.unbind') }}</button></td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <h3 class="section-title">继承设备 <span class="small muted">{{ selectedSpace.inherited.length }} 台</span></h3>
-            <div v-if="!selectedSpace.inherited.length" class="empty small">暂无继承设备</div>
+            <h3 class="section-title">{{ t('deviceBinding.inherited') }} <span class="small muted">{{ selectedSpace.inherited.length }} {{ t('deviceBinding.units') }}</span></h3>
+            <div v-if="!selectedSpace.inherited.length" class="empty small">{{ t('deviceBinding.noInherited') }}</div>
             <div v-else class="table-wrap">
               <table>
-                <thead><tr><th>设备编码</th><th>名称</th><th>来源空间</th><th>操作</th></tr></thead>
+                <thead><tr><th>{{ t('deviceBinding.deviceCode') }}</th><th>{{ t('deviceBinding.name') }}</th><th>{{ t('deviceBinding.source') }}</th><th>{{ t('deviceBinding.action') }}</th></tr></thead>
                 <tbody>
                   <tr v-for="d in selectedSpace.inherited" :key="d.id + '-' + d.sourceSpaceId">
                     <td class="mono">{{ d.deviceCode }}</td><td>{{ d.deviceName }}</td>
                     <td class="small">{{ d.sourceSpaceName }} · {{ d.sourcePath }}</td>
-                    <td><button class="sm" @click="jumpSource(d)">跳转来源</button></td>
+                    <td><button class="sm" @click="jumpSource(d)">{{ t('deviceBinding.jump') }}</button></td>
                   </tr>
                 </tbody>
               </table>
@@ -247,18 +249,18 @@ onMounted(load)
 
         <div class="panel">
           <div class="panel-head">
-            <div><h2>未绑定设备</h2><p class="small muted">选择设备后批量绑定到当前空间</p></div>
-            <span class="badge orange">{{ filteredUnbound.length }} 台</span>
+            <div><h2>{{ t('deviceBinding.unbound') }}</h2><p class="small muted">{{ t('deviceBinding.unboundHint') }}</p></div>
+            <span class="badge orange">{{ filteredUnbound.length }} {{ t('deviceBinding.units') }}</span>
           </div>
           <div class="row" style="margin-bottom:8px">
-            <input v-model="unboundQuery" placeholder="搜索设备编码/名称/类型" style="max-width:300px" />
-            <button v-if="can('device')" class="primary" :disabled="busy || !selectedSpace || !selectedUnbound.length" @click="bindSelected">批量绑定 {{ selectedUnbound.length ? '(' + selectedUnbound.length + ')' : '' }}</button>
+            <input v-model="unboundQuery" :placeholder="t('deviceBinding.search')" style="max-width:300px" />
+            <button v-if="can('device')" class="primary" :disabled="busy || !selectedSpace || !selectedUnbound.length" @click="bindSelected">{{ t('deviceBinding.batch') }} {{ selectedUnbound.length ? '(' + selectedUnbound.length + ')' : '' }}</button>
           </div>
-          <div v-if="!filteredUnbound.length" class="empty">暂无未绑定设备</div>
+          <div v-if="!filteredUnbound.length" class="empty">{{ t('deviceBinding.noUnbound') }}</div>
           <div v-for="d in filteredUnbound" :key="d.id" class="unbound-row">
             <input type="checkbox" :checked="selectedUnbound.includes(String(d.id))" @change="toggleUnbound(d.id)" />
             <div style="flex:1"><div class="mono">{{ d.deviceCode }}</div><div class="small muted">{{ d.deviceName }} · {{ d.deviceType }}</div></div>
-            <button v-if="can('device')" class="sm" :disabled="busy || !selectedSpace" @click="bindOne(d)">绑定到当前空间</button>
+            <button v-if="can('device')" class="sm" :disabled="busy || !selectedSpace" @click="bindOne(d)">{{ t('deviceBinding.bindCurrent') }}</button>
           </div>
         </div>
       </div>
@@ -266,31 +268,28 @@ onMounted(load)
 
     <div v-if="importOpen" class="modal-mask" @click.self="importOpen = false">
       <div class="modal" style="max-width:760px">
-        <div class="panel-head"><h2>设备绑定批量导入</h2><button class="sm" @click="importOpen = false">关闭</button></div>
+        <div class="panel-head"><h2>{{ t('deviceBinding.importTitle') }}</h2><button class="sm" @click="importOpen = false">{{ t('deviceBinding.close') }}</button></div>
         <div class="alert">
-          CSV 表头：组织编码, 楼栋, 单元, 楼层, 房间, 床位内房, 房源编号, 房源名称, 房源类型, 建筑面积, 设备编号, 设备类型, 设备名称, 物理MAC。
-          一行一台设备；同一空间多行自动归并；房源编号为空自动生成；设备编号为空生成 DV 编号；设备编号重复同空间跳过、跨空间报错；物理 MAC 不允许重复。
-        </div>
+          {{ t('deviceBinding.importHint') }}</div>
         <div class="row" style="margin:12px 0">
-          <button class="sm" @click="downloadTemplate">下载模板</button>
+          <button class="sm" @click="downloadTemplate">{{ t('deviceBinding.download') }}</button>
           <input type="file" accept=".csv" @change="pickImportFile" />
-          <span class="small muted">{{ importFile?.name || '未选择文件' }}</span>
+          <span class="small muted">{{ importFile?.name || t('deviceBinding.noFile') }}</span>
         </div>
         <div v-if="importError" class="error">{{ importError }}</div>
         <div v-if="importResult">
           <div class="alert" :class="importResult.failed ? 'warn' : 'ok'">
-            共 {{ importResult.total }} 行，空间新增 {{ importResult.spacesCreated }}，房源新增 {{ importResult.housesCreated }}，
-            设备新增 {{ importResult.devicesCreated }}，设备处理 {{ importResult.devicesBound }}，失败 {{ importResult.failed }}。
+            {{ t('deviceBinding.total') }} {{ importResult.total }} {{ t('deviceBinding.rows') }} · {{ t('deviceBinding.spacesCreated') }} {{ importResult.spacesCreated }} · {{ t('deviceBinding.housesCreated') }} {{ importResult.housesCreated }} · {{ t('deviceBinding.devicesCreated') }} {{ importResult.devicesCreated }} · {{ t('deviceBinding.devicesBound') }} {{ importResult.devicesBound }} · {{ t('deviceBinding.failed') }} {{ importResult.failed }}
           </div>
           <div v-if="importResult.errors?.length" class="table-wrap" style="margin-top:10px">
             <table>
-              <thead><tr><th>行号</th><th>原因</th></tr></thead>
+              <thead><tr><th>{{ t('deviceBinding.line') }}</th><th>{{ t('deviceBinding.reason') }}</th></tr></thead>
               <tbody><tr v-for="e in importResult.errors" :key="e.line"><td>{{ e.line }}</td><td>{{ e.message }}</td></tr></tbody>
             </table>
           </div>
         </div>
         <div class="row" style="justify-content:flex-end;margin-top:12px">
-          <button class="primary" :disabled="importBusy || !importFile" @click="runImport">{{ importBusy ? '导入中…' : '开始导入' }}</button>
+          <button class="primary" :disabled="importBusy || !importFile" @click="runImport">{{ importBusy ? t('deviceBinding.importing') : t('deviceBinding.startImport') }}</button>
         </div>
       </div>
     </div>
