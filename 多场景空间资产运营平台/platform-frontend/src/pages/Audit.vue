@@ -1,21 +1,24 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
+import { currentScene } from '../scene'
 
+const { t } = useI18n()
 const tasks = ref([])
 const records = ref([])
 const selectedTask = ref(null)
 const error = ref('')
 const busy = ref(false)
 const workflows = ref([])
-const flowForm = reactive({ bizType: 'CONTRACT', orgId: '', flowName: '', nodeName: '合同审核', approverRole: 'REVIEWER' })
+const flowForm = reactive({ bizType: 'CONTRACT', orgId: '', flowName: '', nodeName: t('audit.contract'), approverRole: 'REVIEWER' })
 
 const statusClass = (s) => ({ APPROVED: 'green', REJECTED: 'red', APPROVING: 'orange' }[s] || '')
 
 async function load() {
   error.value = ''
   try {
-    const [t, w] = await Promise.all([api.workflowTasks(''), api.workflows('GUARANTEE')])
+    const [t, w] = await Promise.all([api.workflowTasks(''), api.workflows(currentScene())])
     tasks.value = t; workflows.value = w
     if (tasks.value.length) await selectTask(tasks.value[0])
   } catch (e) { error.value = e.message }
@@ -29,7 +32,7 @@ async function selectTask(task) {
 async function approve(task) {
   busy.value = true; error.value = ''
   try {
-    await api.approveTask(task.id, { approverName: '审批人', comment: '通过' })
+    await api.approveTask(task.id, { approverName: t('audit.approver'), comment: t('audit.approvedComment') })
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -37,7 +40,7 @@ async function approve(task) {
 async function reject(task) {
   busy.value = true; error.value = ''
   try {
-    await api.rejectTask(task.id, { approverName: '审批人', comment: '驳回' })
+    await api.rejectTask(task.id, { approverName: t('audit.approver'), comment: t('audit.rejectedComment') })
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -46,9 +49,9 @@ async function reject(task) {
 async function createWorkflow() {
   busy.value = true; error.value = ''
   try {
-    if (!flowForm.flowName.trim() || !flowForm.bizType) throw new Error('请填写流程名称和业务类型')
+    if (!flowForm.flowName.trim() || !flowForm.bizType) throw new Error(t('audit.required'))
     await api.createWorkflow({
-      sceneCode: 'GUARANTEE',
+      sceneCode: currentScene(),
       bizType: flowForm.bizType,
       orgId: flowForm.orgId ? Number(flowForm.orgId) : null,
       flowName: flowForm.flowName.trim(),
@@ -66,11 +69,11 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>审批中心</h2><p>平台工作流任务 · 合同变更/退租等统一审批</p></div><span class="pill">{{ tasks.length }} 个任务</span></div>
-      <div v-if="!tasks.length" class="empty">暂无审批任务</div>
+      <div class="panel-head"><div><h2>{{ t('audit.title') }}</h2><p>{{ t('audit.subtitle') }}</p></div><span class="pill">{{ tasks.length }} {{ t('audit.count') }}</span></div>
+      <div v-if="!tasks.length" class="empty">{{ t('audit.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>业务类型</th><th>摘要</th><th>提交人</th><th>当前节点</th><th>状态</th><th>提交时间</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('audit.bizType') }}</th><th>{{ t('audit.summary') }}</th><th>{{ t('audit.submitter') }}</th><th>{{ t('audit.currentNode') }}</th><th>{{ t('audit.status') }}</th><th>{{ t('audit.submitTime') }}</th><th>{{ t('audit.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="t in tasks" :key="t.id" @click="selectTask(t)" style="cursor:pointer">
               <td>{{ t.bizType }}</td><td>{{ t.summary }}</td><td>{{ t.submitterName }}</td>
@@ -78,8 +81,8 @@ onMounted(load)
               <td><span class="badge" :class="statusClass(t.taskStatus)">{{ t.taskStatus }}</span></td>
               <td class="small">{{ t.submitTime }}</td>
               <td class="row">
-                <button class="sm" v-if="t.taskStatus === 'APPROVING'" @click.stop="approve(t)">通过</button>
-                <button class="sm danger" v-if="t.taskStatus === 'APPROVING'" @click.stop="reject(t)">驳回</button>
+                <button class="sm" v-if="t.taskStatus === 'APPROVING'" @click.stop="approve(t)">{{ t('audit.approve') }}</button>
+                <button class="sm danger" v-if="t.taskStatus === 'APPROVING'" @click.stop="reject(t)">{{ t('audit.reject') }}</button>
               </td>
             </tr>
           </tbody>
@@ -88,29 +91,29 @@ onMounted(load)
     </div>
 
     <div class="panel">
-      <div class="panel-head"><div><h2>审批模板</h2><p>场景默认流程 · 组织级覆盖</p></div><span class="pill">{{ workflows.length }} 个流程</span></div>
+      <div class="panel-head"><div><h2>{{ t('audit.templates') }}</h2><p>{{ t('audit.templatesHint') }}</p></div><span class="pill">{{ workflows.length }} {{ t('audit.flowCount') }}</span></div>
       <div class="row">
-        <div class="field"><label>业务类型</label><select v-model="flowForm.bizType"><option value="CONTRACT">合同</option><option value="CONTRACT_CHANGE">合同变更</option><option value="BILL">账单</option><option value="APPLICATION">申请</option></select></div>
-        <div class="field"><label>组织 ID（空为默认）</label><input v-model="flowForm.orgId" placeholder="可选" /></div>
-        <div class="field" style="flex:2"><label>流程名称</label><input v-model="flowForm.flowName" /></div>
-        <div class="field"><label>首节点</label><input v-model="flowForm.nodeName" /></div>
-        <div class="field"><label>审批角色</label><input v-model="flowForm.approverRole" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="createWorkflow">新增流程</button></div>
+        <div class="field"><label>{{ t('audit.bizType') }}</label><select v-model="flowForm.bizType"><option value="CONTRACT">{{ t('audit.contract') }}</option><option value="CONTRACT_CHANGE">{{ t('audit.contractChange') }}</option><option value="BILL">{{ t('audit.bill') }}</option><option value="APPLICATION">{{ t('audit.application') }}</option></select></div>
+        <div class="field"><label>{{ t('audit.orgId') }}</label><input v-model="flowForm.orgId" :placeholder="t('audit.optional')" /></div>
+        <div class="field" style="flex:2"><label>{{ t('audit.flowName') }}</label><input v-model="flowForm.flowName" /></div>
+        <div class="field"><label>{{ t('audit.firstNode') }}</label><input v-model="flowForm.nodeName" /></div>
+        <div class="field"><label>{{ t('audit.approverRole') }}</label><input v-model="flowForm.approverRole" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="createWorkflow">{{ t('audit.addFlow') }}</button></div>
       </div>
-      <div v-if="!workflows.length" class="empty">暂无模板</div>
+      <div v-if="!workflows.length" class="empty">{{ t('audit.noTemplates') }}</div>
       <div v-for="w in workflows" :key="w.id" class="row" style="border-bottom:1px solid var(--line);padding:8px 0">
-        <div style="flex:1"><div>{{ w.flowName }} · {{ w.bizType }}</div><div class="small muted">组织：{{ w.orgId || '默认' }} · 节点 {{ w.nodeCount }}</div></div>
+        <div style="flex:1"><div>{{ w.flowName }} · {{ w.bizType }}</div><div class="small muted">{{ t('audit.org') }}: {{ w.orgId || t('audit.defaultOrg') }} · {{ t('audit.nodes') }} {{ w.nodeCount }}</div></div>
         <span class="badge" :class="w.flowStatus === 'ENABLED' ? 'green' : 'orange'">{{ w.flowStatus }}</span>
       </div>
     </div>
 
     <div class="panel" v-if="selectedTask">
-      <div class="panel-head"><h2>审批记录</h2><span class="small muted">{{ selectedTask.bizType }} · {{ selectedTask.bizId }}</span></div>
-      <div v-if="!records.length" class="empty">暂无记录</div>
+      <div class="panel-head"><h2>{{ t('audit.records') }}</h2><span class="small muted">{{ selectedTask.bizType }} · {{ selectedTask.bizId }}</span></div>
+      <div v-if="!records.length" class="empty">{{ t('audit.noRecords') }}</div>
       <div v-for="r in records" :key="r.id" class="row" style="border-bottom:1px solid var(--line);padding:9px 0">
         <div style="flex:1">
           <div>{{ r.nodeName }} · {{ r.action }}</div>
-          <div class="small muted">{{ r.approverName }} · {{ r.comment || '无意见' }}</div>
+          <div class="small muted">{{ r.approverName }} · {{ r.comment || t('audit.noComment') }}</div>
         </div>
         <span class="mono">{{ r.actionTime }}</span>
       </div>
