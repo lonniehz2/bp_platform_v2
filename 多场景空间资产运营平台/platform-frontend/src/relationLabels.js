@@ -1,8 +1,8 @@
-const labels = {
-  TENANT: '承租人', FAMILY: '家庭成员', COHABITANT: '同住人', OWNER: '产权人',
-  SPOUSE: '配偶', CHILD: '子女', PARENT: '父母', OTHER: '其他'
-}
-export function relationLabel(value) { return labels[value] || value || '-' }
+import { i18n } from './i18n'
+
+const labels = {}
+
+export function relationLabel(value) { const key = `relation.${value}`; return i18n.global.te(key) ? i18n.global.t(key) : (labels[value] || value || '-') }
 export function relationStatusLabel(value) {
-  return ({ ACTIVE: '有效', INACTIVE: '已结束', ENDED: '已结束' })[value] || value || '-'
+  const key = `relation.${value}`; return i18n.global.te(key) ? i18n.global.t(key) : (value || '-')
 }

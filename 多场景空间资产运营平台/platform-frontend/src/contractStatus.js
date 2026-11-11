@@ -1,15 +1,11 @@
-const labels = {
-  DRAFT: '草稿',
-  APPROVING: '审批中',
-  ACTIVE: '生效中',
-  TERMINATED: '已终止',
-  DISCARDED: '已作废',
-  WITHDRAWN: '已撤回',
-  EXPIRED: '已到期'
-}
+import { i18n } from './i18n'
+
+const labels = {}
+
 
 export function contractStatusLabel(status) {
-  return labels[status] || status || '-'
+  const key = `status.${status}`
+  return i18n.global.te(key) ? i18n.global.t(key) : (labels[status] || status || '-')
 }
 
 export function contractStatusTone(status) {
