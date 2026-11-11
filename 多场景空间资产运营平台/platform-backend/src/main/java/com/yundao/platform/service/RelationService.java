@@ -129,6 +129,7 @@ public class RelationService {
 
 
     public Map<String, Object> sections(String type, long id) {
+        String tenant = TenantContext.require();
         Map<String, Object> root;
         if ("CONTRACT".equalsIgnoreCase(type)) root = contract(id);
         else if ("PERSON".equalsIgnoreCase(type)) root = person(id);
@@ -138,60 +139,146 @@ public class RelationService {
         else if ("WORK_ORDER".equalsIgnoreCase(type)) root = workOrder(id);
         else if ("APPLICATION".equalsIgnoreCase(type)) root = application(id);
         else throw new BizException("BP40004", "暂不支持该关联类型", 400);
-
-        Map<String, Object> entity = new LinkedHashMap<>();
-        if (root.get("entity") instanceof Map<?, ?> e) {
-            entity.putAll((Map<String, Object>) e);
-        } else if (root.get("person") instanceof Map<?, ?> p) {
-            entity.put("type", "PERSON");
-            entity.put("id", String.valueOf(id));
-            entity.put("title", p.get("personName"));
-            entity.put("subtitle", p.get("personCode"));
-        } else {
-            entity.put("type", type.toUpperCase());
-            entity.put("id", String.valueOf(id));
-            entity.put("title", "详情 #" + id);
-        }
-
+        Map<String, Object> entity = entityOf(root, type, id);
         List<Map<String, Object>> sections = new ArrayList<>();
-        List<Map<String, Object>> links = new ArrayList<>();
-        Object rawLinks = root.get("links");
-        if (rawLinks instanceof List<?> list) {
-            for (Object x : list) if (x instanceof Map<?, ?> m) links.add((Map<String, Object>) m);
-        }
-        Map<String, Object> overview = new LinkedHashMap<>();
-        overview.put("key", "overview");
-        overview.put("label", "概览");
-        overview.put("accessible", true);
-        overview.put("reason", null);
-        overview.put("items", List.of(entity));
-        sections.add(overview);
-
-        int idx = 0;
-        for (Map<String, Object> link : links) {
-            Map<String, Object> sec = new LinkedHashMap<>();
-            String key = String.valueOf(link.getOrDefault("type", "link")) + "_" + (++idx);
-            sec.put("key", key);
-            sec.put("label", link.getOrDefault("label", "关联"));
-            sec.put("accessible", Boolean.TRUE.equals(link.get("accessible")));
-            sec.put("reason", link.get("reason"));
-            List<Map<String, Object>> items = new ArrayList<>();
-            if (link.get("id") != null) {
-                Map<String, Object> item = new LinkedHashMap<>();
-                item.put("id", link.get("id"));
-                item.put("title", link.getOrDefault("title", link.get("label")));
-                item.put("subtitle", link.get("type"));
-                item.put("status", Boolean.TRUE.equals(link.get("accessible")) ? null : "LOCKED");
-                item.put("route", link.get("route"));
-                items.add(item);
-            }
-            sec.put("items", items);
-            sections.add(sec);
-        }
+        sections.add(section("overview", "概览", true, null, List.of(entity)));
+        String t = type.toUpperCase();
+        if ("PERSON".equals(t)) sections.addAll(personSections(tenant, id, root));
+        else if ("HOUSE".equals(t)) sections.addAll(houseSections(tenant, id));
+        else if ("BILL".equals(t)) sections.addAll(billSections(tenant, id));
+        else if ("DEVICE".equals(t)) sections.addAll(deviceSections(tenant, id));
+        else if ("WORK_ORDER".equals(t)) sections.addAll(workOrderSections(tenant, id));
+        else if ("APPLICATION".equals(t)) sections.addAll(applicationSections(tenant, id));
+        else if ("CONTRACT".equals(t)) sections.addAll(contractSections(tenant, id));
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("entity", entity);
-        out.put("sections", sections);
+        out.put("entity", entity); out.put("sections", sections); return out;
+    }
+
+    private Map<String, Object> entityOf(Map<String, Object> root, String type, long id) {
+        Map<String, Object> entity = new LinkedHashMap<>();
+        if (root.get("entity") instanceof Map<?, ?> e) entity.putAll((Map<String, Object>) e);
+        else if (root.get("person") instanceof Map<?, ?> p) {
+            entity.put("type", "PERSON"); entity.put("id", String.valueOf(id));
+            entity.put("title", p.get("personName")); entity.put("subtitle", p.get("personCode"));
+        } else {
+            entity.put("type", type.toUpperCase()); entity.put("id", String.valueOf(id));
+            entity.put("title", root.getOrDefault("contractNo", "详情 #" + id));
+            entity.put("subtitle", root.getOrDefault("contractStatus", null));
+        }
+        return entity;
+    }
+
+    private Map<String, Object> section(String key, String label, boolean accessible, String reason, List<Map<String, Object>> items) {
+        Map<String, Object> sec = new LinkedHashMap<>();
+        sec.put("key", key); sec.put("label", label); sec.put("accessible", accessible);
+        sec.put("reason", reason); sec.put("items", items); return sec;
+    }
+
+    private Map<String, Object> sectionSql(String key, String label, String menu, long projectId, String sql, Object... args) {
+        boolean ok = projectId > 0 && canView(menu, projectId);
+        List<Map<String, Object>> items = ok ? jdbc.queryForList(sql, args) : List.of();
+        return section(key, label, ok, ok ? null : "无权限查看该关联信息", items);
+    }
+
+    private List<Map<String, Object>> personSections(String tenant, long id, Map<String, Object> root) {
+        Object org = root.get("person") instanceof Map<?, ?> p ? p.get("orgId") : null;
+        long projectId = org instanceof Number n ? n.longValue() : 0;
+        List<Map<String, Object>> out = new ArrayList<>();
+        out.add(sectionSql("contracts", "合同", "contracts", projectId,
+                "select c.id id, c.contract_no title, concat(h.house_name, ' · ', c.contract_status) subtitle, c.contract_status status, concat('/guarantee/contracts/', c.id) route from guarantee_contract c left join bp_house h on h.id=c.house_id where c.tenant_id=? and c.person_id=? and c.is_deleted=0 union all select c.id, c.contract_no, concat(h.house_name, ' · 同住人'), c.contract_status, concat('/guarantee/contracts/', c.id) from guarantee_contract_cohabitant cc join guarantee_contract c on c.id=cc.contract_id left join bp_house h on h.id=c.house_id where cc.tenant_id=? and cc.person_id=? and cc.is_deleted=0 and c.is_deleted=0", tenant, id, tenant, id));
+        out.add(sectionSql("bills", "账单", "billing", projectId,
+                "select b.id id, b.bill_no title, concat(b.period_start, ' ~ ', b.period_end) subtitle, b.bill_status status, '/guarantee/billing' route from bp_bill b where b.tenant_id=? and b.person_id=? and b.is_deleted=0 order by b.period_start desc", tenant, id));
+        out.add(sectionSql("workOrders", "工单", "workOrders", projectId,
+                "select o.id id, o.title title, o.order_no subtitle, o.order_status status, '/guarantee/work-orders' route from guarantee_work_order o where o.tenant_id=? and o.person_id=? and o.is_deleted=0 order by o.id desc", tenant, id));
+        out.add(sectionSql("access", "通行记录", "accessRecords", projectId,
+                "select a.id id, coalesce(a.visitor_name, '通行记录') title, concat(a.valid_start, ' · ', a.access_status) subtitle, a.access_status status, '/guarantee/access' route from guarantee_access_record a where a.tenant_id=? and a.person_id=? and a.is_deleted=0 order by a.id desc", tenant, id));
         return out;
+    }
+
+    private List<Map<String, Object>> houseSections(String tenant, long id) {
+        long projectId = number(jdbc.queryForList("select org_id from bp_house where tenant_id=? and id=? and is_deleted=0", tenant, id));
+        List<Map<String, Object>> out = new ArrayList<>();
+        out.add(sectionSql("contracts", "合同", "contracts", projectId,
+                "select c.id id, c.contract_no title, concat(c.start_date, ' ~ ', c.end_date) subtitle, c.contract_status status, concat('/guarantee/contracts/', c.id) route from guarantee_contract c where c.tenant_id=? and c.house_id=? and c.is_deleted=0 order by c.id desc", tenant, id));
+        out.add(sectionSql("bills", "账单", "billing", projectId,
+                "select b.id id, b.bill_no title, concat(b.period_start, ' ~ ', b.period_end) subtitle, b.bill_status status, '/guarantee/billing' route from bp_bill b where b.tenant_id=? and b.house_id=? and b.is_deleted=0 order by b.period_start desc", tenant, id));
+        out.add(sectionSql("devices", "设备", "devices", projectId,
+                "select d.id id, d.device_name title, d.device_code subtitle, d.business_status status, '/guarantee/devices' route from bp_dev_device d join bp_house h on h.space_id=d.space_id where d.tenant_id=? and h.id=? and d.is_deleted=0", tenant, id));
+        out.add(sectionSql("workOrders", "工单", "workOrders", projectId,
+                "select o.id id, o.title title, o.order_no subtitle, o.order_status status, '/guarantee/work-orders' route from guarantee_work_order o where o.tenant_id=? and o.house_id=? and o.is_deleted=0 order by o.id desc", tenant, id));
+        return out;
+    }
+
+    private List<Map<String, Object>> billSections(String tenant, long id) {
+        long projectId = number(jdbc.queryForList("select project_id from bp_bill where tenant_id=? and id=? and is_deleted=0", tenant, id));
+        List<Map<String, Object>> out = new ArrayList<>();
+        out.add(sectionSql("contract", "合同", "contracts", projectId,
+                "select c.id id, c.contract_no title, c.contract_status subtitle, c.contract_status status, concat('/guarantee/contracts/', c.id) route from bp_bill b join guarantee_contract c on c.id=b.contract_id where b.tenant_id=? and b.id=?", tenant, id));
+        out.add(sectionSql("person", "人员", "person", projectId,
+                "select p.id id, p.person_name title, p.person_code subtitle, p.status status, concat('/guarantee/persons?id=', p.id) route from bp_bill b join bp_person p on p.id=b.person_id where b.tenant_id=? and b.id=?", tenant, id));
+        out.add(sectionSql("house", "房屋", "houses", projectId,
+                "select h.id id, h.house_name title, h.house_code subtitle, h.house_status status, concat('/guarantee/houses?id=', h.id) route from bp_bill b join bp_house h on h.id=b.house_id where b.tenant_id=? and b.id=?", tenant, id));
+        out.add(sectionSql("payments", "收款记录", "billing", projectId,
+                "select p.id id, p.payment_no title, concat(p.payment_method, ' · ', p.amount) subtitle, p.payment_status status, '/guarantee/cashflow' route from bp_payment_allocation pa join bp_payment p on p.id=pa.payment_id where pa.tenant_id=? and pa.bill_id=? and p.is_deleted=0", tenant, id));
+        return out;
+    }
+
+    private List<Map<String, Object>> deviceSections(String tenant, long id) {
+        long projectId = number(jdbc.queryForList("select project_id from bp_dev_device where tenant_id=? and id=? and is_deleted=0", tenant, id));
+        List<Map<String, Object>> out = new ArrayList<>();
+        out.add(sectionSql("house", "所在房屋", "houses", projectId,
+                "select h.id id, h.house_name title, h.house_code subtitle, h.house_status status, concat('/guarantee/houses?id=', h.id) route from bp_dev_device d join bp_house h on h.space_id=d.space_id where d.tenant_id=? and d.id=?", tenant, id));
+        out.add(sectionSql("grants", "通行授权", "grants", projectId,
+                "select g.id id, coalesce(p.person_name, '授权记录') title, concat(g.grant_level, ' · ', g.grant_status) subtitle, g.grant_status status, '/guarantee/grants' route from bp_grant_entitlement g left join bp_person p on p.id=g.person_id where g.tenant_id=? and g.target_type='DEVICE' and g.target_id=? and g.is_deleted=0", tenant, id));
+        out.add(sectionSql("alerts", "设备告警", "alertCenter", projectId,
+                "select a.id id, a.title title, a.alert_level subtitle, a.alert_status status, '/guarantee/alerts' route from guarantee_alert a where a.tenant_id=? and a.project_id=? and a.is_deleted=0 order by a.id desc", tenant, projectId));
+        return out;
+    }
+
+    private List<Map<String, Object>> workOrderSections(String tenant, long id) {
+        long projectId = number(jdbc.queryForList("select project_id from guarantee_work_order where tenant_id=? and id=? and is_deleted=0", tenant, id));
+        List<Map<String, Object>> out = new ArrayList<>();
+        out.add(sectionSql("person", "人员", "person", projectId,
+                "select p.id id, p.person_name title, p.person_code subtitle, p.status status, concat('/guarantee/persons?id=', p.id) route from guarantee_work_order o join bp_person p on p.id=o.person_id where o.tenant_id=? and o.id=?", tenant, id));
+        out.add(sectionSql("house", "房屋", "houses", projectId,
+                "select h.id id, h.house_name title, h.house_code subtitle, h.house_status status, concat('/guarantee/houses?id=', h.id) route from guarantee_work_order o join bp_house h on h.id=o.house_id where o.tenant_id=? and o.id=?", tenant, id));
+        out.add(sectionSql("contract", "合同", "contracts", projectId,
+                "select c.id id, c.contract_no title, c.contract_status subtitle, c.contract_status status, concat('/guarantee/contracts/', c.id) route from guarantee_work_order o join guarantee_contract c on c.house_id=o.house_id where o.tenant_id=? and o.id=? and c.is_deleted=0 order by c.id desc limit 1", tenant, id));
+        return out;
+    }
+
+    private List<Map<String, Object>> applicationSections(String tenant, long id) {
+        long projectId = number(jdbc.queryForList("select project_id from guarantee_application where tenant_id=? and id=? and is_deleted=0", tenant, id));
+        List<Map<String, Object>> out = new ArrayList<>();
+        out.add(sectionSql("person", "申请人", "person", projectId,
+                "select p.id id, p.person_name title, p.person_code subtitle, p.status status, concat('/guarantee/persons?id=', p.id) route from guarantee_application a join bp_person p on p.id=a.applicant_person_id where a.tenant_id=? and a.id=?", tenant, id));
+        out.add(sectionSql("waitlist", "轮候记录", "waitlist", projectId,
+                "select w.id id, w.queue_no title, w.waitlist_status subtitle, w.waitlist_status status, '/guarantee/waitlist' route from guarantee_waitlist w where w.tenant_id=? and w.application_id=? and w.is_deleted=0", tenant, id));
+        out.add(sectionSql("allocation", "配租记录", "allocations", projectId,
+                "select a.id id, a.allocation_no title, a.allocation_status subtitle, a.allocation_status status, '/guarantee/allocations' route from guarantee_allocation a where a.tenant_id=? and a.application_id=? and a.is_deleted=0", tenant, id));
+        out.add(sectionSql("contract", "合同", "contracts", projectId,
+                "select c.id id, c.contract_no title, c.contract_status subtitle, c.contract_status status, concat('/guarantee/contracts/', c.id) route from guarantee_allocation a join guarantee_contract c on c.id=a.contract_id where a.tenant_id=? and a.application_id=? and c.is_deleted=0", tenant, id));
+        return out;
+    }
+
+    private List<Map<String, Object>> contractSections(String tenant, long id) {
+        long projectId = number(jdbc.queryForList("select project_id from guarantee_contract where tenant_id=? and id=? and is_deleted=0", tenant, id));
+        List<Map<String, Object>> out = new ArrayList<>();
+        out.add(sectionSql("persons", "人员", "contracts", projectId,
+                "select p.id id, p.person_name title, concat('承租人 · ', p.phone) subtitle, p.status status, concat('/guarantee/persons?id=', p.id) route from guarantee_contract c join bp_person p on p.id=c.person_id where c.tenant_id=? and c.id=? union all select p.id, p.person_name, concat(cc.relation_type, ' · 同住人'), p.status, concat('/guarantee/persons?id=', p.id) from guarantee_contract_cohabitant cc join bp_person p on p.id=cc.person_id where cc.tenant_id=? and cc.contract_id=? and cc.is_deleted=0", tenant, id, tenant, id));
+        out.add(sectionSql("bills", "账单", "billing", projectId,
+                "select b.id id, b.bill_no title, concat(b.period_start, ' ~ ', b.period_end) subtitle, b.bill_status status, '/guarantee/billing' route from bp_bill b where b.tenant_id=? and b.contract_id=? and b.is_deleted=0 order by b.period_start desc", tenant, id));
+        out.add(sectionSql("deposit", "押金", "deposits", projectId,
+                "select d.id id, concat('押金 ', d.amount) title, d.deposit_status subtitle, d.deposit_status status, '/guarantee/deposits' route from guarantee_deposit d where d.tenant_id=? and d.contract_id=? and d.is_deleted=0", tenant, id));
+        out.add(sectionSql("changes", "变更", "contractChanges", projectId,
+                "select c.id id, c.change_type title, c.change_status subtitle, c.change_status status, '/guarantee/changes' route from guarantee_contract_change c where c.tenant_id=? and c.contract_id=? and c.is_deleted=0", tenant, id));
+        return out;
+    }
+
+    private long number(List<Map<String, Object>> rows) {
+        if (rows.isEmpty()) return 0;
+        Object v = rows.get(0).values().iterator().next();
+        return v instanceof Number n ? n.longValue() : 0;
     }
 
     public Map<String, Object> device(long deviceId) {
