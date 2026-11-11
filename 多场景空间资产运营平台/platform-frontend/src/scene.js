@@ -17,3 +17,9 @@ export function scenePath(path) {
   const root = sceneRoot()
   return String(path || '').startsWith('/guarantee') ? root + String(path).slice('/guarantee'.length) : path
 }
+
+export function sceneOfPath(path) {
+  const prefix = String(path || '').replace(/^#/, '').split('/').filter(Boolean)[0]
+  const found = Object.entries(SCENE_ROUTES).find(([, value]) => value === prefix)
+  return found ? found[0] : (localStorage.getItem('platformScene') || 'GUARANTEE')
+}

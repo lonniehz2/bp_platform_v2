@@ -9,7 +9,8 @@
     "preview": "vite preview --port 5174",
     "check:i18n": "node scripts/check-i18n.mjs --strict",
     "check:i18n:en": "node scripts/check-i18n-en.mjs",
-    "check:scene": "node scripts/check-scene.mjs"
+    "check:scene": "node scripts/check-scene.mjs",
+    "check:ui-labels": "node scripts/check-ui-labels.mjs"
   },
   "dependencies": {
     "vue": "^3.5.11",

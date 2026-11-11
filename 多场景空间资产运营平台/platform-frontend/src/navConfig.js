@@ -4,10 +4,12 @@ export const navGroups = [
     labelKey: 'group.workbench',
     icon: '◈',
     items: [
-      { to: '/guarantee/dashboard', key: 'dashboard', menu: 'dashboard', icon: '◈' },
-      { to: '/guarantee/search', key: 'search', menu: 'search', icon: '⌕' },
-      { to: '/guarantee/todos', key: 'todos', menu: 'todos', icon: '✓' },
-      { to: '/guarantee/messages', key: 'message', menu: 'message', icon: '✉' }
+      { to: '/guarantee/workbench', key: 'dashboard', menu: 'dashboard', icon: '·' },
+      { to: '/guarantee/cockpit', key: 'cockpit', menu: 'cockpit', icon: '·' },
+      { to: '/guarantee/search', key: 'search', menu: 'search', icon: '·' },
+      { to: '/guarantee/todos', key: 'todos', menu: 'todos', icon: '·' },
+      { to: '/guarantee/audit', key: 'audit', menu: 'audit', icon: '·' },
+      { to: '/guarantee/messages', key: 'message', menu: 'message', icon: '·' },
     ]
   },
   {
@@ -15,19 +17,12 @@ export const navGroups = [
     labelKey: 'group.application',
     icon: '☷',
     items: [
-      { to: '/guarantee/applications', key: 'applications', menu: 'applications', icon: '☷' },
-      { to: '/guarantee/persons', key: 'person', menu: 'person', icon: '♙' },
-      { to: '/guarantee/qualification', key: 'qualification', menu: 'qualification', icon: '✓' }
-    ]
-  },
-  {
-    key: 'waitlist',
-    labelKey: 'group.waitlist',
-    icon: '↕',
-    items: [
-      { to: '/guarantee/waitlist', key: 'waitlist', menu: 'waitlist', icon: '↕' },
-      { to: '/guarantee/allocations', key: 'allocations', menu: 'allocations', icon: '◎' },
-      { to: '/guarantee/publicities', key: 'publicities', menu: 'publicities', icon: '▣' }
+      { to: '/guarantee/applications', key: 'applications', menu: 'applications', icon: '·' },
+      { to: '/guarantee/persons', key: 'person', menu: 'person', icon: '·' },
+      { to: '/guarantee/qualification', key: 'qualification', menu: 'qualification', icon: '·' },
+      { to: '/guarantee/waitlist', key: 'waitlist', menu: 'waitlist', icon: '·' },
+      { to: '/guarantee/allocations', key: 'allocations', menu: 'allocations', icon: '·' },
+      { to: '/guarantee/publicities', key: 'publicities', menu: 'publicities', icon: '·' },
     ]
   },
   {
@@ -35,23 +30,10 @@ export const navGroups = [
     labelKey: 'group.contract',
     icon: '▤',
     items: [
-      { to: '/guarantee/contracts', key: 'contracts', menu: 'contracts', icon: '▤' },
-      { to: '/guarantee/contract-changes', key: 'contractChanges', menu: 'contractChanges', icon: '⇄' },
-      { to: '/guarantee/exchanges', key: 'exchanges', menu: 'exchanges', icon: '⇄' },
-      { to: '/guarantee/terminations', key: 'terminations', menu: 'terminations', icon: '✖' }
-    ]
-  },
-  {
-    key: 'finance',
-    labelKey: 'group.finance',
-    icon: '¥',
-    items: [
-      { to: '/guarantee/billing', key: 'billing', menu: 'billing', icon: '¥' },
-      { to: '/guarantee/deposits', key: 'deposits', menu: 'deposits', icon: '◫' },
-      { to: '/guarantee/subsidies', key: 'subsidies', menu: 'subsidies', icon: '◫' },
-      { to: '/guarantee/cashflow', key: 'cashflow', menu: 'cashflow', icon: '↕' },
-      { to: '/guarantee/fee-items', key: 'fee', menu: 'fee', icon: '≡' },
-      { to: '/guarantee/arrears', key: 'arrears', menu: 'arrears', icon: '!' }
+      { to: '/guarantee/contracts', key: 'contracts', menu: 'contracts', icon: '·' },
+      { to: '/guarantee/contract-changes', key: 'contractChanges', menu: 'contractChanges', icon: '·' },
+      { to: '/guarantee/exchanges', key: 'exchanges', menu: 'exchanges', icon: '·' },
+      { to: '/guarantee/terminations', key: 'terminations', menu: 'terminations', icon: '·' },
     ]
   },
   {
@@ -59,12 +41,25 @@ export const navGroups = [
     labelKey: 'group.asset',
     icon: '▦',
     items: [
-      { to: '/guarantee/assets', key: 'asset', menu: 'asset', icon: '▦' },
-      { to: '/guarantee/listings', key: 'listings', menu: 'listings', icon: '⌂' },
-      { to: '/guarantee/houses', key: 'houses', menu: 'houses', icon: '▦' },
-      { to: '/guarantee/spaces', key: 'spaces', menu: 'spaces', icon: '▤' },
-      { to: '/guarantee/house-calendar', key: 'calendar', menu: 'calendar', icon: '▦' },
-      { to: '/guarantee/short-rent', key: 'shortrent', menu: 'shortrent', icon: '⌂' }
+      { to: '/guarantee/assets', key: 'asset', menu: 'asset', icon: '·' },
+      { to: '/guarantee/spaces', key: 'spaces', menu: 'spaces', icon: '·' },
+      { to: '/guarantee/houses', key: 'houses', menu: 'houses', icon: '·' },
+      { to: '/guarantee/house-calendar', key: 'calendar', menu: 'calendar', icon: '·' },
+      { to: '/guarantee/listings', key: 'listings', menu: 'listings', icon: '·' },
+      { to: '/guarantee/short-rent', key: 'shortrent', menu: 'shortrent', icon: '·' },
+    ]
+  },
+  {
+    key: 'finance',
+    labelKey: 'group.finance',
+    icon: '¥',
+    items: [
+      { to: '/guarantee/billing', key: 'billing', menu: 'billing', icon: '·' },
+      { to: '/guarantee/deposits', key: 'deposits', menu: 'deposits', icon: '·' },
+      { to: '/guarantee/subsidies', key: 'subsidies', menu: 'subsidies', icon: '·' },
+      { to: '/guarantee/cashflow', key: 'cashflow', menu: 'cashflow', icon: '·' },
+      { to: '/guarantee/fee-items', key: 'fee', menu: 'fee', icon: '·' },
+      { to: '/guarantee/arrears', key: 'arrears', menu: 'arrears', icon: '·' },
     ]
   },
   {
@@ -72,10 +67,10 @@ export const navGroups = [
     labelKey: 'group.service',
     icon: '⚒',
     items: [
-      { to: '/guarantee/work-orders', key: 'workOrders', menu: 'workOrders', icon: '⚒' },
-      { to: '/guarantee/complaints', key: 'complaints', menu: 'complaints', icon: '☏' },
-      { to: '/guarantee/appeals', key: 'appeals', menu: 'appeals', icon: '☏' },
-      { to: '/guarantee/visits', key: 'visits', menu: 'visits', icon: '☏' }
+      { to: '/guarantee/work-orders', key: 'workOrders', menu: 'workOrders', icon: '·' },
+      { to: '/guarantee/complaints', key: 'complaints', menu: 'complaints', icon: '·' },
+      { to: '/guarantee/appeals', key: 'appeals', menu: 'appeals', icon: '·' },
+      { to: '/guarantee/visits', key: 'visits', menu: 'visits', icon: '·' },
     ]
   },
   {
@@ -83,12 +78,13 @@ export const navGroups = [
     labelKey: 'group.access',
     icon: '⌘',
     items: [
-      { to: '/guarantee/devices', key: 'devices', menu: 'devices', icon: '⌘' },
-      { to: '/guarantee/device-bind', key: 'deviceBind', menu: 'deviceBind', icon: '⌁' },
-      { to: '/guarantee/dev-events', key: 'devEvents', menu: 'devEvents', icon: '⚠' },
-      { to: '/guarantee/access', key: 'accessRecords', menu: 'accessRecords', icon: '⌂' },
-      { to: '/guarantee/keyring', key: 'keyring', menu: 'keyring', icon: '⚿' },
-      { to: '/guarantee/grants', key: 'grants', menu: 'grants', icon: '⇄' }
+      { to: '/guarantee/house-access', key: 'houseAccess', menu: 'houseAccess', icon: '·' },
+      { to: '/guarantee/devices', key: 'devices', menu: 'devices', icon: '·' },
+      { to: '/guarantee/device-bind', key: 'deviceBind', menu: 'deviceBind', icon: '·' },
+      { to: '/guarantee/dev-events', key: 'devEvents', menu: 'devEvents', icon: '·' },
+      { to: '/guarantee/access', key: 'accessRecords', menu: 'accessRecords', icon: '·' },
+      { to: '/guarantee/keyring', key: 'keyring', menu: 'keyring', icon: '·' },
+      { to: '/guarantee/grants', key: 'grants', menu: 'grants', icon: '·' },
     ]
   },
   {
@@ -96,10 +92,18 @@ export const navGroups = [
     labelKey: 'group.risk',
     icon: '⚠',
     items: [
-      { to: '/guarantee/alerts', key: 'alertCenter', menu: 'alertCenter', icon: '⚠' },
-      { to: '/guarantee/patrol', key: 'patrol', menu: 'patrol', icon: '◎' },
-      { to: '/guarantee/house-access', key: 'houseAccess', menu: 'houseAccess', icon: '⌂' },
-      { to: '/guarantee/credits', key: 'credit', menu: 'credit', icon: '✖' }
+      { to: '/guarantee/alerts', key: 'alertCenter', menu: 'alertCenter', icon: '·' },
+      { to: '/guarantee/patrol', key: 'patrol', menu: 'patrol', icon: '·' },
+      { to: '/guarantee/credits', key: 'credit', menu: 'credit', icon: '·' },
+    ]
+  },
+  {
+    key: 'data',
+    labelKey: 'group.data',
+    icon: '▥',
+    items: [
+      { to: '/guarantee/reports', key: 'reports', menu: 'reports', icon: '·' },
+      { to: '/guarantee/gov', key: 'gov', menu: 'gov', icon: '·' },
     ]
   },
   {
@@ -107,16 +111,13 @@ export const navGroups = [
     labelKey: 'group.system',
     icon: '☰',
     items: [
-      { to: '/guarantee/audit', key: 'audit', menu: 'audit', icon: '✓' },
-      { to: '/guarantee/reports', key: 'reports', menu: 'reports', icon: '▤' },
-      { to: '/guarantee/gov', key: 'gov', menu: 'gov', icon: '⇪' },
-      { to: '/guarantee/orgs', key: 'orgs', menu: 'orgs', icon: '▦' },
-      { to: '/guarantee/rbac', key: 'rbac', menu: 'rbac', icon: '♟' },
-      { to: '/guarantee/imports', key: 'batchImport', menu: 'batchImport', icon: '⇪' },
-      { to: '/guarantee/sys', key: 'sys', menu: 'sys', icon: '☰' },
-      { to: '/guarantee/help', key: 'help', menu: 'help', icon: '?' }
+      { to: '/guarantee/orgs', key: 'orgs', menu: 'orgs', icon: '·' },
+      { to: '/guarantee/rbac', key: 'rbac', menu: 'rbac', icon: '·' },
+      { to: '/guarantee/imports', key: 'batchImport', menu: 'batchImport', icon: '·' },
+      { to: '/guarantee/sys', key: 'sys', menu: 'sys', icon: '·' },
+      { to: '/guarantee/help', key: 'help', menu: 'help', icon: '·' },
     ]
-  }
+  },
 ]
 
 export const navItems = navGroups.flatMap(g => g.items)

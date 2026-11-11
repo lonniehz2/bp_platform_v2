@@ -17,3 +17,4 @@ jobs:
       - run: node scripts/check-i18n.mjs --strict
       - run: node scripts/check-i18n-en.mjs
       - run: node scripts/check-scene.mjs
+      - run: node scripts/check-ui-labels.mjs

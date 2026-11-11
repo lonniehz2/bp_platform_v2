@@ -6,7 +6,7 @@ import { api } from './api'
 import { getMenus, setMenus } from './permissions'
 import { mode, toggleMode } from './ui'
 import { setLocale } from './i18n'
-import { currentScene, scenePath } from './scene'
+import { currentScene, scenePath, sceneOfPath } from './scene'
 import { navGroups, navItems } from './navConfig'
 import SearchSelect from './components/SearchSelect.vue'
 import ConfirmDialog from './components/ConfirmDialog.vue'
@@ -14,7 +14,8 @@ import ConfirmDialog from './components/ConfirmDialog.vue'
 const route = useRoute()
 const router = useRouter()
 const { t, te, locale } = useI18n()
-const sceneCode = ref(currentScene())
+const sceneCode = computed(() => sceneOfPath(route.path))
+const loadedScene = ref('')
 
 const isLogin = computed(() => route.path === '/login')
 const collapsed = ref(localStorage.getItem('platformSidebar') === '1')
@@ -131,26 +132,30 @@ for (const item of navItems) {
 const title = computed(() => t(route.meta?.titleKey || titleKey[route.path] || 'nav.dashboard'))
 watch(title, value => { document.title = value }, { immediate: true })
 
-watch(() => route.path, async (path) => {
-  if (path === '/login' || !localStorage.getItem('platformToken') || menuTree.value.length) return
+watch([() => route.path, sceneCode], async () => {
+  if (route.path === '/login' || !localStorage.getItem('platformToken')) return
+  if (loadedScene.value !== sceneCode.value) {
+    menuTree.value = []
+    loadedScene.value = ''
+  }
+  await loadSceneMenus()
+})
+
+async function loadSceneMenus() {
+  if (!localStorage.getItem('platformToken') || loadedScene.value === sceneCode.value) return
+  const scene = sceneCode.value
   try {
-    const [menus, tree] = await Promise.all([api.myMenus(sceneCode.value), api.myMenuTree(sceneCode.value)])
+    const [menus, tree] = await Promise.all([api.myMenus(scene), api.myMenuTree(scene)])
     setMenus(menus)
     allowedMenus.value = menus
     menuTree.value = tree || []
+    loadedScene.value = scene
   } catch {}
-})
+}
 
 onMounted(async () => {
   try {
-    if (localStorage.getItem('platformToken')) {
-      try {
-        const [menus, tree] = await Promise.all([api.myMenus(sceneCode.value), api.myMenuTree(sceneCode.value)])
-        setMenus(menus)
-        allowedMenus.value = menus
-        menuTree.value = tree || []
-      } catch {}
-    }
+    await loadSceneMenus()
     projects.value = await api.projects()
     if (projects.value.length) {
       const exists = projects.value.some(p => String(p.id) === String(currentProjectId.value))
