@@ -1,7 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const orgs = ref([])
 const keyword = ref('')
 const error = ref('')
@@ -19,16 +21,16 @@ onMounted(async () => {
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>组织机构</h2><p>保障房项目组织、编码和经营模式</p></div><span class="badge blue">{{ orgs.length }} 个组织</span></div>
-      <div class="field" style="max-width:360px"><label>查询</label><input v-model="keyword" placeholder="组织编码/名称" /></div>
+      <div class="panel-head"><div><h2>{{ t('orgs.title') }}</h2><p>{{ t('orgs.subtitle') }}</p></div><span class="badge blue">{{ orgs.length }} {{ t('orgs.count') }}</span></div>
+      <div class="field" style="max-width:360px"><label>{{ t('orgs.search') }}</label><input v-model="keyword" :placeholder="t('orgs.searchPlaceholder')" /></div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>组织列表</h2><RouterLink to="/projects">项目管理</RouterLink></div>
-      <div v-if="!filtered.length" class="empty">暂无组织</div>
+      <div class="panel-head"><h2>{{ t('orgs.list') }}</h2><RouterLink :to="'/projects'">{{ t('orgs.manage') }}</RouterLink></div>
+      <div v-if="!filtered.length" class="empty">{{ t('orgs.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>组织编码</th><th>组织名称</th><th>场景</th><th>经营模式</th><th>状态</th></tr></thead>
+          <thead><tr><th>{{ t('orgs.code') }}</th><th>{{ t('orgs.name') }}</th><th>{{ t('orgs.scene') }}</th><th>{{ t('orgs.mode') }}</th><th>{{ t('orgs.status') }}</th></tr></thead>
           <tbody>
             <tr v-for="o in filtered" :key="o.id">
               <td class="mono">{{ o.orgCode }}</td><td>{{ o.orgName }}</td><td>{{ o.sceneCode }}</td>
