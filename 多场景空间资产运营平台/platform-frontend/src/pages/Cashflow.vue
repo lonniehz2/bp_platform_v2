@@ -2,19 +2,21 @@
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
 import DataTable from '../components/DataTable.vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const payments = ref([])
 const page = ref(1)
 const error = ref('')
 const paged = computed(() => payments.value.slice((page.value - 1) * 10, page.value * 10))
 const columns = [
-  { key: 'paymentNo', title: '收款单号', width: '180px' },
-  { key: 'amount', title: '金额', width: '110px' },
-  { key: 'paymentMethod', title: '方式', width: '100px' },
-  { key: 'paymentStatus', title: '状态', width: '100px' },
-  { key: 'receiptNo', title: '收据', width: '180px' },
-  { key: 'paidTime', title: '时间' }
+  { key: 'paymentNo', title: t('cashflow.paymentNo'), width: '180px' },
+  { key: 'amount', title: t('cashflow.amount'), width: '110px' },
+  { key: 'paymentMethod', title: t('cashflow.method'), width: '100px' },
+  { key: 'paymentStatus', title: t('cashflow.status'), width: '100px' },
+  { key: 'receiptNo', title: t('cashflow.receipt'), width: '180px' },
+  { key: 'paidTime', title: t('cashflow.time') }
 ]
 const money = (v) => Number(v || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
 const total = computed(() => payments.value.reduce((sum, p) => sum + Number(p.amount || 0), 0))
@@ -40,12 +42,12 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="grid cards">
-      <div class="card"><div class="label">收款笔数</div><div class="value">{{ payments.length }}</div><div class="hint">当前项目</div></div>
-      <div class="card"><div class="label">收款金额</div><div class="value">¥{{ money(total) }}</div><div class="hint">全部收款</div></div>
+      <div class="card"><div class="label">{{ t('cashflow.count') }}</div><div class="value">{{ payments.length }}</div><div class="hint">{{ t('cashflow.currentProject') }}</div></div>
+      <div class="card"><div class="label">{{ t('cashflow.total') }}</div><div class="value">¥{{ money(total) }}</div><div class="hint">{{ t('cashflow.all') }}</div></div>
     </div>
 
     <div class="panel" style="margin-top:16px">
-      <div class="panel-head"><div><h2>资金流水</h2><p>{{ project?.orgName || '未选择项目' }} · 收款与收据</p></div></div>
+      <div class="panel-head"><div><h2>{{ t('cashflow.title') }}</h2><p>{{ project?.orgName || t('cashflow.noProject') }} · {{ t('cashflow.subtitle') }}</p></div></div>
       <DataTable :rows="paged" :columns="columns" :page="page" :page-size="10" :total="payments.length" @update:page="page = $event">
         <template #cell-amount="{ row }">¥{{ money(row.amount) }}</template>
         <template #cell-paymentStatus="{ row }"><span class="badge green">{{ row.paymentStatus }}</span></template>

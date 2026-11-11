@@ -64,6 +64,7 @@ const messages = {
     rbac: { title: '用户与权限', subtitle: '用户、角色和数据范围', user: '用户管理', role: '角色管理', perm: '权限清单' },
     detail: { person: '人员详情', house: '房源详情', bill: '账单详情', device: '设备详情', workOrder: '工单详情', application: '申请详情', contract: '合同详情', title: '详情', subtitle: '关联信息统一 Tab 视图', back: '返回' },
     calendar: { title: '日房态', subtitle: '未来 14 天房屋占用', prev: '前 7 天', today: '今天', next: '后 7 天', vacant: '空置', contract: '合同', short: '短租', house: '房屋', empty: '暂无房源', noProject: '未选择项目' },
+    cashflow: { title: '资金流水', subtitle: '收款与收据', count: '收款笔数', total: '收款金额', currentProject: '当前项目', all: '全部收款', paymentNo: '收款单号', amount: '金额', method: '方式', status: '状态', receipt: '收据', time: '时间', noProject: '未选择项目', empty: '暂无收款' },
     nav: {
       dashboard: '工作台',
       workbench: '我的工作台',
@@ -233,6 +234,7 @@ const messages = {
     rbac: { title: 'Users & Permissions', subtitle: 'Users, roles and data scope', user: 'Users', role: 'Roles', perm: 'Permissions' },
     detail: { person: 'Person Details', house: 'House Details', bill: 'Bill Details', device: 'Device Details', workOrder: 'Work Order Details', application: 'Application Details', contract: 'Contract Details', title: 'Details', subtitle: 'Unified relation tabs', back: 'Back' },
     calendar: { title: 'Daily House Calendar', subtitle: 'House occupancy for the next 14 days', prev: 'Previous 7 Days', today: 'Today', next: 'Next 7 Days', vacant: 'Vacant', contract: 'Contract', short: 'Short Rent', house: 'House', empty: 'No houses', noProject: 'No project selected' },
+    cashflow: { title: 'Cash Flow', subtitle: 'Payments and receipts', count: 'Payments', total: 'Payment Amount', currentProject: 'Current project', all: 'All payments', paymentNo: 'Payment No.', amount: 'Amount', method: 'Method', status: 'Status', receipt: 'Receipt', time: 'Time', noProject: 'No project selected', empty: 'No payments' },
     nav: {
       dashboard: 'Workspace',
       workbench: 'My Workspace',

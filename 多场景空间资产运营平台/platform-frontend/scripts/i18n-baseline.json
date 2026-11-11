@@ -17,7 +17,6 @@
   "src/pages/Arrears.vue",
   "src/pages/Audit.vue",
   "src/pages/Billing.vue",
-  "src/pages/Cashflow.vue",
   "src/pages/Complaints.vue",
   "src/pages/ContractDetail.vue",
   "src/pages/Contracts.vue",
