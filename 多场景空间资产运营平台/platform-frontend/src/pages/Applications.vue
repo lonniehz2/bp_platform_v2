@@ -5,7 +5,9 @@ import { can, canAction } from '../permissions'
 import SearchSelect from '../components/SearchSelect.vue'
 import EntityDetailTabs from '../components/EntityDetailTabs.vue'
 import { confirmAction } from '../confirm'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const applications = ref([])
 const persons = ref([])
@@ -21,9 +23,9 @@ const allocateForm = reactive({ waitlistId: '', houseId: '' })
 
 const statusClass = (s) => ({ APPROVED: 'green', REJECTED: 'red', SUBMITTED: 'orange' }[s] || '')
 const money = (v) => Number(v || 0).toLocaleString('zh-CN')
-const incomeLabel = (v) => ({ LOW: '低收入', LOWER_MIDDLE: '中低收入', MIDDLE: '中等收入' }[v] || v || '-')
-const housingLabel = (v) => ({ NO_HOUSE: '无房', RENTING: '租房', WITH_FAMILY: '与家人同住' }[v] || v || '-')
-const urgencyLabel = (v) => ({ NORMAL: '普通', URGENT: '紧急' }[v] || v || '-')
+const incomeLabel = (v) => ({ LOW: t('ap.lowIncome'), LOWER_MIDDLE: t('ap.lowerMiddle'), MIDDLE: t('ap.middle') }[v] || v || '-')
+const housingLabel = (v) => ({ NO_HOUSE: t('ap.noHouse'), RENTING: t('ap.renting'), WITH_FAMILY: t('ap.withFamily') }[v] || v || '-')
+const urgencyLabel = (v) => ({ NORMAL: t('ap.normal'), URGENT: t('ap.urgent') }[v] || v || '-')
 
 async function currentProject() {
   const all = await api.projects()
@@ -56,10 +58,10 @@ async function load() {
 async function create() {
   busy.value = true; error.value = ''
   try {
-    if (!form.applicationNo.trim()) throw new Error('请填写申请编号')
-    if (!form.applicantPersonId) throw new Error('请选择申请人')
-    if (form.contactPhone && !/^1\d{10}$/.test(form.contactPhone)) throw new Error('联系电话需为 11 位手机号')
-    if (Number(form.familySize) < 1 || Number(form.familySize) > 20) throw new Error('家庭人数需在 1-20 之间')
+    if (!form.applicationNo.trim()) throw new Error(t('ap.requiredNo'))
+    if (!form.applicantPersonId) throw new Error(t('ap.requiredApplicant'))
+    if (form.contactPhone && !/^1\d{10}$/.test(form.contactPhone)) throw new Error(t('ap.invalidPhone'))
+    if (Number(form.familySize) < 1 || Number(form.familySize) > 20) throw new Error(t('ap.familyRange'))
     await api.createApplication({
       projectId: project.value.id,
       applicationNo: form.applicationNo.trim(),
@@ -77,24 +79,24 @@ async function create() {
 }
 
 async function submit(id) { await run(() => api.submitApplication(id)) }
-async function approve(id) { await run(() => api.approveApplication(id, '资格通过')) }
+async function approve(id) { await run(() => api.approveApplication(id, t('ap.approveComment'))) }
 async function wait(id) { await run(() => api.joinWaitlist(id)) }
-async function reject(id) { const comment = window.prompt('驳回原因') || '资料不齐'; await run(() => api.rejectApplication(id, comment)) }
-async function returnForSupplement(id) { const comment = window.prompt('退回补充原因') || '请补充资料'; await run(() => api.returnApplication(id, comment)) }
+async function reject(id) { const comment = window.prompt(t('ap.rejectPrompt')) || t('ap.rejectDefault'); await run(() => api.rejectApplication(id, comment)) }
+async function returnForSupplement(id) { const comment = window.prompt(t('ap.returnPrompt')) || t('ap.returnDefault'); await run(() => api.returnApplication(id, comment)) }
 async function resubmit(id) { await run(() => api.resubmitApplication(id)) }
 
 async function discardApplication(a) {
-  if (!await confirmAction({ title: '作废申请', message: `确认作废申请 ${a.applicationNo}？`, confirmText: '作废', danger: true })) return
+  if (!await confirmAction({ title: t('ap.discardTitle'), message: t('ap.discardMessage', { no: a.applicationNo }), confirmText: t('ap.discardConfirm'), danger: true })) return
   await run(() => api.discardApplication(a.id))
 }
 
 async function closeApplication(a) {
-  if (!await confirmAction({ title: '关闭申请', message: `确认关闭申请 ${a.applicationNo}？`, confirmText: '关闭', danger: true })) return
+  if (!await confirmAction({ title: t('ap.closeTitle'), message: t('ap.closeMessage', { no: a.applicationNo }), confirmText: t('ap.closeConfirm'), danger: true })) return
   await run(() => api.closeApplication(a.id))
 }
 
 async function allocate() {
-  if (!allocateForm.waitlistId || !allocateForm.houseId) { error.value = '请选择轮候记录和房屋'; return }
+  if (!allocateForm.waitlistId || !allocateForm.houseId) { error.value = t('ap.requiredAllocate'); return }
   await run(() => api.allocate(allocateForm.waitlistId, allocateForm.houseId))
 }
 
@@ -109,24 +111,24 @@ onMounted(load)
 <template>
   <div>
     <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="!project" class="empty">请先创建项目</div>
+    <div v-if="!project" class="empty">{{ t('ap.createProject') }}</div>
     <template v-else>
       <div class="panel">
         <div class="panel-head">
-          <div><h2>保障房申请</h2><p>{{ project.orgName }} · 申请 → 审核 → 轮候 → 配租</p></div>
+          <div><h2>{{ t('ap.title') }}</h2><p>{{ project.orgName }} · {{ t('ap.subtitle') }}</p></div>
           <div class="row">
-            <button v-if="canAction('application:create', 'application')" class="primary" @click="createOpen = true">新建申请</button>
-            <button v-if="canAction('allocation:create', 'application')" class="sm" @click="allocateOpen = true">配租</button>
+            <button v-if="canAction('application:create', 'application')" class="primary" @click="createOpen = true">{{ t('ap.new') }}</button>
+            <button v-if="canAction('allocation:create', 'application')" class="sm" @click="allocateOpen = true">{{ t('ap.allocate') }}</button>
           </div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>申请列表</h2><span class="small muted">审核通过后进入轮候</span></div>
-        <div v-if="!applications.length" class="empty">暂无申请</div>
+        <div class="panel-head"><h2>{{ t('ap.list') }}</h2><span class="small muted">{{ t('ap.listHint') }}</span></div>
+        <div v-if="!applications.length" class="empty">{{ t('ap.empty') }}</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>申请编号</th><th>申请人</th><th>保障类型</th><th>家庭结构</th><th>档案编号</th><th>家庭人数</th><th>收入水平</th><th>住房情况</th><th>状态</th><th>操作</th></tr></thead>
+            <thead><tr><th>{{ t('ap.appNo') }}</th><th>{{ t('ap.applicant') }}</th><th>{{ t('ap.guarantee') }}</th><th>{{ t('ap.familyType') }}</th><th>{{ t('ap.archive') }}</th><th>{{ t('ap.familySize') }}</th><th>{{ t('ap.income') }}</th><th>{{ t('ap.housing') }}</th><th>{{ t('ap.status') }}</th><th>{{ t('ap.action') }}</th></tr></thead>
             <tbody>
               <tr v-for="a in applications" :key="a.id">
                 <td class="mono">{{ a.applicationNo }}</td>
@@ -135,15 +137,15 @@ onMounted(load)
                 <td>{{ a.familySize }}</td><td>{{ incomeLabel(a.incomeLevel) }}</td><td>{{ housingLabel(a.housingStatus) }}</td>
                 <td><span class="badge" :class="statusClass(a.applicationStatus)">{{ a.applicationStatus }}</span></td>
                 <td class="row">
-                  <button class="sm" @click="detailApp = a">详情</button>
-                  <button class="sm" v-if="canAction('application:submit', 'application') && a.applicationStatus === 'DRAFT'" :disabled="busy" @click="submit(a.id)">提交</button>
-                  <button class="sm danger" v-if="canAction('application:discard', 'application') && a.applicationStatus === 'DRAFT'" :disabled="busy" @click="discardApplication(a)">作废</button>
-                  <button class="sm" v-if="canAction('application:approve', 'application') && a.applicationStatus === 'SUBMITTED'" :disabled="busy" @click="approve(a.id)">审核通过</button>
-                  <button class="sm danger" v-if="canAction('application:reject', 'application') && a.applicationStatus === 'SUBMITTED'" :disabled="busy" @click="reject(a.id)">驳回</button>
-                  <button class="sm" v-if="canAction('application:return', 'application') && a.applicationStatus === 'SUBMITTED'" :disabled="busy" @click="returnForSupplement(a.id)">退回补充</button>
-                  <button class="sm" v-if="canAction('application:resubmit', 'application') && a.applicationStatus === 'RETURNED'" :disabled="busy" @click="resubmit(a.id)">重新提交</button>
-                  <button class="sm" v-if="canAction('application:waitlist', 'application') && a.applicationStatus === 'APPROVED'" :disabled="busy" @click="wait(a.id)">进入轮候</button>
-                  <button class="sm" v-if="canAction('application:close', 'application') && ['CONTRACTED','REJECTED'].includes(a.applicationStatus)" :disabled="busy" @click="closeApplication(a)">关闭</button>
+                  <button class="sm" @click="detailApp = a">{{ t('ap.detail') }}</button>
+                  <button class="sm" v-if="canAction('application:submit', 'application') && a.applicationStatus === 'DRAFT'" :disabled="busy" @click="submit(a.id)">{{ t('ap.submit') }}</button>
+                  <button class="sm danger" v-if="canAction('application:discard', 'application') && a.applicationStatus === 'DRAFT'" :disabled="busy" @click="discardApplication(a)">{{ t('ap.discard') }}</button>
+                  <button class="sm" v-if="canAction('application:approve', 'application') && a.applicationStatus === 'SUBMITTED'" :disabled="busy" @click="approve(a.id)">{{ t('ap.approve') }}</button>
+                  <button class="sm danger" v-if="canAction('application:reject', 'application') && a.applicationStatus === 'SUBMITTED'" :disabled="busy" @click="reject(a.id)">{{ t('ap.reject') }}</button>
+                  <button class="sm" v-if="canAction('application:return', 'application') && a.applicationStatus === 'SUBMITTED'" :disabled="busy" @click="returnForSupplement(a.id)">{{ t('ap.returnSupplement') }}</button>
+                  <button class="sm" v-if="canAction('application:resubmit', 'application') && a.applicationStatus === 'RETURNED'" :disabled="busy" @click="resubmit(a.id)">{{ t('ap.resubmit') }}</button>
+                  <button class="sm" v-if="canAction('application:waitlist', 'application') && a.applicationStatus === 'APPROVED'" :disabled="busy" @click="wait(a.id)">{{ t('ap.waitlist') }}</button>
+                  <button class="sm" v-if="canAction('application:close', 'application') && ['CONTRACTED','REJECTED'].includes(a.applicationStatus)" :disabled="busy" @click="closeApplication(a)">{{ t('ap.close') }}</button>
                 </td>
               </tr>
             </tbody>
@@ -152,11 +154,11 @@ onMounted(load)
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>轮候与配租</h2><span class="small muted">等待中的轮候记录可分配空置房屋</span></div>
-        <div v-if="!waitlist.length" class="empty">暂无轮候</div>
+        <div class="panel-head"><h2>{{ t('ap.waitTitle') }}</h2><span class="small muted">{{ t('ap.waitHint') }}</span></div>
+        <div v-if="!waitlist.length" class="empty">{{ t('ap.noWait') }}</div>
         <div class="table-wrap" v-else>
           <table>
-            <thead><tr><th>排队号</th><th>申请编号</th><th>申请人</th><th>状态</th></tr></thead>
+            <thead><tr><th>{{ t('ap.queueNo') }}</th><th>{{ t('ap.appNo') }}</th><th>{{ t('ap.applicant') }}</th><th>{{ t('ap.status') }}</th></tr></thead>
             <tbody>
               <tr v-for="w in waitlist" :key="w.id">
                 <td>{{ w.queueNo }}</td><td class="mono">{{ w.applicationNo }}</td><td>{{ w.applicantName }}</td>
@@ -170,53 +172,53 @@ onMounted(load)
 
     <div v-if="detailApp" class="modal-mask" @click.self="detailApp = null">
       <div class="modal" style="max-width:720px">
-        <div class="panel-head"><h2>申请详情</h2><button class="sm" @click="detailApp = null">关闭</button></div>
-        <div class="row" style="justify-content:flex-end;margin-bottom:8px"><RouterLink class="sm" :to="`/guarantee/detail/APPLICATION/${detailApp.id}`">打开 Tab 详情页</RouterLink></div>
+        <div class="panel-head"><h2>{{ t('ap.detailTitle') }}</h2><button class="sm" @click="detailApp = null">{{ t('ap.close') }}</button></div>
+        <div class="row" style="justify-content:flex-end;margin-bottom:8px"><RouterLink class="sm" :to="`/guarantee/detail/APPLICATION/${detailApp.id}`">{{ t('ap.openDetail') }}</RouterLink></div>
         <EntityDetailTabs type="APPLICATION" :entity-id="detailApp.id" />
         <div class="row">
-          <div class="field"><label>申请编号</label><div class="mono">{{ detailApp.applicationNo }}</div></div>
-          <div class="field"><label>申请人</label><div>{{ detailApp.applicantName }}</div></div>
-          <div class="field"><label>状态</label><span class="badge" :class="statusClass(detailApp.applicationStatus)">{{ detailApp.applicationStatus }}</span></div>
-          <div class="field"><label>保障类型</label><div>{{ detailApp.guaranteeType || '-' }}</div></div>
-          <div class="field"><label>家庭结构</label><div>{{ detailApp.familyType || '-' }}</div></div>
-          <div class="field"><label>家庭人数</label><div>{{ detailApp.familySize }}</div></div>
-          <div class="field"><label>收入水平</label><div>{{ incomeLabel(detailApp.incomeLevel) }}</div></div>
-          <div class="field"><label>住房情况</label><div>{{ housingLabel(detailApp.housingStatus) }}</div></div>
-          <div class="field"><label>档案编号</label><div>{{ detailApp.archiveNo || '-' }}</div></div>
+          <div class="field"><label>{{ t('ap.appNo') }}</label><div class="mono">{{ detailApp.applicationNo }}</div></div>
+          <div class="field"><label>{{ t('ap.applicant') }}</label><div>{{ detailApp.applicantName }}</div></div>
+          <div class="field"><label>{{ t('ap.status') }}</label><span class="badge" :class="statusClass(detailApp.applicationStatus)">{{ detailApp.applicationStatus }}</span></div>
+          <div class="field"><label>{{ t('ap.guarantee') }}</label><div>{{ detailApp.guaranteeType || '-' }}</div></div>
+          <div class="field"><label>{{ t('ap.familyType') }}</label><div>{{ detailApp.familyType || '-' }}</div></div>
+          <div class="field"><label>{{ t('ap.familySize') }}</label><div>{{ detailApp.familySize }}</div></div>
+          <div class="field"><label>{{ t('ap.income') }}</label><div>{{ incomeLabel(detailApp.incomeLevel) }}</div></div>
+          <div class="field"><label>{{ t('ap.housing') }}</label><div>{{ housingLabel(detailApp.housingStatus) }}</div></div>
+          <div class="field"><label>{{ t('ap.archive') }}</label><div>{{ detailApp.archiveNo || '-' }}</div></div>
         </div>
       </div>
     </div>
 
     <div v-if="createOpen" class="modal-mask" @click.self="createOpen = false">
       <div class="modal" style="max-width:860px">
-        <div class="panel-head"><h2>新建申请</h2><button class="sm" @click="createOpen = false">关闭</button></div>
+        <div class="panel-head"><h2>{{ t('ap.new') }}</h2><button class="sm" @click="createOpen = false">{{ t('ap.close') }}</button></div>
         <div class="row">
-          <div class="field"><label>申请编号</label><input v-model="form.applicationNo" placeholder="如 APP2026001" /></div>
-          <div class="field"><label>申请人</label><SearchSelect v-model="form.applicantPersonId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索姓名/编码" /></div>
-          <div class="field"><label>申请类型</label><select v-model="form.applicationType"><option value="PUBLIC_RENTAL">公共租赁</option><option value="AFFORDABLE_RENTAL">保障性租赁</option><option value="TALENT_APARTMENT">人才公寓</option><option value="DORMITORY">宿舍</option></select></div>
-          <div class="field"><label>家庭人数</label><input v-model.number="form.familySize" type="number" min="1" /></div>
-          <div class="field"><label>联系电话</label><input v-model="form.contactPhone" /></div>
-          <div class="field"><label>收入水平</label><select v-model="form.incomeLevel"><option value="LOW">低收入</option><option value="LOWER_MIDDLE">中低收入</option><option value="MIDDLE">中等收入</option></select></div>
-          <div class="field"><label>住房情况</label><select v-model="form.housingStatus"><option value="NO_HOUSE">无房</option><option value="RENTING">租房</option><option value="WITH_FAMILY">与家人同住</option></select></div>
-          <div class="field"><label>紧急程度</label><select v-model="form.urgency"><option value="NORMAL">普通</option><option value="URGENT">紧急</option></select></div>
-          <div class="field"><label>保障类型</label><select v-model="form.guaranteeType"><option value="PUBLIC_RENTAL">公共租赁</option><option value="LOW_RENT">廉租住房</option><option value="SUBSIDY">租赁补贴</option></select></div>
-          <div class="field"><label>家庭结构</label><select v-model="form.familyType"><option value="SINGLE">单身</option><option value="COUPLE">夫妻</option><option value="WITH_CHILDREN">有子女家庭</option><option value="ELDERLY">老年家庭</option></select></div>
-          <div class="field"><label>补贴状态</label><select v-model="form.subsidyStatus"><option value="NONE">无</option><option value="APPLYING">申请中</option><option value="ACTIVE">已享受</option></select></div>
-          <div class="field"><label>档案编号</label><input v-model="form.archiveNo" /></div>
-          <div class="field" style="flex:2"><label>备注</label><input v-model="form.remark" /></div>
+          <div class="field"><label>{{ t('ap.appNo') }}</label><input v-model="form.applicationNo" :placeholder="t('ap.appNo')" /></div>
+          <div class="field"><label>{{ t('ap.applicant') }}</label><SearchSelect v-model="form.applicantPersonId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" :placeholder="t('ap.applicant')" /></div>
+          <div class="field"><label>{{ t('ap.type') }}</label><select v-model="form.applicationType"><option value="PUBLIC_RENTAL">{{ t('ap.publicRental') }}</option><option value="AFFORDABLE_RENTAL">{{ t('ap.affordable') }}</option><option value="TALENT_APARTMENT">{{ t('ap.talent') }}</option><option value="DORMITORY">{{ t('ap.dormitory') }}</option></select></div>
+          <div class="field"><label>{{ t('ap.familySize') }}</label><input v-model.number="form.familySize" type="number" min="1" /></div>
+          <div class="field"><label>{{ t('ap.phone') }}</label><input v-model="form.contactPhone" /></div>
+          <div class="field"><label>{{ t('ap.income') }}</label><select v-model="form.incomeLevel"><option value="LOW">{{ t('ap.lowIncome') }}</option><option value="LOWER_MIDDLE">{{ t('ap.lowerMiddle') }}</option><option value="MIDDLE">{{ t('ap.middle') }}</option></select></div>
+          <div class="field"><label>{{ t('ap.housing') }}</label><select v-model="form.housingStatus"><option value="NO_HOUSE">{{ t('ap.noHouse') }}</option><option value="RENTING">{{ t('ap.renting') }}</option><option value="WITH_FAMILY">{{ t('ap.withFamily') }}</option></select></div>
+          <div class="field"><label>{{ t('ap.urgency') }}</label><select v-model="form.urgency"><option value="NORMAL">{{ t('ap.normal') }}</option><option value="URGENT">{{ t('ap.urgent') }}</option></select></div>
+          <div class="field"><label>{{ t('ap.guarantee') }}</label><select v-model="form.guaranteeType"><option value="PUBLIC_RENTAL">{{ t('ap.publicRental') }}</option><option value="LOW_RENT">{{ t('ap.lowRent') }}</option><option value="SUBSIDY">{{ t('ap.subsidyRental') }}</option></select></div>
+          <div class="field"><label>{{ t('ap.familyType') }}</label><select v-model="form.familyType"><option value="SINGLE">{{ t('ap.single') }}</option><option value="COUPLE">{{ t('ap.couple') }}</option><option value="WITH_CHILDREN">{{ t('ap.withChildren') }}</option><option value="ELDERLY">{{ t('ap.elderly') }}</option></select></div>
+          <div class="field"><label>{{ t('ap.subsidy') }}</label><select v-model="form.subsidyStatus"><option value="NONE">{{ t('ap.none') }}</option><option value="APPLYING">{{ t('ap.applying') }}</option><option value="ACTIVE">{{ t('ap.active') }}</option></select></div>
+          <div class="field"><label>{{ t('ap.archive') }}</label><input v-model="form.archiveNo" /></div>
+          <div class="field" style="flex:2"><label>{{ t('ap.remark') }}</label><input v-model="form.remark" /></div>
         </div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="create">创建申请</button></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="create">{{ t('ap.create') }}</button></div>
       </div>
     </div>
 
     <div v-if="allocateOpen" class="modal-mask" @click.self="allocateOpen = false">
       <div class="modal" style="max-width:620px">
-        <div class="panel-head"><h2>配租</h2><button class="sm" @click="allocateOpen = false">关闭</button></div>
+        <div class="panel-head"><h2>{{ t('ap.allocate') }}</h2><button class="sm" @click="allocateOpen = false">{{ t('ap.close') }}</button></div>
         <div class="row">
-          <div class="field"><label>轮候记录</label><SearchSelect v-model="allocateForm.waitlistId" :options="waitlist.filter(x => x.waitlistStatus === 'WAITING')" label-key="queueNo" sublabel-key="applicantName" value-key="id" placeholder="搜索轮候记录" /></div>
-          <div class="field"><label>房屋</label><SearchSelect v-model="allocateForm.houseId" :options="houses.filter(x => x.houseStatus === 'VACANT')" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索空置房屋" /></div>
+          <div class="field"><label>{{ t('ap.waitRecord') }}</label><SearchSelect v-model="allocateForm.waitlistId" :options="waitlist.filter(x => x.waitlistStatus === 'WAITING')" label-key="queueNo" sublabel-key="applicantName" value-key="id" :placeholder="t('ap.waitRecord')" /></div>
+          <div class="field"><label>{{ t('ap.house') }}</label><SearchSelect v-model="allocateForm.houseId" :options="houses.filter(x => x.houseStatus === 'VACANT')" label-key="houseCode" sublabel-key="houseName" value-key="id" :placeholder="t('ap.house')" /></div>
         </div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="allocate(); allocateOpen = false">确认配租</button></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="allocate(); allocateOpen = false">{{ t('ap.confirmAllocate') }}</button></div>
       </div>
     </div>
   </div>
