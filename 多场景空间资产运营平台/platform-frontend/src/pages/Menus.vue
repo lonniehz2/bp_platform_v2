@@ -1,7 +1,10 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import { useI18n } from 'vue-i18n'
+import { currentScene } from '../scene'
 
+const { t } = useI18n()
 const props = defineProps({ embedded: Boolean })
 const menus = ref([])
 const roles = ref([])
@@ -26,7 +29,7 @@ const flatMenus = computed(() => {
 
 async function load() {
   try {
-    const [m, r] = await Promise.all([api.menus('GUARANTEE'), api.roles('GUARANTEE')])
+    const [m, r] = await Promise.all([api.menus(currentScene()), api.roles(currentScene())])
     menus.value = m
     roles.value = r
     if (r.length) await selectRole(r[0])
@@ -56,8 +59,8 @@ async function saveMenus() {
 async function createRole() {
   busy.value = true; error.value = ''
   try {
-    if (!newRole.roleCode.trim() || !newRole.roleName.trim()) throw new Error('请填写角色编码和名称')
-    await api.createRole({ sceneCode: 'GUARANTEE', roleCode: newRole.roleCode.trim(), roleName: newRole.roleName.trim(), menuCodes: [] })
+    if (!newRole.roleCode.trim() || !newRole.roleName.trim()) throw new Error(t('menus.required'))
+    await api.createRole({ sceneCode: currentScene(), roleCode: newRole.roleCode.trim(), roleName: newRole.roleName.trim(), menuCodes: [] })
     newRole.roleCode = ''; newRole.roleName = ''
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
@@ -70,18 +73,18 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div v-if="!props.embedded" class="panel-head"><div><h2>平台角色</h2><p>GUARANTEE · 场景角色和菜单授权</p></div><span class="badge blue">{{ roles.length }} 个角色</span></div>
+      <div v-if="!props.embedded" class="panel-head"><div><h2>{{ t('menus.title') }}</h2><p>{{ currentScene() }} · {{ t('menus.subtitle') }}</p></div><span class="badge blue">{{ roles.length }} {{ t('menus.count') }}</span></div>
       <div class="row">
-        <div class="field"><label>角色编码</label><input v-model="newRole.roleCode" placeholder="如 GUARANTEE_AUDITOR" /></div>
-        <div class="field"><label>角色名称</label><input v-model="newRole.roleName" placeholder="稽核员" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="createRole">新增角色</button></div>
+        <div class="field"><label>{{ t('menus.roleCode') }}</label><input v-model="newRole.roleCode" :placeholder="t('menus.roleCodePlaceholder')" /></div>
+        <div class="field"><label>{{ t('menus.roleName') }}</label><input v-model="newRole.roleName" :placeholder="t('menus.roleNamePlaceholder')" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="createRole">{{ t('menus.add') }}</button></div>
       </div>
     </div>
 
     <div class="grid" style="grid-template-columns: 1.1fr .9fr">
       <div class="panel">
-        <div class="panel-head"><h2>功能权限</h2><span class="small muted">{{ flatMenus.length }} 个菜单</span></div>
-        <div v-if="!menus.length" class="empty">暂无菜单</div>
+        <div class="panel-head"><h2>{{ t('menus.permissions') }}</h2><span class="small muted">{{ flatMenus.length }} {{ t('menus.menuCount') }}</span></div>
+        <div v-if="!menus.length" class="empty">{{ t('menus.emptyMenus') }}</div>
         <div v-for="m in menus" :key="m.menuCode" style="padding:9px 0;border-bottom:1px solid var(--line)">
           <div class="row"><strong>{{ m.menuName }}</strong><span class="mono">{{ m.route }}</span></div>
           <div v-if="m.children?.length" class="row" style="margin:6px 0 0 18px">
@@ -91,24 +94,24 @@ onMounted(load)
       </div>
 
       <div class="panel">
-        <div class="panel-head"><h2>角色模板</h2><span class="small muted">点击分配菜单</span></div>
-        <div v-if="!roles.length" class="empty">暂无角色</div>
+        <div class="panel-head"><h2>{{ t('menus.templates') }}</h2><span class="small muted">{{ t('menus.assignHint') }}</span></div>
+        <div v-if="!roles.length" class="empty">{{ t('menus.emptyRoles') }}</div>
         <div v-for="r in roles" :key="r.id" class="row" style="padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer" @click="selectRole(r)">
           <div style="flex:1"><div>{{ r.roleName }}</div><div class="mono">{{ r.roleCode }}</div></div>
-          <span class="badge">{{ r.menuCount }} 菜单</span>
+          <span class="badge">{{ r.menuCount }} {{ t('menus.menuUnit') }}</span>
         </div>
       </div>
     </div>
 
     <div v-if="selectedRole" class="panel">
-      <div class="panel-head"><div><h2>{{ selectedRole.roleName }} · 菜单授权</h2><p>{{ selectedRole.roleCode }}</p></div><button class="primary" :disabled="busy" @click="saveMenus">保存菜单</button></div>
+      <div class="panel-head"><div><h2>{{ selectedRole.roleName }} · {{ t('menus.auth') }}</h2><p>{{ selectedRole.roleCode }}</p></div><button class="primary" :disabled="busy" @click="saveMenus">{{ t('menus.save') }}</button></div>
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
         <label v-for="m in flatMenus" :key="m.code" class="row" style="gap:6px;align-items:center;padding:5px 0">
           <input type="checkbox" :checked="selectedCodes.includes(m.code)" @change="toggleCode(m.code)" style="width:auto" />
           <span class="small">{{ m.name }}</span>
         </label>
       </div>
-      <div v-if="!flatMenus.length" class="empty">暂无菜单</div>
+      <div v-if="!flatMenus.length" class="empty">{{ t('menus.emptyMenus') }}</div>
     </div>
   </div>
 </template>
