@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { enumLabel } from '../enumLabels'
+import { buildCsv } from '../reportsCsv'
 import { useI18n } from 'vue-i18n'
 import { api } from '../api'
 
@@ -119,7 +120,7 @@ function display(row, key) {
 function exportRow(row) {
   const header = cols.value.map(c => c[1])
   const data = [cols.value.map(([key]) => row[key] ?? '')]
-  const csv = '\ufeff' + [header, ...data].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+  const csv = buildCsv(header, data)
   const link = document.createElement('a')
   link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
   link.download = `${t('reports.title')}_${title.value}_${row.orgName || row.contractNo || 'row'}.csv`
@@ -130,7 +131,7 @@ function exportRow(row) {
 function exportCsv() {
   const header = cols.value.map(c => c[1])
   const data = filteredRows.value.map(row => cols.value.map(([key]) => row[key] ?? ''))
-  const csv = '\ufeff' + [header, ...data].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+  const csv = buildCsv(header, data)
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)

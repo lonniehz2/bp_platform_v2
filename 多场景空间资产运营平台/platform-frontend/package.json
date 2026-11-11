@@ -13,7 +13,8 @@
     "check:ui-labels": "node scripts/check-ui-labels.mjs",
     "check:field-labels": "node scripts/check-field-labels.mjs",
     "check:menu-labels": "node scripts/check-menu-labels.mjs",
-    "check:scene-data": "node scripts/check-scene-data.mjs"
+    "check:scene-data": "node scripts/check-scene-data.mjs",
+    "check:report-csv": "node scripts/check-report-csv.mjs"
   },
   "dependencies": {
     "vue": "^3.5.11",
