@@ -15,6 +15,5 @@
   "src/pages/Persons.vue",
   "src/pages/Projects.vue",
   "src/pages/Reports.vue",
-  "src/pages/Users.vue",
-  "src/pages/WorkOrders.vue"
+  "src/pages/Users.vue"
 ]

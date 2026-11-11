@@ -4,7 +4,9 @@ import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import EntityDetailTabs from '../components/EntityDetailTabs.vue'
 import { can } from '../permissions'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const houses = ref([])
 const persons = ref([])
@@ -12,7 +14,7 @@ const orders = ref([])
 const detailOrder = ref(null)
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ orderType: 'REPAIR', title: '', description: '', houseId: '', personId: '', priority: 'NORMAL', assigneeName: '维修班组' })
+const form = reactive({ orderType: 'REPAIR', title: '', description: '', houseId: '', personId: '', priority: 'NORMAL', assigneeName: t('workOrders.defaultAssignee') })
 
 const statusClass = (s) => ({ DONE: 'green', PROCESSING: 'orange', CLOSED: 'blue' }[s] || '')
 
@@ -38,7 +40,7 @@ async function load() {
 async function create() {
   busy.value = true; error.value = ''
   try {
-    if (!form.title.trim()) throw new Error('请填写工单标题')
+    if (!form.title.trim()) throw new Error(t('workOrders.required'))
     await api.createWorkOrder({
       projectId: project.value.id, orderType: form.orderType, title: form.title.trim(),
       description: form.description, houseId: form.houseId || null, personId: form.personId || null,
@@ -52,7 +54,7 @@ async function create() {
 async function update(order, status) {
   busy.value = true; error.value = ''
   try {
-    await api.updateWorkOrder(order.id, { orderStatus: status, assigneeName: order.assigneeName || '维修班组' })
+    await api.updateWorkOrder(order.id, { orderStatus: status, assigneeName: order.assigneeName || t('workOrders.defaultAssignee') })
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -64,34 +66,34 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>服务工单</h2><p>{{ project?.orgName || '未选择项目' }} · 报修、投诉、巡检</p></div><span class="badge blue">{{ orders.length }} 单</span></div>
+      <div class="panel-head"><div><h2>{{ t('workOrders.title') }}</h2><p>{{ project?.orgName || t('workOrders.noProject') }} · {{ t('workOrders.subtitle') }}</p></div><span class="badge blue">{{ orders.length }} {{ t('workOrders.count') }}</span></div>
       <div class="row">
-        <div class="field"><label>类型</label><select v-model="form.orderType"><option value="REPAIR">报修</option><option value="COMPLAINT">投诉</option><option value="INSPECTION">巡检</option><option value="OTHER">其他</option></select></div>
-        <div class="field" style="flex:2"><label>标题</label><input v-model="form.title" placeholder="如 厨房漏水" /></div>
-        <div class="field"><label>房屋</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" placeholder="搜索房屋" clearable /></div>
-        <div class="field"><label>人员</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" placeholder="搜索人员" clearable /></div>
-        <div class="field"><label>优先级</label><select v-model="form.priority"><option value="LOW">低</option><option value="NORMAL">普通</option><option value="HIGH">高</option></select></div>
-        <div class="field"><label>处理人</label><input v-model="form.assigneeName" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('service')" class="primary" :disabled="busy" @click="create">新建工单</button></div>
+        <div class="field"><label>{{ t('workOrders.type') }}</label><select v-model="form.orderType"><option value="REPAIR">{{ t('workOrders.repair') }}</option><option value="COMPLAINT">{{ t('workOrders.complaint') }}</option><option value="INSPECTION">{{ t('workOrders.inspection') }}</option><option value="OTHER">{{ t('workOrders.other') }}</option></select></div>
+        <div class="field" style="flex:2"><label>{{ t('workOrders.titleCol') }}</label><input v-model="form.title" :placeholder="t('workOrders.titlePlaceholder')" /></div>
+        <div class="field"><label>{{ t('workOrders.house') }}</label><SearchSelect v-model="form.houseId" :options="houses" label-key="houseCode" sublabel-key="houseName" value-key="id" :placeholder="t('workOrders.searchHouse')" clearable /></div>
+        <div class="field"><label>{{ t('workOrders.person') }}</label><SearchSelect v-model="form.personId" :options="persons" label-key="personName" sublabel-key="personCode" value-key="id" :placeholder="t('workOrders.searchPerson')" clearable /></div>
+        <div class="field"><label>{{ t('workOrders.priority') }}</label><select v-model="form.priority"><option value="LOW">{{ t('workOrders.low') }}</option><option value="NORMAL">{{ t('workOrders.normal') }}</option><option value="HIGH">{{ t('workOrders.high') }}</option></select></div>
+        <div class="field"><label>{{ t('workOrders.assignee') }}</label><input v-model="form.assigneeName" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('service')" class="primary" :disabled="busy" @click="create">{{ t('workOrders.add') }}</button></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>工单列表</h2><span class="small muted">处理中 → 完成 / 关闭</span></div>
-      <div v-if="!orders.length" class="empty">暂无工单</div>
+      <div class="panel-head"><h2>{{ t('workOrders.list') }}</h2><span class="small muted">{{ t('workOrders.hint') }}</span></div>
+      <div v-if="!orders.length" class="empty">{{ t('workOrders.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>工单号</th><th>类型</th><th>标题</th><th>房屋</th><th>人员</th><th>处理人</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('workOrders.orderNo') }}</th><th>{{ t('workOrders.type') }}</th><th>{{ t('workOrders.titleCol') }}</th><th>{{ t('workOrders.house') }}</th><th>{{ t('workOrders.person') }}</th><th>{{ t('workOrders.assignee') }}</th><th>{{ t('workOrders.status') }}</th><th>{{ t('workOrders.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="o in orders" :key="o.id">
               <td class="mono">{{ o.orderNo }}</td><td>{{ o.orderType }}</td><td>{{ o.title }}</td>
               <td>{{ o.houseName || '-' }}</td><td>{{ o.personName || '-' }}</td><td>{{ o.assigneeName || '-' }}</td>
               <td><span class="badge" :class="statusClass(o.orderStatus)">{{ o.orderStatus }}</span></td>
               <td class="row">
-                <RouterLink class="sm" :to="`/guarantee/detail/WORK_ORDER/${o.id}`">详情</RouterLink>
-                <button v-if="can('service') && o.orderStatus === 'PENDING'" class="sm" :disabled="busy" @click="update(o, 'PROCESSING')">受理</button>
-                <button v-if="can('service') && o.orderStatus === 'PROCESSING'" class="sm" :disabled="busy" @click="update(o, 'DONE')">完成</button>
-                <button v-if="can('service') && o.orderStatus === 'DONE'" class="sm" :disabled="busy" @click="update(o, 'CLOSED')">关闭</button>
+                <RouterLink class="sm" :to="`/guarantee/detail/WORK_ORDER/${o.id}`">{{ t('workOrders.detail') }}</RouterLink>
+                <button v-if="can('service') && o.orderStatus === 'PENDING'" class="sm" :disabled="busy" @click="update(o, 'PROCESSING')">{{ t('workOrders.accept') }}</button>
+                <button v-if="can('service') && o.orderStatus === 'PROCESSING'" class="sm" :disabled="busy" @click="update(o, 'DONE')">{{ t('workOrders.complete') }}</button>
+                <button v-if="can('service') && o.orderStatus === 'DONE'" class="sm" :disabled="busy" @click="update(o, 'CLOSED')">{{ t('workOrders.close') }}</button>
               </td>
             </tr>
           </tbody>
@@ -101,7 +103,7 @@ onMounted(load)
 
     <div v-if="detailOrder" class="modal-mask" @click.self="detailOrder = null">
       <div class="modal" style="max-width:720px">
-        <div class="panel-head"><div><h2>{{ detailOrder.orderNo }}</h2><p class="small muted">工单关联信息</p></div><button class="sm" @click="detailOrder = null">关闭</button></div>
+        <div class="panel-head"><div><h2>{{ detailOrder.orderNo }}</h2><p class="small muted">{{ t('workOrders.related') }}</p></div><button class="sm" @click="detailOrder = null">{{ t('workOrders.close') }}</button></div>
         <EntityDetailTabs type="WORK_ORDER" :entity-id="detailOrder.id" />
       </div>
     </div>
