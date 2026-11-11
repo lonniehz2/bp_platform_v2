@@ -6,7 +6,6 @@
   "src/pages/Billing.vue",
   "src/pages/Contracts.vue",
   "src/pages/Devices.vue",
-  "src/pages/Help.vue",
   "src/pages/ImportCenter.vue",
   "src/pages/Persons.vue",
   "src/pages/Projects.vue"
