@@ -4,14 +4,16 @@ import { api } from '../api'
 import SearchSelect from '../components/SearchSelect.vue'
 import { can } from '../permissions'
 import { confirmAction } from '../confirm'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const project = ref(null)
 const contracts = ref([])
 const contractId = ref('')
 const subsidies = ref([])
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ amount: 300, startDate: '2026-11-01', endDate: '2027-10-31', remark: '补贴登记' })
+const form = reactive({ amount: 300, startDate: '2026-11-01', endDate: '2027-10-31', remark: t('subsidies.defaultValue') })
 const editing = ref(null)
 const editForm = reactive({ subsidyType: 'RENT_SUBSIDY', amount: 0, startDate: '', endDate: '', remark: '' })
 const selected = computed(() => contracts.value.find(c => String(c.id) === String(contractId.value)) || null)
@@ -42,7 +44,7 @@ async function loadSubsidies() {
 async function create() {
   busy.value = true; error.value = ''
   try {
-    if (!contractId.value) throw new Error('请选择合同')
+    if (!contractId.value) throw new Error(t('subsidies.required'))
     await api.createSubsidy(contractId.value, {
       amount: Number(form.amount || 0), startDate: form.startDate, endDate: form.endDate, remark: form.remark
     })
@@ -66,7 +68,7 @@ async function saveEdit() {
 }
 
 async function terminate(s) {
-  if (!await confirmAction({ title: '终止补贴', message: '确认终止该补贴？', confirmText: '终止', danger: true })) return
+  if (!await confirmAction({ title: t('subsidies.terminateTitle'), message: t('subsidies.terminateMessage'), confirmText: t('subsidies.terminateConfirm'), danger: true })) return
   busy.value = true; error.value = ''
   try { await api.terminateSubsidy(s.id); await loadSubsidies() } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -78,29 +80,29 @@ onMounted(load)
   <div>
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
-      <div class="panel-head"><div><h2>补贴管理</h2><p>{{ project?.orgName || '未选择项目' }} · 租金补贴登记与抵扣</p></div><span class="badge blue">{{ subsidies.length }} 条</span></div>
+      <div class="panel-head"><div><h2>{{ t('subsidies.title') }}</h2><p>{{ project?.orgName || t('subsidies.noProject') }} · {{ t('subsidies.subtitle') }}</p></div><span class="badge blue">{{ subsidies.length }} {{ t('subsidies.count') }}</span></div>
       <div class="row">
-        <div class="field" style="flex:2"><label>合同</label><SearchSelect v-model="contractId" :options="contracts" label-key="contractNo" sublabel-key="personName" value-key="id" placeholder="搜索合同" @change="loadSubsidies" /></div>
-        <div class="field"><label>月补贴金额</label><input v-model.number="form.amount" type="number" /></div>
-        <div class="field"><label>开始</label><input v-model="form.startDate" type="date" /></div>
-        <div class="field"><label>结束</label><input v-model="form.endDate" type="date" /></div>
-        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('billing')" class="primary" :disabled="busy" @click="create">新增补贴</button></div>
+        <div class="field" style="flex:2"><label>{{ t('subsidies.contract') }}</label><SearchSelect v-model="contractId" :options="contracts" label-key="contractNo" sublabel-key="personName" value-key="id" :placeholder="t('subsidies.searchContract')" @change="loadSubsidies" /></div>
+        <div class="field"><label>{{ t('subsidies.amount') }}</label><input v-model.number="form.amount" type="number" /></div>
+        <div class="field"><label>{{ t('subsidies.start') }}</label><input v-model="form.startDate" type="date" /></div>
+        <div class="field"><label>{{ t('subsidies.end') }}</label><input v-model="form.endDate" type="date" /></div>
+        <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('billing')" class="primary" :disabled="busy" @click="create">{{ t('subsidies.add') }}</button></div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>补贴记录</h2><span class="small muted">{{ selected?.contractNo || '未选择合同' }}</span></div>
-      <div v-if="!subsidies.length" class="empty">暂无补贴</div>
+      <div class="panel-head"><h2>{{ t('subsidies.records') }}</h2><span class="small muted">{{ selected?.contractNo || t('subsidies.noContract') }}</span></div>
+      <div v-if="!subsidies.length" class="empty">{{ t('subsidies.empty') }}</div>
       <div class="table-wrap" v-else>
         <table>
-          <thead><tr><th>类型</th><th>金额/月</th><th>开始</th><th>结束</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th>{{ t('subsidies.type') }}</th><th>{{ t('subsidies.amountPerMonth') }}</th><th>{{ t('subsidies.start') }}</th><th>{{ t('subsidies.end') }}</th><th>{{ t('subsidies.status') }}</th><th>{{ t('subsidies.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="s in subsidies" :key="s.id">
               <td>{{ s.subsidyType || 'RENT_SUBSIDY' }}</td><td>¥{{ money(s.amount) }}</td><td>{{ s.startDate }}</td><td>{{ s.endDate }}</td>
               <td><span class="badge" :class="s.subsidyStatus === 'ACTIVE' ? 'green' : 'orange'">{{ s.subsidyStatus }}</span></td>
               <td>
-                <button v-if="can('billing') && s.subsidyStatus === 'ACTIVE'" class="sm" @click="openEdit(s)">编辑</button>
-                <button v-if="can('billing') && s.subsidyStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="terminate(s)">终止</button>
+                <button v-if="can('billing') && s.subsidyStatus === 'ACTIVE'" class="sm" @click="openEdit(s)">{{ t('subsidies.edit') }}</button>
+                <button v-if="can('billing') && s.subsidyStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="terminate(s)">{{ t('subsidies.terminate') }}</button>
               </td>
             </tr>
           </tbody>
@@ -110,13 +112,13 @@ onMounted(load)
 
     <div v-if="editing" class="modal-mask" @click.self="editing = null">
       <div class="modal">
-        <div class="panel-head"><h2>编辑补贴</h2><button class="sm" @click="editing = null">关闭</button></div>
-        <div class="field"><label>补贴类型</label><select v-model="editForm.subsidyType"><option value="RENT_SUBSIDY">租金补贴</option><option value="OTHER">其他</option></select></div>
-        <div class="field"><label>月补贴金额</label><input v-model.number="editForm.amount" type="number" /></div>
-        <div class="field"><label>开始</label><input v-model="editForm.startDate" type="date" /></div>
-        <div class="field"><label>结束</label><input v-model="editForm.endDate" type="date" /></div>
-        <div class="field"><label>备注</label><input v-model="editForm.remark" /></div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveEdit">保存</button></div>
+        <div class="panel-head"><h2>{{ t('subsidies.editTitle') }}</h2><button class="sm" @click="editing = null">{{ t('subsidies.close') }}</button></div>
+        <div class="field"><label>{{ t('subsidies.subsidyType') }}</label><select v-model="editForm.subsidyType"><option value="RENT_SUBSIDY">{{ t('subsidies.rentSubsidy') }}</option><option value="OTHER">{{ t('subsidies.other') }}</option></select></div>
+        <div class="field"><label>{{ t('subsidies.amount') }}</label><input v-model.number="editForm.amount" type="number" /></div>
+        <div class="field"><label>{{ t('subsidies.start') }}</label><input v-model="editForm.startDate" type="date" /></div>
+        <div class="field"><label>{{ t('subsidies.end') }}</label><input v-model="editForm.endDate" type="date" /></div>
+        <div class="field"><label>{{ t('subsidies.remark') }}</label><input v-model="editForm.remark" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="saveEdit">{{ t('subsidies.save') }}</button></div>
       </div>
     </div>
   </div>
