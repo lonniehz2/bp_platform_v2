@@ -85,7 +85,7 @@ onMounted(load)
           <tbody>
             <tr v-for="g in houseGrants" :key="g.id">
               <td>{{ persons.find(p => String(p.id) === String(g.personId))?.personName || g.personId }}</td>
-              <td class="mono">{{ g.targetId }}</td><td>{{ enumLabel(g.grantLevel) }}</td>
+              <td class="mono">{{ g.targetId }}</td><td>{{ enumLabel(g.grantLevel, 'grantLevel') }}</td>
               <td class="small">{{ g.validStart }} ~ {{ g.validEnd || t('houseAccess.longTerm') }}</td>
               <td><span class="badge" :class="g.grantStatus === 'ACTIVE' ? 'green' : 'orange'">{{ enumLabel(g.grantStatus) }}</span></td>
               <td><button v-if="g.grantStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="revoke(g)">{{ t('houseAccess.revoke') }}</button></td>

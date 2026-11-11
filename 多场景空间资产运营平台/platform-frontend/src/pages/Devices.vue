@@ -37,7 +37,7 @@ const pagedDevices = computed(() => filteredDevices.value.slice((page.value - 1)
 const deviceColumns = [
   { key: 'deviceCode', title: t('dev.code'), width: '150px' },
   { key: 'deviceName', title: t('dev.name'), width: '130px' },
-  { key: 'deviceType', title: t('dev.type'), width: '80px' },
+  { key: 'deviceType', title: t('dev.type'), width: '80px', enumDomain: 'deviceType' },
   { key: 'deviceModel', title: t('dev.model'), width: '110px' },
   { key: 'deviceMac', title: 'MAC', width: '150px' },
   { key: 'spaceName', title: t('dev.space'), width: '140px' },

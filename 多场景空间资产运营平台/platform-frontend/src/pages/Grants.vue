@@ -84,7 +84,7 @@ onMounted(load)
           <thead><tr><th>{{ t('grants.type') }}</th><th>{{ t('grants.object') }}</th><th>{{ t('grants.level') }}</th><th>{{ t('grants.validity') }}</th><th>{{ t('grants.status') }}</th><th>{{ t('grants.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="g in grants" :key="g.id">
-              <td>{{ enumLabel(g.targetType) }}</td><td class="mono">{{ g.targetId }}</td><td>{{ enumLabel(g.grantLevel) }}</td>
+              <td>{{ enumLabel(g.targetType) }}</td><td class="mono">{{ g.targetId }}</td><td>{{ enumLabel(g.grantLevel, 'grantLevel') }}</td>
               <td class="small">{{ g.validStart }} ~ {{ g.validEnd || t('grants.longTerm') }}</td>
               <td><span class="badge" :class="g.grantStatus === 'ACTIVE' ? 'green' : 'orange'">{{ enumLabel(g.grantStatus) }}</span></td>
               <td><button v-if="g.grantStatus === 'ACTIVE'" class="sm danger" :disabled="busy" @click="revoke(g)">{{ t('grants.revoke') }}</button></td>

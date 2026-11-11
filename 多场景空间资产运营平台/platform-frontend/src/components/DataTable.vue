@@ -46,6 +46,7 @@ function cell(row, col) {
   if (col.formatter) return col.formatter(row)
   const v = row[col.key]
   if (v === null || v === undefined || v === '') return '-'
+  if (col.enumDomain) return enumLabel(v, col.enumDomain)
   if (/(status|type|level|priority|cycle|mode|gender|urgency|method|category|orientation)$/i.test(col.key) || /(TypeCode|StatusCode)$/.test(col.key)) return enumLabel(v)
   return v
 }

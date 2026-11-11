@@ -1,8 +1,12 @@
 import { i18n } from './i18n'
 
-export function enumLabel(value) {
+export function enumLabel(value, domain = '') {
   if (value === null || value === undefined || value === '') return '-'
   const code = String(value).toUpperCase()
+  if (domain) {
+    const domainKey = `domain.${domain}.${code}`
+    if (i18n.global.te(domainKey)) return i18n.global.t(domainKey)
+  }
   if (/^CONTRACT_SCOPE_\d+$/.test(code)) return i18n.global.t('audit.contractScope')
   if (/^APPROVE_CONTRACT_\d+$/.test(code)) return i18n.global.t('audit.approveContract')
   for (const key of [`enum.${code}`, `status.${code}`]) {

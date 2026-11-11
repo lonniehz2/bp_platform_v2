@@ -88,7 +88,7 @@ onMounted(load)
         <div class="field"><label>{{ t('spaces.parent') }}</label><TreeSelect v-model="form.parentId" :nodes="spaces" label-key="spaceName" value-key="id" parent-key="parentId" :placeholder="t('spaces.selectParent')" clearable /></div>
         <div class="field"><label>{{ t('spaces.code') }}</label><input v-model="form.spaceCode" /></div>
         <div class="field"><label>{{ t('spaces.name') }}</label><input v-model="form.spaceName" /></div>
-        <div class="field"><label>{{ t('spaces.type') }}</label><select v-model="form.spaceType"><option v-for="t in types" :key="t" :value="t">{{ enumLabel(t) }}</option></select></div>
+        <div class="field"><label>{{ t('spaces.type') }}</label><select v-model="form.spaceType"><option v-for="t in types" :key="t" :value="t">{{ enumLabel(t, 'spaceType') }}</option></select></div>
         <div class="field"><label>{{ t('spaces.assetType') }}</label><select v-model="form.assetTypeCode"><option v-for="t in assetTypes" :key="t.typeCode" :value="t.typeCode">{{ t.typeName }}</option></select></div>
         <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button v-if="can('asset')" class="primary" :disabled="busy" @click="create">{{ t('spaces.add') }}</button></div>
       </div>
@@ -102,8 +102,8 @@ onMounted(load)
           <thead><tr><th>{{ t('spaces.code') }}</th><th>{{ t('spaces.name') }}</th><th>{{ t('spaces.type') }}</th><th>{{ t('spaces.level') }}</th><th>{{ t('spaces.assetType') }}</th><th>{{ t('spaces.path') }}</th><th>{{ t('spaces.action') }}</th></tr></thead>
           <tbody>
             <tr v-for="s in spaces" :key="s.id">
-              <td class="mono">{{ s.spaceCode }}</td><td>{{ s.spaceName }}</td><td>{{ enumLabel(s.spaceType) }}</td>
-              <td>{{ s.levelNo }}</td><td>{{ s.assetTypeCode ? enumLabel(s.assetTypeCode) : '-' }}</td><td class="small">{{ s.spacePath }}</td>
+              <td class="mono">{{ s.spaceCode }}</td><td>{{ s.spaceName }}</td><td>{{ enumLabel(s.spaceType, 'spaceType') }}</td>
+              <td>{{ s.levelNo }}</td><td>{{ s.assetTypeCode ? enumLabel(s.assetTypeCode, 'assetType') : '-' }}</td><td class="small">{{ s.spacePath }}</td>
               <td><button class="sm" @click="openSpaceEdit(s)">{{ t('spaces.edit') }}</button> <button class="sm danger" :disabled="busy" @click="archiveSpace(s)">{{ t('spaces.archive') }}</button></td>
             </tr>
           </tbody>
@@ -116,7 +116,7 @@ onMounted(load)
         <div class="panel-head"><h2>{{ t('spaces.editTitle') }}</h2><button class="sm" @click="editingSpace = null">{{ t('spaces.close') }}</button></div>
         <div class="field"><label>{{ t('spaces.code') }}</label><input :value="editingSpace.spaceCode" disabled /></div>
         <div class="field"><label>{{ t('spaces.name') }}</label><input v-model="spaceEditForm.spaceName" /></div>
-        <div class="field"><label>{{ t('spaces.spaceType') }}</label><select v-model="spaceEditForm.spaceType"><option v-for="t in types" :key="t" :value="t">{{ enumLabel(t) }}</option></select></div>
+        <div class="field"><label>{{ t('spaces.spaceType') }}</label><select v-model="spaceEditForm.spaceType"><option v-for="t in types" :key="t" :value="t">{{ enumLabel(t, 'spaceType') }}</option></select></div>
         <div class="field"><label>{{ t('spaces.assetType') }}</label><select v-model="spaceEditForm.assetTypeCode"><option v-for="t in assetTypes" :key="t.typeCode" :value="t.typeCode">{{ t.typeName }}</option></select></div>
         <div class="field"><label>{{ t('spaces.area') }}</label><input v-model.number="spaceEditForm.area" type="number" /></div>
         <div class="field"><label>{{ t('spaces.innerArea') }}</label><input v-model.number="spaceEditForm.innerArea" type="number" /></div>

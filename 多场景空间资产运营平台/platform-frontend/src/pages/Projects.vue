@@ -211,8 +211,8 @@ onMounted(load)
             <thead><tr><th>{{ t('proj.spaceCode') }}</th><th>{{ t('proj.nameCol2') }}</th><th>{{ t('proj.type') }}</th><th>{{ t('proj.level') }}</th><th>{{ t('proj.assetType') }}</th><th>{{ t('proj.path') }}</th></tr></thead>
             <tbody>
               <tr v-for="s in spaces" :key="s.id">
-                <td class="mono">{{ s.spaceCode }}</td><td>{{ s.spaceName }}</td><td>{{ enumLabel(s.spaceType) }}</td>
-                <td>{{ s.levelNo }}</td><td>{{ s.assetTypeCode ? enumLabel(s.assetTypeCode) : '-' }}</td><td class="small">{{ s.spacePath }}</td>
+                <td class="mono">{{ s.spaceCode }}</td><td>{{ s.spaceName }}</td><td>{{ enumLabel(s.spaceType, 'spaceType') }}</td>
+                <td>{{ s.levelNo }}</td><td>{{ s.assetTypeCode ? enumLabel(s.assetTypeCode, 'assetType') : '-' }}</td><td class="small">{{ s.spacePath }}</td>
               </tr>
             </tbody>
           </table>
@@ -228,7 +228,7 @@ onMounted(load)
             <tbody>
               <tr v-for="h in houses" :key="h.id">
                 <td class="mono">{{ h.houseCode }}</td><td>{{ h.houseName }}</td>
-                <td>{{ h.assetTypeCode ? enumLabel(h.assetTypeCode) : '-' }}</td><td>{{ h.area || '-' }}</td>
+                <td>{{ h.assetTypeCode ? enumLabel(h.assetTypeCode, 'assetType') : '-' }}</td><td>{{ h.area || '-' }}</td>
                 <td><span class="badge" :class="h.houseStatus === 'VACANT' ? 'green' : 'orange'">{{ enumLabel(h.houseStatus) }}</span></td>
               </tr>
             </tbody>

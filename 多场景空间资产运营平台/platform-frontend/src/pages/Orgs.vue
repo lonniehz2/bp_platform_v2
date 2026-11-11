@@ -34,7 +34,7 @@ onMounted(async () => {
           <thead><tr><th>{{ t('orgs.code') }}</th><th>{{ t('orgs.name') }}</th><th>{{ t('orgs.scene') }}</th><th>{{ t('orgs.mode') }}</th><th>{{ t('orgs.status') }}</th></tr></thead>
           <tbody>
             <tr v-for="o in filtered" :key="o.id">
-              <td class="mono">{{ o.orgCode }}</td><td>{{ o.orgName }}</td><td>{{ enumLabel(o.sceneCode) }}</td>
+              <td class="mono">{{ o.orgCode }}</td><td>{{ o.orgName }}</td><td>{{ enumLabel(o.sceneCode, 'scene') }}</td>
               <td>{{ enumLabel(o.businessMode) }}</td><td><span class="badge green">{{ enumLabel(o.status) }}</span></td>
             </tr>
           </tbody>
