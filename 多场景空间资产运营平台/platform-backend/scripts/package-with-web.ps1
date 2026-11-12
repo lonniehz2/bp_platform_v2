@@ -13,6 +13,11 @@ $static = Join-Path $backend "src\main\resources\static"
 Push-Location $frontend
 try {
     node node_modules\vite\bin\vite.js build
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host 'Standard build failed; retrying without esbuild/minify'
+        node node_modules\vite\bin\vite.js build --config vite.config.noesbuild.js
+        if ($LASTEXITCODE -ne 0) { throw 'Frontend build failed' }
+    }
 } finally {
     Pop-Location
 }

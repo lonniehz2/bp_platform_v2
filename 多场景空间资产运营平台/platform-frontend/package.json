@@ -17,10 +17,12 @@
     "check:report-csv": "node scripts/check-report-csv.mjs"
   },
   "dependencies": {
+    "echarts": "^5.6.0",
+    "fabric": "^6.9.0",
+    "pdfjs-dist": "^4.8.69",
     "vue": "^3.5.11",
-    "vue-router": "^4.4.5",
     "vue-i18n": "^9.14.4",
-    "echarts": "^5.6.0"
+    "vue-router": "^4.4.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.4",

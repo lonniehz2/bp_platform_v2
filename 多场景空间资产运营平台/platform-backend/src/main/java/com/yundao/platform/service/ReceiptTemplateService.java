@@ -37,8 +37,23 @@ public class ReceiptTemplateService {
             jdbc.update("insert into bp_receipt_template_version(id,tenant_id,template_id,config_json,version) values(?,?,?,?,?)",
                     idGen.nextId(), TenantContext.require(), id, old.get(0).get("configJson"), old.get(0).get("version"));
         }
-        int n = jdbc.update("update bp_receipt_template set template_name=?, config_json=?, version=version+1, status='DRAFT' where id=? and tenant_id=? and is_deleted=0", name, configJson, id, TenantContext.require());
+        Long nextVersion = jdbc.queryForObject(
+                "select greatest(coalesce((select max(version) from bp_receipt_template where id=? and tenant_id=? and is_deleted=0),0), " +
+                        "coalesce((select max(version) from bp_receipt_template_version where template_id=? and tenant_id=?),0)) + 1",
+                Long.class, id, TenantContext.require(), id, TenantContext.require());
+        int n = jdbc.update("update bp_receipt_template set template_name=?, config_json=?, version=?, status='DRAFT' where id=? and tenant_id=? and is_deleted=0", name, configJson, nextVersion, id, TenantContext.require());
         if (n == 0) throw new IllegalArgumentException("模板不存在");
+        return Map.of("id", id, "status", "DRAFT");
+    }
+
+    public Map<String, Object> rollback(long id, long versionId) {
+        List<Map<String, Object>> rows = jdbc.queryForList("select config_json configJson, version from bp_receipt_template_version where id=? and tenant_id=? and template_id=?", versionId, TenantContext.require(), id);
+        if (rows.isEmpty()) throw new IllegalArgumentException("版本不存在");
+        List<Map<String, Object>> old = jdbc.queryForList("select config_json configJson, version from bp_receipt_template where id=? and tenant_id=? and is_deleted=0", id, TenantContext.require());
+        if (!old.isEmpty()) {
+            jdbc.update("insert into bp_receipt_template_version(id,tenant_id,template_id,config_json,version) values(?,?,?,?,?)", idGen.nextId(), TenantContext.require(), id, old.get(0).get("configJson"), old.get(0).get("version"));
+        }
+        jdbc.update("update bp_receipt_template set config_json=?, version=?, status='DRAFT' where id=? and tenant_id=? and is_deleted=0", rows.get(0).get("configJson"), rows.get(0).get("version"), id, TenantContext.require());
         return Map.of("id", id, "status", "DRAFT");
     }
 

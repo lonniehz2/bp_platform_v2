@@ -31,11 +31,22 @@ public class ReceiptDocumentService {
                 "select id, verify_token token, verify_code code, template_id templateId, template_version templateVersion " +
                         "from bp_receipt_document where tenant_id=? and receipt_id=? and is_deleted=0",
                 tenant, receiptId);
-        if (!rows.isEmpty()) return rows.get(0);
+        Map<String, Object> template = activeTemplate(tenant);
+        if (!rows.isEmpty()) {
+            Map<String, Object> row = rows.get(0);
+            if (String.valueOf(row.get("templateId")).equals(String.valueOf(template.get("id")))
+                    && String.valueOf(row.get("templateVersion")).equals(String.valueOf(template.get("version")))) {
+                return row;
+            }
+            jdbc.update("update bp_receipt_document set template_id=?, template_version=? where id=?",
+                    template.get("id"), template.get("version"), row.get("id"));
+            row.put("templateId", template.get("id"));
+            row.put("templateVersion", template.get("version"));
+            return row;
+        }
         String token = UUID.randomUUID().toString().replace("-", "");
         String code = token.substring(0, 8).toUpperCase();
         long id = idGen.nextId();
-        Map<String, Object> template = activeTemplate(tenant);
         jdbc.update("insert into bp_receipt_document(id,tenant_id,receipt_id,project_id,template_id,template_version," +
                         "verify_token,verify_code,document_status,is_deleted) values(?,?,?,?,?,?,?,?,'VALID',0)",
                 id, tenant, receiptId, projectId, template.get("id"), template.get("version"), token, code);

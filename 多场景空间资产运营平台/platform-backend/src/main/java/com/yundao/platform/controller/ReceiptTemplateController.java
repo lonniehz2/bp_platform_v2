@@ -53,6 +53,9 @@ public class ReceiptTemplateController {
         return ResponseEntity.ok().header("Content-Disposition", "inline; filename=\"receipt-preview.pdf\"").contentType(MediaType.APPLICATION_PDF).body(bytes);
     }
 
+    @PostMapping("/{id}/rollback/{versionId}")
+    public R<Map<String, Object>> rollback(@PathVariable long id, @PathVariable long versionId) { permissions.require("billing:adjust"); return R.ok(service.rollback(id, versionId)); }
+
     @PostMapping("/{id}/publish")
     public R<Map<String, Object>> publish(@PathVariable long id) { permissions.require("billing:adjust"); return R.ok(service.publish(id)); }
 }

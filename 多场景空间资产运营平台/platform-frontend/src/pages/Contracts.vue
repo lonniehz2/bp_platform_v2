@@ -22,6 +22,12 @@ const busy = ref(false)
 const detailOpen = ref(false)
 const createOpen = ref(false)
 const billOpen = ref(false)
+const renewOpen = ref(false)
+const settleOpen = ref(false)
+const settleData = ref(null)
+const settleForm = reactive({ date: new Date().toISOString().slice(0, 10), reason: '' })
+const renewTarget = ref(null)
+const renewForm = reactive({ contractNo: '', startDate: '', endDate: '', rentAmount: 0, depositAmount: 0, billingCycle: 'MONTH', billDay: 1 })
 const router = useRouter()
 const page = ref(1)
 const contractQuery = ref('')
@@ -111,6 +117,29 @@ async function create() {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+
+async function openSettlement(c) {
+  try { settleData.value = await api.terminationSettlement(c.id); settleForm.date = new Date().toISOString().slice(0, 10); settleForm.reason = ''; settleOpen.value = true } catch (e) { error.value = e.message }
+}
+async function settleContract() {
+  busy.value = true; error.value = ''
+  try { await api.settleContract(settleData.value.contractId, settleForm); settleOpen.value = false; await load() } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+function openRenew(c) {
+  renewTarget.value = c
+  const start = new Date(c.endDate || Date.now()); start.setDate(start.getDate() + 1)
+  const end = new Date(start); end.setFullYear(end.getFullYear() + 1)
+  Object.assign(renewForm, { contractNo: 'HT' + Date.now(), startDate: start.toISOString().slice(0, 10), endDate: end.toISOString().slice(0, 10), rentAmount: c.rentAmount || 0, depositAmount: c.depositAmount || 0, billingCycle: 'MONTH', billDay: 1 })
+  renewOpen.value = true
+}
+async function renewContract() {
+  busy.value = true; error.value = ''
+  try {
+    await api.renewContract(renewTarget.value.id, { ...renewForm, rentAmount: Number(renewForm.rentAmount || 0), depositAmount: Number(renewForm.depositAmount || 0) })
+    renewOpen.value = false
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
 
 async function contractAction(c, action) {
   if (action === 'discard' || action === 'withdraw') {
@@ -257,7 +286,7 @@ onMounted(load)
               <button v-if="canAction('contract:discard', 'contract') && row.contractStatus === 'DRAFT'" class="sm danger" :disabled="busy" @click="contractAction(row, 'discard')">{{ t('ct.discard') }}</button>
               <button v-if="canAction('contract:approve', 'contract') && row.contractStatus === 'APPROVING'" class="sm primary" :disabled="busy" @click="contractAction(row, 'approve')">{{ t('ct.approve') }}</button>
               <button v-if="canAction('contract:withdraw', 'contract') && row.contractStatus === 'APPROVING'" class="sm" :disabled="busy" @click="contractAction(row, 'withdraw')">{{ t('ct.withdraw') }}</button>
-              <button v-if="canAction('billing:pay', 'billing') && row.contractStatus === 'ACTIVE'" class="sm primary" @click="openPayment(row)">{{ t('ct.pay') }}</button>
+              <button v-if="canAction('billing:pay', 'billing') && row.contractStatus === 'ACTIVE'" class="sm primary" @click="openPayment(row)">{{ t('ct.pay') }}</button><button v-if="canAction('contract:submit', 'contract') && row.contractStatus === 'ACTIVE'" class="sm" @click="openRenew(row)">{{ t('ct.renew') }}</button><button v-if="canAction('contract:submit', 'contract') && row.contractStatus === 'ACTIVE'" class="sm danger" @click="openSettlement(row)">{{ t('ct.settlement') }}</button>
             </div>
           </template>
         </DataTable>
@@ -315,6 +344,26 @@ onMounted(load)
             <div class="field" style="flex:0 0 auto"><label><input type="checkbox" v-model="form.draft" /> {{ t('ct.draft') }}</label></div>
           </div>
           <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary" :disabled="busy" @click="create">{{ t('ct.create') }}</button></div>
+        </div>
+      </div>
+
+      <div v-if="settleOpen && settleData" class="modal-mask" @click.self="settleOpen = false">
+        <div class="modal">
+          <div class="panel-head"><h2>{{ t('ct.settlement') }}</h2><button class="sm" @click="settleOpen = false">{{ t('ct.close') }}</button></div>
+          <div class="field"><label>{{ t('ct.endDate') }}</label><input v-model="settleForm.date" type="date" /></div>
+          <div class="field"><label>{{ t('ct.reason') }}</label><input v-model="settleForm.reason" /></div>
+          <div v-if="Number(settleData.unpaidAmount) > 0" class="error">{{ t('ct.settleUnpaidBlocked') }}</div><table><tbody><tr><th>{{ t('ct.unpaid') }}</th><td>¥{{ settleData.unpaidAmount }}</td></tr><tr><th>{{ t('ct.depositPaid') }}</th><td>¥{{ settleData.depositPaid }}</td></tr><tr><th>{{ t('ct.refundable') }}</th><td>¥{{ settleData.refundableAmount }}</td></tr></tbody></table>
+          <div class="row" style="justify-content:flex-end"><button class="sm" @click="settleOpen = false">{{ t('ct.close') }}</button><button class="primary" :disabled="busy" @click="settleContract">{{ t('ct.confirmSettlement') }}</button></div>
+        </div>
+      </div>
+
+      <div v-if="renewOpen" class="modal-mask" @click.self="renewOpen = false">
+        <div class="modal">
+          <div class="panel-head"><h2>{{ t('ct.renew') }}</h2><button class="sm" @click="renewOpen = false">{{ t('ct.close') }}</button></div>
+          <div class="field"><label>{{ t('ct.contractNo') }}</label><input v-model="renewForm.contractNo" /></div>
+          <div class="row"><div class="field"><label>{{ t('ct.startDate') }}</label><input v-model="renewForm.startDate" type="date" /></div><div class="field"><label>{{ t('ct.endDate') }}</label><input v-model="renewForm.endDate" type="date" /></div></div>
+          <div class="row"><div class="field"><label>{{ t('ct.rent') }}</label><input v-model.number="renewForm.rentAmount" type="number" /></div><div class="field"><label>{{ t('ct.deposit') }}</label><input v-model.number="renewForm.depositAmount" type="number" /></div></div>
+          <div class="row" style="justify-content:flex-end"><button class="sm" @click="renewOpen = false">{{ t('ct.close') }}</button><button class="primary" :disabled="busy" @click="renewContract">{{ t('ct.renew') }}</button></div>
         </div>
       </div>
 
