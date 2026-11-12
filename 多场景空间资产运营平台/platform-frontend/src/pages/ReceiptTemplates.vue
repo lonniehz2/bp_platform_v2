@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { scenePath } from '../scene'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -143,7 +144,7 @@ onMounted(load)
       <div class="panel-head"><h2>{{ t('receiptTemplates.list') }}</h2></div>
       <div v-if="!list.length" class="empty">{{ t('receiptTemplates.empty') }}</div>
       <table v-else><thead><tr><th>{{ t('receiptTemplates.name') }}</th><th>{{ t('receiptTemplates.version') }}</th><th>{{ t('receiptTemplates.status') }}</th><th>{{ t('receiptTemplates.action') }}</th></tr></thead><tbody>
-        <tr v-for="x in list" :key="x.id"><td>{{ x.templateName }}</td><td>{{ x.version }}</td><td>{{ x.status }}</td><td><button class="sm" @click="previewPdf(x.id)">{{ t('receiptTemplates.previewPdf') }}</button><button class="sm" @click="loadHistory(x.id)">{{ t('receiptTemplates.history') }}</button><button class="sm" @click="router.push(`/guarantee/receipt-designer/${x.id}`)">{{ t('receiptDesigner.title') }}</button><button v-if="x.status !== 'PUBLISHED'" class="sm" @click="publish(x.id)">{{ t('receiptTemplates.publish') }}</button></td></tr>
+        <tr v-for="x in list" :key="x.id"><td>{{ x.templateName }}</td><td>{{ x.version }}</td><td>{{ x.status }}</td><td><button class="sm" @click="previewPdf(x.id)">{{ t('receiptTemplates.previewPdf') }}</button><button class="sm" @click="loadHistory(x.id)">{{ t('receiptTemplates.history') }}</button><button class="sm" @click="router.push(scenePath(`/receipt-designer/${x.id}`))">{{ t('receiptDesigner.title') }}</button><button v-if="x.status !== 'PUBLISHED'" class="sm" @click="publish(x.id)">{{ t('receiptTemplates.publish') }}</button></td></tr>
       </tbody></table>
     </div>
 

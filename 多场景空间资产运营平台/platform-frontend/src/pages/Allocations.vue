@@ -102,7 +102,7 @@ onMounted(load)
       <div class="panel-head"><h2>{{ t('allocations.allocationRecords') }}</h2><span class="small muted">{{ allocations.length }}</span></div>
       <div v-if="!allocations.length" class="empty">{{ t('allocations.empty') }}</div>
       <table v-else><thead><tr><th>{{ t('allocations.allocationNo') }}</th><th>{{ t('allocations.applicationNo') }}</th><th>{{ t('allocations.house') }}</th><th>{{ t('allocations.status') }}</th><th>{{ t('allocations.action') }}</th></tr></thead><tbody>
-        <tr v-for="a in allocations" :key="a.id"><td class="mono">{{ a.allocationNo }}</td><td class="mono">{{ a.applicationNo }}</td><td>{{ a.houseName }}</td><td>{{ a.allocationStatus }}</td><td><button v-if="a.allocationStatus === 'ALLOCATED'" class="sm primary" @click="openContract(a)">{{ t('allocations.createContract') }}</button></td></tr>
+        <tr v-for="a in allocations" :key="a.id"><td class="mono">{{ a.allocationNo }}</td><td class="mono">{{ a.applicationNo }}</td><td>{{ a.houseName }}</td><td>{{ enumLabel(a.allocationStatus) }}</td><td><button v-if="a.allocationStatus === 'ALLOCATED'" class="sm primary" @click="openContract(a)">{{ t('allocations.createContract') }}</button></td></tr>
       </tbody></table>
     </div>
 
