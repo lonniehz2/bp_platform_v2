@@ -23,6 +23,11 @@ async function api(path, options = {}) {
   return json.data
 }
 function addText(line = '{{receiptNo}}') { canvas.add(new Textbox(line, { left: 60, top: 150, width: 300, fontSize: 16, fill: '#222' })) }
+function addField(key) { addText('{{' + key + '}}') }
+function deleteSelected() {
+  const obj = canvas.getActiveObject()
+  if (obj) { canvas.remove(obj); canvas.discardActiveObject(); canvas.requestRenderAll() }
+}
 function addSeal(e) {
   const file = e.target.files?.[0]; if (!file) return
   const reader = new FileReader()
@@ -54,6 +59,7 @@ async function save() {
 }
 onMounted(async () => {
   canvas = new Canvas(canvasEl.value, { width: 595, height: 842, backgroundColor: '#fff', preserveObjectStacking: true })
+  window.addEventListener('keydown', (e) => { if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected() })
   await load()
 })
 </script>
@@ -66,7 +72,7 @@ onMounted(async () => {
       <div class="row">
         <select v-model="selectedId" @change="load"><option v-for="x in templates" :key="x.id" :value="String(x.id)">{{ x.templateName }} v{{ x.version }}</option></select>
         <button class="sm" @click="addText()">{{ t('receiptDesigner.addText') }}</button>
-        <button class="sm" @click="addQr">{{ t('receiptDesigner.addQr') }}</button>
+        <button class="sm" @click="addField('paymentNo')">{{ t('receiptDesigner.paymentNo') }}</button><button class="sm" @click="addField('paymentMethod')">{{ t('receiptDesigner.paymentMethod') }}</button><button class="sm" @click="addField('issuedTime')">{{ t('receiptDesigner.issuedTime') }}</button><button class="sm" @click="addField('receiptStatus')">{{ t('receiptDesigner.status') }}</button><button class="sm" @click="addQr">{{ t('receiptDesigner.addQr') }}</button><button class="sm danger" @click="deleteSelected">{{ t('receiptDesigner.deleteSelected') }}</button>
         <label class="sm">{{ t('receiptDesigner.addSeal') }}<input type="file" accept="image/*" style="display:none" @change="addSeal" /></label>
       </div>
     </div>

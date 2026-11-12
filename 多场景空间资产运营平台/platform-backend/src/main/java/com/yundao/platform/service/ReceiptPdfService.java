@@ -132,6 +132,8 @@ public class ReceiptPdfService {
                 .replace("{{amount}}", value(receipt, "amount"))
                 .replace("{{paymentMethod}}", value(receipt, "paymentMethod"))
                 .replace("{{issuedTime}}", value(receipt, "issuedTime"))
+                .replace("{{receiptStatus}}", value(receipt, "receiptStatus"))
+                .replace("{{status}}", value(receipt, "receiptStatus"))
                 .replace("{{title}}", "电子收据")
                 .replace("{{company}}", "收款单位")
                 .replace("{{verifyCode}}", verifyCode)
