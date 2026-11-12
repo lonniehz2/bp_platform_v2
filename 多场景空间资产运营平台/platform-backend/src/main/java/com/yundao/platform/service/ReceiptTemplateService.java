@@ -42,6 +42,17 @@ public class ReceiptTemplateService {
         return Map.of("id", id, "status", "DRAFT");
     }
 
+    public Map<String, Object> rollback(long id, long versionId) {
+        List<Map<String, Object>> rows = jdbc.queryForList("select config_json configJson, version from bp_receipt_template_version where id=? and tenant_id=? and template_id=?", versionId, TenantContext.require(), id);
+        if (rows.isEmpty()) throw new IllegalArgumentException("版本不存在");
+        List<Map<String, Object>> old = jdbc.queryForList("select config_json configJson, version from bp_receipt_template where id=? and tenant_id=? and is_deleted=0", id, TenantContext.require());
+        if (!old.isEmpty()) {
+            jdbc.update("insert into bp_receipt_template_version(id,tenant_id,template_id,config_json,version) values(?,?,?,?,?)", idGen.nextId(), TenantContext.require(), id, old.get(0).get("configJson"), old.get(0).get("version"));
+        }
+        jdbc.update("update bp_receipt_template set config_json=?, version=version+1, status='DRAFT' where id=? and tenant_id=? and is_deleted=0", rows.get(0).get("configJson"), id, TenantContext.require());
+        return Map.of("id", id, "status", "DRAFT");
+    }
+
     public Map<String, Object> publish(long id) {
         int n = jdbc.update("update bp_receipt_template set status='PUBLISHED' where id=? and tenant_id=? and is_deleted=0", id, TenantContext.require());
         if (n == 0) throw new IllegalArgumentException("模板不存在");

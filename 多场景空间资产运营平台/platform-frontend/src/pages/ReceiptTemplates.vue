@@ -12,6 +12,7 @@ const editingId = ref(null)
 const preview = ref(false)
 const historyRows = ref([])
 const showHistory = ref(false)
+const historyTemplateId = ref(null)
 const dragging = ref(false)
 let dragStart = null
 const form = reactive({ templateName: t('receiptTemplates.defaultName'), title: t('receiptTemplates.defaultTitle'), company: t('receiptTemplates.defaultCompany'), footer: t('receiptTemplates.defaultFooter'), titleSize: 18, companySize: 11, titleAlign: 'center', sealImage: '', sealSize: 90, sealX: 330, sealY: 120 })
@@ -77,7 +78,14 @@ function edit(x) {
   preview.value = true
 }
 async function loadHistory(id) {
-  try { historyRows.value = await request(`/receipt-templates/${id}/history`); showHistory.value = true } catch (e) { error.value = e.message }
+  try { historyTemplateId.value = id; historyRows.value = await request(`/receipt-templates/${id}/history`); showHistory.value = true } catch (e) { error.value = e.message }
+}
+async function restore(h) {
+  try {
+    await request(`/receipt-templates/${historyTemplateId.value}/rollback/${h.id}`, { method: 'POST' })
+    showHistory.value = false
+    await load()
+  } catch (e) { error.value = e.message }
 }
 async function previewPdf(id) {
   const res = await fetch(`/api/v1/platform/receipt-templates/${id}/preview.pdf`, { headers: { Authorization: `Bearer ${localStorage.getItem('platformToken') || ''}` } })
@@ -138,7 +146,7 @@ onMounted(load)
       <div class="modal" style="max-width:760px">
         <div class="panel-head"><h2>{{ t('receiptTemplates.history') }}</h2><button class="sm" @click="showHistory = false">{{ t('receiptTemplates.close') }}</button></div>
         <div v-if="!historyRows.length" class="empty">{{ t('receiptTemplates.empty') }}</div>
-        <table v-else><thead><tr><th>{{ t('receiptTemplates.version') }}</th><th>{{ t('receiptTemplates.config') }}</th><th>{{ t('receiptTemplates.time') }}</th></tr></thead><tbody><tr v-for="h in historyRows" :key="h.id"><td>{{ h.version }}</td><td class="mono small">{{ h.configJson }}</td><td>{{ h.createTime }}</td></tr></tbody></table>
+        <table v-else><thead><tr><th>{{ t('receiptTemplates.version') }}</th><th>{{ t('receiptTemplates.config') }}</th><th>{{ t('receiptTemplates.time') }}</th><th>{{ t('receiptTemplates.action') }}</th></tr></thead><tbody><tr v-for="h in historyRows" :key="h.id"><td>{{ h.version }}</td><td class="mono small">{{ h.configJson }}</td><td>{{ h.createTime }}</td><td><button class="sm" @click="restore(h)">{{ t('receiptTemplates.restore') }}</button></td></tr></tbody></table>
       </div>
     </div>
 
