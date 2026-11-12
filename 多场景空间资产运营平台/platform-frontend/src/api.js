@@ -100,6 +100,8 @@ export const api = {
   joinWaitlist: (id) => request(`/guarantee/applications/${id}/waitlist`, { method: 'POST' }),
   waitlist: (projectId) => request(`/guarantee/waitlist?projectId=${projectId}`),
   allocate: (waitlistId, houseId) => request(`/guarantee/waitlist/${waitlistId}/allocate`, { method: 'POST', body: JSON.stringify({ houseId }) }),
+  allocations: (projectId) => request(`/guarantee/allocations?projectId=${projectId}`),
+  allocationContract: (allocationId, body) => request(`/guarantee/allocations/${allocationId}/contract`, { method: 'POST', body: JSON.stringify(body) }),
   contracts: (projectId) => request(`/guarantee/contracts?projectId=${projectId}`),
   createContract: (body) => request('/guarantee/contracts', { method: 'POST', body: JSON.stringify(body) }),
   submitContract: (id) => request(`/guarantee/contracts/${id}/submit`, { method: 'POST' }),
