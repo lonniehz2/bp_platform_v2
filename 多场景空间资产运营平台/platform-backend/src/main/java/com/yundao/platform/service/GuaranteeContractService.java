@@ -142,6 +142,7 @@ public class GuaranteeContractService {
         }
         jdbc.update("update guarantee_contract set contract_status='ACTIVE', update_time=now() "
                 + "where id=? and tenant_id=?", contractId, TenantContext.require());
+        occupyHouse(contract);
         return Map.of("id", contractId, "contractStatus", "ACTIVE");
     }
 
@@ -159,6 +160,7 @@ public class GuaranteeContractService {
         }
         jdbc.update("update guarantee_contract set contract_status='ACTIVE', update_time=now() "
                 + "where id=? and tenant_id=?", contractId, TenantContext.require());
+        occupyHouse(contract);
         return Map.of("id", contractId, "contractStatus", "ACTIVE",
                 "reason", reason == null ? "" : reason);
     }
@@ -215,6 +217,13 @@ public class GuaranteeContractService {
         out.put("contractId", contractId);
         out.put("allocationStatus", "CONTRACTED");
         return out;
+    }
+
+    private void occupyHouse(Contract contract) {
+        jdbc.update("update bp_house set house_status='OCCUPIED', update_time=now() where id=? and tenant_id=?",
+                contract.houseId(), contract.tenantId());
+        jdbc.update("update guarantee_allocation set allocation_status='CONTRACTED' where contract_id=? and tenant_id=?",
+                contract.id(), contract.tenantId());
     }
 
     @org.springframework.transaction.annotation.Transactional
