@@ -25,6 +25,9 @@ public class ReceiptPdfService {
 
     public byte[] render(Map<String, Object> receipt, Map<String, Object> config,
                          String verifyUrl, String verifyCode) {
+        if (config != null && config.get("canvas") instanceof Map<?, ?> canvas) {
+            return renderCanvas(receipt, canvas, verifyUrl, verifyCode);
+        }
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             Document document = new Document(PageSize.A5, 42, 42, 42, 42);
@@ -66,6 +69,73 @@ public class ReceiptPdfService {
         } catch (Exception e) {
             throw new IllegalStateException("收据 PDF 生成失败", e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private byte[] renderCanvas(Map<String, Object> receipt, Map<?, ?> canvas, String verifyUrl, String verifyCode) {
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            Document document = new Document(PageSize.A4, 0, 0, 0, 0);
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            document.open();
+            PdfContentByte cb = writer.getDirectContent();
+            BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.NOT_EMBEDDED);
+            float pageHeight = PageSize.A4.getHeight();
+            Object objectsRaw = canvas.get("objects");
+            if (objectsRaw instanceof java.util.List<?> objects) {
+                for (Object raw : objects) {
+                    if (!(raw instanceof Map<?, ?> obj)) continue;
+                    String type = String.valueOf(obj.get("type"));
+                    float left = f(obj.get("left"));
+                    float top = f(obj.get("top"));
+                    if ("textbox".equals(type) || "text".equals(type)) {
+                        String text = replace(String.valueOf(obj.get("text") == null ? "" : obj.get("text")), receipt, verifyUrl, verifyCode);
+                        float size = Math.max(6, f(obj.get("fontSize")));
+                        cb.beginText();
+                        cb.setFontAndSize(bf, size);
+                        cb.setTextMatrix(left, pageHeight - top - size);
+                        cb.showText(text);
+                        cb.endText();
+                    } else if ("image".equals(type)) {
+                        String src = String.valueOf(obj.get("src"));
+                        int comma = src.indexOf(',');
+                        if (comma > 0) src = src.substring(comma + 1);
+                        Image img = Image.getInstance(java.util.Base64.getDecoder().decode(src));
+                        float width = f(obj.get("width")) * Math.max(1f, f(obj.get("scaleX")));
+                        img.scaleToFit(width, 2000);
+                        img.setAbsolutePosition(left, pageHeight - top - img.getScaledHeight());
+                        cb.addImage(img);
+                    } else if ("rect".equals(type) && "qr".equals(String.valueOf(obj.get("role")))) {
+                        float width = f(obj.get("width")) * Math.max(1f, f(obj.get("scaleX")));
+                        Image qr = Image.getInstance(qrPng(verifyUrl, 180));
+                        qr.scaleToFit(width, 2000);
+                        qr.setAbsolutePosition(left, pageHeight - top - qr.getScaledHeight());
+                        cb.addImage(qr);
+                    }
+                }
+            }
+            document.close();
+            return out.toByteArray();
+        } catch (Exception e) {
+            throw new IllegalStateException("收据模板 PDF 生成失败", e);
+        }
+    }
+
+    private float f(Object value) {
+        if (value instanceof Number n) return n.floatValue();
+        try { return value == null ? 0 : Float.parseFloat(String.valueOf(value)); } catch (Exception e) { return 0; }
+    }
+
+    private String replace(String text, Map<String, Object> receipt, String verifyUrl, String verifyCode) {
+        return text.replace("{{receiptNo}}", value(receipt, "receiptNo"))
+                .replace("{{paymentNo}}", value(receipt, "paymentNo"))
+                .replace("{{amount}}", value(receipt, "amount"))
+                .replace("{{paymentMethod}}", value(receipt, "paymentMethod"))
+                .replace("{{issuedTime}}", value(receipt, "issuedTime"))
+                .replace("{{title}}", "电子收据")
+                .replace("{{company}}", "收款单位")
+                .replace("{{verifyCode}}", verifyCode)
+                .replace("{{verifyUrl}}", verifyUrl);
     }
 
     public String verifyCode(Map<String, Object> receipt) {

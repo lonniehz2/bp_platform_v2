@@ -7,6 +7,7 @@ import './styles.css'
 import Login from './pages/Login.vue'
 import VerifyReceipt from './pages/VerifyReceipt.vue'
 import ReceiptTemplates from './pages/ReceiptTemplates.vue'
+import ReceiptDesigner from './pages/ReceiptDesigner.vue'
 import Dashboard from './pages/Dashboard.vue'
 import Workbench from './pages/Workbench.vue'
 import Projects from './pages/Projects.vue'
@@ -71,6 +72,7 @@ const baseRoutes = [
     { path: '/', component: Workbench, meta: { titleKey: 'workbench.title' } },
     { path: '/guarantee/workbench', component: Workbench, meta: { titleKey: 'workbench.title' } },
     { path: '/guarantee/receipt-templates', component: ReceiptTemplates, meta: { titleKey: 'receiptTemplates.title' } },
+    { path: '/guarantee/receipt-designer/:id?', component: ReceiptDesigner, meta: { titleKey: 'receiptDesigner.title' } },
     { path: '/guarantee/cockpit', component: Dashboard, meta: { titleKey: 'cockpit.title' } },
     { path: '/projects', component: Projects, meta: { titleKey: 'proj.title' } },
     { path: '/persons', component: Persons, meta: { titleKey: 'pp.title' } },

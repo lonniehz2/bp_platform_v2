@@ -1,0 +1,77 @@
+<script setup>
+import { onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { Canvas, Textbox, FabricImage, Rect } from 'fabric'
+
+const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
+const canvasEl = ref(null)
+const error = ref('')
+const busy = ref(false)
+const templates = ref([])
+const selectedId = ref(route.params.id ? String(route.params.id) : '')
+const form = reactive({ templateName: t('receiptDesigner.defaultName'), title: t('receiptDesigner.defaultTitle'), company: t('receiptDesigner.defaultCompany'), footer: t('receiptDesigner.defaultFooter') })
+let canvas
+
+async function api(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('platformToken') || ''}` }
+  const res = await fetch('/api/v1/platform' + path, { ...options, headers })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok || json.code !== 'BP00000') throw new Error(json.message || t('receiptDesigner.failed'))
+  return json.data
+}
+function addText(line = '{{receiptNo}}') { canvas.add(new Textbox(line, { left: 60, top: 150, width: 300, fontSize: 16, fill: '#222' })) }
+function addSeal(e) {
+  const file = e.target.files?.[0]; if (!file) return
+  const reader = new FileReader()
+  reader.onload = async () => { const img = await FabricImage.fromURL(String(reader.result)); img.scaleToWidth(100); img.set({ left: 380, top: 620 }); canvas.add(img) }
+  reader.readAsDataURL(file)
+}
+function addQr() { canvas.add(new Rect({ left: 60, top: 680, width: 80, height: 80, fill: '#111', role: 'qr' })) }
+async function load() {
+  templates.value = await api('/receipt-templates')
+  if (!selectedId.value && templates.value[0]) selectedId.value = String(templates.value[0].id)
+  const tpl = templates.value.find(x => String(x.id) === selectedId.value)
+  if (!tpl) return
+  form.templateName = tpl.templateName
+  const c = JSON.parse(tpl.configJson || '{}')
+  form.title = c.title || form.title; form.company = c.company || form.company; form.footer = c.footer || form.footer
+  if (c.canvas?.objects) await canvas.loadFromJSON(c.canvas)
+  else {
+    addText('{{title}}'); addText('Company: {{company}}'); addText('Receipt No: {{receiptNo}}'); addText('Amount: {{amount}}'); addQr()
+  }
+}
+async function save() {
+  busy.value = true; error.value = ''
+  try {
+    const configJson = JSON.stringify({ ...form, canvas: canvas.toJSON(['role']) })
+    if (selectedId.value) await api(`/receipt-templates/${selectedId.value}`, { method: 'POST', body: JSON.stringify({ templateName: form.templateName, configJson }) })
+    else await api('/receipt-templates', { method: 'POST', body: JSON.stringify({ templateName: form.templateName, configJson }) })
+    await load()
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+onMounted(async () => {
+  canvas = new Canvas(canvasEl.value, { width: 595, height: 842, backgroundColor: '#fff', preserveObjectStacking: true })
+  await load()
+})
+</script>
+
+<template>
+  <div>
+    <div v-if="error" class="error">{{ error }}</div>
+    <div class="panel">
+      <div class="panel-head"><div><h2>{{ t('receiptDesigner.title') }}</h2><p>{{ t('receiptDesigner.subtitle') }}</p></div><button class="primary" :disabled="busy" @click="save">{{ t('receiptDesigner.save') }}</button></div>
+      <div class="row">
+        <select v-model="selectedId" @change="load"><option v-for="x in templates" :key="x.id" :value="String(x.id)">{{ x.templateName }} v{{ x.version }}</option></select>
+        <button class="sm" @click="addText()">{{ t('receiptDesigner.addText') }}</button>
+        <button class="sm" @click="addQr">{{ t('receiptDesigner.addQr') }}</button>
+        <label class="sm">{{ t('receiptDesigner.addSeal') }}<input type="file" accept="image/*" style="display:none" @change="addSeal" /></label>
+      </div>
+    </div>
+    <div class="panel" style="overflow:auto;background:#eef1f5">
+      <canvas ref="canvasEl"></canvas>
+    </div>
+  </div>
+</template>
