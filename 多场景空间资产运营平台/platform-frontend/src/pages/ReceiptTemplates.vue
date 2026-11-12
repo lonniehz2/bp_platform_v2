@@ -10,6 +10,8 @@ const editingId = ref(null)
 const preview = ref(false)
 const historyRows = ref([])
 const showHistory = ref(false)
+const dragging = ref(false)
+let dragStart = null
 const form = reactive({ templateName: t('receiptTemplates.defaultName'), title: t('receiptTemplates.defaultTitle'), company: t('receiptTemplates.defaultCompany'), footer: t('receiptTemplates.defaultFooter'), titleSize: 18, companySize: 11, titleAlign: 'center', sealImage: '', sealSize: 90, sealX: 330, sealY: 120 })
 
 async function request(path, options = {}) {
@@ -30,6 +32,23 @@ async function save() {
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
+function startDrag(e) {
+  dragging.value = true
+  dragStart = { x: e.clientX, y: e.clientY, sealX: Number(form.sealX), sealY: Number(form.sealY) }
+  window.addEventListener('mousemove', onDrag)
+  window.addEventListener('mouseup', stopDrag)
+}
+function onDrag(e) {
+  if (!dragging.value || !dragStart) return
+  form.sealX = Math.max(0, Math.round(dragStart.sealX + (e.clientX - dragStart.x)))
+  form.sealY = Math.max(0, Math.round(dragStart.sealY - (e.clientY - dragStart.y)))
+}
+function stopDrag() {
+  dragging.value = false
+  window.removeEventListener('mousemove', onDrag)
+  window.removeEventListener('mouseup', stopDrag)
+}
+
 function onSeal(e) {
   const file = e.target.files && e.target.files[0]
   if (!file) return
@@ -98,7 +117,7 @@ onMounted(load)
           <h2 :style="{ fontSize: form.titleSize + 'px', textAlign: form.titleAlign }">{{ form.title }}</h2>
           <div :style="{ fontSize: form.companySize + 'px' }">{{ form.company }}</div>
           <div class="a4-lines"><div>Receipt No: PREVIEW-001</div><div>Payment No: PAY-PREVIEW-001</div><div>Amount: CNY 100.00</div><div>Date: 2026-11-12</div></div>
-          <img v-if="form.sealImage" :src="form.sealImage" class="a4-seal" :style="{ width: form.sealSize + 'px', left: form.sealX + 'px', bottom: form.sealY + 'px' }" />
+          <img v-if="form.sealImage" :src="form.sealImage" class="a4-seal" :style="{ width: form.sealSize + 'px', left: form.sealX + 'px', bottom: form.sealY + 'px' }" @mousedown.prevent="startDrag" />
           <div class="a4-footer">{{ form.footer }}</div>
         </div>
       </div>
@@ -111,16 +130,7 @@ onMounted(load)
       </tbody></table>
     </div>
 
-    <div v-if="editingId" class="modal-mask" @click.self="editingId = null">
-      <div class="modal">
-        <div class="panel-head"><h2>{{ t('receiptTemplates.editTitle') }}</h2><button class="sm" @click="editingId = null">{{ t('receiptTemplates.close') }}</button></div>
-        <div class="field"><label>{{ t('receiptTemplates.name') }}</label><input v-model="form.templateName" /></div>
-        <div class="field"><label>{{ t('receiptTemplates.titleField') }}</label><input v-model="form.title" /></div>
-        <div class="field"><label>{{ t('receiptTemplates.company') }}</label><input v-model="form.company" /></div>
-        <div class="field"><label>{{ t('receiptTemplates.footer') }}</label><input v-model="form.footer" /></div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="sm" @click="editingId = null">{{ t('receiptTemplates.close') }}</button><button class="primary" :disabled="busy" @click="save">{{ t('receiptTemplates.save') }}</button></div>
-      </div>
-    </div>
+    <div v-if="editingId" class="panel" style="border-left:4px solid #1f6feb"><strong>{{ t('receiptTemplates.editTitle') }}</strong> <span class="small muted">{{ t('receiptTemplates.layoutHint') }}</span></div>
 
     <div v-if="showHistory" class="modal-mask" @click.self="showHistory = false">
       <div class="modal" style="max-width:760px">
