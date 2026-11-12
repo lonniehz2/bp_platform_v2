@@ -41,7 +41,9 @@ onMounted(async () => {
       <div v-else class="invalid">
         <div class="invalid-mark">!</div>
         <h2>{{ t('receiptVerify.invalid') }}</h2>
-        <p>{{ t('receiptVerify.invalidHint') }}</p>
+        <p v-if="result?.status === 'REFUNDED'">{{ t('receiptVerify.refunded') }}</p>
+        <p v-else-if="result?.status === 'VOID'">{{ t('receiptVerify.voided') }}</p>
+        <p v-else>{{ t('receiptVerify.invalidHint') }}</p>
       </div>
       <p class="small muted">{{ t('receiptVerify.footer') }}</p>
     </div>
