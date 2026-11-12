@@ -457,7 +457,7 @@ public class BillingService {
     public Map<String, Object> receipt(long paymentId) {
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "select r.id, r.receipt_no receiptNo, r.payment_id paymentId, r.amount, "
-                        + "r.receipt_status receiptStatus, r.issued_time issuedTime, p.payment_no paymentNo, p.payment_method paymentMethod "
+                        + "r.receipt_status receiptStatus, r.issued_time issuedTime, p.payment_no paymentNo, p.payment_method paymentMethod, p.project_id projectId "
                         + "from bp_receipt r join bp_payment p on p.id=r.payment_id "
                         + "where r.tenant_id=? and r.payment_id=? and r.is_deleted=0",
                 TenantContext.require(), paymentId);
