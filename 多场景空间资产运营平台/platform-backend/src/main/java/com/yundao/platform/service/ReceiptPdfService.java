@@ -7,6 +7,7 @@ import com.lowagie.text.Document;
 import com.lowagie.text.Font;
 import com.lowagie.text.Image;
 import com.lowagie.text.PageSize;
+import com.lowagie.text.Rectangle;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfWriter;
@@ -75,14 +76,19 @@ public class ReceiptPdfService {
     private byte[] renderCanvas(Map<String, Object> receipt, Map<?, ?> canvas, Map<String, Object> config, String verifyUrl, String verifyCode) {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            Document document = new Document(PageSize.A4, 0, 0, 0, 0);
+            Rectangle page = switch (String.valueOf(config == null ? "A4" : config.getOrDefault("pageSize", "A4"))) {
+                case "A5" -> PageSize.A5;
+                case "B5" -> new Rectangle(499, 709);
+                default -> PageSize.A4;
+            };
+            Document document = new Document(page, 0, 0, 0, 0);
             PdfWriter writer = PdfWriter.getInstance(document, out);
             document.open();
             document.add(new Paragraph(" "));
             document.newPage();
             PdfContentByte cb = writer.getDirectContent();
             BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.NOT_EMBEDDED);
-            float pageHeight = PageSize.A4.getHeight();
+            float pageHeight = page.getHeight();
             Object objectsRaw = canvas.get("objects");
             if (objectsRaw instanceof java.util.List<?> objects) {
                 for (Object raw : objects) {

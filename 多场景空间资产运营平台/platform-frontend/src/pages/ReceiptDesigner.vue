@@ -12,6 +12,8 @@ const error = ref('')
 const busy = ref(false)
 const templates = ref([])
 const selectedId = ref(route.params.id ? String(route.params.id) : '')
+const paper = ref('A4')
+const PAPER = { A4: [595, 842], A5: [420, 595], B5: [499, 709] }
 const form = reactive({ templateName: t('receiptDesigner.defaultName'), title: t('receiptDesigner.defaultTitle'), company: t('receiptDesigner.defaultCompany'), footer: t('receiptDesigner.defaultFooter') })
 let canvas
 
@@ -23,6 +25,12 @@ async function api(path, options = {}) {
   return json.data
 }
 function addText(line = t('receiptDesigner.defaultText')) { canvas.add(new Textbox(line, { left: 60, top: 150, width: 300, fontSize: 16, fill: '#222' })) }
+function applyPaper(size) {
+  paper.value = size
+  const [w, h] = PAPER[size] || PAPER.A4
+  canvas.setDimensions({ width: w, height: h })
+  canvas.requestRenderAll()
+}
 async function loadTemplateContent() {
   const tpl = templates.value.find(x => String(x.id) === selectedId.value)
   if (!tpl) return
@@ -49,6 +57,7 @@ async function load() {
   form.templateName = tpl.templateName
   const c = JSON.parse(tpl.configJson || '{}')
   form.title = c.title || form.title; form.company = c.company || form.company; form.footer = c.footer || form.footer
+  applyPaper(c.pageSize || 'A4')
   // Load the selected template version on entry
   if (c.canvas?.objects) {
     canvas.clear()
@@ -60,7 +69,7 @@ async function load() {
 async function save() {
   busy.value = true; error.value = ''
   try {
-    const configJson = JSON.stringify({ ...form, canvas: canvas.toJSON(['role']) })
+    const configJson = JSON.stringify({ ...form, pageSize: paper.value, canvas: canvas.toJSON(['role']) })
     if (selectedId.value) await api(`/receipt-templates/${selectedId.value}`, { method: 'POST', body: JSON.stringify({ templateName: form.templateName, configJson }) })
     else await api('/receipt-templates', { method: 'POST', body: JSON.stringify({ templateName: form.templateName, configJson }) })
     await load()
@@ -79,6 +88,7 @@ onMounted(async () => {
     <div class="panel">
       <div class="panel-head"><div><h2>{{ t('receiptDesigner.title') }}</h2><p>{{ t('receiptDesigner.subtitle') }}</p></div><button class="primary" :disabled="busy" @click="save">{{ t('receiptDesigner.save') }}</button></div>
       <div class="row">
+        <select v-model="paper" @change="applyPaper(paper)"><option value="A4">A4</option><option value="A5">A5</option><option value="B5">B5</option></select>
         <select v-model="selectedId" @change="load"><option v-for="x in templates" :key="x.id" :value="String(x.id)">{{ x.templateName }} v{{ x.version }}</option></select>
         <button class="sm" @click="loadTemplateContent">{{ t('receiptDesigner.loadTemplate') }}</button><button class="sm" @click="addText()">{{ t('receiptDesigner.addText') }}</button>
         <button class="sm" @click="addField('paymentNo')">{{ t('receiptDesigner.paymentNo') }}</button><button class="sm" @click="addField('paymentMethod')">{{ t('receiptDesigner.paymentMethod') }}</button><button class="sm" @click="addField('issuedTime')">{{ t('receiptDesigner.issuedTime') }}</button><button class="sm" @click="addField('receiptStatus')">{{ t('receiptDesigner.status') }}</button><button class="sm" @click="addQr">{{ t('receiptDesigner.addQr') }}</button><button class="sm danger" @click="deleteSelected">{{ t('receiptDesigner.deleteSelected') }}</button>
