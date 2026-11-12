@@ -2,6 +2,7 @@ package com.yundao.platform.controller;
 
 import com.yundao.platform.common.api.R;
 import com.yundao.platform.service.BillingService;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -117,10 +118,14 @@ public class BillingController {
         return R.ok(Map.of("paymentId", paymentId, "status", "VOID"));
     }
 
-    @GetMapping(value = "/payments/{paymentId}/receipt/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<byte[]> receiptPdf(@PathVariable long paymentId,
-                                             @RequestParam(defaultValue = "false") boolean inline) {
+    @GetMapping("/payments/{paymentId}/receipt/preview-data")
+    public R<Map<String, String>> receiptPreviewData(@PathVariable long paymentId) {
         permissions.require("billing:view");
+        byte[] pdf = buildReceiptPdf(paymentId);
+        return R.ok(Map.of("pdf", Base64.getEncoder().encodeToString(pdf)));
+    }
+
+    private byte[] buildReceiptPdf(long paymentId) {
         Map<String, Object> receipt = service.receipt(paymentId);
         long receiptId = Long.parseLong(String.valueOf(receipt.get("id")));
         long projectId = Long.parseLong(String.valueOf(receipt.get("projectId")));
@@ -129,6 +134,14 @@ public class BillingController {
         String url = verifyBaseUrl + doc.get("token");
         byte[] pdf = receiptPdfService.render(receipt, config, url, String.valueOf(doc.get("code")));
         receiptDocumentService.savePdfHash(receiptId, receiptPdfService.sha256(pdf));
+        return pdf;
+    }
+
+    @GetMapping(value = "/payments/{paymentId}/receipt/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> receiptPdf(@PathVariable long paymentId,
+                                             @RequestParam(defaultValue = "false") boolean inline) {
+        permissions.require("billing:view");
+        byte[] pdf = buildReceiptPdf(paymentId);
         return ResponseEntity.ok()
                 .header("Content-Disposition", (inline ? "inline" : "attachment") + "; filename=\"receipt-" + paymentId + ".pdf\"")
                 .contentType(MediaType.APPLICATION_PDF)

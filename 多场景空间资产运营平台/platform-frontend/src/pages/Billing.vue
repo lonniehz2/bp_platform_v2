@@ -173,11 +173,15 @@ async function previewReceipt(p) {
   previewPayment.value = p
   previewLoading.value = true
   try {
-    const res = await fetch(`/api/v1/platform/billing/payments/${p.id}/receipt/pdf`, {
+    const res = await fetch(`/api/v1/platform/billing/payments/${p.id}/receipt/preview-data`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('platformToken') || ''}` }
     })
-    if (!res.ok) throw new Error(t('billing.receiptPdfFailed'))
-    const pdf = await pdfjsLib.getDocument({ data: await res.arrayBuffer() }).promise
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok || json.code !== 'BP00000') throw new Error(json.message || t('billing.receiptPdfFailed'))
+    const binary = atob(json.data.pdf)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+    const pdf = await pdfjsLib.getDocument({ data: bytes }).promise
     const page = await pdf.getPage(1)
     await nextTick()
     const canvas = previewCanvas.value
