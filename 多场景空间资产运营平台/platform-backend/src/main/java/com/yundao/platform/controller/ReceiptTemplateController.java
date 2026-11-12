@@ -26,6 +26,9 @@ public class ReceiptTemplateController {
     @PostMapping("/{id}")
     public R<Map<String, Object>> update(@PathVariable long id, @RequestBody ReceiptTemplateService.Cmd cmd) { permissions.require("billing:adjust"); return R.ok(service.update(id, cmd.templateName(), cmd.configJson())); }
 
+    @GetMapping("/{id}/history")
+    public R<List<Map<String, Object>>> history(@PathVariable long id) { permissions.require("billing:view"); return R.ok(service.history(id)); }
+
     @PostMapping("/{id}/publish")
     public R<Map<String, Object>> publish(@PathVariable long id) { permissions.require("billing:adjust"); return R.ok(service.publish(id)); }
 }
