@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$JdkHome = "D:\Work\tools\jdk-17.0.20.1+1",
     [string]$Maven = "D:\Work\tools\apache-maven-3.9.9\bin\mvn.cmd",
     [string]$Settings = "D:\Work\tools\m2-settings.xml"
@@ -29,5 +29,14 @@ try {
 } finally {
     Pop-Location
 }
+
+
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$jarPath = Join-Path $backend "target\multi-scene-platform.jar"
+$zip = [System.IO.Compression.ZipFile]::OpenRead($jarPath)
+try {
+    $hasLogback = $zip.Entries | Where-Object { $_.FullName -like 'BOOT-INF/lib/logback-classic-*' }
+    if (-not $hasLogback) { throw "Invalid jar: missing BOOT-INF/lib/logback-classic (not a Spring Boot fat jar)" }
+} finally { $zip.Dispose() }
 
 Write-Host "Built: $backend\target\multi-scene-platform.jar"

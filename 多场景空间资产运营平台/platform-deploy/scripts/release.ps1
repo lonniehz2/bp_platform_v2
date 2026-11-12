@@ -15,6 +15,9 @@ Push-Location (Join-Path $repo 'platform-frontend')
 try { & npm run build } finally { Pop-Location }
 
 Copy-Item (Join-Path $repo 'platform-backend/target/multi-scene-platform.jar') (Join-Path $stage 'app.jar')
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$zipCheck = [System.IO.Compression.ZipFile]::OpenRead((Join-Path $stage 'app.jar'))
+try { if (-not ($zipCheck.Entries | Where-Object { $_.FullName -like 'BOOT-INF/lib/logback-classic-*' })) { throw 'release jar is not a Spring Boot fat jar' } } finally { $zipCheck.Dispose() }
 Copy-Item (Join-Path $repo 'platform-frontend/dist/*') (Join-Path $stage 'web') -Recurse
 Copy-Item (Join-Path $repo 'platform-sql') (Join-Path $stage 'platform-sql') -Recurse
 New-Item -ItemType Directory -Force (Join-Path $stage 'platform-deploy') | Out-Null
