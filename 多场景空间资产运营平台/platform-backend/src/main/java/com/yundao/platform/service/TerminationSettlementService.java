@@ -60,6 +60,8 @@ public class TerminationSettlementService {
                 reason == null ? "退租回收" : reason, TenantContext.require(), contractId);
         jdbc.update("update bp_grant_entitlement set grant_status='REVOKED', revoke_reason=?, update_time=now() where tenant_id=? and person_id=? and target_type='SPACE' and target_id=(select space_id from bp_house where id=?) and grant_status='ACTIVE'",
                 reason == null ? "退租回收" : reason, TenantContext.require(), contract.personId(), contract.houseId());
+        jdbc.update("update bp_grant_entitlement set grant_status='REVOKED', revoke_reason=?, update_time=now() where tenant_id=? and person_id=? and target_type='DEVICE' and target_id in (select id from bp_dev_device where space_id=(select space_id from bp_house where id=?) and is_deleted=0) and grant_status='ACTIVE'",
+                reason == null ? "退租回收" : reason, TenantContext.require(), contract.personId(), contract.houseId());
         BigDecimal refundable = (BigDecimal) preview.get("refundableAmount");
         if (refundable.signum() > 0) {
             deposits.refund(((Number) preview.get("depositId")).longValue(),

@@ -237,6 +237,21 @@ public class GuaranteeContractService {
                         idGen.nextId(), contract.tenantId(), contract.projectId(), contract.personId(),
                         spaceId, contract.startDate(), contract.endDate(), contract.id());
             }
+            List<Long> deviceIds = jdbc.queryForList(
+                    "select id from bp_dev_device where tenant_id=? and project_id=? and space_id=? and is_deleted=0",
+                    Long.class, contract.tenantId(), contract.projectId(), spaceId);
+            for (Long deviceId : deviceIds) {
+                long deviceDuplicate = count("select count(*) from bp_grant_entitlement where tenant_id=? and person_id=? "
+                                + "and target_type='DEVICE' and target_id=? and grant_status='ACTIVE' and is_deleted=0",
+                        contract.tenantId(), contract.personId(), deviceId);
+                if (deviceDuplicate == 0) {
+                    jdbc.update("insert into bp_grant_entitlement(id,tenant_id,project_id,person_id,target_type,target_id,"
+                                    + "grant_level,valid_start,valid_end,grant_status,source_type,source_id,is_deleted) "
+                                    + "values(?,?,?,?, 'DEVICE',?, 'OPEN',?,?, 'ACTIVE','CONTRACT',?,0)",
+                            idGen.nextId(), contract.tenantId(), contract.projectId(), contract.personId(),
+                            deviceId, contract.startDate(), contract.endDate(), contract.id());
+                }
+            }
         }
     }
 
