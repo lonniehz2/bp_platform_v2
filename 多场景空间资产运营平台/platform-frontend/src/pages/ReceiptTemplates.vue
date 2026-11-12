@@ -8,6 +8,8 @@ const error = ref('')
 const busy = ref(false)
 const editingId = ref(null)
 const preview = ref(false)
+const historyRows = ref([])
+const showHistory = ref(false)
 const form = reactive({ templateName: t('receiptTemplates.defaultName'), title: t('receiptTemplates.defaultTitle'), company: t('receiptTemplates.defaultCompany'), footer: t('receiptTemplates.defaultFooter') })
 
 async function request(path, options = {}) {
@@ -37,6 +39,16 @@ function edit(x) {
   form.footer = c.footer || ''
   preview.value = false
 }
+async function loadHistory(id) {
+  try { historyRows.value = await request(`/receipt-templates/${id}/history`); showHistory.value = true } catch (e) { error.value = e.message }
+}
+async function previewPdf(id) {
+  const res = await fetch(`/api/v1/platform/receipt-templates/${id}/preview.pdf`, { headers: { Authorization: `Bearer ${localStorage.getItem('platformToken') || ''}` } })
+  if (!res.ok) { error.value = t('receiptTemplates.failed'); return }
+  const url = URL.createObjectURL(await res.blob())
+  window.open(url, '_blank')
+  setTimeout(() => URL.revokeObjectURL(url), 60000)
+}
 async function publish(id) { try { await request(`/receipt-templates/${id}/publish`, { method: 'POST' }); await load() } catch (e) { error.value = e.message } }
 onMounted(load)
 </script>
@@ -58,7 +70,7 @@ onMounted(load)
       <div class="panel-head"><h2>{{ t('receiptTemplates.list') }}</h2></div>
       <div v-if="!list.length" class="empty">{{ t('receiptTemplates.empty') }}</div>
       <table v-else><thead><tr><th>{{ t('receiptTemplates.name') }}</th><th>{{ t('receiptTemplates.version') }}</th><th>{{ t('receiptTemplates.status') }}</th><th>{{ t('receiptTemplates.action') }}</th></tr></thead><tbody>
-        <tr v-for="x in list" :key="x.id"><td>{{ x.templateName }}</td><td>{{ x.version }}</td><td>{{ x.status }}</td><td><button class="sm" @click="edit(x)">{{ t('receiptTemplates.edit') }}</button><button v-if="x.status !== 'PUBLISHED'" class="sm" @click="publish(x.id)">{{ t('receiptTemplates.publish') }}</button></td></tr>
+        <tr v-for="x in list" :key="x.id"><td>{{ x.templateName }}</td><td>{{ x.version }}</td><td>{{ x.status }}</td><td><button class="sm" @click="previewPdf(x.id)">{{ t('receiptTemplates.previewPdf') }}</button><button class="sm" @click="loadHistory(x.id)">{{ t('receiptTemplates.history') }}</button><button class="sm" @click="edit(x)">{{ t('receiptTemplates.edit') }}</button><button v-if="x.status !== 'PUBLISHED'" class="sm" @click="publish(x.id)">{{ t('receiptTemplates.publish') }}</button></td></tr>
       </tbody></table>
     </div>
   </div>
