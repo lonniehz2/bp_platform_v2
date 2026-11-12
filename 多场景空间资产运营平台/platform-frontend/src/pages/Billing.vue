@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { enumLabel } from '../enumLabels'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
@@ -9,7 +9,10 @@ import SearchSelect from '../components/SearchSelect.vue'
 import DataTable from '../components/DataTable.vue'
 import EntityDetailTabs from '../components/EntityDetailTabs.vue'
 import { useI18n } from 'vue-i18n'
+import * as pdfjsLib from 'pdfjs-dist'
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker
 const route = useRoute()
 const { t } = useI18n()
 const router = useRouter()
@@ -26,6 +29,9 @@ const error = ref('')
 const busy = ref(false)
 const payForm = reactive({ billId: '', amount: '', method: 'CASH' })
 const receipt = ref(null)
+const previewPayment = ref(null)
+const previewCanvas = ref(null)
+const previewLoading = ref(false)
 const detailBill = ref(null)
 const adjusting = ref(null)
 const adjustForm = reactive({ discountAmount: 0, remark: '' })
@@ -164,15 +170,22 @@ async function voidReceipt(p) {
 
 async function previewReceipt(p) {
   busy.value = true; error.value = ''
+  previewPayment.value = p
+  previewLoading.value = true
   try {
-    const res = await fetch(`/api/v1/platform/billing/payments/${p.id}/receipt/pdf?inline=true`, {
+    const res = await fetch(`/api/v1/platform/billing/payments/${p.id}/receipt/pdf`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('platformToken') || ''}` }
     })
     if (!res.ok) throw new Error(t('billing.receiptPdfFailed'))
-    const url = URL.createObjectURL(await res.blob())
-    window.open(url, '_blank')
-    setTimeout(() => URL.revokeObjectURL(url), 60000)
-  } catch (e) { error.value = e.message } finally { busy.value = false }
+    const pdf = await pdfjsLib.getDocument({ data: await res.arrayBuffer() }).promise
+    const page = await pdf.getPage(1)
+    await nextTick()
+    const canvas = previewCanvas.value
+    const viewport = page.getViewport({ scale: 1.5 })
+    canvas.width = viewport.width
+    canvas.height = viewport.height
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise
+  } catch (e) { error.value = e.message; previewPayment.value = null } finally { previewLoading.value = false; busy.value = false }
 }
 
 async function downloadReceiptPdf(p) {
@@ -320,6 +333,14 @@ onMounted(load)
           <button class="primary" @click="printReceipt">{{ t('billing.print') }}</button>
           <button class="primary" :disabled="busy" @click="downloadReceiptPdf(receipt)">{{ t('billing.downloadPdf') }}</button>
         </div>
+      </div>
+    </div>
+
+    <div v-if="previewPayment" class="modal-mask" @click.self="previewPayment = null">
+      <div class="modal" style="max-width:900px">
+        <div class="panel-head"><h2>{{ t('billing.previewReceipt') }}</h2><button class="sm" @click="previewPayment = null">{{ t('billing.close') }}</button></div>
+        <div v-if="previewLoading" class="empty">{{ t('billing.previewLoading') }}</div>
+        <canvas ref="previewCanvas" style="width:100%;height:auto;border:1px solid #e5e7eb"></canvas>
       </div>
     </div>
   </div>
