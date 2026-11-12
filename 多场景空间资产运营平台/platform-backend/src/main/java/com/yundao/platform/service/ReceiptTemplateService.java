@@ -37,7 +37,11 @@ public class ReceiptTemplateService {
             jdbc.update("insert into bp_receipt_template_version(id,tenant_id,template_id,config_json,version) values(?,?,?,?,?)",
                     idGen.nextId(), TenantContext.require(), id, old.get(0).get("configJson"), old.get(0).get("version"));
         }
-        int n = jdbc.update("update bp_receipt_template set template_name=?, config_json=?, version=version+1, status='DRAFT' where id=? and tenant_id=? and is_deleted=0", name, configJson, id, TenantContext.require());
+        Long nextVersion = jdbc.queryForObject(
+                "select greatest(coalesce((select max(version) from bp_receipt_template where id=? and tenant_id=? and is_deleted=0),0), " +
+                        "coalesce((select max(version) from bp_receipt_template_version where template_id=? and tenant_id=?),0)) + 1",
+                Long.class, id, TenantContext.require(), id, TenantContext.require());
+        int n = jdbc.update("update bp_receipt_template set template_name=?, config_json=?, version=?, status='DRAFT' where id=? and tenant_id=? and is_deleted=0", name, configJson, nextVersion, id, TenantContext.require());
         if (n == 0) throw new IllegalArgumentException("模板不存在");
         return Map.of("id", id, "status", "DRAFT");
     }
