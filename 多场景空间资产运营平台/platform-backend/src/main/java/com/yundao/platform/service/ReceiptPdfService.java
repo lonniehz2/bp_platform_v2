@@ -26,7 +26,7 @@ public class ReceiptPdfService {
     public byte[] render(Map<String, Object> receipt, Map<String, Object> config,
                          String verifyUrl, String verifyCode) {
         if (config != null && config.get("canvas") instanceof Map<?, ?> canvas) {
-            return renderCanvas(receipt, canvas, verifyUrl, verifyCode);
+            return renderCanvas(receipt, canvas, config, verifyUrl, verifyCode);
         }
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -72,7 +72,7 @@ public class ReceiptPdfService {
     }
 
     @SuppressWarnings("unchecked")
-    private byte[] renderCanvas(Map<String, Object> receipt, Map<?, ?> canvas, String verifyUrl, String verifyCode) {
+    private byte[] renderCanvas(Map<String, Object> receipt, Map<?, ?> canvas, Map<String, Object> config, String verifyUrl, String verifyCode) {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             Document document = new Document(PageSize.A4, 0, 0, 0, 0);
@@ -89,7 +89,7 @@ public class ReceiptPdfService {
                     float left = f(obj.get("left"));
                     float top = f(obj.get("top"));
                     if ("textbox".equals(type) || "text".equals(type)) {
-                        String text = replace(String.valueOf(obj.get("text") == null ? "" : obj.get("text")), receipt, verifyUrl, verifyCode);
+                        String text = replace(String.valueOf(obj.get("text") == null ? "" : obj.get("text")), receipt, config, verifyUrl, verifyCode);
                         float size = Math.max(6, f(obj.get("fontSize")));
                         cb.beginText();
                         cb.setFontAndSize(bf, size);
@@ -126,7 +126,7 @@ public class ReceiptPdfService {
         try { return value == null ? 0 : Float.parseFloat(String.valueOf(value)); } catch (Exception e) { return 0; }
     }
 
-    private String replace(String text, Map<String, Object> receipt, String verifyUrl, String verifyCode) {
+    private String replace(String text, Map<String, Object> receipt, Map<String, Object> config, String verifyUrl, String verifyCode) {
         return text.replace("{{receiptNo}}", value(receipt, "receiptNo"))
                 .replace("{{paymentNo}}", value(receipt, "paymentNo"))
                 .replace("{{amount}}", value(receipt, "amount"))
@@ -134,8 +134,8 @@ public class ReceiptPdfService {
                 .replace("{{issuedTime}}", value(receipt, "issuedTime"))
                 .replace("{{receiptStatus}}", value(receipt, "receiptStatus"))
                 .replace("{{status}}", value(receipt, "receiptStatus"))
-                .replace("{{title}}", "电子收据")
-                .replace("{{company}}", "收款单位")
+                .replace("{{title}}", text(config, "title", "电子收据"))
+                .replace("{{company}}", text(config, "company", "收款单位"))
                 .replace("{{verifyCode}}", verifyCode)
                 .replace("{{verifyUrl}}", verifyUrl);
     }
