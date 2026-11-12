@@ -6,7 +6,7 @@ const { t } = useI18n()
 const list = ref([])
 const error = ref('')
 const busy = ref(false)
-const form = reactive({ templateName: '默认收款凭证', title: '电子收据', company: '收款单位', footer: '本收据为收款凭证，非发票。' })
+const form = reactive({ templateName: t('receiptTemplates.defaultName'), title: t('receiptTemplates.defaultTitle'), company: t('receiptTemplates.defaultCompany'), footer: t('receiptTemplates.defaultFooter') })
 
 async function request(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('platformToken') || ''}` }
