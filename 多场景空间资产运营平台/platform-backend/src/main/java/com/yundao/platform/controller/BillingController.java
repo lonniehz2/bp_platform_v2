@@ -109,6 +109,14 @@ public class BillingController {
         return R.ok(service.receipt(paymentId));
     }
 
+    @PostMapping("/payments/{paymentId}/receipt/void")
+    public R<Map<String, Object>> voidReceipt(@PathVariable long paymentId) {
+        permissions.require("billing:adjust");
+        Map<String, Object> receipt = service.receipt(paymentId);
+        receiptDocumentService.markStatus(Long.parseLong(String.valueOf(receipt.get("id"))), "VOID");
+        return R.ok(Map.of("paymentId", paymentId, "status", "VOID"));
+    }
+
     @GetMapping(value = "/payments/{paymentId}/receipt/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> receiptPdf(@PathVariable long paymentId) {
         permissions.require("billing:view");
