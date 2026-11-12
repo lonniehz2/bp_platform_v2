@@ -352,7 +352,7 @@ onMounted(load)
           <div class="panel-head"><h2>{{ t('ct.settlement') }}</h2><button class="sm" @click="settleOpen = false">{{ t('ct.close') }}</button></div>
           <div class="field"><label>{{ t('ct.endDate') }}</label><input v-model="settleForm.date" type="date" /></div>
           <div class="field"><label>{{ t('ct.reason') }}</label><input v-model="settleForm.reason" /></div>
-          <table><tbody><tr><th>{{ t('ct.unpaid') }}</th><td>¥{{ settleData.unpaidAmount }}</td></tr><tr><th>{{ t('ct.depositPaid') }}</th><td>¥{{ settleData.depositPaid }}</td></tr><tr><th>{{ t('ct.refundable') }}</th><td>¥{{ settleData.refundableAmount }}</td></tr></tbody></table>
+          <div v-if="Number(settleData.unpaidAmount) > 0" class="error">{{ t('ct.settleUnpaidBlocked') }}</div><table><tbody><tr><th>{{ t('ct.unpaid') }}</th><td>¥{{ settleData.unpaidAmount }}</td></tr><tr><th>{{ t('ct.depositPaid') }}</th><td>¥{{ settleData.depositPaid }}</td></tr><tr><th>{{ t('ct.refundable') }}</th><td>¥{{ settleData.refundableAmount }}</td></tr></tbody></table>
           <div class="row" style="justify-content:flex-end"><button class="sm" @click="settleOpen = false">{{ t('ct.close') }}</button><button class="primary" :disabled="busy" @click="settleContract">{{ t('ct.confirmSettlement') }}</button></div>
         </div>
       </div>

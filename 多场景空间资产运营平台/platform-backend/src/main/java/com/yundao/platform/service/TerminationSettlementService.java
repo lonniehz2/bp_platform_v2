@@ -32,7 +32,7 @@ public class TerminationSettlementService {
         Map<String, Object> deposit = deposits.get(contractId);
         BigDecimal paid = (BigDecimal) deposit.getOrDefault("paidAmount", BigDecimal.ZERO);
         BigDecimal refunded = (BigDecimal) deposit.getOrDefault("refundedAmount", BigDecimal.ZERO);
-        BigDecimal refundable = paid.subtract(refunded).subtract(unpaid == null ? BigDecimal.ZERO : unpaid);
+        BigDecimal refundable = paid.subtract(refunded);
         if (refundable.signum() < 0) refundable = BigDecimal.ZERO;
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("contractId", contractId);
@@ -48,6 +48,9 @@ public class TerminationSettlementService {
     @Transactional
     public Map<String, Object> settle(long contractId, LocalDate date, String reason) {
         Map<String, Object> preview = preview(contractId);
+        if (((BigDecimal) preview.get("unpaidAmount")).signum() > 0) {
+            throw BizException.conflict("退租前请先结清欠费");
+        }
         GuaranteeContractService.Contract contract = contracts.load(contractId);
         LocalDate end = date == null ? LocalDate.now() : date;
         jdbc.update("update guarantee_contract set contract_status='TERMINATED', end_date=?, update_time=now() where id=? and tenant_id=?",
