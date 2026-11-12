@@ -5,6 +5,8 @@ import { i18n } from './i18n'
 import './styles.css'
 
 import Login from './pages/Login.vue'
+import VerifyReceipt from './pages/VerifyReceipt.vue'
+import ReceiptTemplates from './pages/ReceiptTemplates.vue'
 import Dashboard from './pages/Dashboard.vue'
 import Workbench from './pages/Workbench.vue'
 import Projects from './pages/Projects.vue'
@@ -65,8 +67,10 @@ import EntityDetailPage from './pages/EntityDetailPage.vue'
 
 const baseRoutes = [
     { path: '/login', component: Login, meta: { titleKey: 'login.title', public: true } },
+    { path: '/verify/receipt/:token', component: VerifyReceipt, meta: { titleKey: 'receiptVerify.title', public: true } },
     { path: '/', component: Workbench, meta: { titleKey: 'workbench.title' } },
     { path: '/guarantee/workbench', component: Workbench, meta: { titleKey: 'workbench.title' } },
+    { path: '/guarantee/receipt-templates', component: ReceiptTemplates, meta: { titleKey: 'receiptTemplates.title' } },
     { path: '/guarantee/cockpit', component: Dashboard, meta: { titleKey: 'cockpit.title' } },
     { path: '/projects', component: Projects, meta: { titleKey: 'proj.title' } },
     { path: '/persons', component: Persons, meta: { titleKey: 'pp.title' } },

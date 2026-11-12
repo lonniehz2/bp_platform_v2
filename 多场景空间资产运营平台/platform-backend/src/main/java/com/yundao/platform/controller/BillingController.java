@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -21,13 +22,18 @@ public class BillingController {
     private final BillingService service;
     private final com.yundao.platform.service.PermissionService permissions;
     private final com.yundao.platform.service.ReceiptPdfService receiptPdfService;
+    private final com.yundao.platform.service.ReceiptDocumentService receiptDocumentService;
+    @Value("${bp.receipt.verify-base-url:http://localhost:8091/#/verify/receipt/}")
+    private String verifyBaseUrl;
 
     public BillingController(BillingService service,
                              com.yundao.platform.service.PermissionService permissions,
-                             com.yundao.platform.service.ReceiptPdfService receiptPdfService) {
+                             com.yundao.platform.service.ReceiptPdfService receiptPdfService,
+                             com.yundao.platform.service.ReceiptDocumentService receiptDocumentService) {
         this.service = service;
         this.permissions = permissions;
         this.receiptPdfService = receiptPdfService;
+        this.receiptDocumentService = receiptDocumentService;
     }
 
     @GetMapping("/bills")
@@ -107,9 +113,16 @@ public class BillingController {
     public ResponseEntity<byte[]> receiptPdf(@PathVariable long paymentId) {
         permissions.require("billing:view");
         Map<String, Object> receipt = service.receipt(paymentId);
+        long receiptId = Long.parseLong(String.valueOf(receipt.get("id")));
+        long projectId = Long.parseLong(String.valueOf(receipt.get("projectId")));
+        Map<String, Object> doc = receiptDocumentService.getOrCreate(receiptId, projectId);
+        Map<String, Object> config = receiptDocumentService.config(Long.parseLong(String.valueOf(doc.get("templateId"))));
+        String url = verifyBaseUrl + doc.get("token");
+        byte[] pdf = receiptPdfService.render(receipt, config, url, String.valueOf(doc.get("code")));
+        receiptDocumentService.savePdfHash(receiptId, receiptPdfService.sha256(pdf));
         return ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=\"receipt-" + paymentId + ".pdf\"")
                 .contentType(MediaType.APPLICATION_PDF)
-                .body(receiptPdfService.render(receipt));
+                .body(pdf);
     }
 }

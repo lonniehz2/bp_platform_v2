@@ -116,6 +116,7 @@ export const navGroups = [
       { to: '/guarantee/imports', key: 'batchImport', menu: 'batchImport', icon: '·' },
       { to: '/guarantee/sys', key: 'sys', menu: 'sys', icon: '·' },
       { to: '/guarantee/help', key: 'help', menu: 'help', icon: '·' },
+      { to: '/guarantee/receipt-templates', key: 'receiptTemplates', menu: 'receiptTemplates', icon: '·' },
     ]
   },
 ]

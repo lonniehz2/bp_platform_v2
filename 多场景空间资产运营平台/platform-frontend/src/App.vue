@@ -18,6 +18,7 @@ const sceneCode = computed(() => sceneOfPath(route.path))
 const loadedScene = ref('')
 
 const isLogin = computed(() => route.path === '/login')
+const isPublicPage = computed(() => route.meta?.public === true)
 const collapsed = ref(localStorage.getItem('platformSidebar') === '1')
 const projects = ref([])
 const currentProjectId = ref(localStorage.getItem('platformProjectId') || '')
@@ -202,7 +203,7 @@ function logout() {
 </script>
 
 <template>
-  <RouterView v-if="isLogin" />
+  <RouterView v-if="isPublicPage" />
   <div v-else class="shell">
     <aside class="sidebar" :class="{ collapsed }">
       <div class="brand">
