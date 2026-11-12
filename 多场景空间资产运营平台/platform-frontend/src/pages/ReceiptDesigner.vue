@@ -23,6 +23,12 @@ async function api(path, options = {}) {
   return json.data
 }
 function addText(line = t('receiptDesigner.defaultText')) { canvas.add(new Textbox(line, { left: 60, top: 150, width: 300, fontSize: 16, fill: '#222' })) }
+async function loadTemplateContent() {
+  const tpl = templates.value.find(x => String(x.id) === selectedId.value)
+  if (!tpl) return
+  const c = JSON.parse(tpl.configJson || '{}')
+  if (c.canvas?.objects) { canvas.clear(); canvas.backgroundColor = '#fff'; await canvas.loadFromJSON(c.canvas); canvas.requestRenderAll() }
+}
 function addField(key) { addText('{{' + key + '}}') }
 function deleteSelected() {
   const obj = canvas.getActiveObject()
@@ -43,9 +49,12 @@ async function load() {
   form.templateName = tpl.templateName
   const c = JSON.parse(tpl.configJson || '{}')
   form.title = c.title || form.title; form.company = c.company || form.company; form.footer = c.footer || form.footer
-  if (c.canvas?.objects) await canvas.loadFromJSON(c.canvas)
-  else {
-    addText('{{title}}'); addText('Company: {{company}}'); addText('Receipt No: {{receiptNo}}'); addText('Amount: {{amount}}'); addQr()
+  // Load the selected template version on entry
+  if (c.canvas?.objects) {
+    canvas.clear()
+    canvas.backgroundColor = '#fff'
+    await canvas.loadFromJSON(c.canvas)
+    canvas.requestRenderAll()
   }
 }
 async function save() {
@@ -71,7 +80,7 @@ onMounted(async () => {
       <div class="panel-head"><div><h2>{{ t('receiptDesigner.title') }}</h2><p>{{ t('receiptDesigner.subtitle') }}</p></div><button class="primary" :disabled="busy" @click="save">{{ t('receiptDesigner.save') }}</button></div>
       <div class="row">
         <select v-model="selectedId" @change="load"><option v-for="x in templates" :key="x.id" :value="String(x.id)">{{ x.templateName }} v{{ x.version }}</option></select>
-        <button class="sm" @click="addText()">{{ t('receiptDesigner.addText') }}</button>
+        <button class="sm" @click="loadTemplateContent">{{ t('receiptDesigner.loadTemplate') }}</button><button class="sm" @click="addText()">{{ t('receiptDesigner.addText') }}</button>
         <button class="sm" @click="addField('paymentNo')">{{ t('receiptDesigner.paymentNo') }}</button><button class="sm" @click="addField('paymentMethod')">{{ t('receiptDesigner.paymentMethod') }}</button><button class="sm" @click="addField('issuedTime')">{{ t('receiptDesigner.issuedTime') }}</button><button class="sm" @click="addField('receiptStatus')">{{ t('receiptDesigner.status') }}</button><button class="sm" @click="addQr">{{ t('receiptDesigner.addQr') }}</button><button class="sm danger" @click="deleteSelected">{{ t('receiptDesigner.deleteSelected') }}</button>
         <label class="sm">{{ t('receiptDesigner.addSeal') }}<input type="file" accept="image/*" style="display:none" @change="addSeal" /></label>
       </div>
