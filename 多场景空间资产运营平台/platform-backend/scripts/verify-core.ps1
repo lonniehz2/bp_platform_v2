@@ -919,6 +919,31 @@ $directContract = Api "POST" "/api/v1/platform/guarantee/contracts" @{
 $directActive = Api "POST" "/api/v1/platform/guarantee/contracts/$($directContract.id)/activate" @{ reason = "无模板直接生效验证" }
 Assert-True ($directActive.contractStatus -eq "ACTIVE") "contract direct activated"
 
+$renewed = Api "POST" "/api/v1/platform/guarantee/contracts/$($directContract.id)/renew" @{
+    contractNo = "RENEWED_CONTRACT_$suffix"
+    startDate = "2030-01-01"
+    endDate = "2030-12-31"
+    rentAmount = 950
+    depositAmount = 900
+    billingCycle = "MONTH"
+    billDay = 1
+}
+Assert-True ($renewed.contractStatus -eq "DRAFT") "contract renewal creates draft"
+Assert-True ($renewed.renewFromId -eq $directContract.id) "contract renewal links original"
+$contractListAfterRenew = Api "GET" "/api/v1/platform/guarantee/contracts?projectId=$projectId" $null
+$oldContract = @($contractListAfterRenew | Where-Object { $_.id -eq $directContract.id })[0]
+Assert-True ($oldContract.contractStatus -eq "RENEWED") "original contract marked renewed"
+$renewedActive = Api "POST" "/api/v1/platform/guarantee/contracts/$($renewed.id)/activate" @{ reason = "续签生效验证" }
+Assert-True ($renewedActive.contractStatus -eq "ACTIVE") "renewed contract activated"
+$settlementPreview = Api "GET" "/api/v1/platform/guarantee/contracts/$($renewed.id)/termination-settlement" $null
+Assert-True ([decimal]$settlementPreview.refundableAmount -ge 0) "termination settlement preview calculated"
+$settled = Api "POST" "/api/v1/platform/guarantee/contracts/$($renewed.id)/termination-settlement" @{
+    date = "2030-12-31"
+    reason = "端到端退租验证"
+}
+Assert-True ($settled.contractStatus -eq "TERMINATED") "termination settlement terminates contract"
+Assert-True ($settled.houseStatus -eq "VACANT") "termination settlement releases house"
+
 
 $wfBiz = "CONTRACT_SCOPE_$suffix"
 $wfDefault = Api "POST" "/api/v1/platform/workflows" @{
