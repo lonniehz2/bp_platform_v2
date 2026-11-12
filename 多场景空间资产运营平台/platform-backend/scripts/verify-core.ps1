@@ -935,6 +935,9 @@ $oldContract = @($contractListAfterRenew | Where-Object { $_.id -eq $directContr
 Assert-True ($oldContract.contractStatus -eq "RENEWED") "original contract marked renewed"
 $renewedActive = Api "POST" "/api/v1/platform/guarantee/contracts/$($renewed.id)/activate" @{ reason = "续签生效验证" }
 Assert-True ($renewedActive.contractStatus -eq "ACTIVE") "renewed contract activated"
+$activeGrants = Api "GET" "/api/v1/platform/grants?personId=$($person.id)&projectId=$projectId" $null
+$activeContractGrant = @($activeGrants | Where-Object { $_.sourceType -eq "CONTRACT" -and $_.grantStatus -eq "ACTIVE" })[0]
+Assert-True ($null -ne $activeContractGrant) "contract activation creates access grant"
 $settlementPreview = Api "GET" "/api/v1/platform/guarantee/contracts/$($renewed.id)/termination-settlement" $null
 Assert-True ([decimal]$settlementPreview.refundableAmount -ge 0) "termination settlement preview calculated"
 $settled = Api "POST" "/api/v1/platform/guarantee/contracts/$($renewed.id)/termination-settlement" @{
@@ -943,6 +946,9 @@ $settled = Api "POST" "/api/v1/platform/guarantee/contracts/$($renewed.id)/termi
 }
 Assert-True ($settled.contractStatus -eq "TERMINATED") "termination settlement terminates contract"
 Assert-True ($settled.houseStatus -eq "VACANT") "termination settlement releases house"
+$revokedGrants = Api "GET" "/api/v1/platform/grants?personId=$($person.id)&projectId=$projectId" $null
+$revokedContractGrant = @($revokedGrants | Where-Object { $_.sourceType -eq "CONTRACT" -and $_.targetType -eq "SPACE" -and $_.grantStatus -eq "REVOKED" })[0]
+Assert-True ($null -ne $revokedContractGrant) "termination settlement revokes access grant"
 
 
 $wfBiz = "CONTRACT_SCOPE_$suffix"

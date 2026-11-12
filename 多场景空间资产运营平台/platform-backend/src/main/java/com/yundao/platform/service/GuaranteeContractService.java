@@ -224,6 +224,20 @@ public class GuaranteeContractService {
                 contract.houseId(), contract.tenantId());
         jdbc.update("update guarantee_allocation set allocation_status='CONTRACTED' where contract_id=? and tenant_id=?",
                 contract.id(), contract.tenantId());
+        Long spaceId = jdbc.queryForObject("select space_id from bp_house where id=? and tenant_id=?",
+                Long.class, contract.houseId(), contract.tenantId());
+        if (spaceId != null) {
+            long duplicate = count("select count(*) from bp_grant_entitlement where tenant_id=? and person_id=? "
+                            + "and target_type='SPACE' and target_id=? and grant_status='ACTIVE' and is_deleted=0",
+                    contract.tenantId(), contract.personId(), spaceId);
+            if (duplicate == 0) {
+                jdbc.update("insert into bp_grant_entitlement(id,tenant_id,project_id,person_id,target_type,target_id,"
+                                + "grant_level,valid_start,valid_end,grant_status,source_type,source_id,is_deleted) "
+                                + "values(?,?,?,?, 'SPACE',?, 'OPEN',?,?, 'ACTIVE','CONTRACT',?,0)",
+                        idGen.nextId(), contract.tenantId(), contract.projectId(), contract.personId(),
+                        spaceId, contract.startDate(), contract.endDate(), contract.id());
+            }
+        }
     }
 
     @org.springframework.transaction.annotation.Transactional
@@ -246,6 +260,9 @@ public class GuaranteeContractService {
                 newId, contractId, TenantContext.require());
         jdbc.update("update guarantee_contract set renew_from_id=? where id=? and tenant_id=?",
                 contractId, newId, TenantContext.require());
+        jdbc.update("update bp_grant_entitlement set source_id=? where tenant_id=? and source_type='CONTRACT' "
+                        + "and source_id=? and grant_status='ACTIVE'",
+                newId, TenantContext.require(), contractId);
         Map<String, Object> out = new LinkedHashMap<>(created);
         out.put("renewFromId", contractId);
         out.put("oldContractStatus", "RENEWED");
