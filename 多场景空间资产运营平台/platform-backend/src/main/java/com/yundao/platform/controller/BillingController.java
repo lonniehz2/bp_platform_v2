@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,11 +20,14 @@ public class BillingController {
 
     private final BillingService service;
     private final com.yundao.platform.service.PermissionService permissions;
+    private final com.yundao.platform.service.ReceiptPdfService receiptPdfService;
 
     public BillingController(BillingService service,
-                             com.yundao.platform.service.PermissionService permissions) {
+                             com.yundao.platform.service.PermissionService permissions,
+                             com.yundao.platform.service.ReceiptPdfService receiptPdfService) {
         this.service = service;
         this.permissions = permissions;
+        this.receiptPdfService = receiptPdfService;
     }
 
     @GetMapping("/bills")
@@ -96,5 +101,15 @@ public class BillingController {
     @GetMapping("/payments/{paymentId}/receipt")
     public R<Map<String, Object>> receipt(@PathVariable long paymentId) {
         return R.ok(service.receipt(paymentId));
+    }
+
+    @GetMapping(value = "/payments/{paymentId}/receipt/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> receiptPdf(@PathVariable long paymentId) {
+        permissions.require("billing:view");
+        Map<String, Object> receipt = service.receipt(paymentId);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=\"receipt-" + paymentId + ".pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(receiptPdfService.render(receipt));
     }
 }

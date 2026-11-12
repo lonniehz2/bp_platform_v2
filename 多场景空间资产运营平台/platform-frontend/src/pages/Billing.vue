@@ -152,6 +152,23 @@ async function closeBill(b) {
 function openReceipt(p) { receipt.value = p }
 function printReceipt() { window.print() }
 
+async function downloadReceiptPdf(p) {
+  busy.value = true; error.value = ''
+  try {
+    const res = await fetch(`/api/v1/platform/billing/payments/${p.id}/receipt/pdf`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('platformToken') || ''}` }
+    })
+    if (!res.ok) throw new Error(t('billing.receiptPdfFailed'))
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `receipt-${p.receiptNo || p.id}.pdf`
+    document.body.appendChild(link); link.click(); link.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 async function pay() {
   busy.value = true; error.value = ''
   try {
@@ -210,7 +227,7 @@ onMounted(load)
               <tr v-for="p in payments" :key="p.id">
                 <td class="mono">{{ p.paymentNo }}</td><td>¥{{ money(p.amount) }}</td><td>{{ enumLabel(p.paymentMethod) }}</td>
                 <td><span class="badge green">{{ enumLabel(p.paymentStatus) }}</span></td><td class="mono">{{ p.receiptNo || '-' }}</td><td class="small">{{ p.paidTime }}</td>
-                <td><div class="row"><button v-if="p.receiptNo" class="sm" :disabled="busy" @click="openReceipt(p)">{{ t('billing.print') }}</button><button v-if="canAction('billing:refund', 'billing')" class="sm" @click="openRefund(p)">{{ t('billing.refund') }}</button></div></td>
+                <td><div class="row"><button v-if="p.receiptNo" class="sm" :disabled="busy" @click="openReceipt(p)">{{ t('billing.print') }}</button><button v-if="p.receiptNo" class="sm" :disabled="busy" @click="downloadReceiptPdf(p)">{{ t('billing.downloadPdf') }}</button><button v-if="canAction('billing:refund', 'billing')" class="sm" @click="openRefund(p)">{{ t('billing.refund') }}</button></div></td>
               </tr>
             </tbody>
           </table>
@@ -278,6 +295,7 @@ onMounted(load)
         </div>
         <div class="row no-print" style="justify-content:flex-end;margin-top:12px">
           <button class="primary" @click="printReceipt">{{ t('billing.print') }}</button>
+          <button class="primary" :disabled="busy" @click="downloadReceiptPdf(receipt)">{{ t('billing.downloadPdf') }}</button>
         </div>
       </div>
     </div>
