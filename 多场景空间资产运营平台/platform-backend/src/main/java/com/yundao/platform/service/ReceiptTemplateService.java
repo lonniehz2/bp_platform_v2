@@ -49,7 +49,7 @@ public class ReceiptTemplateService {
         if (!old.isEmpty()) {
             jdbc.update("insert into bp_receipt_template_version(id,tenant_id,template_id,config_json,version) values(?,?,?,?,?)", idGen.nextId(), TenantContext.require(), id, old.get(0).get("configJson"), old.get(0).get("version"));
         }
-        jdbc.update("update bp_receipt_template set config_json=?, version=version+1, status='DRAFT' where id=? and tenant_id=? and is_deleted=0", rows.get(0).get("configJson"), id, TenantContext.require());
+        jdbc.update("update bp_receipt_template set config_json=?, version=?, status='DRAFT' where id=? and tenant_id=? and is_deleted=0", rows.get(0).get("configJson"), rows.get(0).get("version"), id, TenantContext.require());
         return Map.of("id", id, "status", "DRAFT");
     }
 

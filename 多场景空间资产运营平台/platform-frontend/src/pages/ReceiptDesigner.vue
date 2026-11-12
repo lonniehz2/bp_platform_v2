@@ -17,6 +17,9 @@ const orientation = ref('portrait')
 const PAPER = { A4: [595, 842], A5: [420, 595], B5: [499, 709] }
 const form = reactive({ templateName: t('receiptDesigner.defaultName'), title: t('receiptDesigner.defaultTitle'), company: t('receiptDesigner.defaultCompany'), footer: t('receiptDesigner.defaultFooter') })
 let canvas
+const history = ref([])
+const historyIndex = ref(-1)
+let restoring = false
 
 async function api(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('platformToken') || ''}` }
@@ -25,6 +28,24 @@ async function api(path, options = {}) {
   if (!res.ok || json.code !== 'BP00000') throw new Error(json.message || t('receiptDesigner.failed'))
   return json.data
 }
+function snapshot() {
+  if (restoring || !canvas) return
+  const data = canvas.toJSON(['role'])
+  history.value = history.value.slice(0, historyIndex.value + 1)
+  history.value.push(JSON.stringify(data))
+  historyIndex.value = history.value.length - 1
+}
+async function restoreHistory(index) {
+  if (index < 0 || index >= history.value.length) return
+  restoring = true
+  try {
+    await canvas.loadFromJSON(history.value[index])
+    canvas.requestRenderAll()
+    historyIndex.value = index
+  } finally { restoring = false }
+}
+async function undo() { await restoreHistory(historyIndex.value - 1) }
+async function redo() { await restoreHistory(historyIndex.value + 1) }
 function addText(line = t('receiptDesigner.defaultText')) { canvas.add(new Textbox(line, { left: 60, top: 150, width: 300, fontSize: 16, fill: '#222' })) }
 function resizeCanvas() {
   let [w, h] = PAPER[paper.value] || PAPER.A4
@@ -39,7 +60,7 @@ async function loadTemplateContent() {
   const tpl = templates.value.find(x => String(x.id) === selectedId.value)
   if (!tpl) return
   const c = JSON.parse(tpl.configJson || '{}')
-  if (c.canvas?.objects) { canvas.clear(); canvas.backgroundColor = '#fff'; await canvas.loadFromJSON(c.canvas); canvas.requestRenderAll() }
+  if (c.canvas?.objects) { canvas.clear(); canvas.backgroundColor = '#fff'; restoring = true; await canvas.loadFromJSON(c.canvas); restoring = false; canvas.requestRenderAll(); history.value = []; historyIndex.value = -1; snapshot() }
 }
 function addField(key) { addText('{{' + key + '}}') }
 function deleteSelected() {
@@ -64,12 +85,20 @@ async function load() {
   orientation.value = c.orientation || 'portrait'
   applyPaper(c.pageSize || 'A4')
   // Load the selected template version on entry
+  restoring = true
   if (c.canvas?.objects) {
     canvas.clear()
     canvas.backgroundColor = '#fff'
     await canvas.loadFromJSON(c.canvas)
     canvas.requestRenderAll()
+  } else {
+    canvas.clear()
+    canvas.backgroundColor = '#fff'
   }
+  restoring = false
+  history.value = []
+  historyIndex.value = -1
+  snapshot()
 }
 async function save() {
   busy.value = true; error.value = ''
@@ -84,7 +113,14 @@ async function save() {
 }
 onMounted(async () => {
   canvas = new Canvas(canvasEl.value, { width: 595, height: 842, backgroundColor: '#fff', preserveObjectStacking: true })
-  window.addEventListener('keydown', (e) => { if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected() })
+  canvas.on('object:added', snapshot)
+  canvas.on('object:modified', snapshot)
+  canvas.on('object:removed', snapshot)
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo() }
+    else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo() }
+    else if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected()
+  })
   await load()
 })
 </script>
@@ -103,7 +139,7 @@ onMounted(async () => {
         <select :value="paper" @change="applyPaper($event.target.value)"><option value="A4">A4 (595 x 842)</option><option value="A5">A5 (420 x 595)</option><option value="B5">B5 (499 x 709)</option></select>
         <select :value="orientation" @change="applyOrientation($event.target.value)"><option value="portrait">{{ t('receiptDesigner.portrait') }}</option><option value="landscape">{{ t('receiptDesigner.landscape') }}</option></select>
         <button class="sm" @click="addText()">{{ t('receiptDesigner.addText') }}</button>
-        <button class="sm" @click="addField('paymentNo')">{{ t('receiptDesigner.paymentNo') }}</button><button class="sm" @click="addField('paymentMethod')">{{ t('receiptDesigner.paymentMethod') }}</button><button class="sm" @click="addField('issuedTime')">{{ t('receiptDesigner.issuedTime') }}</button><button class="sm" @click="addField('receiptStatus')">{{ t('receiptDesigner.status') }}</button><button class="sm" @click="addQr">{{ t('receiptDesigner.addQr') }}</button><button class="sm danger" @click="deleteSelected">{{ t('receiptDesigner.deleteSelected') }}</button>
+        <button class="sm" @click="addField('paymentNo')">{{ t('receiptDesigner.paymentNo') }}</button><button class="sm" @click="addField('paymentMethod')">{{ t('receiptDesigner.paymentMethod') }}</button><button class="sm" @click="addField('issuedTime')">{{ t('receiptDesigner.issuedTime') }}</button><button class="sm" @click="addField('receiptStatus')">{{ t('receiptDesigner.status') }}</button><button class="sm" @click="addQr">{{ t('receiptDesigner.addQr') }}</button><button class="sm danger" @click="deleteSelected">{{ t('receiptDesigner.deleteSelected') }}</button><button class="sm" :disabled="historyIndex <= 0" @click="undo">{{ t('receiptDesigner.undo') }}</button><button class="sm" :disabled="historyIndex >= history.length - 1" @click="redo">{{ t('receiptDesigner.redo') }}</button>
         <label class="sm">{{ t('receiptDesigner.addSeal') }}<input type="file" accept="image/*" style="display:none" @change="addSeal" /></label>
       </div>
     </div>

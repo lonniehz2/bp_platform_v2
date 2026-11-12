@@ -12,6 +12,8 @@ const editingId = ref(null)
 const preview = ref(false)
 const historyRows = ref([])
 const showHistory = ref(false)
+const showPdf = ref(false)
+const pdfUrl = ref('')
 const historyTemplateId = ref(null)
 const selectedVersionId = ref('')
 const dragging = ref(false)
@@ -96,8 +98,8 @@ async function previewPdf(id) {
   const res = await fetch(`/api/v1/platform/receipt-templates/${id}/preview.pdf`, { headers: { Authorization: `Bearer ${localStorage.getItem('platformToken') || ''}` } })
   if (!res.ok) { error.value = t('receiptTemplates.failed'); return }
   const url = URL.createObjectURL(await res.blob())
-  window.open(url, '_blank')
-  setTimeout(() => URL.revokeObjectURL(url), 60000)
+  pdfUrl.value = url
+  showPdf.value = true
 }
 async function publish(id) { try { await request(`/receipt-templates/${id}/publish`, { method: 'POST' }); await load() } catch (e) { error.value = e.message } }
 onMounted(load)
@@ -141,7 +143,7 @@ onMounted(load)
       <div class="panel-head"><h2>{{ t('receiptTemplates.list') }}</h2></div>
       <div v-if="!list.length" class="empty">{{ t('receiptTemplates.empty') }}</div>
       <table v-else><thead><tr><th>{{ t('receiptTemplates.name') }}</th><th>{{ t('receiptTemplates.version') }}</th><th>{{ t('receiptTemplates.status') }}</th><th>{{ t('receiptTemplates.action') }}</th></tr></thead><tbody>
-        <tr v-for="x in list" :key="x.id"><td>{{ x.templateName }}</td><td>{{ x.version }}</td><td>{{ x.status }}</td><td><button class="sm" @click="previewPdf(x.id)">{{ t('receiptTemplates.previewPdf') }}</button><button class="sm" @click="loadHistory(x.id)">{{ t('receiptTemplates.history') }}</button><button class="sm" @click="router.push(`/guarantee/receipt-designer/${x.id}`)">{{ t('receiptDesigner.title') }}</button><button class="sm" @click="edit(x)">{{ t('receiptTemplates.edit') }}</button><button v-if="x.status !== 'PUBLISHED'" class="sm" @click="publish(x.id)">{{ t('receiptTemplates.publish') }}</button></td></tr>
+        <tr v-for="x in list" :key="x.id"><td>{{ x.templateName }}</td><td>{{ x.version }}</td><td>{{ x.status }}</td><td><button class="sm" @click="previewPdf(x.id)">{{ t('receiptTemplates.previewPdf') }}</button><button class="sm" @click="loadHistory(x.id)">{{ t('receiptTemplates.history') }}</button><button class="sm" @click="router.push(`/guarantee/receipt-designer/${x.id}`)">{{ t('receiptDesigner.title') }}</button><button v-if="x.status !== 'PUBLISHED'" class="sm" @click="publish(x.id)">{{ t('receiptTemplates.publish') }}</button></td></tr>
       </tbody></table>
     </div>
 
@@ -153,6 +155,13 @@ onMounted(load)
         <div v-if="!historyRows.length" class="empty">{{ t('receiptTemplates.empty') }}</div>
         <div v-else class="row" style="margin-bottom:12px"><div class="field" style="flex:2"><label>{{ t('receiptTemplates.selectVersion') }}</label><select v-model="selectedVersionId"><option v-for="h in historyRows" :key="h.id" :value="String(h.id)">v{{ h.version }} · {{ h.createTime }}</option></select></div><div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" @click="restoreSelected">{{ t('receiptTemplates.restore') }}</button></div></div>
         <table><thead><tr><th>{{ t('receiptTemplates.version') }}</th><th>{{ t('receiptTemplates.config') }}</th><th>{{ t('receiptTemplates.time') }}</th><th>{{ t('receiptTemplates.action') }}</th></tr></thead><tbody><tr v-for="h in historyRows" :key="h.id"><td>{{ h.version }}</td><td class="mono small">{{ h.configJson }}</td><td>{{ h.createTime }}</td><td><button class="sm" @click="restore(h)">{{ t('receiptTemplates.restore') }}</button></td></tr></tbody></table>
+      </div>
+    </div>
+
+    <div v-if="showPdf" class="modal-mask" @click.self="showPdf = false">
+      <div class="modal" style="max-width:900px;height:90vh">
+        <div class="panel-head"><h2>{{ t('receiptTemplates.previewPdf') }}</h2><button class="sm" @click="showPdf = false">{{ t('receiptTemplates.close') }}</button></div>
+        <iframe :src="pdfUrl" style="width:100%;height:calc(90vh - 70px);border:0" title="PDF Preview"></iframe>
       </div>
     </div>
 
