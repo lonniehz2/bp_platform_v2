@@ -22,16 +22,19 @@ public class BillingService {
     private final IdGenerator idGen;
     private final GuaranteeContractService contractService;
     private final GuaranteeSubsidyService subsidyService;
+    private final ReceiptDocumentService receiptDocumentService;
     private final DataScopeService dataScope;
 
     public BillingService(JdbcTemplate jdbc, IdGenerator idGen,
                           GuaranteeContractService contractService,
                           GuaranteeSubsidyService subsidyService,
+                          ReceiptDocumentService receiptDocumentService,
                           DataScopeService dataScope) {
         this.jdbc = jdbc;
         this.idGen = idGen;
         this.contractService = contractService;
         this.subsidyService = subsidyService;
+        this.receiptDocumentService = receiptDocumentService;
         this.dataScope = dataScope;
     }
 
@@ -432,6 +435,11 @@ public class BillingService {
                 cmd.amount(), cmd.reason());
         jdbc.update("update bp_bill set paid_amount=?, bill_status=?, update_time=now() where id=?",
                 newPaid, newStatus, billId);
+        List<Map<String, Object>> receipts = jdbc.queryForList(
+                "select id from bp_receipt where tenant_id=? and payment_id=? and is_deleted=0", tenant, paymentId);
+        if (!receipts.isEmpty()) {
+            receiptDocumentService.markStatus(((Number) receipts.get(0).get("id")).longValue(), "REFUNDED");
+        }
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("refundId", refundId);
         out.put("refundNo", refundNo);
