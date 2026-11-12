@@ -101,7 +101,21 @@ onMounted(async () => {
       </div>
     </div>
     <div class="panel" style="overflow:auto;background:#eef1f5">
-      <canvas ref="canvasEl"></canvas>
+      <div class="canvas-stage"><canvas ref="canvasEl"></canvas></div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.canvas-stage {
+  display: inline-block;
+  padding: 8px;
+  background: #fff;
+  border: 1px dashed #98a2b3;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, .04), 0 6px 18px rgba(15, 23, 42, .08);
+}
+.canvas-stage :deep(.canvas-container) {
+  outline: 1px solid #e2e8f0;
+  outline-offset: 0;
+}
+</style>
