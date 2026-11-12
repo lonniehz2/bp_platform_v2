@@ -32,6 +32,7 @@ async function save() {
 }
 function edit(x) {
   editingId.value = x.id
+  window.scrollTo({ top: 0, behavior: 'smooth' })
   const c = JSON.parse(x.configJson || '{}')
   form.templateName = x.templateName
   form.title = c.title || ''
@@ -72,6 +73,32 @@ onMounted(load)
       <table v-else><thead><tr><th>{{ t('receiptTemplates.name') }}</th><th>{{ t('receiptTemplates.version') }}</th><th>{{ t('receiptTemplates.status') }}</th><th>{{ t('receiptTemplates.action') }}</th></tr></thead><tbody>
         <tr v-for="x in list" :key="x.id"><td>{{ x.templateName }}</td><td>{{ x.version }}</td><td>{{ x.status }}</td><td><button class="sm" @click="previewPdf(x.id)">{{ t('receiptTemplates.previewPdf') }}</button><button class="sm" @click="loadHistory(x.id)">{{ t('receiptTemplates.history') }}</button><button class="sm" @click="edit(x)">{{ t('receiptTemplates.edit') }}</button><button v-if="x.status !== 'PUBLISHED'" class="sm" @click="publish(x.id)">{{ t('receiptTemplates.publish') }}</button></td></tr>
       </tbody></table>
+    </div>
+
+    <div v-if="editingId" class="modal-mask" @click.self="editingId = null">
+      <div class="modal">
+        <div class="panel-head"><h2>{{ t('receiptTemplates.editTitle') }}</h2><button class="sm" @click="editingId = null">{{ t('receiptTemplates.close') }}</button></div>
+        <div class="field"><label>{{ t('receiptTemplates.name') }}</label><input v-model="form.templateName" /></div>
+        <div class="field"><label>{{ t('receiptTemplates.titleField') }}</label><input v-model="form.title" /></div>
+        <div class="field"><label>{{ t('receiptTemplates.company') }}</label><input v-model="form.company" /></div>
+        <div class="field"><label>{{ t('receiptTemplates.footer') }}</label><input v-model="form.footer" /></div>
+        <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="sm" @click="editingId = null">{{ t('receiptTemplates.close') }}</button><button class="primary" :disabled="busy" @click="save">{{ t('receiptTemplates.save') }}</button></div>
+      </div>
+    </div>
+
+    <div v-if="showHistory" class="modal-mask" @click.self="showHistory = false">
+      <div class="modal" style="max-width:760px">
+        <div class="panel-head"><h2>{{ t('receiptTemplates.history') }}</h2><button class="sm" @click="showHistory = false">{{ t('receiptTemplates.close') }}</button></div>
+        <div v-if="!historyRows.length" class="empty">{{ t('receiptTemplates.empty') }}</div>
+        <table v-else><thead><tr><th>{{ t('receiptTemplates.version') }}</th><th>{{ t('receiptTemplates.config') }}</th><th>{{ t('receiptTemplates.time') }}</th></tr></thead><tbody><tr v-for="h in historyRows" :key="h.id"><td>{{ h.version }}</td><td class="mono small">{{ h.configJson }}</td><td>{{ h.createTime }}</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <div v-if="preview" class="modal-mask" @click.self="preview = false">
+      <div class="modal">
+        <div class="panel-head"><h2>{{ t('receiptTemplates.preview') }}</h2><button class="sm" @click="preview = false">{{ t('receiptTemplates.close') }}</button></div>
+        <h3>{{ form.title }}</h3><p>{{ form.company }}</p><p class="small muted">{{ form.footer }}</p><p>{{ t('receiptTemplates.previewHint') }}</p>
+      </div>
     </div>
   </div>
 </template>
