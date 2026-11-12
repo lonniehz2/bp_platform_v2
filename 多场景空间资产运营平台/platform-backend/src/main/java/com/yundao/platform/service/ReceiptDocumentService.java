@@ -89,6 +89,10 @@ public class ReceiptDocumentService {
         return out;
     }
 
+    public void savePdfHash(long receiptId, String hash) {
+        jdbc.update("update bp_receipt_document set pdf_sha256=? where tenant_id=? and receipt_id=? and is_deleted=0", hash, TenantContext.require(), receiptId);
+    }
+
     public void markStatus(long receiptId, String status) {
         jdbc.update("update bp_receipt_document set document_status=? where tenant_id=? and receipt_id=? and is_deleted=0",
                 status, TenantContext.require(), receiptId);

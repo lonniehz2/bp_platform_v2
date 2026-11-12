@@ -119,6 +119,7 @@ public class BillingController {
         Map<String, Object> config = receiptDocumentService.config(Long.parseLong(String.valueOf(doc.get("templateId"))));
         String url = verifyBaseUrl + doc.get("token");
         byte[] pdf = receiptPdfService.render(receipt, config, url, String.valueOf(doc.get("code")));
+        receiptDocumentService.savePdfHash(receiptId, receiptPdfService.sha256(pdf));
         return ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=\"receipt-" + paymentId + ".pdf\"")
                 .contentType(MediaType.APPLICATION_PDF)
