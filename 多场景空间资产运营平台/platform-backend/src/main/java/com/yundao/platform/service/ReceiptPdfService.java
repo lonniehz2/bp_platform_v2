@@ -88,7 +88,6 @@ public class ReceiptPdfService {
             PdfWriter writer = PdfWriter.getInstance(document, out);
             document.open();
             document.add(new Paragraph(" "));
-            document.newPage();
             PdfContentByte cb = writer.getDirectContent();
             BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.NOT_EMBEDDED);
             float pageHeight = page.getHeight();
