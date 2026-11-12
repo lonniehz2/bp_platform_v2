@@ -22,7 +22,7 @@ async function api(path, options = {}) {
   if (!res.ok || json.code !== 'BP00000') throw new Error(json.message || t('receiptDesigner.failed'))
   return json.data
 }
-function addText(line = '{{receiptNo}}') { canvas.add(new Textbox(line, { left: 60, top: 150, width: 300, fontSize: 16, fill: '#222' })) }
+function addText(line = t('receiptDesigner.defaultText')) { canvas.add(new Textbox(line, { left: 60, top: 150, width: 300, fontSize: 16, fill: '#222' })) }
 function addField(key) { addText('{{' + key + '}}') }
 function deleteSelected() {
   const obj = canvas.getActiveObject()

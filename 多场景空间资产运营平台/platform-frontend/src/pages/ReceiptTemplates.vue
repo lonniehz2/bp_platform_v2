@@ -13,6 +13,7 @@ const preview = ref(false)
 const historyRows = ref([])
 const showHistory = ref(false)
 const historyTemplateId = ref(null)
+const selectedVersionId = ref('')
 const dragging = ref(false)
 let dragStart = null
 const form = reactive({ templateName: t('receiptTemplates.defaultName'), title: t('receiptTemplates.defaultTitle'), company: t('receiptTemplates.defaultCompany'), footer: t('receiptTemplates.defaultFooter'), titleSize: 18, companySize: 11, titleAlign: 'center', sealImage: '', sealSize: 90, sealX: 330, sealY: 120 })
@@ -80,6 +81,10 @@ function edit(x) {
 async function loadHistory(id) {
   try { historyTemplateId.value = id; historyRows.value = await request(`/receipt-templates/${id}/history`); showHistory.value = true } catch (e) { error.value = e.message }
 }
+async function restoreSelected() {
+  const h = historyRows.value.find(x => String(x.id) === String(selectedVersionId.value)) || historyRows.value[0]
+  if (h) await restore(h)
+}
 async function restore(h) {
   try {
     await request(`/receipt-templates/${historyTemplateId.value}/rollback/${h.id}`, { method: 'POST' })
@@ -146,7 +151,8 @@ onMounted(load)
       <div class="modal" style="max-width:760px">
         <div class="panel-head"><h2>{{ t('receiptTemplates.history') }}</h2><button class="sm" @click="showHistory = false">{{ t('receiptTemplates.close') }}</button></div>
         <div v-if="!historyRows.length" class="empty">{{ t('receiptTemplates.empty') }}</div>
-        <table v-else><thead><tr><th>{{ t('receiptTemplates.version') }}</th><th>{{ t('receiptTemplates.config') }}</th><th>{{ t('receiptTemplates.time') }}</th><th>{{ t('receiptTemplates.action') }}</th></tr></thead><tbody><tr v-for="h in historyRows" :key="h.id"><td>{{ h.version }}</td><td class="mono small">{{ h.configJson }}</td><td>{{ h.createTime }}</td><td><button class="sm" @click="restore(h)">{{ t('receiptTemplates.restore') }}</button></td></tr></tbody></table>
+        <div v-else class="row" style="margin-bottom:12px"><div class="field" style="flex:2"><label>{{ t('receiptTemplates.selectVersion') }}</label><select v-model="selectedVersionId"><option v-for="h in historyRows" :key="h.id" :value="String(h.id)">v{{ h.version }} · {{ h.createTime }}</option></select></div><div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" @click="restoreSelected">{{ t('receiptTemplates.restore') }}</button></div></div>
+        <table><thead><tr><th>{{ t('receiptTemplates.version') }}</th><th>{{ t('receiptTemplates.config') }}</th><th>{{ t('receiptTemplates.time') }}</th><th>{{ t('receiptTemplates.action') }}</th></tr></thead><tbody><tr v-for="h in historyRows" :key="h.id"><td>{{ h.version }}</td><td class="mono small">{{ h.configJson }}</td><td>{{ h.createTime }}</td><td><button class="sm" @click="restore(h)">{{ t('receiptTemplates.restore') }}</button></td></tr></tbody></table>
       </div>
     </div>
 
