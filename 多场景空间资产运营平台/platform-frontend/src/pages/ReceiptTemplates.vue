@@ -10,7 +10,7 @@ const editingId = ref(null)
 const preview = ref(false)
 const historyRows = ref([])
 const showHistory = ref(false)
-const form = reactive({ templateName: t('receiptTemplates.defaultName'), title: t('receiptTemplates.defaultTitle'), company: t('receiptTemplates.defaultCompany'), footer: t('receiptTemplates.defaultFooter') })
+const form = reactive({ templateName: t('receiptTemplates.defaultName'), title: t('receiptTemplates.defaultTitle'), company: t('receiptTemplates.defaultCompany'), footer: t('receiptTemplates.defaultFooter'), titleSize: 18, companySize: 11, titleAlign: 'center', sealImage: '', sealSize: 90, sealX: 330, sealY: 120 })
 
 async function request(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('platformToken') || ''}` }
@@ -23,13 +23,21 @@ async function load() { try { list.value = await request('/receipt-templates') }
 async function save() {
   busy.value = true; error.value = ''
   try {
-    const body = JSON.stringify({ templateName: form.templateName, configJson: JSON.stringify({ title: form.title, company: form.company, footer: form.footer }) })
+    const body = JSON.stringify({ templateName: form.templateName, configJson: JSON.stringify({ title: form.title, company: form.company, footer: form.footer, titleSize: form.titleSize, companySize: form.companySize, titleAlign: form.titleAlign, sealImage: form.sealImage, sealSize: form.sealSize, sealX: form.sealX, sealY: form.sealY }) })
     if (editingId.value) await request(`/receipt-templates/${editingId.value}`, { method: 'POST', body })
     else await request('/receipt-templates', { method: 'POST', body })
     editingId.value = null
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
+function onSeal(e) {
+  const file = e.target.files && e.target.files[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => { form.sealImage = String(reader.result || '') }
+  reader.readAsDataURL(file)
+}
+
 function edit(x) {
   editingId.value = x.id
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -38,7 +46,14 @@ function edit(x) {
   form.title = c.title || ''
   form.company = c.company || ''
   form.footer = c.footer || ''
-  preview.value = false
+  form.titleSize = c.titleSize || 18
+  form.companySize = c.companySize || 11
+  form.titleAlign = c.titleAlign || 'center'
+  form.sealImage = c.sealImage || ''
+  form.sealSize = c.sealSize || 90
+  form.sealX = c.sealX || 330
+  form.sealY = c.sealY || 120
+  preview.value = true
 }
 async function loadHistory(id) {
   try { historyRows.value = await request(`/receipt-templates/${id}/history`); showHistory.value = true } catch (e) { error.value = e.message }
@@ -65,6 +80,27 @@ onMounted(load)
         <div class="field"><label>{{ t('receiptTemplates.company') }}</label><input v-model="form.company" /></div>
         <div class="field" style="flex:2"><label>{{ t('receiptTemplates.footer') }}</label><input v-model="form.footer" /></div>
         <div class="field" style="flex:0 0 auto"><label>&nbsp;</label><button class="primary" :disabled="busy" @click="save">{{ editingId ? t('receiptTemplates.save') : t('receiptTemplates.create') }}</button></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>{{ t('receiptTemplates.layout') }}</h2><span class="small muted">{{ t('receiptTemplates.layoutHint') }}</span></div>
+      <div class="row">
+        <div class="field"><label>{{ t('receiptTemplates.titleSize') }}</label><input v-model.number="form.titleSize" type="number" min="10" max="32" /></div>
+        <div class="field"><label>{{ t('receiptTemplates.companySize') }}</label><input v-model.number="form.companySize" type="number" min="9" max="20" /></div>
+        <div class="field"><label>{{ t('receiptTemplates.align') }}</label><select v-model="form.titleAlign"><option value="left">L</option><option value="center">C</option><option value="right">R</option></select></div>
+        <div class="field"><label>{{ t('receiptTemplates.sealSize') }}</label><input v-model.number="form.sealSize" type="number" min="40" max="160" /></div>
+        <div class="field"><label>Seal X</label><input v-model.number="form.sealX" type="number" /></div>
+        <div class="field"><label>Seal Y</label><input v-model.number="form.sealY" type="number" /></div>
+        <div class="field"><label>{{ t('receiptTemplates.seal') }}</label><input type="file" accept="image/*" @change="onSeal" /></div>
+      </div>
+      <div class="a4-preview">
+        <div class="a4-page">
+          <h2 :style="{ fontSize: form.titleSize + 'px', textAlign: form.titleAlign }">{{ form.title }}</h2>
+          <div :style="{ fontSize: form.companySize + 'px' }">{{ form.company }}</div>
+          <div class="a4-lines"><div>Receipt No: PREVIEW-001</div><div>Payment No: PAY-PREVIEW-001</div><div>Amount: CNY 100.00</div><div>Date: 2026-11-12</div></div>
+          <img v-if="form.sealImage" :src="form.sealImage" class="a4-seal" :style="{ width: form.sealSize + 'px', left: form.sealX + 'px', bottom: form.sealY + 'px' }" />
+          <div class="a4-footer">{{ form.footer }}</div>
+        </div>
       </div>
     </div>
     <div class="panel">

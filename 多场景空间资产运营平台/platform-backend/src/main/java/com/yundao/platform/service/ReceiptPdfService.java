@@ -10,6 +10,8 @@ import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.pdf.PdfContentByte;
+import java.util.Base64;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -26,14 +28,16 @@ public class ReceiptPdfService {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             Document document = new Document(PageSize.A5, 42, 42, 42, 42);
-            PdfWriter.getInstance(document, out);
+            PdfWriter writer = PdfWriter.getInstance(document, out);
             document.open();
             BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.NOT_EMBEDDED);
-            Font title = new Font(bf, 18, Font.BOLD);
+            Font title = new Font(bf, num(config, "titleSize", 18), Font.BOLD);
             Font normal = new Font(bf, 11);
             Font small = new Font(bf, 9);
 
-            document.add(new Paragraph(text(config, "title", "电子收据"), title));
+            Paragraph titleParagraph = new Paragraph(text(config, "title", "电子收据"), title);
+            titleParagraph.setAlignment(align(config));
+            document.add(titleParagraph);
             document.add(new Paragraph("ELECTRONIC RECEIPT", small));
             document.add(new Paragraph(" "));
             document.add(new Paragraph("收款单位 / Payee: " + text(config, "company", "-"), normal));
@@ -51,6 +55,12 @@ public class ReceiptPdfService {
             qr.setAlignment(Image.ALIGN_CENTER);
             document.add(qr);
             document.add(new Paragraph("扫码验真 / Scan to verify", small));
+            Image seal = seal(config);
+            if (seal != null) {
+                seal.setAbsolutePosition(num(config, "sealX", 330), num(config, "sealY", 120));
+                seal.scaleToFit(num(config, "sealSize", 90), num(config, "sealSize", 90));
+                writer.getDirectContent().addImage(seal);
+            }
             document.close();
             return out.toByteArray();
         } catch (Exception e) {
@@ -90,6 +100,30 @@ public class ReceiptPdfService {
         ByteArrayOutputStream png = new ByteArrayOutputStream();
         ImageIO.write(image, "png", png);
         return png.toByteArray();
+    }
+
+    private int num(Map<String, Object> config, String key, int fallback) {
+        Object v = config == null ? null : config.get(key);
+        if (v instanceof Number n) return n.intValue();
+        try { return v == null ? fallback : Integer.parseInt(String.valueOf(v)); } catch (Exception e) { return fallback; }
+    }
+
+    private int align(Map<String, Object> config) {
+        String a = String.valueOf(config == null ? "center" : config.getOrDefault("titleAlign", "center"));
+        return "left".equals(a) ? com.lowagie.text.Element.ALIGN_LEFT
+                : "right".equals(a) ? com.lowagie.text.Element.ALIGN_RIGHT
+                : com.lowagie.text.Element.ALIGN_CENTER;
+    }
+
+    private Image seal(Map<String, Object> config) {
+        try {
+            Object raw = config == null ? null : config.get("sealImage");
+            if (raw == null || String.valueOf(raw).isBlank()) return null;
+            String data = String.valueOf(raw);
+            int comma = data.indexOf(',');
+            if (comma >= 0) data = data.substring(comma + 1);
+            return Image.getInstance(Base64.getDecoder().decode(data));
+        } catch (Exception e) { return null; }
     }
 
     private String text(Map<String, Object> config, String key, String fallback) {
