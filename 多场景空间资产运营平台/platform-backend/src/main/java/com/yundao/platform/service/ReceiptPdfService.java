@@ -78,6 +78,8 @@ public class ReceiptPdfService {
             Document document = new Document(PageSize.A4, 0, 0, 0, 0);
             PdfWriter writer = PdfWriter.getInstance(document, out);
             document.open();
+            document.add(new Paragraph(" "));
+            document.newPage();
             PdfContentByte cb = writer.getDirectContent();
             BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.NOT_EMBEDDED);
             float pageHeight = PageSize.A4.getHeight();
@@ -88,7 +90,7 @@ public class ReceiptPdfService {
                     String type = String.valueOf(obj.get("type"));
                     float left = f(obj.get("left"));
                     float top = f(obj.get("top"));
-                    if ("textbox".equals(type) || "text".equals(type)) {
+                    if ("textbox".equalsIgnoreCase(type) || "text".equalsIgnoreCase(type)) {
                         String text = replace(String.valueOf(obj.get("text") == null ? "" : obj.get("text")), receipt, config, verifyUrl, verifyCode);
                         float size = Math.max(6, f(obj.get("fontSize")));
                         cb.beginText();
@@ -96,7 +98,7 @@ public class ReceiptPdfService {
                         cb.setTextMatrix(left, pageHeight - top - size);
                         cb.showText(text);
                         cb.endText();
-                    } else if ("image".equals(type)) {
+                    } else if ("image".equalsIgnoreCase(type)) {
                         String src = String.valueOf(obj.get("src"));
                         int comma = src.indexOf(',');
                         if (comma > 0) src = src.substring(comma + 1);
@@ -105,7 +107,7 @@ public class ReceiptPdfService {
                         img.scaleToFit(width, 2000);
                         img.setAbsolutePosition(left, pageHeight - top - img.getScaledHeight());
                         cb.addImage(img);
-                    } else if ("rect".equals(type) && "qr".equals(String.valueOf(obj.get("role")))) {
+                    } else if ("rect".equalsIgnoreCase(type) && ("qr".equalsIgnoreCase(String.valueOf(obj.get("role"))) || "#111".equalsIgnoreCase(String.valueOf(obj.get("fill"))))) {
                         float width = f(obj.get("width")) * Math.max(1f, f(obj.get("scaleX")));
                         Image qr = Image.getInstance(qrPng(verifyUrl, 180));
                         qr.scaleToFit(width, 2000);
