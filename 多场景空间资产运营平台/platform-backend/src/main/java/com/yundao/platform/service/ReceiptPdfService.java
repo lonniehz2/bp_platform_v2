@@ -16,6 +16,7 @@ import java.util.Base64;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.io.File;
 import java.security.MessageDigest;
 import java.util.Map;
 import javax.imageio.ImageIO;
@@ -34,7 +35,7 @@ public class ReceiptPdfService {
             Document document = new Document(PageSize.A5, 42, 42, 42, 42);
             PdfWriter writer = PdfWriter.getInstance(document, out);
             document.open();
-            BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.NOT_EMBEDDED);
+            BaseFont bf = receiptFont();
             Font title = new Font(bf, num(config, "titleSize", 18), Font.BOLD);
             Font normal = new Font(bf, 11);
             Font small = new Font(bf, 9);
@@ -89,7 +90,7 @@ public class ReceiptPdfService {
             document.open();
             document.add(new Paragraph(" "));
             PdfContentByte cb = writer.getDirectContent();
-            BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.NOT_EMBEDDED);
+            BaseFont bf = receiptFont();
             float pageHeight = page.getHeight();
             Object objectsRaw = canvas.get("objects");
             if (objectsRaw instanceof java.util.List<?> objects) {
@@ -182,6 +183,25 @@ public class ReceiptPdfService {
         ByteArrayOutputStream png = new ByteArrayOutputStream();
         ImageIO.write(image, "png", png);
         return png.toByteArray();
+    }
+
+    private BaseFont receiptFont() throws Exception {
+        String configured = System.getenv("BP_RECEIPT_FONT");
+        String[] candidates = configured != null && !configured.isBlank()
+                ? new String[]{configured}
+                : new String[]{
+                "C:/Windows/Fonts/msyh.ttc,0",
+                "C:/Windows/Fonts/simsun.ttc,0",
+                "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc,0",
+                "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc,0"
+        };
+        for (String path : candidates) {
+            String file = path.contains(",") ? path.substring(0, path.indexOf(',')) : path;
+            if (new File(file).isFile()) {
+                return BaseFont.createFont(path, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            }
+        }
+        return BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.NOT_EMBEDDED);
     }
 
     private int num(Map<String, Object> config, String key, int fallback) {
