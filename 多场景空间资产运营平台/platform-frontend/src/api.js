@@ -109,6 +109,7 @@ export const api = {
   activateContract: (id, reason) => request(`/guarantee/contracts/${id}/activate`, { method: 'POST', body: JSON.stringify({ reason }) }),
   withdrawContract: (id) => request(`/guarantee/contracts/${id}/withdraw`, { method: 'POST' }),
   discardContract: (id) => request(`/guarantee/contracts/${id}/discard`, { method: 'POST' }),
+  renewContract: (contractId, body) => request(`/guarantee/contracts/${contractId}/renew`, { method: 'POST', body: JSON.stringify(body) }),
   generateBill: (contractId, body) => request(`/guarantee/contracts/${contractId}/bills`, { method: 'POST', body: JSON.stringify(body) }),
   deposit: (contractId) => request(`/guarantee/contracts/${contractId}/deposit`),
   payDeposit: (contractId, body) => request(`/guarantee/contracts/${contractId}/deposit/pay`, { method: 'POST', body: JSON.stringify(body) }),

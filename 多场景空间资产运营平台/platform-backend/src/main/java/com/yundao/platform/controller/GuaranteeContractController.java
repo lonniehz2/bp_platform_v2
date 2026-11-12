@@ -64,6 +64,13 @@ public class GuaranteeContractController {
         return R.ok(contractService.withdraw(contractId));
     }
 
+    @PostMapping("/{contractId}/renew")
+    public R<Map<String, Object>> renew(@PathVariable long contractId,
+                                        @RequestBody GuaranteeContractService.RenewCmd cmd) {
+        permissions.require("contract:submit");
+        return R.ok(contractService.renew(contractId, cmd));
+    }
+
     @PostMapping("/{contractId}/discard")
     public R<Map<String, Object>> discard(@PathVariable long contractId) {
         permissions.require("contract:discard");

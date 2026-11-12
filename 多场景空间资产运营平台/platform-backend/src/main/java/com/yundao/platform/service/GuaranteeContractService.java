@@ -217,6 +217,32 @@ public class GuaranteeContractService {
         return out;
     }
 
+    @org.springframework.transaction.annotation.Transactional
+    public Map<String, Object> renew(long contractId, RenewCmd cmd) {
+        Contract old = load(contractId);
+        if (!"ACTIVE".equals(old.contractStatus())) {
+            throw BizException.conflict("只有生效合同可以续签");
+        }
+        if (cmd.startDate() == null || cmd.endDate() == null || cmd.contractNo() == null || cmd.contractNo().isBlank()) {
+            throw BizException.param("续签合同编号和起止日期不能为空");
+        }
+        if (!cmd.startDate().isAfter(old.endDate().toLocalDate())) {
+            throw BizException.param("续签开始日期必须晚于原合同结束日期");
+        }
+        Map<String, Object> created = create(new ContractCmd(old.projectId(), cmd.contractNo(), old.houseId(), old.personId(),
+                cmd.startDate(), cmd.endDate(), cmd.rentAmount(), cmd.depositAmount(),
+                cmd.billingCycle(), cmd.billDay(), true));
+        long newId = ((Number) created.get("id")).longValue();
+        jdbc.update("update guarantee_contract set contract_status='RENEWED', renew_to_id=? where id=? and tenant_id=?",
+                newId, contractId, TenantContext.require());
+        jdbc.update("update guarantee_contract set renew_from_id=? where id=? and tenant_id=?",
+                contractId, newId, TenantContext.require());
+        Map<String, Object> out = new LinkedHashMap<>(created);
+        out.put("renewFromId", contractId);
+        out.put("oldContractStatus", "RENEWED");
+        return out;
+    }
+
     public Contract load(long contractId) {
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "select id, tenant_id tenantId, project_id projectId, contract_no contractNo, "
@@ -261,6 +287,11 @@ public class GuaranteeContractService {
     public record AllocationContractCmd(String contractNo, LocalDate startDate, LocalDate endDate,
                                         BigDecimal rentAmount, BigDecimal depositAmount,
                                         String billingCycle, Integer billDay) {
+    }
+
+    public record RenewCmd(String contractNo, LocalDate startDate, LocalDate endDate,
+                           BigDecimal rentAmount, BigDecimal depositAmount,
+                           String billingCycle, Integer billDay) {
     }
 
     public record Contract(long id, String tenantId, long projectId, String contractNo, long houseId,
