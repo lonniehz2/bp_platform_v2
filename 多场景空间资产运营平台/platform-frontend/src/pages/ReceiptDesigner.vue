@@ -29,6 +29,7 @@ function applyPaper(size) {
   paper.value = size
   const [w, h] = PAPER[size] || PAPER.A4
   canvas.setDimensions({ width: w, height: h })
+  canvas.calcOffset()
   canvas.requestRenderAll()
 }
 async function loadTemplateContent() {
@@ -87,10 +88,14 @@ onMounted(async () => {
     <div v-if="error" class="error">{{ error }}</div>
     <div class="panel">
       <div class="panel-head"><div><h2>{{ t('receiptDesigner.title') }}</h2><p>{{ t('receiptDesigner.subtitle') }}</p></div><button class="primary" :disabled="busy" @click="save">{{ t('receiptDesigner.save') }}</button></div>
-      <div class="row">
-        <select v-model="paper" @change="applyPaper(paper)"><option value="A4">A4</option><option value="A5">A5</option><option value="B5">B5</option></select>
+      <div class="row" style="margin-bottom:8px">
         <select v-model="selectedId" @change="load"><option v-for="x in templates" :key="x.id" :value="String(x.id)">{{ x.templateName }} v{{ x.version }}</option></select>
-        <button class="sm" @click="loadTemplateContent">{{ t('receiptDesigner.loadTemplate') }}</button><button class="sm" @click="addText()">{{ t('receiptDesigner.addText') }}</button>
+        <button class="sm" @click="loadTemplateContent">{{ t('receiptDesigner.loadTemplate') }}</button>
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <label class="small muted" style="align-self:center">{{ t('receiptDesigner.paperSize') }}</label>
+        <select :value="paper" @change="applyPaper($event.target.value)"><option value="A4">A4 (595 x 842)</option><option value="A5">A5 (420 x 595)</option><option value="B5">B5 (499 x 709)</option></select>
+        <button class="sm" @click="addText()">{{ t('receiptDesigner.addText') }}</button>
         <button class="sm" @click="addField('paymentNo')">{{ t('receiptDesigner.paymentNo') }}</button><button class="sm" @click="addField('paymentMethod')">{{ t('receiptDesigner.paymentMethod') }}</button><button class="sm" @click="addField('issuedTime')">{{ t('receiptDesigner.issuedTime') }}</button><button class="sm" @click="addField('receiptStatus')">{{ t('receiptDesigner.status') }}</button><button class="sm" @click="addQr">{{ t('receiptDesigner.addQr') }}</button><button class="sm danger" @click="deleteSelected">{{ t('receiptDesigner.deleteSelected') }}</button>
         <label class="sm">{{ t('receiptDesigner.addSeal') }}<input type="file" accept="image/*" style="display:none" @change="addSeal" /></label>
       </div>
