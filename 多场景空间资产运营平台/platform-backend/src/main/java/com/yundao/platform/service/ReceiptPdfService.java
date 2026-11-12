@@ -81,6 +81,9 @@ public class ReceiptPdfService {
                 case "B5" -> new Rectangle(499, 709);
                 default -> PageSize.A4;
             };
+            if ("landscape".equalsIgnoreCase(String.valueOf(config == null ? "" : config.get("orientation")))) {
+                page = new Rectangle(page.getHeight(), page.getWidth());
+            }
             Document document = new Document(page, 0, 0, 0, 0);
             PdfWriter writer = PdfWriter.getInstance(document, out);
             document.open();

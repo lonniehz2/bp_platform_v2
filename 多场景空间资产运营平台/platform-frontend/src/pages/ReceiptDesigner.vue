@@ -13,6 +13,7 @@ const busy = ref(false)
 const templates = ref([])
 const selectedId = ref(route.params.id ? String(route.params.id) : '')
 const paper = ref('A4')
+const orientation = ref('portrait')
 const PAPER = { A4: [595, 842], A5: [420, 595], B5: [499, 709] }
 const form = reactive({ templateName: t('receiptDesigner.defaultName'), title: t('receiptDesigner.defaultTitle'), company: t('receiptDesigner.defaultCompany'), footer: t('receiptDesigner.defaultFooter') })
 let canvas
@@ -25,13 +26,15 @@ async function api(path, options = {}) {
   return json.data
 }
 function addText(line = t('receiptDesigner.defaultText')) { canvas.add(new Textbox(line, { left: 60, top: 150, width: 300, fontSize: 16, fill: '#222' })) }
-function applyPaper(size) {
-  paper.value = size
-  const [w, h] = PAPER[size] || PAPER.A4
+function resizeCanvas() {
+  let [w, h] = PAPER[paper.value] || PAPER.A4
+  if (orientation.value === 'landscape') [w, h] = [h, w]
   canvas.setDimensions({ width: w, height: h })
   canvas.calcOffset()
   canvas.requestRenderAll()
 }
+function applyPaper(size) { paper.value = size; resizeCanvas() }
+function applyOrientation(value) { orientation.value = value; resizeCanvas() }
 async function loadTemplateContent() {
   const tpl = templates.value.find(x => String(x.id) === selectedId.value)
   if (!tpl) return
@@ -58,6 +61,7 @@ async function load() {
   form.templateName = tpl.templateName
   const c = JSON.parse(tpl.configJson || '{}')
   form.title = c.title || form.title; form.company = c.company || form.company; form.footer = c.footer || form.footer
+  orientation.value = c.orientation || 'portrait'
   applyPaper(c.pageSize || 'A4')
   // Load the selected template version on entry
   if (c.canvas?.objects) {
@@ -70,9 +74,11 @@ async function load() {
 async function save() {
   busy.value = true; error.value = ''
   try {
-    const configJson = JSON.stringify({ ...form, pageSize: paper.value, canvas: canvas.toJSON(['role']) })
-    if (selectedId.value) await api(`/receipt-templates/${selectedId.value}`, { method: 'POST', body: JSON.stringify({ templateName: form.templateName, configJson }) })
-    else await api('/receipt-templates', { method: 'POST', body: JSON.stringify({ templateName: form.templateName, configJson }) })
+    const configJson = JSON.stringify({ ...form, pageSize: paper.value, orientation: orientation.value, canvas: canvas.toJSON(['role']) })
+    let id = selectedId.value
+    if (id) await api(`/receipt-templates/${id}`, { method: 'POST', body: JSON.stringify({ templateName: form.templateName, configJson }) })
+    else { const created = await api('/receipt-templates', { method: 'POST', body: JSON.stringify({ templateName: form.templateName, configJson }) }); id = created.id }
+    await api(`/receipt-templates/${id}/publish`, { method: 'POST' })
     await load()
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
@@ -95,6 +101,7 @@ onMounted(async () => {
       <div class="row" style="margin-bottom:10px">
         <label class="small muted" style="align-self:center">{{ t('receiptDesigner.paperSize') }}</label>
         <select :value="paper" @change="applyPaper($event.target.value)"><option value="A4">A4 (595 x 842)</option><option value="A5">A5 (420 x 595)</option><option value="B5">B5 (499 x 709)</option></select>
+        <select :value="orientation" @change="applyOrientation($event.target.value)"><option value="portrait">{{ t('receiptDesigner.portrait') }}</option><option value="landscape">{{ t('receiptDesigner.landscape') }}</option></select>
         <button class="sm" @click="addText()">{{ t('receiptDesigner.addText') }}</button>
         <button class="sm" @click="addField('paymentNo')">{{ t('receiptDesigner.paymentNo') }}</button><button class="sm" @click="addField('paymentMethod')">{{ t('receiptDesigner.paymentMethod') }}</button><button class="sm" @click="addField('issuedTime')">{{ t('receiptDesigner.issuedTime') }}</button><button class="sm" @click="addField('receiptStatus')">{{ t('receiptDesigner.status') }}</button><button class="sm" @click="addQr">{{ t('receiptDesigner.addQr') }}</button><button class="sm danger" @click="deleteSelected">{{ t('receiptDesigner.deleteSelected') }}</button>
         <label class="sm">{{ t('receiptDesigner.addSeal') }}<input type="file" accept="image/*" style="display:none" @change="addSeal" /></label>
