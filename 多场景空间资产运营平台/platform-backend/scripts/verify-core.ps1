@@ -903,6 +903,18 @@ $dashAfterRefund = Api "GET" "/api/v1/platform/dashboard/summary?projectId=$proj
 Assert-True ([decimal]$dashAfterRefund.openingOutstanding -ge 8100) "opening outstanding after refund"
 
 
+$innerDevice = Api "POST" "/api/v1/platform/devices" @{
+    projectId = $projectId
+    spaceId = $innerHouse.spaceId
+    deviceCode = "VERIFY_INNER_DEV_$suffix"
+    deviceName = "验证室内门锁"
+    deviceType = "LOCK"
+    deviceModel = "TEST-LOCK"
+    assetStatus = "ACTIVE"
+    businessStatus = "IN_USE"
+}
+Assert-True ($null -ne $innerDevice.id) "inner house device created"
+
 $directContract = Api "POST" "/api/v1/platform/guarantee/contracts" @{
     projectId = $projectId
     contractNo = "DIRECT_CONTRACT_$suffix"
@@ -938,6 +950,8 @@ Assert-True ($renewedActive.contractStatus -eq "ACTIVE") "renewed contract activ
 $activeGrants = Api "GET" "/api/v1/platform/grants?personId=$($person.id)&projectId=$projectId" $null
 $activeContractGrant = @($activeGrants | Where-Object { $_.sourceType -eq "CONTRACT" -and $_.grantStatus -eq "ACTIVE" })[0]
 Assert-True ($null -ne $activeContractGrant) "contract activation creates access grant"
+$deviceGrant = @($activeGrants | Where-Object { $_.targetType -eq "DEVICE" -and $_.targetId -eq $innerDevice.id -and $_.grantStatus -eq "ACTIVE" })[0]
+Assert-True ($null -ne $deviceGrant) "contract activation grants bound device"
 $settlementPreview = Api "GET" "/api/v1/platform/guarantee/contracts/$($renewed.id)/termination-settlement" $null
 Assert-True ([decimal]$settlementPreview.refundableAmount -ge 0) "termination settlement preview calculated"
 $settled = Api "POST" "/api/v1/platform/guarantee/contracts/$($renewed.id)/termination-settlement" @{
@@ -949,6 +963,8 @@ Assert-True ($settled.houseStatus -eq "VACANT") "termination settlement releases
 $revokedGrants = Api "GET" "/api/v1/platform/grants?personId=$($person.id)&projectId=$projectId" $null
 $revokedContractGrant = @($revokedGrants | Where-Object { $_.sourceType -eq "CONTRACT" -and $_.targetType -eq "SPACE" -and $_.grantStatus -eq "REVOKED" })[0]
 Assert-True ($null -ne $revokedContractGrant) "termination settlement revokes access grant"
+$revokedDeviceGrant = @($revokedGrants | Where-Object { $_.targetType -eq "DEVICE" -and $_.targetId -eq $innerDevice.id -and $_.grantStatus -eq "REVOKED" })[0]
+Assert-True ($null -ne $revokedDeviceGrant) "termination settlement revokes bound device"
 
 
 $wfBiz = "CONTRACT_SCOPE_$suffix"
