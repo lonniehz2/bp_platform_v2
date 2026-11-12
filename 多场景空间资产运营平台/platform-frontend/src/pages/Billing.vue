@@ -162,6 +162,19 @@ async function voidReceipt(p) {
   } catch (e) { error.value = e.message } finally { busy.value = false }
 }
 
+async function previewReceipt(p) {
+  busy.value = true; error.value = ''
+  try {
+    const res = await fetch(`/api/v1/platform/billing/payments/${p.id}/receipt/pdf?inline=true`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('platformToken') || ''}` }
+    })
+    if (!res.ok) throw new Error(t('billing.receiptPdfFailed'))
+    const url = URL.createObjectURL(await res.blob())
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
+  } catch (e) { error.value = e.message } finally { busy.value = false }
+}
+
 async function downloadReceiptPdf(p) {
   busy.value = true; error.value = ''
   try {
@@ -237,7 +250,7 @@ onMounted(load)
               <tr v-for="p in payments" :key="p.id">
                 <td class="mono">{{ p.paymentNo }}</td><td>¥{{ money(p.amount) }}</td><td>{{ enumLabel(p.paymentMethod) }}</td>
                 <td><span class="badge green">{{ enumLabel(p.paymentStatus) }}</span></td><td class="mono">{{ p.receiptNo || '-' }}</td><td class="small">{{ p.paidTime }}</td>
-                <td><div class="row"><button v-if="p.receiptNo" class="sm" :disabled="busy" @click="openReceipt(p)">{{ t('billing.print') }}</button><button v-if="p.receiptNo" class="sm" :disabled="busy" @click="downloadReceiptPdf(p)">{{ t('billing.downloadPdf') }}</button><button v-if="p.receiptNo" class="sm danger" :disabled="busy" @click="voidReceipt(p)">{{ t('billing.voidReceipt') }}</button><button v-if="canAction('billing:refund', 'billing')" class="sm" @click="openRefund(p)">{{ t('billing.refund') }}</button></div></td>
+                <td><div class="row"><button v-if="p.receiptNo" class="sm" :disabled="busy" @click="openReceipt(p)">{{ t('billing.print') }}</button><button v-if="p.receiptNo" class="sm" :disabled="busy" @click="previewReceipt(p)">{{ t('billing.previewReceipt') }}</button><button v-if="p.receiptNo" class="sm" :disabled="busy" @click="downloadReceiptPdf(p)">{{ t('billing.downloadPdf') }}</button><button v-if="p.receiptNo" class="sm danger" :disabled="busy" @click="voidReceipt(p)">{{ t('billing.voidReceipt') }}</button><button v-if="canAction('billing:refund', 'billing')" class="sm" @click="openRefund(p)">{{ t('billing.refund') }}</button></div></td>
               </tr>
             </tbody>
           </table>

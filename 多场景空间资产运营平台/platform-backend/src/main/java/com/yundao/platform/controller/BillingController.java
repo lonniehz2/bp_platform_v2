@@ -118,7 +118,8 @@ public class BillingController {
     }
 
     @GetMapping(value = "/payments/{paymentId}/receipt/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<byte[]> receiptPdf(@PathVariable long paymentId) {
+    public ResponseEntity<byte[]> receiptPdf(@PathVariable long paymentId,
+                                             @RequestParam(defaultValue = "false") boolean inline) {
         permissions.require("billing:view");
         Map<String, Object> receipt = service.receipt(paymentId);
         long receiptId = Long.parseLong(String.valueOf(receipt.get("id")));
@@ -129,7 +130,7 @@ public class BillingController {
         byte[] pdf = receiptPdfService.render(receipt, config, url, String.valueOf(doc.get("code")));
         receiptDocumentService.savePdfHash(receiptId, receiptPdfService.sha256(pdf));
         return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=\"receipt-" + paymentId + ".pdf\"")
+                .header("Content-Disposition", (inline ? "inline" : "attachment") + "; filename=\"receipt-" + paymentId + ".pdf\"")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
     }
